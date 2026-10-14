@@ -21,7 +21,7 @@ fit = pycli.opt_least_squares({model: "c + a*exp(-b*t)", response: "y", data: {t
 if (fit.status == "simulated") { println("Fit simulated."); exit(0); }
 if (fit.status != "ok" || fit.result.status != "OK") { println("Curve fit failed:", json_stringify(fit)); exit(1); }
 p = fit.result.par;
-println(sprintf("a=%.4f b=%.4f c=%.4f  rss=%.3e  m=%d  cov=%s", p.a, p.b, p.c, fit.result.rss, fit.result.n_residuals, fit.result.cov_status));
+println(sprintf("a=%.4f b=%.4f c=%.4f  rss=%.8f  m=%d  cov=%s", p.a, p.b, p.c, fit.result.rss, fit.result.n_residuals, fit.result.cov_status));
 if (abs(p.a - truth.a) > 0.05 || abs(p.b - truth.b) > 0.05 || abs(p.c - truth.c) > 0.05) { println("Recovered parameters differ from the generating values"); exit(1); }
 // The least-squares residual cannot exceed the noise itself (the generating parameters are a feasible point).
 if (fit.result.rss > rss_bound) { println("Residual is larger than the injected noise"); exit(1); }

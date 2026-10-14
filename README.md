@@ -139,6 +139,9 @@ with `x_scale="jac"` and `tol` (default 1e-10) for ftol/xtol/gtol.
 value (e.g. a pole on a Gauss-Kronrod node) is `NON_FINITE`. `num_root` needs finite `f(lower)`, `f(upper)` of opposite
 sign (`NONFINITE_BRACKET`, `BAD_INTERVAL`, exit 2).
 
+S3 latency through the shim is about 1.0-1.1 s per call (p50), of which ~0.43 s is the worker's NumPy/SciPy import; runtime image
+unchanged at 527 MB on disk. Details: [docs/s3.md](docs/s3.md), [docs/timings.md](docs/timings.md).
+
 Distribution params accept loc (default 0), scale (positive, default 1), and
 positive df for t. ppf rejects probabilities outside [0,1], including infinities;
 NaN/missing pass through. Extremely small positive df may make SciPy return NaN;

@@ -1,0 +1,122 @@
+{
+  "image_bytes": 115206817,
+  "py_info": {
+    "wall": {
+      "p50_ms": 615.888,
+      "p95_ms": 672.178,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 102.334,
+      "p95_ms": 124.577,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 106.68,
+      "p95_ms": 130.063,
+      "n": 10
+    }
+  },
+  "opt_minimize_rosenbrock_bfgs": {
+    "wall": {
+      "p50_ms": 1021.576,
+      "p95_ms": 1103.276,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 436.65,
+      "p95_ms": 452.371,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 449.369,
+      "p95_ms": 465.326,
+      "n": 10
+    }
+  },
+  "opt_minimize_slsqp_constrained": {
+    "wall": {
+      "p50_ms": 1033.281,
+      "p95_ms": 1065.888,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 434.764,
+      "p95_ms": 463.802,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 437.052,
+      "p95_ms": 466.073,
+      "n": 10
+    }
+  },
+  "opt_minimize_200000_rows": {
+    "wall": {
+      "p50_ms": 1113.44,
+      "p95_ms": 1142.529,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 442.064,
+      "p95_ms": 453.561,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 543.268,
+      "p95_ms": 557.058,
+      "n": 10
+    }
+  },
+  "opt_least_squares_200_rows": {
+    "wall": {
+      "p50_ms": 1032.0,
+      "p95_ms": 1205.401,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 445.014,
+      "p95_ms": 539.949,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 450.62,
+      "p95_ms": 546.795,
+      "n": 10
+    }
+  },
+  "num_quad_gauss_infinite": {
+    "wall": {
+      "p50_ms": 1019.627,
+      "p95_ms": 1065.227,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 431.146,
+      "p95_ms": 445.018,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 433.512,
+      "p95_ms": 447.392,
+      "n": 10
+    }
+  },
+  "num_root_brentq": {
+    "wall": {
+      "p50_ms": 1009.942,
+      "p95_ms": 1075.052,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 433.527,
+      "p95_ms": 443.51,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 434.058,
+      "p95_ms": 444.037,
+      "n": 10
+    }
+  }
+}

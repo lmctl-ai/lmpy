@@ -211,3 +211,28 @@ Raw samples: measurement-s2-review-shim.json. Host traces: measurement-s2-review
 host.txt, measurement-s2-review-host-wait.txt and measurement-s2-review-host-during.txt.
 Reproduce: python3 scripts/measure-frames.py docs/measurement-s2-review-shim.json.
 This preserves the historical measurement-s2-shim.json instead of overwriting it.
+
+## S3 operations — aarch64, 2026-10-14
+
+Production shim (`--pull=never`, network off, sequential, 10 calls each; p95 is the maximum at this sample size), runtime image
+`sha256:89a5d023c9d319f4a4a6521d172709fde9610b2cea4e69aaf62005f9f636cf76` (`pycli:runtime`, 527 MB on disk, **115,206,817 content bytes**; S2 runtime was 527 MB / 115 MB: no wheel
+or package was added, S3 is two Python files and parser code). Raw data: `measurement-s3-shim.json` from
+`python3 scripts/measure-numerics.py pycli:runtime`. "import" is the worker's own boot + NumPy/SciPy import time, "worker" its
+total, both from the response `meta`.
+
+| Operation (input) | wall p50 ms | wall p95 ms | worker import p50 | worker total p50 |
+|---|---:|---:|---:|---:|
+| py_info (baseline) | 616 | 672 | 102 | 107 |
+| opt_minimize Rosenbrock BFGS (117 objective calls) | 1022 | 1103 | 437 | 449 |
+| opt_minimize SLSQP, equality constraint | 1033 | 1066 | 435 | 437 |
+| opt_minimize, `sum((t*a-1)^2)` over 200000 rows (npy ref) | 1113 | 1143 | 442 | 543 |
+| opt_least_squares, 100-row exponential decay, 3 parameters | 1032 | 1205 | 445 | 451 |
+| num_quad exp(-x^2) over (-Inf, Inf) | 1020 | 1065 | 431 | 434 |
+| num_root brentq cos(x)-x | 1010 | 1075 | 434 | 434 |
+
+Import cost: `scipy.optimize` + `scipy.integrate` + `scipy.special` add about **330 ms** over the py_info baseline (worker import
+~435 ms against ~102 ms; `scipy.stats` was ~1.2 s in the S0 measurements, `scipy.linalg` ops ~300 ms). The solver time itself is
+negligible for these sizes (<=100 ms even with 200000 data rows). Every S3 call is therefore dominated by the fixed process
+start; this does not trip the persistent-worker gate (still no 20-call sequences in the recipes). The host was not idle
+(shared four-core machine); the numbers are sequential samples, not an idle-host claim. Test suite: `ctest` now has 21 tests
+(~8 minutes in the container; `s3_ops` ~77 s, `expr_parser_asan_fuzz` ~19 s).
