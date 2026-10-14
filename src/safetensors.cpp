@@ -25,6 +25,8 @@ void contained(const std::string& name){std::error_code ec;auto root=std::filesy
 uint64_t element_size(const std::string& dtype) {
   if (dtype=="F32") return 4;
   if (dtype=="F64" || dtype=="I64") return 8;
+  if (dtype=="I32") return 4;
+  if (dtype=="U8" || dtype=="BOOL") return 1;
   bad("unsupported safetensors dtype: "+dtype, "UNSUPPORTED_DTYPE");
 }
 uint64_t count_elements(const std::vector<int64_t>& shape) {
@@ -42,7 +44,8 @@ void put_u64(std::string&out,uint64_t n){for(int i=0;i<8;++i)out.push_back(stati
 void write_all(int fd,const char*p,size_t n){while(n){ssize_t w=::write(fd,p,n);if(w<0){if(errno==EINTR)continue;throw Error{ErrorCode::CommandFailed,"failed writing safetensors file",{{"tool_code","OUTPUT_WRITE_FAILED"}}};}p+=w;n-=static_cast<size_t>(w);}}
 }
 TensorRef parse_ref(const std::string&ref){auto h=ref.find('#');if(h==std::string::npos||h==0||h+1==ref.size()||ref.find('#',h+1)!=std::string::npos)throw Error{ErrorCode::ValidationError,"tensor reference must be path#key",{{"tool_code","INVALID_TENSOR_REF"}}};return{ref.substr(0,h),ref.substr(h+1)};}
-static TensorBundle read_selected(const std::string&path,const std::string& selected){
+// payload=false validates the whole header (and layout) but reads no tensor bytes; infos receives every entry.
+static TensorBundle read_selected(const std::string&path,const std::string& selected,bool payload=true,std::map<std::string,TensorInfo>* infos=nullptr){
   contained(path);
   std::ifstream f(path,std::ios::binary);if(!f)throw Error{ErrorCode::NotFound,"cannot open tensor artifact: "+path,{{"tool_code","ARTIFACT_NOT_FOUND"}}};
   std::array<uint8_t,8> prefix{};f.read(reinterpret_cast<char*>(prefix.data()),8);if(f.gcount()!=8)bad("truncated artifact", "INVALID_ARTIFACT");uint64_t hlen=little_u64(prefix.data());if(hlen==0||hlen>kMaxHeader)bad("invalid safetensors header length", "INVALID_HEADER");std::string header(static_cast<size_t>(hlen),'\0');f.read(header.data(),static_cast<std::streamsize>(hlen));if(static_cast<uint64_t>(f.gcount())!=hlen)bad("truncated safetensors header", "INVALID_HEADER");
@@ -61,7 +64,12 @@ static TensorBundle read_selected(const std::string&path,const std::string& sele
     Entry e;e.name=it.key();e.dtype=v["dtype"].get<std::string>();(void)element_size(e.dtype);
     try{for(auto&d:v["shape"]){if(!d.is_number_integer()||(!d.is_number_unsigned()&&d.get<int64_t>()<0))bad("shape dimensions must be unsigned integers", "INVALID_HEADER");if(d.is_number_unsigned()&&d.get<uint64_t>()>static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))bad("shape dimension is out of range", "INVALID_HEADER");e.shape.push_back(d.get<int64_t>());}for(auto&x:v["data_offsets"])if(!x.is_number_integer()||(!x.is_number_unsigned()&&x.get<int64_t>()<0))bad("data offsets must be unsigned integers", "INVALID_HEADER");e.begin=v["data_offsets"][0].get<uint64_t>();e.end=v["data_offsets"][1].get<uint64_t>();}catch(...){bad("invalid tensor shape or offsets", "INVALID_HEADER");}
     uint64_t count=count_elements(e.shape), unit=element_size(e.dtype);if(count>kMaxArtifact/unit)bad("tensor exceeds artifact size limit", "OUTPUT_TOO_LARGE");uint64_t bytes=count*unit;
-    if(!selected.empty()&&e.name==selected&&(e.dtype!="F64"||e.shape.empty()||e.shape.size()>2||count==0||count>200000))bad("S0 tensor requires F64 rank 1/2 and 1..200000 numbers", "INPUT_TOO_LARGE");
+    // Selected tensors are bounded from the header, before any payload allocation; callers check dtype.
+    if(!selected.empty()&&e.name==selected){
+      if(e.shape.empty()||e.shape.size()>2)bad("selected tensor must have rank 1 or 2", "INVALID_SHAPE");
+      if(count==0)bad("selected tensor is empty", "INVALID_SHAPE");
+      if(count>200000)bad("selected tensor exceeds 200000 numbers", "INPUT_TOO_LARGE");
+    }
     if(e.begin>e.end||e.end>data_size||e.end-e.begin!=bytes) bad("tensor offsets do not match shape and dtype", "INVALID_OFFSETS");
     entries.push_back(std::move(e));
   }
@@ -69,7 +77,8 @@ static TensorBundle read_selected(const std::string&path,const std::string& sele
   std::sort(entries.begin(),entries.end(),[](auto&a,auto&b){return a.begin<b.begin;});uint64_t cursor=0;
   for(auto&e:entries){
     if(e.begin!=cursor)bad("safetensors offsets overlap or leave gaps", "INVALID_OFFSETS");cursor=e.end;
-    if(!selected.empty()&&e.name!=selected)continue;
+    if(infos)(*infos)[e.name]=TensorInfo{e.dtype,e.shape};
+    if(!payload||(!selected.empty()&&e.name!=selected))continue;
     TensorData tensor;tensor.dtype=e.dtype;tensor.shape=e.shape;tensor.bytes.resize(e.end-e.begin);
     f.seekg(payload_start+static_cast<std::streamoff>(e.begin));
     f.read(reinterpret_cast<char*>(tensor.bytes.data()),tensor.bytes.size());
@@ -80,6 +89,7 @@ static TensorBundle read_selected(const std::string&path,const std::string& sele
   return result;
 }
 TensorBundle read_bundle(const std::string&path){return read_selected(path, "");}
+std::map<std::string,TensorInfo> list_tensors(const std::string&path){std::map<std::string,TensorInfo> infos;read_selected(path,"",false,&infos);return infos;}
 TensorData read_tensor(const TensorRef&ref){auto bundle=read_selected(ref.path,ref.key);auto it=bundle.tensors.find(ref.key);if(it==bundle.tensors.end())throw Error{ErrorCode::NotFound,"tensor key not found: "+ref.key,{{"tool_code","TENSOR_NOT_FOUND"}}};return it->second;}
 std::string write_bundle(const std::string&path,const TensorBundle&bundle){
   contained(path);
