@@ -1,0 +1,132 @@
+{
+  "schema": "cli.schema.v1",
+  "tool": "pycli",
+  "version": "0.1.0",
+  "inputs": [
+    "flags",
+    "json"
+  ],
+  "globals": [],
+  "operations": [
+    {
+      "name": "py_info",
+      "access": "read",
+      "returns": "object",
+      "description": "Pinned Python scientific runtime, BLAS pools and determinism",
+      "params": []
+    },
+    {
+      "name": "la_solve",
+      "access": "read",
+      "returns": "object",
+      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; singular returns SINGULAR",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "a input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "1",
+          "description": "b input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "assume_a",
+          "type": "string",
+          "occurs": "?",
+          "default": "gen",
+          "enum": [
+            "gen",
+            "sym",
+            "pos"
+          ],
+          "description": "assume_a input; see README for S0 shapes and limits."
+        }
+      ]
+    },
+    {
+      "name": "la_solve_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; singular returns SINGULAR",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "a input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "1",
+          "description": "b input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "assume_a",
+          "type": "string",
+          "occurs": "?",
+          "default": "gen",
+          "enum": [
+            "gen",
+            "sym",
+            "pos"
+          ],
+          "description": "assume_a input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "out input; see README for S0 shapes and limits."
+        }
+      ]
+    },
+    {
+      "name": "stats_dist",
+      "access": "read",
+      "returns": "object",
+      "description": "Normal or Student t pdf/cdf/ppf/sf; <=1000 inline values",
+      "params": [
+        {
+          "name": "dist",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "norm",
+            "t"
+          ],
+          "description": "dist input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "fn",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "pdf",
+            "cdf",
+            "ppf",
+            "sf"
+          ],
+          "description": "fn input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "1",
+          "description": "x input; see README for S0 shapes and limits."
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "occurs": "?",
+          "default": {},
+          "description": "params input; see README for S0 shapes and limits."
+        }
+      ]
+    }
+  ]
+}
