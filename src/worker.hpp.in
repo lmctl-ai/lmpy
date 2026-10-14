@@ -1,0 +1,3 @@
+#pragma once
+static constexpr const char* PYCLI_WORKER_SOURCE = R"LMPYCLI(@PYCLI_WORKER_SOURCE@)LMPYCLI";
+static constexpr const char* PYCLI_WORKER_SHA256 = "@PYCLI_WORKER_SHA256@";

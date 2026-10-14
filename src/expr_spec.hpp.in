@@ -1,0 +1,3 @@
+#pragma once
+static constexpr const char PYCLI_EXPR_SPEC_JSON[] = R"LMEXPR(@PYCLI_EXPR_SPEC_JSON@)LMEXPR";
+#define PYCLI_EXPR_SPEC_SHA256 "@PYCLI_EXPR_SPEC_SHA256@"

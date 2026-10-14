@@ -1,0 +1,484 @@
+{
+  "accept": [
+    {
+      "expression": "a*exp(-b*t)",
+      "names": [
+        "a",
+        "b",
+        "t"
+      ]
+    },
+    {
+      "expression": "x^2",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "ifelse(x>0,x,-x)",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "sum(x)",
+      "names": [
+        "x"
+      ],
+      "allow_reducers": true
+    },
+    {
+      "expression": "ifelse(x>0 & x<1,1,0)",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "pi+e"
+    },
+    {
+      "expression": "pmin(x,2)",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "1e-12 + log1p(abs(x))",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "ifelse(x<1 | x>4 & x<0,1,0)",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "--x + - -x",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "1e-310 + x",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x",
+      "names": [
+        "x"
+      ]
+    },
+    {
+      "expression": "--x",
+      "names": [
+        "x"
+      ]
+    }
+  ],
+  "reject": [
+    {
+      "expression": "system(\"id\")",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "eval(parse(text=\"1\"))",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "base::exp(1)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_IDENT"
+    },
+    {
+      "expression": "`exp`(1)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x <- 1",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x = 1",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "function(x) x",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "\\(x) x",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": ".Internal(1)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "get(\"system\")",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "match.fun(\"exp\")",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_IDENT"
+    },
+    {
+      "expression": "do.call(\"exp\",list(1))",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_IDENT"
+    },
+    {
+      "expression": "Sys.setenv(x=1)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "quote(x)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "substitute(x)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "environment()",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "x$y",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x@y",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x[[1]]",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x[1]",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "c(1,2)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "\"a\"",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "'a'",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "# comment",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "1;2",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "1\nsystem(\"id\")",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "ехр(1)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_BAD_BYTE"
+    },
+    {
+      "expression": "\u0000",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_BAD_BYTE"
+    },
+    {
+      "expression": "1e999",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "0x10",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "1L",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "TRUE",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "FALSE",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "NA",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "Inf",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "NULL",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "exp()",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_ARITY"
+    },
+    {
+      "expression": "exp(1,2)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_ARITY"
+    },
+    {
+      "expression": "log(x,2)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_ARITY"
+    },
+    {
+      "expression": "pi(1)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_FUNCTION"
+    },
+    {
+      "expression": "2**3",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "7%%2",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x %in% y",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "a && b",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_IDENT"
+    },
+    {
+      "expression": "!x",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x ? y",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "(((((((((((((((((((((((((((((((((x)))))))))))))))))))))))))))))))))",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_TOO_DEEP"
+    },
+    {
+      "expression": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_TOO_LONG"
+    },
+    {
+      "expression": "y",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_UNKNOWN_IDENT"
+    },
+    {
+      "expression": "ifelse(x,1,2)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "sum(x)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_NOT_SCALAR"
+    },
+    {
+      "expression": "   ",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "1e+",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "-Inf",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "ifelse(x <- 1,1,0)",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x -> y",
+      "names": [
+        "x",
+        "y"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    },
+    {
+      "expression": "x <<- 1",
+      "names": [
+        "x"
+      ],
+      "expected_tool_code": "EXPR_SYNTAX"
+    }
+  ]
+}
