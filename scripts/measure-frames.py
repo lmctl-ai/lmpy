@@ -1,8 +1,8 @@
 """Measure S2 per-call latency through the production shim; runtime image must exist."""
-import json, pathlib, subprocess, tempfile, time, statistics, math, shutil
+import json, pathlib, subprocess, tempfile, time, statistics, math, shutil, sys, os
 root=pathlib.Path(__file__).resolve().parents[1];shim=str(root/'bin/pycli')
 with tempfile.TemporaryDirectory(prefix='pycli-s2-measure-',dir=pathlib.Path.home()) as tmp:
- cwd=pathlib.Path(tmp);results={}
+ cwd=pathlib.Path(tmp);results={'host_load_start':os.getloadavg()}
  cols={'ts':['2026-03-0'+str(i)+'T12:00:00+00:00' for i in range(1,8)],'region':['E','W','E','W','E','W','E'],'sales':[10,20,30,40,50,60,70]}
  def call(op,p):
   r=subprocess.run([shim,'--input-json',json.dumps({'op':op,'params':p})],cwd=cwd,capture_output=True,text=True);assert r.returncode==0,(op,r.returncode,r.stdout,r.stderr);return json.loads(r.stdout)
@@ -21,4 +21,5 @@ with tempfile.TemporaryDirectory(prefix='pycli-s2-measure-',dir=pathlib.Path.hom
   start=time.monotonic();r=subprocess.run(['docker','run','--rm','--pull=never','--network=none','--entrypoint','/bin/true','pycli:runtime']);assert r.returncode==0;overhead.append((time.monotonic()-start)*1000)
  results['docker_overhead']={'p50_ms':statistics.median(overhead),'p95_ms':max(overhead),'samples':overhead}
  results['image']=json.loads(subprocess.run(['docker','image','inspect','pycli:runtime'],capture_output=True,text=True,check=True).stdout)[0]['Id']
- (root/'docs/measurement-s2-shim.json').write_text(json.dumps(results,indent=2)+'\n')
+ results['host_load_end']=os.getloadavg()
+ (root/(sys.argv[1] if len(sys.argv)>1 else 'docs/measurement-s2-shim.json')).write_text(json.dumps(results,indent=2)+'\n')
