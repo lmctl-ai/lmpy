@@ -243,12 +243,25 @@ def frame_save(df,meta,masks,p,inferred):
     import numpy as np
     if len(df)>TABLE_ROWS or len(df.columns)>TABLE_COLS:raise OutputTooLarge('table output cap exceeded')
     frame_columns(list(df.columns));arrays={}
+    # Fixed-width byte strings can expand a tiny CSV into gigabytes. Budget every
+    # column and mask before constructing any storage array (including siblings).
+    projected=1024*1024
+    string_values={}
+    for col in df:
+        dtype=meta[col]['dtype']
+        if dtype=='string':
+            values=[('' if m else str(v)).encode('utf-8') for v,m in zip(df[col],masks[col])]
+            if any(b'\x00' in v for v in values):raise BadData('NUL in strings unsupported')
+            width=max(1,max(map(len,values),default=0));string_values[col]=(values,width)
+        else:
+            width=1 if dtype=='bool' else 8
+        projected+=len(df)*(width+1)
+        if projected>TABLE_BYTES:raise OutputTooLarge('table storage exceeds 256MiB before allocation')
     for i,col in enumerate(df.columns):
         dtype=meta[col]['dtype'];s=df[col];mask=np.asarray(masks[col],dtype=bool)
         if dtype=='string':
-            values=[('' if m else str(v)).encode('utf-8') for v,m in zip(s,mask)]
-            if any(b'\x00' in v for v in values):raise BadData('NUL in strings unsupported')
-            raw=np.asarray(values,dtype='S'+str(max(1,max(map(len,values),default=0))))
+            values,width=string_values[col]
+            raw=np.asarray(values,dtype='S'+str(width))
         elif dtype=='category':raw=s.cat.codes.to_numpy(dtype='<i8')
         elif dtype=='datetime64[ns]':raw=s.array.asi8.astype('<i8')
         elif dtype=='float64':raw=s.to_numpy(dtype='<f8')
@@ -364,7 +377,7 @@ def frame_operation(op,p):
                     if (df[timecol].max()-df[timecol].min()).total_seconds()/seconds+3>TABLE_ROWS:raise BadData('resample bin count exceeds cap')
                 out=df.resample(p['rule'],on=timecol,closed=p.get('closed','left'),label=p.get('label','left')).agg(**aggs).reset_index()
         except (ValueError, TypeError) as exc:raise BadData('invalid aggregation: '+str(exc)) from exc
-        data={c:[None if pd.isna(v) else v.isoformat() if isinstance(v,pd.Timestamp) else v.item() if isinstance(v,np.generic) else v for v in out[c]] for c in out}
+        data={c:[None if pd.isna(v) else ('Inf' if v>0 else '-Inf') if isinstance(v,(float,np.floating)) and math.isinf(float(v)) else v.isoformat() if isinstance(v,pd.Timestamp) else v.item() if isinstance(v,np.generic) else v for v in out[c]] for c in out}
         policies={c:meta[c] for c in (p['keys'] if op=='frame_groupby' else [p['time']])}
         # Preserve categorical and timezone policies of keys; infer aggregate result types explicitly.
         df,meta,masks=frame_build(data,policies,inferred)
