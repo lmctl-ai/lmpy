@@ -94,6 +94,9 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=()):
                     n = float({'NaN': 'nan', 'Inf': 'inf', '-Inf': '-inf'}.get(v, v) if isinstance(v,str) else v)
                     if not math.isfinite(n) and v not in ('NaN', 'Inf', '-Inf'):
                         raise BadData('float64 overflow; use explicit nonfinite tokens')
+                    if n==0 and isinstance(v,str):
+                        from decimal import Decimal
+                        if Decimal(v)!=0:raise BadData('float64 underflow')
                     parsed.append(n)
                 s = pd.Series(parsed, dtype='float64')
             elif dtype == 'bool':
@@ -279,16 +282,39 @@ def frame_save(df,meta,masks,p,inferred):
     return {'status':'OK','shape':[len(df),len(df.columns)],'column_meta':meta,'inferred':inferred,'preview':frame_preview(df,meta,masks,range(min(len(df),min(10,1000//len(df.columns)))))}
 
 
-def frame_predicate(df,node):
+def frame_predicate(df,node,meta):
     import pandas as pd
     if 'and' in node or 'or' in node:
-        key='and' if 'and' in node else 'or';parts=[frame_predicate(df,n) for n in node[key]];result=parts[0]
+        key='and' if 'and' in node else 'or';parts=[frame_predicate(df,n,meta) for n in node[key]];result=parts[0]
         for part in parts[1:]:result=result & part if key=='and' else result | part
         return result
-    if 'not' in node:return ~frame_predicate(df,node['not'])
+    if 'not' in node:return ~frame_predicate(df,node['not'],meta)
     col=node['col']
     if col not in df:raise BadData('unknown predicate column')
-    s=df[col];op=node['op'];v=node.get('value')
+    s=df[col];op=node['op'];v=node.get('value');dtype=meta[col]['dtype']
+    def typed(value):
+        if dtype=='float64':
+            if isinstance(value,str) and value in ('NaN','Inf','-Inf'):return float({'NaN':'nan','Inf':'inf','-Inf':'-inf'}[value])
+            if not isinstance(value,(int,float)) or isinstance(value,bool):raise BadData('numeric predicate requires numbers or nonfinite tokens')
+        elif dtype=='int64':
+            if not isinstance(value,int) or isinstance(value,bool) or not -(1<<63)<=value<(1<<63):raise BadData('int64 predicate requires int64 values')
+        elif dtype=='bool':
+            if not isinstance(value,bool):raise BadData('bool predicate requires booleans')
+        elif dtype in ('string','category'):
+            if not isinstance(value,str):raise BadData('string predicate requires strings')
+        else:
+            if not isinstance(value,str):raise BadData('datetime predicate requires ISO strings')
+            try:
+                timestamp=pd.Timestamp(value)
+                if pd.isna(timestamp) or (timestamp.tzinfo is not None)!=bool(meta[col].get('tz')):raise BadData('datetime predicate awareness mismatch')
+                # The literal must be ISO, not pandas natural-language date syntax.
+                pd.to_datetime([value],format='ISO8601',utc=bool(meta[col].get('tz')))
+                return timestamp
+            except (ValueError,TypeError) as exc:raise BadData('invalid ISO datetime predicate') from exc
+        return value
+    if op!='isnull':
+        if op in ('contains','startswith') and dtype not in ('string','category'):raise BadData('string predicate requires string/category column')
+        v=[typed(x) for x in v] if op in ('isin','between') else typed(v)
     try:
         if op=='isnull':return s.isna()
         if op=='isin':return s.isin(v).fillna(False)
@@ -353,7 +379,7 @@ def frame_operation(op,p):
                 f=io.StringIO();csv.writer(f,lineterminator='\n').writerows(rows());return {'csv':f.getvalue()}
         return {'status':'OK','shape':[len(df),len(df.columns)]}
     if op=='frame_select':
-        if 'where' in p:df=df.loc[frame_predicate(df,p['where'])]
+        if 'where' in p:df=df.loc[frame_predicate(df,p['where'],meta)]
         if p.get('sort_by'):
             names=[v['col'] for v in p['sort_by']]
             if any(c not in df for c in names):raise BadData('unknown sort column')
