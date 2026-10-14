@@ -108,6 +108,10 @@ class Frames(unittest.TestCase):
   self.call('frame_select',rc=2,frame='t.npz',where={'col':'x','op':'eq','value':'text'},out='bad.npz')
   self.call('frame_select',rc=2,frame='t.npz',where={'col':'s','op':'eq','value':1},out='bad.npz')
   (self.cwd/'tiny.csv').write_text('x\n1e-999\n');self.call('frame_import',rc=2,csv='tiny.csv',out='bad.npz')
+ def test_missing_mask_predicates(self):
+  self.table({'x':['Inf','-Inf','NaN',None]},dtypes={'x':'float64'})
+  self.call('frame_select',frame='t.npz',where={'col':'x','op':'isnull'},out='null.npz');self.assertEqual(self.inspect('null.npz')['shape'][0],1)
+  self.call('frame_select',frame='t.npz',where={'col':'x','op':'ne','value':0},out='ne.npz');self.assertEqual(self.inspect('ne.npz')['shape'][0],3)
  def test_minimal_dependencies(self):
   import importlib.util
   for name in ('pyarrow','numexpr','bottleneck','openpyxl'):self.assertIsNone(importlib.util.find_spec(name),name)
