@@ -430,7 +430,7 @@
           "name": "csv",
           "type": "string",
           "occurs": "?",
-          "description": "UTF-8 CSV path with header, <=256MiB and 2M rows."
+          "description": "UTF-8 CSV path with header, <=16MiB, 200000 rows, 500000 cells; string width <=65536 bytes."
         },
         {
           "name": "frame",
@@ -472,8 +472,8 @@
           "name": "max_rows",
           "type": "number",
           "occurs": "?",
-          "default": 2000000,
-          "description": "CSV maximum data rows, 0..2M."
+          "default": 200000,
+          "description": "CSV maximum data rows, 0..200000."
         },
         {
           "name": "out",
@@ -664,23 +664,21 @@
           "name": "closed",
           "type": "string",
           "occurs": "?",
-          "default": "left",
           "enum": [
             "left",
             "right"
           ],
-          "description": "Bin edge closure or label."
+          "description": "Bin edge closure or label; pandas defaults: right for ME/W, left otherwise."
         },
         {
           "name": "label",
           "type": "string",
           "occurs": "?",
-          "default": "left",
           "enum": [
             "left",
             "right"
           ],
-          "description": "Bin edge closure or label."
+          "description": "Bin edge closure or label; pandas defaults: right for ME/W, left otherwise."
         },
         {
           "name": "aggs",

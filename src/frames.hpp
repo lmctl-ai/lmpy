@@ -39,7 +39,7 @@ inline Json npz(const std::string& b){
   else if(parsed.descr=="|b1"||parsed.descr=="|u1")width=1;
   else if(parsed.descr.rfind("|S",0)==0){auto s=parsed.descr.substr(2);if(s.empty()||s.size()>7||s.find_first_not_of("0123456789")!=std::string::npos)bad("invalid UTF-8 byte array dtype");width=std::stoull(s);}
   else bad("object or unsupported table array dtype");
-  if(!width||width>STRING_BYTES||n>ROWS||n>BYTES/width||10+h+n*width!=bytes)bad("table array cap/payload mismatch");
+  if(!width||width>STRING_BYTES||(name!="__pycli_table__.npy"&&n>ROWS)||n>BYTES/width||10+h+n*width!=bytes)bad("table array cap/payload mismatch");
   if(name=="__pycli_table__.npy"){
    if(parsed.descr!="|u1"||n>1024*1024)bad("invalid metadata array");
    try{metadata=Json::parse(b.substr(data+10+h,n),[](int depth,Json::parse_event_t,Json&){if(depth>32)bad("table metadata nesting cap");return true;});}catch(const Json::exception&){bad("invalid table metadata JSON");}
