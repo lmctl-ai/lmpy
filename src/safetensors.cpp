@@ -22,12 +22,14 @@ void contained(const std::string& name){std::error_code ec;auto root=std::filesy
 [[noreturn]] void bad(std::string message, std::string code="INVALID_ARTIFACT") {
   throw Error{ErrorCode::CommandFailed, std::move(message), {{"tool_code", code}}};
 }
+// Full table from the safetensors specification, so a file holding half-precision or other tensors can be
+// validated and listed; whether a dtype is *usable* is decided by the caller for the tensor it selects.
 uint64_t element_size(const std::string& dtype) {
-  if (dtype=="F32") return 4;
-  if (dtype=="F64" || dtype=="I64") return 8;
-  if (dtype=="I32") return 4;
-  if (dtype=="U8" || dtype=="BOOL") return 1;
-  bad("unsupported safetensors dtype: "+dtype, "UNSUPPORTED_DTYPE");
+  static const std::map<std::string,uint64_t> sizes={{"BOOL",1},{"U8",1},{"I8",1},{"F8_E4M3",1},{"F8_E5M2",1},{"I16",2},{"U16",2},{"F16",2},{"BF16",2},
+                                                       {"I32",4},{"U32",4},{"F32",4},{"I64",8},{"U64",8},{"F64",8}};
+  auto it=sizes.find(dtype);
+  if (it==sizes.end()) bad("unknown safetensors dtype: "+dtype, "UNSUPPORTED_DTYPE");
+  return it->second;
 }
 uint64_t count_elements(const std::vector<int64_t>& shape) {
   if(shape.size()>32) bad("tensor rank exceeds 32", "INVALID_SHAPE");

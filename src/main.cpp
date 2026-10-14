@@ -45,7 +45,10 @@ std::string confined(const std::string& name,bool output=false){
     auto rel=path.lexically_relative(root);
     if(ec||rel.empty()||*rel.begin()=="..")invalid("artifact path escapes cwd","PATH_OUTSIDE_CWD");
     if(output){if(fs::exists(path)||fs::is_symlink(fs::symlink_status(path)))throw Error{ErrorCode::Conflict,"output already exists",{{"path",path.string()}}};if(!fs::is_directory(path.parent_path()))invalid("output parent must exist");}
-    else if(!fs::is_regular_file(path)||fs::file_size(path)>MAX_BYTES)invalid("input must be a regular file <=256 MiB");
+    else{
+        if(!fs::exists(path))throw Error{ErrorCode::NotFound,"input file not found: "+name,{{"tool_code","ARTIFACT_NOT_FOUND"}}};
+        if(!fs::is_regular_file(path)||fs::file_size(path)>MAX_BYTES)invalid("input must be a regular file <=256 MiB");
+    }
     return path.string();
 }
 struct Array{std::vector<int64_t> shape;std::vector<double> data;std::vector<size_t> missing;std::string dtype="F64";};
@@ -111,16 +114,22 @@ Array read_npy(const std::string& path){
 Array load(const Json& value){
     Array a;
     if(value.is_string()){
-        auto ref=value.get<std::string>();auto pos=ref.find('#');auto path=confined(ref.substr(0,pos));
-        if(fs::path(path).extension()==".npy"&&pos==std::string::npos)return read_npy(path);
-        if(fs::path(path).extension()!=".safetensors"||pos==std::string::npos)invalid("use .npy or .safetensors#key");
+        // Syntax first (a malformed ref is a validation error), then existence (NOT_FOUND, protocol 6.1).
+        auto ref=value.get<std::string>();auto pos=ref.find('#');auto base=ref.substr(0,pos);auto extension=fs::path(base).extension();
+        bool npy=extension==".npy"&&pos==std::string::npos,safetensors=extension==".safetensors"&&pos!=std::string::npos;
+        if(!base.empty()&&!npy&&!safetensors)invalid("use .npy or .safetensors#key");
+        if(safetensors&&(pos+1==ref.size()||ref.find('#',pos+1)!=std::string::npos))invalid("tensor reference must be path.safetensors#key","BAD_REF");
+        auto path=confined(base);
+        if(npy)return read_npy(path);
         pycli::TensorData tensor;
-        try{tensor=pycli::read_tensor({path,ref.substr(pos+1)});}catch(const Error& e){throw Error{ErrorCode::ValidationError,e.message,e.data};}
+        try{tensor=pycli::read_tensor({path,ref.substr(pos+1)});}catch(const Error& e){throw Error{e.code==ErrorCode::NotFound?ErrorCode::NotFound:ErrorCode::ValidationError,e.message,e.data};}
         const auto& type=dtype_by_name(tensor.dtype);if(tensor.shape.empty()||tensor.shape.size()>2||tensor.bytes.size()/type.size>MAX_NUMBERS)invalid("tensor must have rank <=2 and <=200000 values");
         a.shape=tensor.shape;a.dtype=tensor.dtype;to_doubles(tensor.dtype,tensor.bytes.data(),tensor.bytes.size()/type.size,a.data);
     }else if(value.is_array())flatten(value,a);else if(value.is_object()&&value.size()==2&&value.contains("shape")&&value.contains("data")){
         if(!value["shape"].is_array()||value["shape"].empty()||value["shape"].size()>2||!value["data"].is_array())invalid("invalid inline shape/data");
-        flatten(value["data"],a);size_t count=1;a.shape.clear();for(const auto& d:value["shape"]){if(!d.is_number_integer()||d<=0||d>1000)invalid("invalid shape");count*=d.get<size_t>();a.shape.push_back(d.get<int64_t>());}if(count!=a.data.size())invalid("shape/data mismatch");
+        flatten(value["data"],a);size_t count=1;auto nested=a.shape;a.shape.clear();for(const auto& d:value["shape"]){if(!d.is_number_integer()||d<=0||d>1000)invalid("invalid shape");count*=d.get<size_t>();a.shape.push_back(d.get<int64_t>());}if(count!=a.data.size())invalid("shape/data mismatch");
+        // Flat data is row-major by definition; nested data must already have exactly the declared shape (no silent reshaping).
+        if(nested.size()>1&&nested!=a.shape)invalid("nested data shape does not match the declared shape; flatten it or fix the shape");
     }else invalid("expected inline array or artifact ref");return a;
 }
 Json jnum(double v){if(std::isnan(v))return "NaN";if(std::isinf(v))return v>0?"Inf":"-Inf";return v;}
@@ -216,7 +225,7 @@ Json array_inspect(const Params& p){
     if(ref.is_string()){
         std::string text=ref;auto hash=text.find('#');
         if(hash==std::string::npos&&fs::path(text).extension()==".safetensors"){
-            std::map<std::string,pycli::TensorInfo> infos;try{infos=pycli::list_tensors(confined(text));}catch(const Error& e){if(e.code==ErrorCode::ValidationError)throw;throw Error{ErrorCode::ValidationError,e.message,e.data};}
+            std::map<std::string,pycli::TensorInfo> infos;try{infos=pycli::list_tensors(confined(text));}catch(const Error& e){if(e.code==ErrorCode::ValidationError||e.code==ErrorCode::NotFound)throw;throw Error{ErrorCode::ValidationError,e.message,e.data};}
             if(infos.size()>MAX_INLINE)invalid("more than 1000 tensors","TOO_MANY_TENSORS");
             Json tensors=Json::object();for(const auto& entry:infos)tensors[entry.first]={{"dtype",entry.second.dtype},{"shape",entry.second.shape}};
             return {{"source","safetensors"},{"tensors",tensors},{"count",infos.size()}};
@@ -255,7 +264,20 @@ pycli::TensorBundle read_outputs(TempDir& temp,Json& result){
     }
     result.erase("outputs");return bundle;
 }
-[[noreturn]] void no_artifact(const Json& result,const char* message){throw Error{ErrorCode::CommandFailed,message,{{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}}};}
+[[noreturn]] void no_artifact(const Json& result,const char* message){
+    Json data={{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}};
+    // Keep whatever the worker measured so a caller can tell 1e-8 from 0.9.
+    for(const char* field:{"kind","driver","message","reconstruction_error","rank","residual_norm"})if(result.contains(field))data[field]=result[field];
+    throw Error{ErrorCode::CommandFailed,message,data};
+}
+// The binding rule is <=1000 numbers inline per result: count every array element (shapes, meta and warnings aside).
+size_t inline_numbers(const Json& v,const std::string& key=""){
+    if(key=="meta"||key=="warnings"||key=="shape")return 0;
+    size_t n=0;
+    if(v.is_array()){for(const auto& item:v)n+=item.is_array()||item.is_object()?inline_numbers(item):1;}
+    else if(v.is_object())for(auto it=v.begin();it!=v.end();++it)n+=inline_numbers(it.value(),it.key());
+    return n;
+}
 Json call(const std::string& op,const Params& input){
     if(op=="array_import")return array_import(input);
     if(op=="array_inspect")return array_inspect(input);
@@ -276,15 +298,16 @@ Json call(const std::string& op,const Params& input){
         if(p.contains("rcond")){double r=p["rcond"];if(!(r>=0&&r<1))invalid("rcond must lie in [0,1)");}
         uint64_t numbers=uint64_t(a.shape[1])*uint64_t(b.shape.size()==2?b.shape[1]:1);
         if(numbers>MAX_OUTPUT_NUMBERS)output_too_large("solution would exceed "+std::to_string(MAX_OUTPUT_NUMBERS)+" numbers");
-        if(op=="la_lstsq"&&numbers>MAX_INLINE)output_too_large("solution has "+std::to_string(numbers)+" numbers, more than 1000 inline; use la_lstsq_to");
+        uint64_t inline_total=numbers+uint64_t(b.shape.size()==2?b.shape[1]:1)+uint64_t(std::min(a.shape[0],a.shape[1]));
+        if(op=="la_lstsq"&&inline_total>MAX_INLINE)output_too_large("result would hold "+std::to_string(inline_total)+" inline numbers (x, residues, singular values), more than 1000; use la_lstsq_to");
         if(op=="la_lstsq_to")p["out"]=output_path(p);
     }else if(op=="la_props"){
         arrays["a"]=load(p["a"]);auto& a=arrays["a"];if(a.shape.size()!=2)invalid("a must be a matrix");need_finite(a,"a");
-        if(!p.contains("what"))p["what"]=Json::array({"det","rank","cond","norm","trace"});
+        if(!p.contains("what"))p["what"]=a.shape[0]==a.shape[1]?Json::array({"det","rank","cond","norm","trace"}):Json::array({"rank","cond","norm"});
         std::set<std::string> what;for(const auto& w:p["what"])if(!what.insert(w.get<std::string>()).second)invalid("duplicate entry in what","BAD_PARAM");
         if(what.empty())invalid("what must name at least one property","BAD_PARAM");
         bool square=a.shape[0]==a.shape[1];
-        for(const char* name:{"det","slogdet","inverse"})if(what.count(name)&&!square)invalid(std::string(name)+" requires a square matrix");
+        for(const char* name:{"det","slogdet","trace","inverse"})if(what.count(name)&&!square)invalid(std::string(name)+" requires a square matrix");
         if(what.count("cond")&&p["cond_p"]!="2"&&!square)invalid("cond_p other than 2 requires a square matrix");
         if(what.count("inverse")&&a.data.size()>MAX_INLINE)output_too_large("inverse has "+std::to_string(a.data.size())+" numbers, more than 1000 returned inline");
         if(p.contains("rank_tol")){double t=p["rank_tol"];if(!(t>=0))invalid("rank_tol must be >= 0");}
@@ -343,9 +366,13 @@ Json call(const std::string& op,const Params& input){
         std::string status=result.value("status",std::string());
         if(status!="OK"&&!(op=="la_lstsq_to"&&status=="RANK_DEFICIENT"))no_artifact(result,"no artifact was produced");
         auto bundle=read_outputs(temp,result);auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);
+        Json tensors=Json::object();
+        for(const auto& entry:bundle.tensors)if(op!="la_lstsq_to"||entry.first!="x")tensors[entry.first]=pycli::descriptor({path,entry.first},entry.second);
         if(op=="la_lstsq_to")result["x"]=pycli::descriptor({path,"x"},bundle.tensors.at("x"));
-        else{Json tensors=Json::object();for(const auto& entry:bundle.tensors)tensors[entry.first]=pycli::descriptor({path,entry.first},entry.second);result["tensors"]=tensors;}
+        if(op=="la_decomp"||!tensors.empty())result["tensors"]=tensors;
     }
+    size_t shown=inline_numbers(result);
+    if(shown>MAX_INLINE)throw Error{ErrorCode::CommandFailed,"CAP exceeded: result holds "+std::to_string(shown)+" inline numbers (limit 1000); the worker must write large vectors to the artifact",{{"tool_code","OUTPUT_TOO_LARGE"}}};
     return result;
 }
 }
@@ -366,17 +393,17 @@ int main(int argc,char** argv){
     Operation inspect_op{"array_inspect",Access::Read,"Shape, dtype, finite/NaN/Inf counts, min, max, norm and a preview of an array (<=1000 numbers); a bare .safetensors path lists its tensors from the header only","object",{
         Param{"ref",Type::Json,true,nullptr,{},"Inline array, file.npy, file.safetensors#key, or file.safetensors to list tensors."},
         Param{"limit",Type::Integer,false,20,{},"Preview length, 1..1000."}}};
-    auto lstsq=[](bool write){Operation op{write?"la_lstsq_to":"la_lstsq",write?Access::Write:Access::Read,"Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE; read form returns <=1000 solution numbers, write form stores x as safetensors","object",{
+    auto lstsq=[](bool write){Operation op{write?"la_lstsq_to":"la_lstsq",write?Access::Write:Access::Read,"Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE, NUMERICAL_FAILURE; read form returns at most 1000 inline numbers (x + residues + singular values), write form stores x (and large residues/singular values) as safetensors","object",{
         Param{"a",Type::Json,true,nullptr,{},"m-by-n matrix, finite."},Param{"b",Type::Json,true,nullptr,{},"Right-hand side with m rows (vector or m-by-k)."},
         Param{"rcond",Type::Number,false,nullptr,{},"Singular values below rcond*largest are treated as zero, in [0,1); default machine epsilon."},
         Param{"driver",Type::String,false,"gelsd",{"gelsd","gelsy","gelss"},"LAPACK driver."}}};if(write)op.params.emplace_back("out",Type::String,true,nullptr,std::vector<Json>{},"New .safetensors path for x.");return op;};
-    Operation props{"la_props",Access::Read,"Scalar matrix properties: det, slogdet, rank, cond, norm, trace and optionally the inverse (<=1000 numbers); SINGULAR when the inverse is withheld","object",{
+    Operation props{"la_props",Access::Read,"Scalar matrix properties: det, slogdet, rank, cond, norm, trace and optionally the inverse (<=1000 numbers); status OK, SINGULAR (inverse withheld) or NO_CONVERGENCE; cond is Inf for rank-deficient input","object",{
         Param{"a",Type::Json,true,nullptr,{},"Finite matrix."},
         Param{"what",Type::Array,false,nullptr,{"det","slogdet","rank","cond","norm","trace","inverse"},"Properties to compute; default det, rank, cond, norm, trace.","",false,false,false,{},Type::String},
         Param{"norm_ord",Type::String,false,"fro",{"fro","1","inf","2","nuc"},"Matrix norm order."},
         Param{"cond_p",Type::String,false,"2",{"2","1","inf","fro"},"Condition number norm; values other than 2 need a square matrix."},
         Param{"rank_tol",Type::Number,false,nullptr,{},"Rank threshold on singular values; default max(m,n)*eps*sigma_max."}}};
-    Operation decomp{"la_decomp",Access::Write,"Matrix factorization written to a new safetensors artifact: svd (u,s,vt), qr (q,r[,p]), eig (w_re,w_im,vr_re,vr_im), eigh (w,v), cholesky (l or u), lu (p,l,u with A=P@L@U)","object",{
+    Operation decomp{"la_decomp",Access::Write,"Matrix factorization written to a new safetensors artifact: svd (u,s,vt), qr (q,r[,p]), eig (w_re,w_im,vr_re,vr_im), eigh (w,v), cholesky (l or u), lu (p,l,u with A=P@L@U); statuses OK, NOT_POSITIVE_DEFINITE, NO_CONVERGENCE, NUMERICAL_FAILURE (write ops fail with the status as tool_code)","object",{
         Param{"a",Type::Json,true,nullptr,{},"Finite matrix; eigh/cholesky need exact symmetry, eig/eigh/cholesky need a square matrix."},
         Param{"kind",Type::String,true,nullptr,{"svd","qr","eig","eigh","cholesky","lu"},"Factorization."},
         Param{"out",Type::String,true,nullptr,{},"New .safetensors path."},

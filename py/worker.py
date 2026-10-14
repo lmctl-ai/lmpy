@@ -175,8 +175,9 @@ def save_outputs(p, items):
     return outputs
 
 
-def relative_error(np, reference, approx):
-    scale = float(np.linalg.norm(reference))
+def relative_error(np, reference, approx, scale=None):
+    """||reference - approx||_F / scale; scale defaults to ||reference||_F. A scale of 0 reports the absolute error."""
+    scale = float(np.linalg.norm(reference)) if scale is None else float(scale)
     error = float(np.linalg.norm(reference - approx))
     return error / scale if scale > 0 else error
 
@@ -203,7 +204,16 @@ def lstsq(p):
               'singular_values': [float(v) for v in singular], 'residues': [float(v) for v in residues],
               'residual_norm': float(np.linalg.norm(residual)), 'driver': driver}
     if p.get('output_prefix'):
-        result['outputs'] = save_outputs(p, [('x', x)])
+        items = [('x', x)]
+        # <=1000 numbers inline: when the vectors do not fit, they go into the artifact and only a summary stays inline.
+        if len(result['residues']) + len(result['singular_values']) > 1000:
+            result['residues_count'] = len(residues)
+            result['residues_sum'] = float(residues.sum())
+            result['residues_max'] = float(residues.max())
+            result['singular_values_count'] = len(singular)
+            items += [('residues', residues), ('singular_values', np.asarray(singular, dtype=float))]
+            del result['residues'], result['singular_values']
+        result['outputs'] = save_outputs(p, items)
     elif x.size <= 1000:
         result['x'] = x.tolist()
     else:
@@ -237,7 +247,11 @@ def props(p):
             else:
                 result['norm'] = float(np.linalg.norm(a, {'1': 1, 'inf': np.inf, '2': 2, 'nuc': 'nuc'}[order]))
         if 'cond' in what:
-            result['cond'] = float(np.linalg.cond(a, {'2': 2, '1': 1, 'inf': np.inf, 'fro': 'fro'}[p['cond_p']]))
+            # Rank-deficient (numpy's default tolerance) means cond is +Inf, never a 1/eps-sized artefact of rounding.
+            if int(np.linalg.matrix_rank(a)) < min(a.shape):
+                result['cond'] = math.inf
+            else:
+                result['cond'] = float(np.linalg.cond(a, {'2': 2, '1': 1, 'inf': np.inf, 'fro': 'fro'}[p['cond_p']]))
         if 'rank' in what:
             result['rank'] = int(np.linalg.matrix_rank(a, tol=p.get('rank_tol')))
         if 'inverse' in what:
@@ -265,7 +279,7 @@ def decomp(p):
     import scipy.linalg as sla
     a = matrix(p, 'a')
     kind, full = p['kind'], bool(p.get('full'))
-    values, driver = {}, None
+    values, driver, extra = {}, None, {}
     try:
         if kind == 'svd':
             driver = 'gesdd'
@@ -286,13 +300,20 @@ def decomp(p):
                 items, error = [('q', q), ('r', r)], relative_error(np, a, q @ r)
         elif kind == 'eigh':
             w, v = sla.eigh(a)
-            items, values, error = [('w', w), ('v', v)], {'w': w.tolist()}, relative_error(np, a @ v, v * w)
+            # Backward error is relative to ||A|| ||V|| (||A V|| collapses for singular/nilpotent A and would mislead).
+            items, values = [('w', w), ('v', v)], {'w': w.tolist()}
+            error = relative_error(np, a @ v, v * w, np.linalg.norm(a) * np.linalg.norm(v))
         elif kind == 'eig':
             w, v = sla.eig(a)
             order = np.lexsort((w.imag, w.real))  # documented order: ascending real part, then imaginary part
             w, v = w[order], v[:, order]
             items = [('w_re', w.real), ('w_im', w.imag), ('vr_re', v.real), ('vr_im', v.imag)]
-            values, error = {'w_re': w.real.tolist(), 'w_im': w.imag.tolist()}, relative_error(np, a @ v, v * w)
+            values = {'w_re': w.real.tolist(), 'w_im': w.imag.tolist()}
+            error = relative_error(np, a @ v, v * w, np.linalg.norm(a) * np.linalg.norm(v))
+            extra['vr_cond'] = float(np.linalg.cond(v))
+            if not extra['vr_cond'] < 1 / math.sqrt(np.finfo(float).eps):
+                warnings.warn('eigenvector matrix is ill-conditioned (cond=%.3g): the matrix is defective or nearly defective, '
+                              'so vr is not a reliable basis (A = V diag(w) V^-1 does not hold)' % extra['vr_cond'], NumericalWarning)
         elif kind == 'cholesky':
             lower = bool(p.get('lower', True))
             c = sla.cholesky(a, lower=lower)
@@ -312,7 +333,7 @@ def decomp(p):
         outputs = save_outputs(p, items)
     except NumericalFailure as exc:
         return {'status': 'NUMERICAL_FAILURE', 'kind': kind, 'message': str(exc)}
-    result = {'status': 'OK', 'kind': kind, 'outputs': outputs, 'values': values, 'reconstruction_error': error}
+    result = {'status': 'OK', 'kind': kind, 'outputs': outputs, 'values': values, 'reconstruction_error': error, **extra}
     if driver:
         result['driver'] = driver
     return result

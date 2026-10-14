@@ -38,3 +38,6 @@ are the certification for now. Dense LA statuses are domain results (exit 0) in 
 `COMMAND_FAILED` with the status as `tool_code` in write ops, as for S0 `la_solve_to`.
 Missing (`null`/`NA`/empty CSV field) and NaN are distinguished at import only for counting;
 both are stored as NaN. No arithmetic is done on I64 beyond exact conversion (|v| <= 2^53).
+
+Missing files/tensor keys map to NOT_FOUND (4) following torchcli (protocol 6.1); rcli returns 2
+for a missing file. This is the one place where pycli is intentionally not rcli-compatible.

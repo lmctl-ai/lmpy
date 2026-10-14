@@ -211,7 +211,7 @@
       "name": "la_lstsq",
       "access": "read",
       "returns": "object",
-      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE; read form returns <=1000 solution numbers, write form stores x as safetensors",
+      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE, NUMERICAL_FAILURE; read form returns at most 1000 inline numbers (x + residues + singular values), write form stores x (and large residues/singular values) as safetensors",
       "params": [
         {
           "name": "a",
@@ -249,7 +249,7 @@
       "name": "la_lstsq_to",
       "access": "write",
       "returns": "object",
-      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE; read form returns <=1000 solution numbers, write form stores x as safetensors",
+      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE, NUMERICAL_FAILURE; read form returns at most 1000 inline numbers (x + residues + singular values), write form stores x (and large residues/singular values) as safetensors",
       "params": [
         {
           "name": "a",
@@ -293,7 +293,7 @@
       "name": "la_props",
       "access": "read",
       "returns": "object",
-      "description": "Scalar matrix properties: det, slogdet, rank, cond, norm, trace and optionally the inverse (<=1000 numbers); SINGULAR when the inverse is withheld",
+      "description": "Scalar matrix properties: det, slogdet, rank, cond, norm, trace and optionally the inverse (<=1000 numbers); status OK, SINGULAR (inverse withheld) or NO_CONVERGENCE; cond is Inf for rank-deficient input",
       "params": [
         {
           "name": "a",
@@ -356,7 +356,7 @@
       "name": "la_decomp",
       "access": "write",
       "returns": "object",
-      "description": "Matrix factorization written to a new safetensors artifact: svd (u,s,vt), qr (q,r[,p]), eig (w_re,w_im,vr_re,vr_im), eigh (w,v), cholesky (l or u), lu (p,l,u with A=P@L@U)",
+      "description": "Matrix factorization written to a new safetensors artifact: svd (u,s,vt), qr (q,r[,p]), eig (w_re,w_im,vr_re,vr_im), eigh (w,v), cholesky (l or u), lu (p,l,u with A=P@L@U); statuses OK, NOT_POSITIVE_DEFINITE, NO_CONVERGENCE, NUMERICAL_FAILURE (write ops fail with the status as tool_code)",
       "params": [
         {
           "name": "a",

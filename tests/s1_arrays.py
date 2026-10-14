@@ -171,7 +171,7 @@ class ImportBinary(Base):
         for name in ('object', 'rank3', 'fortran', 'big_int', 'empty', 'scalar', 'complex', 'big', 'trunc', 'trailing', 'hugehdr', 'v3', 'shape_overflow', 'shape_huge', 'evil', 'dir', 'nothing'):
             with self.subTest(name=name):
                 r = call('array_import', {'format': 'npy', 'data': str(self.dir / f'{name}.npy'), 'out': self.out(f'{name}.safetensors')}, 4 if name == 'nothing' else 2)
-                self.assertIn(code(r), ('BAD_NPY', 'BAD_DATA', 'INPUT_TOO_LARGE'))
+                self.assertIn(code(r), ('BAD_NPY', 'BAD_DATA', 'INPUT_TOO_LARGE', 'ARTIFACT_NOT_FOUND'))
                 self.assertFalse(pathlib.Path(self.out(f'{name}.safetensors')).exists())
 
     def test_long_header_padding_does_not_blow_the_stack(self):

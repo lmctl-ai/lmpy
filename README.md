@@ -60,7 +60,16 @@ minimum-norm solution; la_lstsq_to still writes it), `NOT_POSITIVE_DEFINITE` (ch
 exceeds 1e-8). Non-finite inputs and non-exactly-symmetric inputs to eigh/cholesky are
 validation errors before Python starts. `la_lstsq` recomputes `residues` (per right-hand
 side) and `residual_norm` from `A x - b` for every driver; `rcond` is scipy's `cond`.
-`det` may be rounding noise for singular matrices (rank/cond are the tests of singularity);
+`det` may be rounding noise for singular matrices (rank/cond are the tests of singularity;
+`cond` is `Inf` when rank < min(m,n) under numpy's default tolerance); `trace` needs a square matrix;
+the `eig`/`eigh` residual is scaled by `||A||_F ||V||_F`, so nilpotent/defective inputs are not
+failures; `eig` returns `vr_cond` and a `NumericalWarning` when it exceeds ~6.7e7 (defective or
+nearly defective: `vr` is then not a basis). Results never hold more than 1000 inline numbers:
+`la_lstsq` refuses requests whose x + residues + singular values exceed that, `la_lstsq_to`
+stores big residues/singular values in the artifact. A missing input file or tensor key is
+`NOT_FOUND` (exit 4); malformed references are validation errors (2).
+An `{shape,data}` envelope takes flat row-major data or nested data of exactly that shape.
+Safetensors files may hold any spec dtype (F16, BF16, ...): only selecting such a tensor fails.
 a determinant outside binary64 is `Inf`/`0` plus a `NumericalWarning` pointing at `slogdet`.
 
 `la_decomp` conventions (LAPACK via scipy.linalg; vectors keep LAPACK's signs, which are not
