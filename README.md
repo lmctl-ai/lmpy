@@ -236,7 +236,7 @@ Aggregate names are flattened as `column__function`; collisions fail.
 `where` uses `{and:[...]}`, `{or:[...]}`, `{not:...}`, or
 `{col:"name",op:"eq",value:"literal"}`. Leaf operators: eq/ne/lt/le/gt/ge,
 isin (list), isnull (no value), between (two inclusive bounds), startswith,
-contains (literal, no regex). Null comparisons are excluded; isnull selects them.
+contains (literal, no regex). Comparisons exclude masked null cells; isnull selects only the missing mask, not explicit float NaN. Numeric predicates require numbers (float columns also accept NaN/Inf/-Inf tokens), int64 predicates require int64 integers, bool predicates require booleans, and string/category predicates require strings. Datetime predicates require ISO literals with matching timezone awareness.
 Predicate depth <=32 and nodes <=256. Column names and values are data.
 Pandas is imported only by frame ops; other Python ops report `meta.pandas:"unloaded"`.
 The audit guard remains defence in depth; the container is the process boundary.
