@@ -20,7 +20,10 @@ required=(
  'scipy/scipy/integrate/_lebedev.py.notice.txt',
  'scipy/subprojects/xsf/LICENSES_bundled.txt',
  'scipy/subprojects/highs/LICENSE.txt',
- 'scipy/subprojects/boost_math/math/LICENSE')
+ 'scipy/subprojects/boost_math/math/LICENSE',
+ 'pandas/pandas/_libs/src/vendored/ujson/lib/ultrajsonenc.c.notice.txt',
+ 'pandas/pandas/_libs/include/pandas/vendored/klib/khash.h.notice.txt',
+ 'pandas/pandas/_libs/src/vendored/numpy/datetime/np_datetime.c.notice.txt')
 for name in required:assert (licenses/name).is_file(),name
 print('''# Third-party notices — S2
 
