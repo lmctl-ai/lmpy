@@ -274,7 +274,7 @@ pycli::TensorBundle read_outputs(TempDir& temp,Json& result){
 }
 // The binding rule is <=1000 numbers inline per result: count every array element (shapes, meta and warnings aside).
 size_t inline_numbers(const Json& v,const std::string& key=""){
-    if(key=="meta"||key=="warnings"||key=="shape")return 0;
+    if(key=="meta"||key=="warnings"||key=="shape"||key=="columns"||key=="column_meta")return 0;
     size_t n=0;
     if(v.is_array()){for(const auto& item:v)n+=item.is_array()||item.is_object()?inline_numbers(item):1;}
     else if(v.is_object())for(auto it=v.begin();it!=v.end();++it)n+=inline_numbers(it.value(),it.key());
