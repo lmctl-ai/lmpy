@@ -1,0 +1,59 @@
+{
+  "samples": {
+    "numeric_cell_cap": {
+      "seconds": 2.211607456993079,
+      "csv_bytes": 1000010,
+      "shape": [
+        100000,
+        5
+      ],
+      "worker_ms": 1943.4715079987654,
+      "peak_child_rss_kib_upper_bound": 88384
+    },
+    "row_cap": {
+      "seconds": 1.3343480590119725,
+      "csv_bytes": 400002,
+      "shape": [
+        200000,
+        1
+      ],
+      "worker_ms": 1080.3951950074406,
+      "peak_child_rss_kib_upper_bound": 88384
+    },
+    "string_cell_cap": {
+      "seconds": 2.5269152090040734,
+      "csv_bytes": 2500190,
+      "shape": [
+        10000,
+        50
+      ],
+      "worker_ms": 2250.266745002591,
+      "peak_child_rss_kib_upper_bound": 132956
+    },
+    "category_200k_rows_100k_levels": {
+      "seconds": 1.2016466960049002,
+      "csv_bytes": 1177782,
+      "shape": [
+        200000,
+        1
+      ],
+      "worker_ms": 993.2032380020246,
+      "peak_child_rss_kib_upper_bound": 132956
+    },
+    "csv_byte_near_cap": {
+      "seconds": 1.641281946998788,
+      "csv_bytes": 16600002,
+      "shape": [
+        200000,
+        1
+      ],
+      "worker_ms": 1303.315159995691,
+      "peak_child_rss_kib_upper_bound": 162468
+    }
+  },
+  "cgroup_peak_bytes": 254980096,
+  "memory_limit_bytes": 4294967296,
+  "cpus": 2,
+  "pids": 128,
+  "tmpfs_bytes": 536870912
+}

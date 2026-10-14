@@ -1,6 +1,9 @@
 # S2 review corrections
 
-All findings in REVIEW-S2-Opus/Fable/Astra were addressed. No finding is deferred.
+All code/data findings in REVIEW-S2-Opus/Fable/Astra were addressed. An idle-host
+timing rerun is deferred: the shared four-CPU host stayed busy with unrelated work
+(16–41% idle, median 32%, across a 30-second waiting window). Sequential samples
+under observed load are retained honestly; no idle-host performance claim is made.
 The reviews are external to this checkout at ~/repos/cppwrapper/pycli/.
 
 | Review finding | Correction / regression |
@@ -19,11 +22,12 @@ The reviews are external to this checkout at ~/repos/cppwrapper/pycli/.
 | Fable 7: timezone warning | Copy tz-converted Series before mask assignment; warnings regression. |
 | Fable 8: usability | Ignore blank CSV lines; reject string/category sums; integral float int predicates accepted, fractional literals rejected. |
 | Fable 9: coverage | Exact hand spring-hourly/DST-day/week/calendar labels and values, dtype bool/category/datetime identity, nonfinite round trips and overflow regressions. Existing-correct coverage fixtures need no manufactured red numerical result. |
-| Astra 1: stdlib bytecode | Force checked-hash stdlib caches in runtime's final RUN; runtime probe asserts no stdlib compilation on fresh pandas import and checked-hash headers. Controlled size delta and new sequential shim samples in timings.md. |
+| Astra 1: stdlib bytecode | Force checked-hash stdlib caches in runtime's final RUN; runtime probe asserts no stdlib compilation on fresh pandas import and checked-hash headers. Controlled size delta and new sequential loaded-host shim samples in timings.md; idle-host rerun deferred as explained above. |
 
 Red tests ran against the original images before implementation (exit 1); a
 second category regression exposed a metadata-byte-count vs row-cap mistake,
 fixed before final acceptance. Additional leading-zero decimal regression ran
-red against the first corrected binary, then was fixed. The original failing
+red against the first corrected binary, then was fixed. An exact quoted/unquoted CSV width-boundary test also ran red, then C++ was
+corrected to count decoded cell bytes. The original failing
 build was explicitly stopped when its inputs became stale (exit 137); this is
 not an acceptance result. Final command exit codes are recorded in timings.md.

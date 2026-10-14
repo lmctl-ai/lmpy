@@ -257,23 +257,29 @@ Pandas is imported only by frame ops; other Python ops report `meta.pandas:"unlo
 The audit guard remains defence in depth; the container is the process boundary.
 All frame outputs use anonymous atomic no-replace installation and honor readonly/dryrun.
 
-S2 measurements (aarch64, ten calls each; p95=max sample): runtime **509 MB**
-/ **110,691,742 content bytes**, test **973 MB**.
+S2 review measurements (aarch64, ten sequential calls; p95=max): runtime
+**527 MB** / **115,126,863 content bytes**, test **974 MB**. Restoring checked-hash
+stdlib caches adds 4,434,181 content bytes versus an otherwise identical control.
+Fresh pandas import compiles no stdlib sources. These are shared-host loaded
+samples; an idle-host rerun is deferred because unrelated work remained active.
 
 | Operation | p50 ms | p95 ms |
 |---|---:|---:|
-| `frame_import` | 1429 | 1522 |
-| `frame_inspect` | 1462 | 1625 |
-| `frame_export` | 1506 | 3306 |
-| `frame_select` | 1421 | 1813 |
-| `frame_groupby` | 1459 | 1832 |
-| `frame_resample` | 1347 | 1599 |
-| `la_solve` | 1410 | 1563 |
-| `docker_overhead` | 412 | 461 |
+| `frame_import` | 1004 | 1047 |
+| `frame_inspect` | 983 | 1007 |
+| `frame_export` | 982 | 1022 |
+| `frame_select` | 998 | 1099 |
+| `frame_groupby` | 976 | 1060 |
+| `frame_resample` | 1048 | 1175 |
+| `la_solve` | 929 | 992 |
+| `docker_overhead` | 406 | 434 |
 
-See docs/timings.md and its raw samples for workload and import details. Final
-CTest passes 16/16 (268 s), including 17 S2 test groups and ASan/UBSan parser fuzz.
-All three recipes pass real execution, --check and --dry-run.
+CSV cap probes pass at 200000 rows / 500000 cells / near 16MiB: 1.20–2.53 seconds,
+243MiB total cgroup peak under the 4GiB limit, including the probe harness.
+See docs/timings.md and the separate measurement-s2-review-* raw files for
+workloads, full host traces and the idle-host qualification. CTest passes 17/17
+(312.74 s), including 19 review regressions, 17 original S2 groups and ASan/UBSan
+parser fuzz. All three recipes pass real execution, --check and --dry-run.
 
 Explicit int64 JSON columns accept integer tokens or decimal strings, not
 floating tokens: lmcpp can promote an out-of-range JSON integer to a rounded

@@ -131,3 +131,83 @@ docker run --rm --network=none pycli:test (16/16, 268.04 s, exit 0),
 ./scripts/build.sh runtime (0), all three recipes via bin/pycli (0), their
 --check and --dry-run modes (0), real-container review 4/4 (0), shim/API review
 5/5 (0), S2 shim readonly (6) and dryrun (0), both with no artifact.
+
+## S2 review: resource and packaging measurements
+
+The original S2 table above is historical; review-run samples are recorded
+separately rather than overwriting them. Final runtime Docker ls reports 527 MB
+(test 974 MB); inspect content is 115,126,863 bytes (test 208,263,484 bytes).
+The otherwise identical no-stdlib-bytecode control reports 509 MB / 110,692,682
+content bytes. Every layer except the last RUN matches. Restoring caches adds
+4,434,181 content bytes (about 18 MB in the rounded Docker ls display). There are
+686 checked-hash stdlib caches totalling 12,311,809 file bytes. The runtime probe
+observed zero stdlib source compilations on a fresh pandas import. This verifies
+cache reuse; historical shared-host wall times alone cannot prove a causal speedup.
+Raw image IDs, layers and sizes: measurement-s2-review-packaging.json.
+
+Cap probe ran sequentially with the production memory/CPU/pids/rootfs/capability/
+network/tmpfs restrictions: 4 GiB, two CPUs, 128 pids, read-only root, no caps,
+no-new-privileges, network none and 512MiB tmpfs. Five fresh CLI imports succeeded
+(exit 0), with the harness included in the cgroup peak of 254,980,096 bytes
+(243.17 MiB). Per-child RSS maxima are cumulative upper bounds, not per-case
+container peaks. These are import-workload measurements, not a guarantee that
+every aggregate combination finishes within the existing 50-second timeout.
+
+| Cap workload | Shape | CSV bytes | Total seconds |
+|---|---|---:|---:|
+| Numeric cell cap | 100000 x 5 | 1000010 | 2.212 |
+| Row cap | 200000 x 1 | 400002 | 1.334 |
+| String cell cap | 10000 x 50 | 2500190 | 2.527 |
+| 100000 category levels | 200000 x 1 | 1177782 | 1.202 |
+| Near byte cap | 200000 x 1 | 16600002 | 1.641 |
+
+Caps are deliberately conservative: CSV <=16MiB, <=200000 rows and <=500000
+cells; decoded string width <=65536 UTF-8 bytes (quotes/escaping do not count).
+Oversized CSV reads stop at the byte budget before allocation; row/cell/width
+fixtures reject before spawning, proved with an unavailable interpreter.
+Fixed-width output storage retains its independent 256MiB preallocation budget.
+Raw cap probe: measurement-s2-review-caps.json. Reproduce inside the hardened
+runtime with scripts/measure-frame-caps.py; the container cgroup high-water mark
+includes the probe harness.
+
+Final acceptance commands, unpiped: ./scripts/build.sh test (0),
+docker run --rm --network=none pycli:test (17/17, 312.74 s, exit 0),
+./scripts/build.sh runtime (0), all three real recipes through bin/pycli (0),
+all three --check/--dry-run modes (0), runtime_bytecode.py in final runtime (0),
+and cap probe (0). S2 contains 19 review regressions plus 17 original test groups;
+ASan/UBSan parser fuzz and all S0/S1/schema/notices/packaging gates pass.
+The corrected weekly recipe prints Sunday-ended bins March 8: 260/4 rows and
+March 15: 690/6 rows; region sums remain 450/500.
+
+Runtime image: sha256:c1c1fe01ba03b1d321a12f2c7ca3b907234f8d17a74f5c6c1e3dacf6f6f9839c.
+Test image: sha256:d463f355b03d2513b218c8770718963ecbc22e1b80c7f6322e7cf453fbc7af3a.
+
+## S2 review: sequential per-call samples under observed load
+
+| Operation | p50 ms | p95 ms |
+|---|---:|---:|
+| `frame_import` | 1004 | 1047 |
+| `frame_inspect` | 983 | 1007 |
+| `frame_export` | 982 | 1022 |
+| `frame_select` | 998 | 1099 |
+| `frame_groupby` | 976 | 1060 |
+| `frame_resample` | 1048 | 1175 |
+| `la_solve` | 929 | 992 |
+| `docker_overhead` | 406 | 434 |
+
+Same seven-row/three-column production-shim workload as the original S2 script,
+ten sequential fresh calls per operation after all own builds/tests/cap probes
+stopped. Every sample is retained; p95 is the maximum of ten. Numerical la_solve
+still asserts pandas unloaded. Resample uses corrected pandas weekly defaults.
+An idle-host rerun is deferred: unrelated work on the shared four-CPU host did
+not stop. A 30-second waiting trace showed 16–41% idle (median 32%); immediately
+before that, two snapshots showed 22–36% idle. These are loaded-host observations,
+not an idle-host promise or a controlled causal comparison to the historical
+~1.4-second S2 results. No other Docker container, own build or own test was
+running at measurement start. vmstat telemetry covers the full sample run.
+
+Frame NumPy+pandas import medians were 372.9–379.8 ms.
+Raw samples: measurement-s2-review-shim.json. Host traces: measurement-s2-review-
+host.txt, measurement-s2-review-host-wait.txt and measurement-s2-review-host-during.txt.
+Reproduce: python3 scripts/measure-frames.py docs/measurement-s2-review-shim.json.
+This preserves the historical measurement-s2-shim.json instead of overwriting it.
