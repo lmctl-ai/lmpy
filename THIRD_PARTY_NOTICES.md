@@ -7955,6 +7955,9138 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
+## pandas/pandas/_libs/include/pandas/vendored/klib/khash.h.notice.txt
+
+```text
+// Licence at LICENSES/KLIB_LICENSE
+
+/*
+  An example:
+
+#include "khash.h"
+KHASH_MAP_INIT_INT(32, char)
+int main() {
+        int ret, is_missing;
+        khiter_t k;
+        khash_t(32) *h = kh_init(32);
+        k = kh_put(32, h, 5, &ret);
+        if (!ret) kh_del(32, h, k);
+        kh_value(h, k) = 10;
+        k = kh_get(32, h, 10);
+        is_missing = (k == kh_end(h));
+        k = kh_get(32, h, 5);
+        kh_del(32, h, k);
+        for (k = kh_begin(h); k != kh_end(h); ++k)
+                if (kh_exist(h, k)) kh_value(h, k) = 1;
+        kh_destroy(32, h);
+        return 0;
+}
+*/
+
+/*
+  2011-09-16 (0.2.6):
+
+        * The capacity is a power of 2. This seems to dramatically improve the
+          speed for simple keys. Thank Zilong Tan for the suggestion. Reference:
+
+           - https://github.com/stefanocasazza/ULib
+           - https://nothings.org/computer/judy/
+
+        * Allow to optionally use linear probing which usually has better
+          performance for random input. Double hashing is still the default as
+  it is more robust to certain non-random input.
+
+        * Added Wang's integer hash function (not used by default). This hash
+          function is more robust to certain non-random input.
+
+  2011-02-14 (0.2.5):
+
+    * Allow to declare global functions.
+
+  2009-09-26 (0.2.4):
+
+    * Improve portability
+
+  2008-09-19 (0.2.3):
+
+        * Corrected the example
+        * Improved interfaces
+
+  2008-09-11 (0.2.2):
+
+        * Improved speed a little in kh_put()
+
+  2008-09-10 (0.2.1):
+
+        * Added kh_clear()
+        * Fixed a compiling error
+
+  2008-09-02 (0.2.0):
+
+        * Changed to token concatenation which increases flexibility.
+
+  2008-08-31 (0.1.2):
+
+        * Fixed a bug in kh_get(), which has not been tested previously.
+
+  2008-08-31 (0.1.1):
+
+        * Added destructor
+*/
+
+#ifndef __AC_KHASH_H
+#define __AC_KHASH_H
+
+/*!
+  @header
+
+  Generic hash table library.
+ */
+
+#define AC_VERSION_KHASH_H "0.2.6"
+
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+
+// hooks for memory allocator, C-runtime allocator used per default
+#ifndef KHASH_MALLOC
+#define KHASH_MALLOC malloc
+#endif
+
+#ifndef KHASH_REALLOC
+#define KHASH_REALLOC realloc
+#endif
+
+#ifndef KHASH_CALLOC
+#define KHASH_CALLOC calloc
+#endif
+
+#ifndef KHASH_FREE
+#define KHASH_FREE free
+#endif
+
+#if UINT_MAX == 0xffffffffu
+typedef unsigned int khuint32_t;
+typedef signed int khint32_t;
+#elif ULONG_MAX == 0xffffffffu
+typedef unsigned long khuint32_t;
+typedef signed long khint32_t;
+#endif
+
+#if ULONG_MAX == ULLONG_MAX
+typedef unsigned long khuint64_t;
+typedef signed long khint64_t;
+#else
+typedef unsigned long long khuint64_t;
+typedef signed long long khint64_t;
+#endif
+
+#if UINT_MAX == 0xffffu
+typedef unsigned int khuint16_t;
+typedef signed int khint16_t;
+#elif USHRT_MAX == 0xffffu
+typedef unsigned short khuint16_t;
+typedef signed short khint16_t;
+#endif
+
+#if UCHAR_MAX == 0xffu
+typedef unsigned char khuint8_t;
+typedef signed char khint8_t;
+#endif
+
+typedef double khfloat64_t;
+typedef float khfloat32_t;
+
+typedef khuint32_t khuint_t;
+typedef khuint_t khiter_t;
+
+#define __ac_isempty(flag, i) ((flag[i >> 5] >> (i & 0x1fU)) & 1)
+#define __ac_isdel(flag, i) (0)
+#define __ac_iseither(flag, i) __ac_isempty(flag, i)
+#define __ac_set_isdel_false(flag, i) (0)
+#define __ac_set_isempty_false(flag, i) (flag[i >> 5] &= ~(1ul << (i & 0x1fU)))
+#define __ac_set_isempty_true(flag, i) (flag[i >> 5] |= (1ul << (i & 0x1fU)))
+#define __ac_set_isboth_false(flag, i) __ac_set_isempty_false(flag, i)
+#define __ac_set_isdel_true(flag, i) ((void)0)
+
+// specializations of
+// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash2.cpp
+static inline khuint32_t murmur2_32to32(khuint32_t k) {
+  const khuint32_t SEED = 0xc70f6907UL;
+  // 'm' and 'r' are mixing constants generated offline.
+  // They're not really 'magic', they just happen to work well.
+  const khuint32_t M_32 = 0x5bd1e995;
+  const int R_32 = 24;
+
+  // Initialize the hash to a 'random' value
+  khuint32_t h = SEED ^ 4;
+
+  // handle 4 bytes:
+  k *= M_32;
+  k ^= k >> R_32;
+  k *= M_32;
+
+  h *= M_32;
+  h ^= k;
+
+  // Do a few final mixes of the hash to ensure the "last few
+  // bytes" are well-incorporated. (Really needed here?)
+  h ^= h >> 13;
+  h *= M_32;
+  h ^= h >> 15;
+  return h;
+}
+
+// it is possible to have a special x64-version, which would need less
+// operations, but using 32bit version always has also some benefits:
+//    - one code for 32bit and 64bit builds
+//    - the same case for 32bit and 64bit builds
+//    - no performance difference could be measured compared to a possible
+//    x64-version
+
+static inline khuint32_t murmur2_32_32to32(khuint32_t k1, khuint32_t k2) {
+  const khuint32_t SEED = 0xc70f6907UL;
+  // 'm' and 'r' are mixing constants generated offline.
+  // They're not really 'magic', they just happen to work well.
+  const khuint32_t M_32 = 0x5bd1e995;
+  const int R_32 = 24;
+
+  // Initialize the hash to a 'random' value
+  khuint32_t h = SEED ^ 4;
+
+  // handle first 4 bytes:
+  k1 *= M_32;
+  k1 ^= k1 >> R_32;
+  k1 *= M_32;
+
+  h *= M_32;
+  h ^= k1;
+
+  // handle second 4 bytes:
+  k2 *= M_32;
+  k2 ^= k2 >> R_32;
+  k2 *= M_32;
+
+  h *= M_32;
+  h ^= k2;
+
+  // Do a few final mixes of the hash to ensure the "last few
+  // bytes" are well-incorporated.
+  h ^= h >> 13;
+  h *= M_32;
+  h ^= h >> 15;
+  return h;
+}
+
+static inline khuint32_t murmur2_64to32(khuint64_t k) {
+  khuint32_t k1 = (khuint32_t)k;
+  khuint32_t k2 = (khuint32_t)(k >> 32);
+
+  return murmur2_32_32to32(k1, k2);
+}
+
+#ifdef KHASH_LINEAR
+#define __ac_inc(k, m) 1
+#else
+#define __ac_inc(k, m) (murmur2_32to32(k) | 1) & (m)
+#endif
+
+#define __ac_fsize(m) ((m) < 32 ? 1 : (m) >> 5)
+
+#ifndef kroundup32
+#define kroundup32(x)                                                          \
+  (--(x), (x) |= (x) >> 1, (x) |= (x) >> 2, (x) |= (x) >> 4, (x) |= (x) >> 8,  \
+   (x) |= (x) >> 16, ++(x))
+#endif
+
+static const double __ac_HASH_UPPER = 0.77;
+
+#define KHASH_DECLARE(name, khkey_t, khval_t)                                  \
+  typedef struct {                                                             \
+    khuint_t n_buckets, size, n_occupied, upper_bound;                         \
+    khuint32_t *flags;                                                         \
+    khkey_t *keys;                                                             \
+    khval_t *vals;                                                             \
+  } kh_##name##_t;                                                             \
+  extern kh_##name##_t *kh_init_##name();                                      \
+  extern void kh_destroy_##name(kh_##name##_t *h);                             \
+  extern void kh_clear_##name(kh_##name##_t *h);                               \
+  extern khuint_t kh_get_##name(const kh_##name##_t *h, khkey_t key);          \
+  extern void kh_resize_##name(kh_##name##_t *h, khuint_t new_n_buckets);      \
+  extern khuint_t kh_put_##name(kh_##name##_t *h, khkey_t key, int *ret);      \
+  extern void kh_del_##name(kh_##name##_t *h, khuint_t x);
+
+#define KHASH_INIT2(name, SCOPE, khkey_t, khval_t, kh_is_map, __hash_func,     \
+                    __hash_equal)                                              \
+  typedef struct {                                                             \
+    khuint_t n_buckets, size, n_occupied, upper_bound;                         \
+    khuint32_t *flags;                                                         \
+    khkey_t *keys;                                                             \
+    khval_t *vals;                                                             \
+  } kh_##name##_t;                                                             \
+  SCOPE kh_##name##_t *kh_init_##name(void) {                                  \
+    return (kh_##name##_t *)KHASH_CALLOC(1, sizeof(kh_##name##_t));            \
+  }                                                                            \
+  SCOPE void kh_destroy_##name(kh_##name##_t *h) {                             \
+    if (h) {                                                                   \
+      KHASH_FREE(h->keys);                                                     \
+      KHASH_FREE(h->flags);                                                    \
+      KHASH_FREE(h->vals);                                                     \
+      KHASH_FREE(h);                                                           \
+    }                                                                          \
+  }                                                                            \
+  SCOPE void kh_clear_##name(kh_##name##_t *h) {                               \
+    if (h && h->flags) {                                                       \
+      memset(h->flags, 0xaa, __ac_fsize(h->n_buckets) * sizeof(khuint32_t));   \
+      h->size = h->n_occupied = 0;                                             \
+    }                                                                          \
+  }                                                                            \
+  SCOPE khuint_t kh_get_##name(const kh_##name##_t *h, khkey_t key) {          \
+    if (h->n_buckets) {                                                        \
+      khuint_t inc, k, i, last, mask;                                          \
+      mask = h->n_buckets - 1;                                                 \
+      k = __hash_func(key);                                                    \
+      i = k & mask;                                                            \
+      inc = __ac_inc(k, mask);                                                 \
+      last = i; /* inc==1 for linear probing */                                \
+      while (!__ac_isempty(h->flags, i) &&                                     \
+             (__ac_isdel(h->flags, i) || !__hash_equal(h->keys[i], key))) {    \
+        i = (i + inc) & mask;                                                  \
+        if (i == last)                                                         \
+          return h->n_buckets;                                                 \
+      }                                                                        \
+      return __ac_iseither(h->flags, i) ? h->n_buckets : i;                    \
+    } else                                                                     \
+      return 0;                                                                \
+  }                                                                            \
+  SCOPE void kh_resize_##name(                                                 \
+      kh_##name##_t *h,                                                        \
+      khuint_t new_n_buckets) { /* This function uses 0.25*n_bucktes bytes of  \
+                                   working space instead of                    \
+                                   [sizeof(key_t+val_t)+.25]*n_buckets. */     \
+    khuint32_t *new_flags = 0;                                                 \
+    khuint_t j = 1;                                                            \
+    {                                                                          \
+      kroundup32(new_n_buckets);                                               \
+      if (new_n_buckets < 4)                                                   \
+        new_n_buckets = 4;                                                     \
+      if (h->size >= (khuint_t)(new_n_buckets * __ac_HASH_UPPER + 0.5))        \
+        j = 0; /* requested size is too small */                               \
+      else {   /* hash table size to be changed (shrink or expand); rehash */  \
+        new_flags = (khuint32_t *)KHASH_MALLOC(__ac_fsize(new_n_buckets) *     \
+                                               sizeof(khuint32_t));            \
+        memset(new_flags, 0xff,                                                \
+               __ac_fsize(new_n_buckets) * sizeof(khuint32_t));                \
+        if (h->n_buckets < new_n_buckets) { /* expand */                       \
+          h->keys = (khkey_t *)KHASH_REALLOC(h->keys,                          \
+                                             new_n_buckets * sizeof(khkey_t)); \
+          if (kh_is_map)                                                       \
+            h->vals = (khval_t *)KHASH_REALLOC(h->vals, new_n_buckets *        \
+                                                            sizeof(khval_t));  \
+        } /* otherwise shrink */                                               \
+      }                                                                        \
+    }                                                                          \
+    if (j) { /* rehashing is needed */                                         \
+      for (j = 0; j != h->n_buckets; ++j) {                                    \
+        if (__ac_iseither(h->flags, j) == 0) {                                 \
+          khkey_t key = h->keys[j];                                            \
+          khval_t val;                                                         \
+          khuint_t new_mask;                                                   \
+          new_mask = new_n_buckets - 1;                                        \
+          if (kh_is_map)                                                       \
+            val = h->vals[j];                                                  \
+          __ac_set_isempty_true(h->flags, j);                                  \
+          while (1) { /* kick-out process; sort of like in Cuckoo hashing */   \
+            khuint_t inc, k, i;                                                \
+            k = __hash_func(key);                                              \
+            i = k & new_mask;                                                  \
+            inc = __ac_inc(k, new_mask);                                       \
+            while (!__ac_isempty(new_flags, i))                                \
+              i = (i + inc) & new_mask;                                        \
+            __ac_set_isempty_false(new_flags, i);                              \
+            if (i < h->n_buckets &&                                            \
+                __ac_iseither(h->flags, i) ==                                  \
+                    0) { /* kick out the existing element */                   \
+              {                                                                \
+                khkey_t tmp = h->keys[i];                                      \
+                h->keys[i] = key;                                              \
+                key = tmp;                                                     \
+              }                                                                \
+              if (kh_is_map) {                                                 \
+                khval_t tmp = h->vals[i];                                      \
+                h->vals[i] = val;                                              \
+                val = tmp;                                                     \
+              }                                                                \
+              __ac_set_isempty_true(                                           \
+                  h->flags, i); /* mark it as deleted in the old hash table */ \
+            } else { /* write the element and jump out of the loop */          \
+              h->keys[i] = key;                                                \
+              if (kh_is_map)                                                   \
+                h->vals[i] = val;                                              \
+              break;                                                           \
+            }                                                                  \
+          }                                                                    \
+        }                                                                      \
+      }                                                                        \
+      if (h->n_buckets > new_n_buckets) { /* shrink the hash table */          \
+        h->keys = (khkey_t *)KHASH_REALLOC(h->keys,                            \
+                                           new_n_buckets * sizeof(khkey_t));   \
+        if (kh_is_map)                                                         \
+          h->vals = (khval_t *)KHASH_REALLOC(h->vals,                          \
+                                             new_n_buckets * sizeof(khval_t)); \
+      }                                                                        \
+      KHASH_FREE(h->flags); /* free the working space */                       \
+      h->flags = new_flags;                                                    \
+      h->n_buckets = new_n_buckets;                                            \
+      h->n_occupied = h->size;                                                 \
+      h->upper_bound = (khuint_t)(h->n_buckets * __ac_HASH_UPPER + 0.5);       \
+    }                                                                          \
+  }                                                                            \
+  SCOPE khuint_t kh_put_##name(kh_##name##_t *h, khkey_t key, int *ret) {      \
+    khuint_t x;                                                                \
+    if (h->n_occupied >= h->upper_bound) { /* update the hash table */         \
+      if (h->n_buckets > (h->size << 1))                                       \
+        kh_resize_##name(h, h->n_buckets - 1); /* clear "deleted" elements */  \
+      else                                                                     \
+        kh_resize_##name(h, h->n_buckets + 1); /* expand the hash table */     \
+    } /* TODO: to implement automatically shrinking; resize() already support  \
+         shrinking */                                                          \
+    {                                                                          \
+      khuint_t inc, k, i, site, last, mask = h->n_buckets - 1;                 \
+      x = site = h->n_buckets;                                                 \
+      k = __hash_func(key);                                                    \
+      i = k & mask;                                                            \
+      if (__ac_isempty(h->flags, i))                                           \
+        x = i; /* for speed up */                                              \
+      else {                                                                   \
+        inc = __ac_inc(k, mask);                                               \
+        last = i;                                                              \
+        while (!__ac_isempty(h->flags, i) &&                                   \
+               (__ac_isdel(h->flags, i) || !__hash_equal(h->keys[i], key))) {  \
+          if (__ac_isdel(h->flags, i))                                         \
+            site = i;                                                          \
+          i = (i + inc) & mask;                                                \
+          if (i == last) {                                                     \
+            x = site;                                                          \
+            break;                                                             \
+          }                                                                    \
+        }                                                                      \
+        if (x == h->n_buckets) {                                               \
+          if (__ac_isempty(h->flags, i) && site != h->n_buckets)               \
+            x = site;                                                          \
+          else                                                                 \
+            x = i;                                                             \
+        }                                                                      \
+      }                                                                        \
+    }                                                                          \
+    if (__ac_isempty(h->flags, x)) { /* not present at all */                  \
+      h->keys[x] = key;                                                        \
+      __ac_set_isboth_false(h->flags, x);                                      \
+      ++h->size;                                                               \
+      ++h->n_occupied;                                                         \
+      *ret = 1;                                                                \
+    } else if (__ac_isdel(h->flags, x)) { /* deleted */                        \
+      h->keys[x] = key;                                                        \
+      __ac_set_isboth_false(h->flags, x);                                      \
+      ++h->size;                                                               \
+      *ret = 2;                                                                \
+    } else                                                                     \
+      *ret = 0; /* Don't touch h->keys[x] if present and not deleted */        \
+    return x;                                                                  \
+  }                                                                            \
+  SCOPE void kh_del_##name(kh_##name##_t *h, khuint_t x) {                     \
+    if (x != h->n_buckets && !__ac_iseither(h->flags, x)) {                    \
+      __ac_set_isdel_true(h->flags, x);                                        \
+      --h->size;                                                               \
+    }                                                                          \
+  }
+
+#define KHASH_INIT(name, khkey_t, khval_t, kh_is_map, __hash_func,             \
+                   __hash_equal)                                               \
+  KHASH_INIT2(name, static inline, khkey_t, khval_t, kh_is_map, __hash_func,   \
+              __hash_equal)
+
+/* --- BEGIN OF HASH FUNCTIONS --- */
+
+/*! @function
+  @abstract     Integer hash function
+  @param  key   The integer [khuint32_t]
+  @return       The hash value [khuint_t]
+ */
+#define kh_int_hash_func(key) (khuint32_t)(key)
+/*! @function
+  @abstract     Integer comparison function
+ */
+#define kh_int_hash_equal(a, b) ((a) == (b))
+/*! @function
+  @abstract     64-bit integer hash function
+  @param  key   The integer [khuint64_t]
+  @return       The hash value [khuint_t]
+ */
+static inline khuint_t kh_int64_hash_func(khuint64_t key) {
+  return (khuint_t)((key) >> 33 ^ (key) ^ (key) << 11);
+}
+/*! @function
+  @abstract     64-bit integer comparison function
+ */
+#define kh_int64_hash_equal(a, b) ((a) == (b))
+
+/*! @function
+  @abstract     const char* hash function
+  @param  s     Pointer to a null terminated string
+  @return       The hash value
+ */
+static inline khuint_t __ac_X31_hash_string(const char *s) {
+  khuint_t h = *s;
+  if (h)
+    for (++s; *s; ++s)
+      h = (h << 5) - h + *s;
+  return h;
+}
+/*! @function
+  @abstract     Another interface to const char* hash function
+  @param  key   Pointer to a null terminated string [const char*]
+  @return       The hash value [khuint_t]
+ */
+#define kh_str_hash_func(key) __ac_X31_hash_string(key)
+/*! @function
+  @abstract     Const char* comparison function
+ */
+#define kh_str_hash_equal(a, b) (strcmp(a, b) == 0)
+
+static inline khuint_t __ac_Wang_hash(khuint_t key) {
+  key += ~(key << 15);
+  key ^= (key >> 10);
+  key += (key << 3);
+  key ^= (key >> 6);
+  key += ~(key << 11);
+  key ^= (key >> 16);
+  return key;
+}
+#define kh_int_hash_func2(k) __ac_Wang_hash((khuint_t)key)
+
+/* --- END OF HASH FUNCTIONS --- */
+
+/* Other convenient macros... */
+
+/*!
+  @abstract Type of the hash table.
+  @param  name  Name of the hash table [symbol]
+ */
+#define khash_t(name) kh_##name##_t
+
+/*! @function
+  @abstract     Initiate a hash table.
+  @param  name  Name of the hash table [symbol]
+  @return       Pointer to the hash table [khash_t(name)*]
+ */
+#define kh_init(name) kh_init_##name(void)
+
+/*! @function
+  @abstract     Destroy a hash table.
+  @param  name  Name of the hash table [symbol]
+  @param  h     Pointer to the hash table [khash_t(name)*]
+ */
+#define kh_destroy(name, h) kh_destroy_##name(h)
+
+/*! @function
+  @abstract     Reset a hash table without deallocating memory.
+  @param  name  Name of the hash table [symbol]
+  @param  h     Pointer to the hash table [khash_t(name)*]
+ */
+#define kh_clear(name, h) kh_clear_##name(h)
+
+/*! @function
+  @abstract     Resize a hash table.
+  @param  name  Name of the hash table [symbol]
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @param  s     New size [khuint_t]
+ */
+#define kh_resize(name, h, s) kh_resize_##name(h, s)
+
+/*! @function
+  @abstract     Insert a key to the hash table.
+  @param  name  Name of the hash table [symbol]
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @param  k     Key [type of keys]
+  @param  r     Extra return code: 0 if the key is present in the hash table;
+                1 if the bucket is empty (never used); 2 if the element in
+                                the bucket has been deleted [int*]
+  @return       Iterator to the inserted element [khuint_t]
+ */
+#define kh_put(name, h, k, r) kh_put_##name(h, k, r)
+
+/*! @function
+  @abstract     Retrieve a key from the hash table.
+  @param  name  Name of the hash table [symbol]
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @param  k     Key [type of keys]
+  @return       Iterator to the found element, or kh_end(h) is the element is
+  absent [khuint_t]
+ */
+#define kh_get(name, h, k) kh_get_##name(h, k)
+
+/*! @function
+  @abstract     Remove a key from the hash table.
+  @param  name  Name of the hash table [symbol]
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @param  k     Iterator to the element to be deleted [khuint_t]
+ */
+#define kh_del(name, h, k) kh_del_##name(h, k)
+
+/*! @function
+  @abstract     Test whether a bucket contains data.
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @param  x     Iterator to the bucket [khuint_t]
+  @return       1 if containing data; 0 otherwise [int]
+ */
+#define kh_exist(h, x) (!__ac_iseither((h)->flags, (x)))
+
+/*! @function
+  @abstract     Get key given an iterator
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @param  x     Iterator to the bucket [khuint_t]
+  @return       Key [type of keys]
+ */
+#define kh_key(h, x) ((h)->keys[x])
+
+/*! @function
+  @abstract     Get value given an iterator
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @param  x     Iterator to the bucket [khuint_t]
+  @return       Value [type of values]
+  @discussion   For hash sets, calling this results in segfault.
+ */
+#define kh_val(h, x) ((h)->vals[x])
+
+/*! @function
+  @abstract     Alias of kh_val()
+ */
+#define kh_value(h, x) ((h)->vals[x])
+
+/*! @function
+  @abstract     Get the start iterator
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @return       The start iterator [khuint_t]
+ */
+#define kh_begin(h) (khuint_t)(0)
+
+/*! @function
+  @abstract     Get the end iterator
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @return       The end iterator [khuint_t]
+ */
+#define kh_end(h) ((h)->n_buckets)
+
+/*! @function
+  @abstract     Get the number of elements in the hash table
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @return       Number of elements in the hash table [khuint_t]
+ */
+#define kh_size(h) ((h)->size)
+
+/*! @function
+  @abstract     Get the number of buckets in the hash table
+  @param  h     Pointer to the hash table [khash_t(name)*]
+  @return       Number of buckets in the hash table [khuint_t]
+ */
+#define kh_n_buckets(h) ((h)->n_buckets)
+
+/* More convenient interfaces */
+
+/*! @function
+  @abstract     Instantiate a hash set containing integer keys
+  @param  name  Name of the hash table [symbol]
+ */
+#define KHASH_SET_INIT_INT(name)                                               \
+  KHASH_INIT(name, khint32_t, char, 0, kh_int_hash_func, kh_int_hash_equal)
+
+/*! @function
+  @abstract     Instantiate a hash map containing integer keys
+  @param  name  Name of the hash table [symbol]
+  @param  khval_t  Type of values [type]
+ */
+#define KHASH_MAP_INIT_INT(name, khval_t)                                      \
+  KHASH_INIT(name, khint32_t, khval_t, 1, kh_int_hash_func, kh_int_hash_equal)
+
+#define KHASH_MAP_INIT_UINT(name, khval_t)                                     \
+  KHASH_INIT(name, khuint32_t, khval_t, 1, kh_int_hash_func, kh_int_hash_equal)
+
+/*! @function
+  @abstract     Instantiate a hash map containing 64-bit integer keys
+  @param  name  Name of the hash table [symbol]
+ */
+#define KHASH_SET_INIT_UINT64(name)                                            \
+  KHASH_INIT(name, khuint64_t, char, 0, kh_int64_hash_func, kh_int64_hash_equal)
+
+#define KHASH_SET_INIT_INT64(name)                                             \
+  KHASH_INIT(name, khint64_t, char, 0, kh_int64_hash_func, kh_int64_hash_equal)
+
+/*! @function
+  @abstract     Instantiate a hash map containing 64-bit integer keys
+  @param  name  Name of the hash table [symbol]
+  @param  khval_t  Type of values [type]
+ */
+#define KHASH_MAP_INIT_UINT64(name, khval_t)                                   \
+  KHASH_INIT(name, khuint64_t, khval_t, 1, kh_int64_hash_func,                 \
+             kh_int64_hash_equal)
+
+#define KHASH_MAP_INIT_INT64(name, khval_t)                                    \
+  KHASH_INIT(name, khint64_t, khval_t, 1, kh_int64_hash_func,                  \
+             kh_int64_hash_equal)
+
+/*! @function
+  @abstract     Instantiate a hash map containing 16bit-integer keys
+  @param  name  Name of the hash table [symbol]
+  @param  khval_t  Type of values [type]
+ */
+#define KHASH_MAP_INIT_INT16(name, khval_t)                                    \
+  KHASH_INIT(name, khint16_t, khval_t, 1, kh_int_hash_func, kh_int_hash_equal)
+
+#define KHASH_MAP_INIT_UINT16(name, khval_t)                                   \
+  KHASH_INIT(name, khuint16_t, khval_t, 1, kh_int_hash_func, kh_int_hash_equal)
+
+/*! @function
+  @abstract     Instantiate a hash map containing 8bit-integer keys
+  @param  name  Name of the hash table [symbol]
+  @param  khval_t  Type of values [type]
+ */
+#define KHASH_MAP_INIT_INT8(name, khval_t)                                     \
+  KHASH_INIT(name, khint8_t, khval_t, 1, kh_int_hash_func, kh_int_hash_equal)
+
+#define KHASH_MAP_INIT_UINT8(name, khval_t)                                    \
+  KHASH_INIT(name, khuint8_t, khval_t, 1, kh_int_hash_func, kh_int_hash_equal)
+
+typedef const char *kh_cstr_t;
+/*! @function
+  @abstract     Instantiate a hash map containing const char* keys
+  @param  name  Name of the hash table [symbol]
+ */
+#define KHASH_SET_INIT_STR(name)                                               \
+  KHASH_INIT(name, kh_cstr_t, char, 0, kh_str_hash_func, kh_str_hash_equal)
+
+/*! @function
+  @abstract     Instantiate a hash map containing const char* keys
+  @param  name  Name of the hash table [symbol]
+  @param  khval_t  Type of values [type]
+ */
+#define KHASH_MAP_INIT_STR(name, khval_t)                                      \
+  KHASH_INIT(name, kh_cstr_t, khval_t, 1, kh_str_hash_func, kh_str_hash_equal)
+
+#define kh_exist_str(h, k) (kh_exist(h, k))
+#define kh_exist_float64(h, k) (kh_exist(h, k))
+#define kh_exist_uint64(h, k) (kh_exist(h, k))
+#define kh_exist_int64(h, k) (kh_exist(h, k))
+#define kh_exist_float32(h, k) (kh_exist(h, k))
+#define kh_exist_int32(h, k) (kh_exist(h, k))
+#define kh_exist_uint32(h, k) (kh_exist(h, k))
+#define kh_exist_int16(h, k) (kh_exist(h, k))
+#define kh_exist_uint16(h, k) (kh_exist(h, k))
+#define kh_exist_int8(h, k) (kh_exist(h, k))
+#define kh_exist_uint8(h, k) (kh_exist(h, k))
+
+KHASH_MAP_INIT_STR(str, size_t)
+KHASH_MAP_INIT_INT(int32, size_t)
+KHASH_MAP_INIT_UINT(uint32, size_t)
+KHASH_MAP_INIT_INT64(int64, size_t)
+KHASH_MAP_INIT_UINT64(uint64, size_t)
+KHASH_MAP_INIT_INT16(int16, size_t)
+KHASH_MAP_INIT_UINT16(uint16, size_t)
+KHASH_MAP_INIT_INT8(int8, size_t)
+KHASH_MAP_INIT_UINT8(uint8, size_t)
+
+#endif /* __AC_KHASH_H */
+```
+
+## pandas/pandas/_libs/include/pandas/vendored/klib/khash_python.h.notice.txt
+
+```text
+// Licence at LICENSES/KLIB_LICENSE
+
+#include <Python.h>
+#include <string.h>
+
+typedef struct {
+  float real;
+  float imag;
+} khcomplex64_t;
+typedef struct {
+  double real;
+  double imag;
+} khcomplex128_t;
+
+// khash should report usage to tracemalloc
+#if PY_VERSION_HEX >= 0x03060000
+#include <pymem.h>
+#if PY_VERSION_HEX < 0x03070000
+#define PyTraceMalloc_Track _PyTraceMalloc_Track
+#define PyTraceMalloc_Untrack _PyTraceMalloc_Untrack
+#endif
+#else
+#define PyTraceMalloc_Track(...)
+#define PyTraceMalloc_Untrack(...)
+#endif
+
+static const int KHASH_TRACE_DOMAIN = 424242;
+void *traced_malloc(size_t size) {
+  void *ptr = malloc(size);
+  if (ptr != NULL) {
+    PyTraceMalloc_Track(KHASH_TRACE_DOMAIN, (uintptr_t)ptr, size);
+  }
+  return ptr;
+}
+
+void *traced_calloc(size_t num, size_t size) {
+  void *ptr = calloc(num, size);
+  if (ptr != NULL) {
+    PyTraceMalloc_Track(KHASH_TRACE_DOMAIN, (uintptr_t)ptr, num * size);
+  }
+  return ptr;
+}
+
+void *traced_realloc(void *old_ptr, size_t size) {
+  void *ptr = realloc(old_ptr, size);
+  if (ptr != NULL) {
+    if (old_ptr != ptr) {
+      PyTraceMalloc_Untrack(KHASH_TRACE_DOMAIN, (uintptr_t)old_ptr);
+    }
+    PyTraceMalloc_Track(KHASH_TRACE_DOMAIN, (uintptr_t)ptr, size);
+  }
+  return ptr;
+}
+
+void traced_free(void *ptr) {
+  if (ptr != NULL) {
+    PyTraceMalloc_Untrack(KHASH_TRACE_DOMAIN, (uintptr_t)ptr);
+  }
+  free(ptr);
+}
+
+#define KHASH_MALLOC traced_malloc
+#define KHASH_REALLOC traced_realloc
+#define KHASH_CALLOC traced_calloc
+#define KHASH_FREE traced_free
+#include "khash.h"
+
+// Previously we were using the built in cpython hash function for doubles
+// python 2.7 https://github.com/python/cpython/blob/2.7/Objects/object.c#L1021
+// python 3.5 https://github.com/python/cpython/blob/3.5/Python/pyhash.c#L85
+
+// The python 3 hash function has the invariant hash(x) == hash(int(x)) ==
+// hash(decimal(x)) and the size of hash may be different by platform / version
+// (long in py2, Py_ssize_t in py3). We don't need those invariants because
+// types will be cast before hashing, and if Py_ssize_t is 64 bits the
+// truncation causes collision issues.  Given all that, we use our own simple
+// hash, viewing the double bytes as an int64 and using khash's default hash for
+// 64 bit integers. GH 13436 showed that _Py_HashDouble doesn't work well with
+// khash GH 28303 showed, that the simple xoring-version isn't good enough See
+// GH 36729 for evaluation of the currently used murmur2-hash version An
+// interesting alternative to expensive murmur2-hash would be to change the
+// probing strategy and use e.g. the probing strategy from CPython's
+// implementation of dicts, which shines for smaller sizes but is more
+// predisposed to superlinear running times (see GH 36729 for comparison)
+
+static inline khuint64_t asuint64(double key) {
+  khuint64_t val;
+  memcpy(&val, &key, sizeof(double));
+  return val;
+}
+
+static inline khuint32_t asuint32(float key) {
+  khuint32_t val;
+  memcpy(&val, &key, sizeof(float));
+  return val;
+}
+
+#define ZERO_HASH 0
+#define NAN_HASH 0
+
+static inline khuint32_t kh_float64_hash_func(double val) {
+  // 0.0 and -0.0 should have the same hash:
+  if (val == 0.0) {
+    return ZERO_HASH;
+  }
+  // all nans should have the same hash:
+  if (val != val) {
+    return NAN_HASH;
+  }
+  khuint64_t as_int = asuint64(val);
+  return murmur2_64to32(as_int);
+}
+
+static inline khuint32_t kh_float32_hash_func(float val) {
+  // 0.0 and -0.0 should have the same hash:
+  if (val == 0.0f) {
+    return ZERO_HASH;
+  }
+  // all nans should have the same hash:
+  if (val != val) {
+    return NAN_HASH;
+  }
+  khuint32_t as_int = asuint32(val);
+  return murmur2_32to32(as_int);
+}
+
+#define kh_floats_hash_equal(a, b) ((a) == (b) || ((b) != (b) && (a) != (a)))
+
+#define KHASH_MAP_INIT_FLOAT64(name, khval_t)                                  \
+  KHASH_INIT(name, khfloat64_t, khval_t, 1, kh_float64_hash_func,              \
+             kh_floats_hash_equal)
+
+KHASH_MAP_INIT_FLOAT64(float64, size_t)
+
+#define KHASH_MAP_INIT_FLOAT32(name, khval_t)                                  \
+  KHASH_INIT(name, khfloat32_t, khval_t, 1, kh_float32_hash_func,              \
+             kh_floats_hash_equal)
+
+KHASH_MAP_INIT_FLOAT32(float32, size_t)
+
+static inline khint32_t kh_complex128_hash_func(khcomplex128_t val) {
+  return kh_float64_hash_func(val.real) ^ kh_float64_hash_func(val.imag);
+}
+static inline khint32_t kh_complex64_hash_func(khcomplex64_t val) {
+  return kh_float32_hash_func(val.real) ^ kh_float32_hash_func(val.imag);
+}
+
+#define kh_complex_hash_equal(a, b)                                            \
+  (kh_floats_hash_equal(a.real, b.real) && kh_floats_hash_equal(a.imag, b.imag))
+
+#define KHASH_MAP_INIT_COMPLEX64(name, khval_t)                                \
+  KHASH_INIT(name, khcomplex64_t, khval_t, 1, kh_complex64_hash_func,          \
+             kh_complex_hash_equal)
+
+KHASH_MAP_INIT_COMPLEX64(complex64, size_t)
+
+#define KHASH_MAP_INIT_COMPLEX128(name, khval_t)                               \
+  KHASH_INIT(name, khcomplex128_t, khval_t, 1, kh_complex128_hash_func,        \
+             kh_complex_hash_equal)
+
+KHASH_MAP_INIT_COMPLEX128(complex128, size_t)
+
+#define kh_exist_complex64(h, k) (kh_exist(h, k))
+#define kh_exist_complex128(h, k) (kh_exist(h, k))
+
+// NaN-floats should be in the same equivalency class, see GH 22119
+static inline int floatobject_cmp(PyFloatObject *a, PyFloatObject *b) {
+  return (Py_IS_NAN(PyFloat_AS_DOUBLE(a)) && Py_IS_NAN(PyFloat_AS_DOUBLE(b))) ||
+         (PyFloat_AS_DOUBLE(a) == PyFloat_AS_DOUBLE(b));
+}
+
+// NaNs should be in the same equivalency class, see GH 41836
+// PyObject_RichCompareBool for complexobjects has a different behavior
+// needs to be replaced
+static inline int complexobject_cmp(PyComplexObject *a, PyComplexObject *b) {
+  return (Py_IS_NAN(a->cval.real) && Py_IS_NAN(b->cval.real) &&
+          Py_IS_NAN(a->cval.imag) && Py_IS_NAN(b->cval.imag)) ||
+         (Py_IS_NAN(a->cval.real) && Py_IS_NAN(b->cval.real) &&
+          a->cval.imag == b->cval.imag) ||
+         (a->cval.real == b->cval.real && Py_IS_NAN(a->cval.imag) &&
+          Py_IS_NAN(b->cval.imag)) ||
+         (a->cval.real == b->cval.real && a->cval.imag == b->cval.imag);
+}
+
+static inline int pyobject_cmp(PyObject *a, PyObject *b);
+
+// replacing PyObject_RichCompareBool (NaN!=NaN) with pyobject_cmp (NaN==NaN),
+// which treats NaNs as equivalent
+// see GH 41836
+static inline int tupleobject_cmp(PyTupleObject *a, PyTupleObject *b) {
+  Py_ssize_t i;
+
+  if (Py_SIZE(a) != Py_SIZE(b)) {
+    return 0;
+  }
+
+  for (i = 0; i < Py_SIZE(a); ++i) {
+    if (!pyobject_cmp(PyTuple_GET_ITEM(a, i), PyTuple_GET_ITEM(b, i))) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static inline int pyobject_cmp(PyObject *a, PyObject *b) {
+  if (a == b) {
+    return 1;
+  }
+  if (Py_TYPE(a) == Py_TYPE(b)) {
+    // special handling for some built-in types which could have NaNs
+    // as we would like to have them equivalent, but the usual
+    // PyObject_RichCompareBool would return False
+    if (PyFloat_CheckExact(a)) {
+      return floatobject_cmp((PyFloatObject *)a, (PyFloatObject *)b);
+    }
+    if (PyComplex_CheckExact(a)) {
+      return complexobject_cmp((PyComplexObject *)a, (PyComplexObject *)b);
+    }
+    if (PyTuple_CheckExact(a)) {
+      return tupleobject_cmp((PyTupleObject *)a, (PyTupleObject *)b);
+    }
+    // frozenset isn't yet supported
+  }
+
+  int result = PyObject_RichCompareBool(a, b, Py_EQ);
+  if (result < 0) {
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+static inline Py_hash_t _Pandas_HashDouble(double val) {
+  // Since Python3.10, nan is no longer has hash 0
+  if (Py_IS_NAN(val)) {
+    return 0;
+  }
+#if PY_VERSION_HEX < 0x030A0000
+  return _Py_HashDouble(val);
+#else
+  return _Py_HashDouble(NULL, val);
+#endif
+}
+
+static inline Py_hash_t floatobject_hash(PyFloatObject *key) {
+  return _Pandas_HashDouble(PyFloat_AS_DOUBLE(key));
+}
+
+#define _PandasHASH_IMAG 1000003UL
+
+// replaces _Py_HashDouble with _Pandas_HashDouble
+static inline Py_hash_t complexobject_hash(PyComplexObject *key) {
+  Py_uhash_t realhash = (Py_uhash_t)_Pandas_HashDouble(key->cval.real);
+  Py_uhash_t imaghash = (Py_uhash_t)_Pandas_HashDouble(key->cval.imag);
+  if (realhash == (Py_uhash_t)-1 || imaghash == (Py_uhash_t)-1) {
+    return -1;
+  }
+  Py_uhash_t combined = realhash + _PandasHASH_IMAG * imaghash;
+  if (combined == (Py_uhash_t)-1) {
+    return -2;
+  }
+  return (Py_hash_t)combined;
+}
+
+static inline khuint32_t kh_python_hash_func(PyObject *key);
+
+// we could use any hashing algorithm, this is the original CPython's for tuples
+
+#if SIZEOF_PY_UHASH_T > 4
+#define _PandasHASH_XXPRIME_1 ((Py_uhash_t)11400714785074694791ULL)
+#define _PandasHASH_XXPRIME_2 ((Py_uhash_t)14029467366897019727ULL)
+#define _PandasHASH_XXPRIME_5 ((Py_uhash_t)2870177450012600261ULL)
+#define _PandasHASH_XXROTATE(x)                                                \
+  ((x << 31) | (x >> 33)) /* Rotate left 31 bits */
+#else
+#define _PandasHASH_XXPRIME_1 ((Py_uhash_t)2654435761UL)
+#define _PandasHASH_XXPRIME_2 ((Py_uhash_t)2246822519UL)
+#define _PandasHASH_XXPRIME_5 ((Py_uhash_t)374761393UL)
+#define _PandasHASH_XXROTATE(x)                                                \
+  ((x << 13) | (x >> 19)) /* Rotate left 13 bits */
+#endif
+
+static inline Py_hash_t tupleobject_hash(PyTupleObject *key) {
+  Py_ssize_t i, len = Py_SIZE(key);
+  PyObject **item = key->ob_item;
+
+  Py_uhash_t acc = _PandasHASH_XXPRIME_5;
+  for (i = 0; i < len; i++) {
+    Py_uhash_t lane = kh_python_hash_func(item[i]);
+    if (lane == (Py_uhash_t)-1) {
+      return -1;
+    }
+    acc += lane * _PandasHASH_XXPRIME_2;
+    acc = _PandasHASH_XXROTATE(acc);
+    acc *= _PandasHASH_XXPRIME_1;
+  }
+
+  /* Add input length, mangled to keep the historical value of hash(()). */
+  acc += len ^ (_PandasHASH_XXPRIME_5 ^ 3527539UL);
+
+  if (acc == (Py_uhash_t)-1) {
+    return 1546275796;
+  }
+  return acc;
+}
+
+static inline khuint32_t kh_python_hash_func(PyObject *key) {
+  Py_hash_t hash;
+  // For PyObject_Hash holds:
+  //    hash(0.0) == 0 == hash(-0.0)
+  //    yet for different nan-objects different hash-values
+  //    are possible
+  if (PyFloat_CheckExact(key)) {
+    // we cannot use kh_float64_hash_func
+    // because float(k) == k holds for any int-object k
+    // and kh_float64_hash_func doesn't respect it
+    hash = floatobject_hash((PyFloatObject *)key);
+  } else if (PyComplex_CheckExact(key)) {
+    // we cannot use kh_complex128_hash_func
+    // because complex(k,0) == k holds for any int-object k
+    // and kh_complex128_hash_func doesn't respect it
+    hash = complexobject_hash((PyComplexObject *)key);
+  } else if (PyTuple_CheckExact(key)) {
+    hash = tupleobject_hash((PyTupleObject *)key);
+  } else {
+    hash = PyObject_Hash(key);
+  }
+
+  if (hash == -1) {
+    PyErr_Clear();
+    return 0;
+  }
+#if SIZEOF_PY_HASH_T == 4
+  // it is already 32bit value
+  return hash;
+#else
+  // for 64bit builds,
+  // we need information of the upper 32bits as well
+  // see GH 37615
+  khuint64_t as_uint = (khuint64_t)hash;
+  // uints avoid undefined behavior of signed ints
+  return (as_uint >> 32) ^ as_uint;
+#endif
+}
+
+#define kh_python_hash_equal(a, b) (pyobject_cmp(a, b))
+
+// Python object
+
+typedef PyObject *kh_pyobject_t;
+
+#define KHASH_MAP_INIT_PYOBJECT(name, khval_t)                                 \
+  KHASH_INIT(name, kh_pyobject_t, khval_t, 1, kh_python_hash_func,             \
+             kh_python_hash_equal)
+
+KHASH_MAP_INIT_PYOBJECT(pymap, Py_ssize_t)
+
+#define KHASH_SET_INIT_PYOBJECT(name)                                          \
+  KHASH_INIT(name, kh_pyobject_t, char, 0, kh_python_hash_func,                \
+             kh_python_hash_equal)
+
+KHASH_SET_INIT_PYOBJECT(pyset)
+
+#define kh_exist_pymap(h, k) (kh_exist(h, k))
+#define kh_exist_pyset(h, k) (kh_exist(h, k))
+
+KHASH_MAP_INIT_STR(strbox, kh_pyobject_t)
+
+typedef struct {
+  kh_str_t *table;
+  int starts[256];
+} kh_str_starts_t;
+
+typedef kh_str_starts_t *p_kh_str_starts_t;
+
+static inline p_kh_str_starts_t kh_init_str_starts(void) {
+  kh_str_starts_t *result =
+      (kh_str_starts_t *)KHASH_CALLOC(1, sizeof(kh_str_starts_t));
+  result->table = kh_init_str();
+  return result;
+}
+
+static inline khuint_t kh_put_str_starts_item(kh_str_starts_t *table, char *key,
+                                              int *ret) {
+  khuint_t result = kh_put_str(table->table, key, ret);
+  if (*ret != 0) {
+    table->starts[(unsigned char)key[0]] = 1;
+  }
+  return result;
+}
+
+static inline khuint_t kh_get_str_starts_item(const kh_str_starts_t *table,
+                                              const char *key) {
+  unsigned char ch = *key;
+  if (table->starts[ch]) {
+    if (ch == '\0' || kh_get_str(table->table, key) != table->table->n_buckets)
+      return 1;
+  }
+  return 0;
+}
+
+static inline void kh_destroy_str_starts(kh_str_starts_t *table) {
+  kh_destroy_str(table->table);
+  KHASH_FREE(table);
+}
+
+static inline void kh_resize_str_starts(kh_str_starts_t *table, khuint_t val) {
+  kh_resize_str(table->table, val);
+}
+
+// utility function: given the number of elements
+// returns number of necessary buckets
+static inline khuint_t kh_needed_n_buckets(khuint_t n_elements) {
+  khuint_t candidate = n_elements;
+  kroundup32(candidate);
+  khuint_t upper_bound = (khuint_t)(candidate * __ac_HASH_UPPER + 0.5);
+  return (upper_bound < n_elements) ? 2 * candidate : candidate;
+}
+```
+
+## pandas/pandas/_libs/include/pandas/vendored/numpy/datetime/np_datetime.h.notice.txt
+
+```text
+/*
+
+Copyright (c) 2016, PyData Development Team
+All rights reserved.
+
+Distributed under the terms of the BSD Simplified License.
+
+The full license is in the LICENSE file, distributed with this software.
+
+Copyright (c) 2005-2011, NumPy Developers
+All rights reserved.
+
+This file is derived from NumPy 1.7. See NUMPY_LICENSE.txt
+
+*/
+
+#pragma once
+
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif // NPY_NO_DEPRECATED_API
+
+#include <numpy/ndarraytypes.h>
+
+typedef struct {
+  npy_int64 days;
+  npy_int32 hrs, min, sec, ms, us, ns, seconds, microseconds, nanoseconds;
+} pandas_timedeltastruct;
+
+static const npy_datetimestruct _AS_MIN_DTS = {1969, 12,     31,     23,    59,
+                                               50,   776627, 963145, 224193};
+static const npy_datetimestruct _FS_MIN_DTS = {1969, 12,     31,     21,    26,
+                                               16,   627963, 145224, 193000};
+static const npy_datetimestruct _PS_MIN_DTS = {1969, 9,      16,     5, 57,
+                                               7,    963145, 224193, 0};
+static const npy_datetimestruct _NS_MIN_DTS = {1677, 9,      21,     0, 12,
+                                               43,   145224, 193000, 0};
+static const npy_datetimestruct _US_MIN_DTS = {-290308, 12,     21, 19, 59,
+                                               05,      224193, 0,  0};
+static const npy_datetimestruct _MS_MIN_DTS = {-292275055, 5,      16, 16, 47,
+                                               4,          193000, 0,  0};
+static const npy_datetimestruct _S_MIN_DTS = {
+    -292277022657, 1, 27, 8, 29, 53, 0, 0, 0};
+static const npy_datetimestruct _M_MIN_DTS = {
+    -17536621475646, 5, 4, 5, 53, 0, 0, 0, 0};
+
+static const npy_datetimestruct _AS_MAX_DTS = {1970, 1,      1,     0,     0,
+                                               9,    223372, 36854, 775807};
+static const npy_datetimestruct _FS_MAX_DTS = {1970, 1,      1,      2,     33,
+                                               43,   372036, 854775, 807000};
+static const npy_datetimestruct _PS_MAX_DTS = {1970, 4,     17,     18, 2,
+                                               52,   36854, 775807, 0};
+static const npy_datetimestruct _NS_MAX_DTS = {2262, 4,      11,     23, 47,
+                                               16,   854775, 807000, 0};
+static const npy_datetimestruct _US_MAX_DTS = {294247, 1,      10, 4, 0,
+                                               54,     775807, 0,  0};
+static const npy_datetimestruct _MS_MAX_DTS = {292278994, 8,      17, 7, 12,
+                                               55,        807000, 0,  0};
+static const npy_datetimestruct _S_MAX_DTS = {
+    292277026596, 12, 4, 15, 30, 7, 0, 0, 0};
+static const npy_datetimestruct _M_MAX_DTS = {
+    17536621479585, 8, 30, 18, 7, 0, 0, 0, 0};
+
+// stuff pandas needs
+// ----------------------------------------------------------------------------
+
+PyObject *extract_utc_offset(PyObject *obj);
+
+npy_datetime npy_datetimestruct_to_datetime(NPY_DATETIMEUNIT base,
+                                            const npy_datetimestruct *dts);
+
+void pandas_datetime_to_datetimestruct(npy_datetime val, NPY_DATETIMEUNIT fr,
+                                       npy_datetimestruct *result);
+
+void pandas_timedelta_to_timedeltastruct(npy_timedelta val, NPY_DATETIMEUNIT fr,
+                                         pandas_timedeltastruct *result);
+
+extern const int days_per_month_table[2][12];
+
+// stuff numpy-derived code needs in header
+// ----------------------------------------------------------------------------
+
+int is_leapyear(npy_int64 year);
+
+/*
+ * Calculates the days offset from the 1970 epoch.
+ */
+npy_int64 get_datetimestruct_days(const npy_datetimestruct *dts);
+
+/*
+ * Compares two npy_datetimestruct objects chronologically
+ */
+int cmp_npy_datetimestruct(const npy_datetimestruct *a,
+                           const npy_datetimestruct *b);
+
+/*
+ * Adjusts a datetimestruct based on a minutes offset. Assumes
+ * the current values are valid.
+ */
+void add_minutes_to_datetimestruct(npy_datetimestruct *dts, int minutes);
+
+/*
+ * This function returns the DateTimeMetaData
+ * contained within the provided datetime dtype.
+ */
+PyArray_DatetimeMetaData get_datetime_metadata_from_dtype(PyArray_Descr *dtype);
+```
+
+## pandas/pandas/_libs/include/pandas/vendored/numpy/datetime/np_datetime_strings.h.notice.txt
+
+```text
+/*
+
+Copyright (c) 2016, PyData Development Team
+All rights reserved.
+
+Distributed under the terms of the BSD Simplified License.
+
+The full license is in the LICENSE file, distributed with this software.
+
+Written by Mark Wiebe (mwwiebe@gmail.com)
+Copyright (c) 2011 by Enthought, Inc.
+
+Copyright (c) 2005-2011, NumPy Developers
+All rights reserved.
+
+See NUMPY_LICENSE.txt for the license.
+
+This file implements string parsing and creation for NumPy datetime.
+
+*/
+
+#pragma once
+
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif // NPY_NO_DEPRECATED_API
+
+/* 'format_requirement' can be one of three values:
+ *      * PARTIAL_MATCH : Only require a partial match with 'format'.
+ *           For example, if the string is '2020-01-01 05:00:00' and
+ *           'format' is '%Y-%m-%d', then parse '2020-01-01';
+ *      * EXACT_MATCH : require an exact match with 'format'. If the
+ *           string is '2020-01-01', then the only format which will
+ *           be able to parse it without error is '%Y-%m-%d';
+ *      * INFER_FORMAT: parse without comparing 'format' (i.e. infer it).
+ */
+typedef enum { PARTIAL_MATCH, EXACT_MATCH, INFER_FORMAT } FormatRequirement;
+
+/*
+ * Parses (almost) standard ISO 8601 date strings. The differences are:
+ *
+ * + The date "20100312" is parsed as the year 20100312, not as
+ *   equivalent to "2010-03-12". The '-' in the dates are not optional.
+ * + Only seconds may have a decimal point, with up to 18 digits after it
+ *   (maximum attoseconds precision).
+ * + Either a 'T' as in ISO 8601 or a ' ' may be used to separate
+ *   the date and the time. Both are treated equivalently.
+ * + Doesn't (yet) handle the "YYYY-DDD" or "YYYY-Www" formats.
+ * + Doesn't handle leap seconds (seconds value has 60 in these cases).
+ * + Doesn't handle 24:00:00 as synonym for midnight (00:00:00) tomorrow
+ * + Accepts special values "NaT" (not a time), "Today", (current
+ *   day according to local time) and "Now" (current time in UTC).
+ *
+ * 'str' must be a NULL-terminated string, and 'len' must be its length.
+ *
+ * 'out' gets filled with the parsed date-time.
+ * 'out_local' gets whether returned value contains timezone. 0 for UTC, 1 for
+ * local time. 'out_tzoffset' gets set to timezone offset by minutes if the
+ * parsed time was in local time, to 0 otherwise. The values 'now' and 'today'
+ * don't get counted as local, and neither do UTC +/-#### timezone offsets,
+ * because they aren't using the computer's local timezone offset.
+ *
+ * Returns 0 on success, -1 on failure.
+ */
+int parse_iso_8601_datetime(const char *str, int len, int want_exc,
+                            npy_datetimestruct *out,
+                            NPY_DATETIMEUNIT *out_bestunit, int *out_local,
+                            int *out_tzoffset, const char *format,
+                            int format_len,
+                            FormatRequirement format_requirement);
+
+/*
+ * Provides a string length to use for converting datetime
+ * objects with the given local and unit settings.
+ */
+int get_datetime_iso_8601_strlen(int local, NPY_DATETIMEUNIT base);
+
+/*
+ * Converts an npy_datetimestruct to an (almost) ISO 8601
+ * NULL-terminated string using timezone Z (UTC).
+ *
+ * 'base' restricts the output to that unit. Set 'base' to
+ * -1 to auto-detect a base after which all the values are zero.
+ *
+ *  Returns 0 on success, -1 on failure (for example if the output
+ *  string was too short).
+ */
+int make_iso_8601_datetime(npy_datetimestruct *dts, char *outstr, size_t outlen,
+                           int utc, NPY_DATETIMEUNIT base);
+
+/*
+ * Converts an pandas_timedeltastruct to an ISO 8601 string.
+ *
+ * Mutates outlen to provide size of (non-NULL terminated) string.
+ *
+ * Currently has no error handling
+ */
+int make_iso_8601_timedelta(pandas_timedeltastruct *tds, char *outstr,
+                            size_t *outlen);
+```
+
+## pandas/pandas/_libs/include/pandas/vendored/ujson/lib/ultrajson.h.notice.txt
+
+```text
+/*
+Copyright (c) 2011-2013, ESN Social Software AB and Jonas Tarnstrom
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the ESN Social Software AB nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL ESN SOCIAL SOFTWARE AB OR JONAS TARNSTROM BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Portions of code from MODP_ASCII - Ascii transformations (upper/lower, etc)
+https://github.com/client9/stringencoders
+Copyright (c) 2007  Nick Galbreath -- nickg [at] modp [dot] com. All rights
+reserved.
+
+Numeric decoder derived from TCL library
+https://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
+ * Copyright (c) 1988-1993 The Regents of the University of California.
+ * Copyright (c) 1994 Sun Microsystems, Inc.
+*/
+
+/*
+Ultra fast JSON encoder and decoder
+Developed by Jonas Tarnstrom (jonas@esn.me).
+
+Encoder notes:
+------------------
+
+:: Cyclic references ::
+Cyclic referenced objects are not detected.
+Set JSONObjectEncoder.recursionMax to suitable value or make sure input object
+tree doesn't have cyclic references.
+
+*/
+
+#pragma once
+
+#include "pandas/portable.h"
+#include <stdio.h>
+#include <wchar.h>
+
+// Don't output any extra whitespaces when encoding
+#define JSON_NO_EXTRA_WHITESPACE
+
+// Max decimals to encode double floating point numbers with
+#ifndef JSON_DOUBLE_MAX_DECIMALS
+#define JSON_DOUBLE_MAX_DECIMALS 15
+#endif
+
+// Max recursion depth, default for encoder
+#ifndef JSON_MAX_RECURSION_DEPTH
+#define JSON_MAX_RECURSION_DEPTH 1024
+#endif
+
+// Max recursion depth, default for decoder
+#ifndef JSON_MAX_OBJECT_DEPTH
+#define JSON_MAX_OBJECT_DEPTH 1024
+#endif
+
+/*
+Dictates and limits how much stack space for buffers UltraJSON will use before
+resorting to provided heap functions */
+#ifndef JSON_MAX_STACK_BUFFER_SIZE
+#define JSON_MAX_STACK_BUFFER_SIZE 131072
+#endif
+
+#ifdef _WIN32
+
+typedef __int64 JSINT64;
+typedef unsigned __int64 JSUINT64;
+
+typedef __int32 JSINT32;
+typedef unsigned __int32 JSUINT32;
+typedef unsigned __int8 JSUINT8;
+typedef unsigned __int16 JSUTF16;
+typedef unsigned __int32 JSUTF32;
+typedef __int64 JSLONG;
+
+#define EXPORTFUNCTION __declspec(dllexport)
+
+#define FASTCALL_MSVC __fastcall
+
+#define INLINE_PREFIX static __inline
+
+#else
+
+#include <stdint.h>
+typedef int64_t JSINT64;
+typedef uint64_t JSUINT64;
+
+typedef int32_t JSINT32;
+typedef uint32_t JSUINT32;
+
+#define FASTCALL_MSVC
+
+#define INLINE_PREFIX static inline
+
+typedef uint8_t JSUINT8;
+typedef uint16_t JSUTF16;
+typedef uint32_t JSUTF32;
+
+typedef int64_t JSLONG;
+
+#define EXPORTFUNCTION
+#endif
+
+#if !(defined(__LITTLE_ENDIAN__) || defined(__BIG_ENDIAN__))
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define __LITTLE_ENDIAN__
+#else
+
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define __BIG_ENDIAN__
+#endif
+
+#endif
+
+#endif
+
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+#error "Endianness not supported"
+#endif
+
+enum JSTYPES {
+  JT_NULL,    // NULL
+  JT_TRUE,    // boolean true
+  JT_FALSE,   // boolean false
+  JT_INT,     // (JSINT32 (signed 32-bit))
+  JT_LONG,    // (JSINT64 (signed 64-bit))
+  JT_DOUBLE,  // (double)
+  JT_BIGNUM,  // integer larger than sys.maxsize
+  JT_UTF8,    // (char 8-bit)
+  JT_ARRAY,   // Array structure
+  JT_OBJECT,  // Key/Value structure
+  JT_INVALID, // Internal, do not return nor expect
+  JT_POS_INF, // Positive infinity
+  JT_NEG_INF, // Negative infinity
+};
+
+typedef void *JSOBJ;
+typedef void *JSITER;
+
+typedef struct __JSONTypeContext {
+  int type;
+  void *encoder;
+  void *prv;
+} JSONTypeContext;
+
+/*
+Function pointer declarations, suitable for implementing UltraJSON */
+typedef void (*JSPFN_ITERBEGIN)(JSOBJ obj, JSONTypeContext *tc);
+typedef int (*JSPFN_ITERNEXT)(JSOBJ obj, JSONTypeContext *tc);
+typedef void (*JSPFN_ITEREND)(JSOBJ obj, JSONTypeContext *tc);
+typedef JSOBJ (*JSPFN_ITERGETVALUE)(JSOBJ obj, JSONTypeContext *tc);
+typedef char *(*JSPFN_ITERGETNAME)(JSOBJ obj, JSONTypeContext *tc,
+                                   size_t *outLen);
+typedef void *(*JSPFN_MALLOC)(size_t size);
+typedef void (*JSPFN_FREE)(void *pptr);
+typedef void *(*JSPFN_REALLOC)(void *base, size_t size);
+
+typedef struct __JSONObjectEncoder {
+  void (*beginTypeContext)(JSOBJ obj, JSONTypeContext *tc);
+  void (*endTypeContext)(JSOBJ obj, JSONTypeContext *tc);
+  const char *(*getStringValue)(JSOBJ obj, JSONTypeContext *tc,
+                                size_t *_outLen);
+  JSINT64 (*getLongValue)(JSOBJ obj, JSONTypeContext *tc);
+  JSINT32 (*getIntValue)(JSOBJ obj, JSONTypeContext *tc);
+  double (*getDoubleValue)(JSOBJ obj, JSONTypeContext *tc);
+  const char *(*getBigNumStringValue)(JSOBJ obj, JSONTypeContext *tc,
+                                      size_t *_outLen);
+
+  /*
+  Begin iteration of an iterable object (JS_ARRAY or JS_OBJECT)
+  Implementer should setup iteration state in ti->prv
+  */
+  JSPFN_ITERBEGIN iterBegin;
+
+  /*
+  Retrieve next object in an iteration. Should return 0 to indicate iteration
+  has reached end or 1 if there are more items. Implementer is responsible for
+  keeping state of the iteration. Use ti->prv fields for this
+  */
+  JSPFN_ITERNEXT iterNext;
+
+  /*
+  Ends the iteration of an iterable object.
+  Any iteration state stored in ti->prv can be freed here
+  */
+  JSPFN_ITEREND iterEnd;
+
+  /*
+  Returns a reference to the value object of an iterator
+  The is responsible for the life-cycle of the returned string. Use
+  iterNext/iterEnd and ti->prv to keep track of current object
+  */
+  JSPFN_ITERGETVALUE iterGetValue;
+
+  /*
+  Return name of iterator.
+  The is responsible for the life-cycle of the returned string. Use
+  iterNext/iterEnd and ti->prv to keep track of current object
+  */
+  JSPFN_ITERGETNAME iterGetName;
+
+  /*
+  Release a value as indicated by setting ti->release = 1 in the previous
+  getValue call. The ti->prv array should contain the necessary context to
+  release the value
+  */
+  void (*releaseObject)(JSOBJ obj);
+
+  /* Library functions
+  Set to NULL to use STDLIB malloc,realloc,free */
+  JSPFN_MALLOC malloc;
+  JSPFN_REALLOC realloc;
+  JSPFN_FREE free;
+
+  /*
+  Configuration for max recursion, set to 0 to use default (see
+  JSON_MAX_RECURSION_DEPTH)*/
+  int recursionMax;
+
+  /*
+  Configuration for max decimals of double floating point numbers to encode
+  (0-9) */
+  int doublePrecision;
+
+  /*
+  If true output will be ASCII with all characters above 127 encoded as \uXXXX.
+  If false output will be UTF-8 or what ever charset strings are brought as */
+  int forceASCII;
+
+  /*
+  If true, '<', '>', and '&' characters will be encoded as \u003c, \u003e, and
+  \u0026, respectively. If false, no special encoding will be used. */
+  int encodeHTMLChars;
+
+  /*
+  Configuration for spaces of indent */
+  int indent;
+
+  /*
+  Set to an error message if error occurred */
+  const char *errorMsg;
+  JSOBJ errorObj;
+
+  /* Buffer stuff */
+  char *start;
+  char *offset;
+  char *end;
+  int heap;
+  int level;
+} JSONObjectEncoder;
+
+/*
+Encode an object structure into JSON.
+
+Arguments:
+obj - An anonymous type representing the object
+enc - Function definitions for querying JSOBJ type
+buffer - Preallocated buffer to store result in. If NULL function allocates own
+buffer cbBuffer - Length of buffer (ignored if buffer is NULL)
+
+Returns:
+Encoded JSON object as a null terminated char string.
+
+NOTE:
+If the supplied buffer wasn't enough to hold the result the function will
+allocate a new buffer. Life cycle of the provided buffer must still be handled
+by caller.
+
+If the return value doesn't equal the specified buffer caller must release the
+memory using JSONObjectEncoder.free or free() as specified when calling this
+function.
+*/
+EXPORTFUNCTION char *JSON_EncodeObject(JSOBJ obj, JSONObjectEncoder *enc,
+                                       char *buffer, size_t cbBuffer);
+
+typedef struct __JSONObjectDecoder {
+  JSOBJ (*newString)(void *prv, wchar_t *start, wchar_t *end);
+  int (*objectAddKey)(void *prv, JSOBJ obj, JSOBJ name, JSOBJ value);
+  int (*arrayAddItem)(void *prv, JSOBJ obj, JSOBJ value);
+  JSOBJ (*newTrue)(void *prv);
+  JSOBJ (*newFalse)(void *prv);
+  JSOBJ (*newNull)(void *prv);
+  JSOBJ (*newPosInf)(void *prv);
+  JSOBJ (*newNegInf)(void *prv);
+  JSOBJ (*newObject)(void *prv, void *decoder);
+  JSOBJ (*endObject)(void *prv, JSOBJ obj);
+  JSOBJ (*newArray)(void *prv, void *decoder);
+  JSOBJ (*endArray)(void *prv, JSOBJ obj);
+  JSOBJ (*newInt)(void *prv, JSINT32 value);
+  JSOBJ (*newLong)(void *prv, JSINT64 value);
+  JSOBJ (*newUnsignedLong)(void *prv, JSUINT64 value);
+  JSOBJ (*newDouble)(void *prv, double value);
+  void (*releaseObject)(void *prv, JSOBJ obj, void *decoder);
+  JSPFN_MALLOC malloc;
+  JSPFN_FREE free;
+  JSPFN_REALLOC realloc;
+  char *errorStr;
+  char *errorOffset;
+  int preciseFloat;
+  void *prv;
+} JSONObjectDecoder;
+
+EXPORTFUNCTION JSOBJ JSON_DecodeObject(JSONObjectDecoder *dec,
+                                       const char *buffer, size_t cbBuffer);
+EXPORTFUNCTION void encode(JSOBJ, JSONObjectEncoder *, const char *, size_t);
+```
+
+## pandas/pandas/_libs/src/vendored/numpy/datetime/np_datetime.c.notice.txt
+
+```text
+/*
+
+Copyright (c) 2016, PyData Development Team
+All rights reserved.
+
+Distributed under the terms of the BSD Simplified License.
+
+The full license is in the LICENSE file, distributed with this software.
+
+Copyright (c) 2005-2011, NumPy Developers
+All rights reserved.
+
+This file is derived from NumPy 1.7. See NUMPY_LICENSE.txt
+
+*/
+
+// Licence at LICENSES/NUMPY_LICENSE
+
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif // NPY_NO_DEPRECATED_API
+
+#include <Python.h>
+
+#include "pandas/vendored/numpy/datetime/np_datetime.h"
+
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL PANDAS_DATETIME_NUMPY
+#include <numpy/ndarrayobject.h>
+#include <numpy/npy_common.h>
+
+#if defined(_WIN32)
+#ifndef ENABLE_INTSAFE_SIGNED_FUNCTIONS
+#define ENABLE_INTSAFE_SIGNED_FUNCTIONS
+#endif
+#include <intsafe.h>
+#define checked_int64_add(a, b, res) LongLongAdd(a, b, res)
+#define checked_int64_sub(a, b, res) LongLongSub(a, b, res)
+#define checked_int64_mul(a, b, res) LongLongMult(a, b, res)
+#else
+#if defined __has_builtin
+#if __has_builtin(__builtin_add_overflow)
+#define checked_int64_add(a, b, res) __builtin_add_overflow(a, b, res)
+#define checked_int64_sub(a, b, res) __builtin_sub_overflow(a, b, res)
+#define checked_int64_mul(a, b, res) __builtin_mul_overflow(a, b, res)
+#else
+_Static_assert(0,
+               "Overflow checking not detected; please try a newer compiler");
+#endif
+// __has_builtin was added in gcc 10, but our muslinux_1_1 build environment
+// only has gcc-9.3, so fall back to __GNUC__ macro as long as we have that
+#elif __GNUC__ > 7
+#define checked_int64_add(a, b, res) __builtin_add_overflow(a, b, res)
+#define checked_int64_sub(a, b, res) __builtin_sub_overflow(a, b, res)
+#define checked_int64_mul(a, b, res) __builtin_mul_overflow(a, b, res)
+#else
+_Static_assert(0, "__has_builtin not detected; please try a newer compiler");
+#endif
+#endif
+
+#define PD_CHECK_OVERFLOW(FUNC)                                                \
+  do {                                                                         \
+    if ((FUNC) != 0) {                                                         \
+      PyGILState_STATE gstate = PyGILState_Ensure();                           \
+      PyErr_SetString(PyExc_OverflowError,                                     \
+                      "Overflow occurred in npy_datetimestruct_to_datetime");  \
+      PyGILState_Release(gstate);                                              \
+      return -1;                                                               \
+    }                                                                          \
+  } while (0)
+
+const int days_per_month_table[2][12] = {
+    {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+    {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}};
+
+/*
+ * Returns 1 if the given year is a leap year, 0 otherwise.
+ */
+int is_leapyear(npy_int64 year) {
+  return (year & 0x3) == 0 && /* year % 4 == 0 */
+         ((year % 100) != 0 || (year % 400) == 0);
+}
+
+/*
+ * Adjusts a datetimestruct based on a minutes offset. Assumes
+ * the current values are valid.g
+ */
+void add_minutes_to_datetimestruct(npy_datetimestruct *dts, int minutes) {
+  int isleap;
+
+  /* MINUTES */
+  dts->min += minutes;
+  while (dts->min < 0) {
+    dts->min += 60;
+    dts->hour--;
+  }
+  while (dts->min >= 60) {
+    dts->min -= 60;
+    dts->hour++;
+  }
+
+  /* HOURS */
+  while (dts->hour < 0) {
+    dts->hour += 24;
+    dts->day--;
+  }
+  while (dts->hour >= 24) {
+    dts->hour -= 24;
+    dts->day++;
+  }
+
+  /* DAYS */
+  if (dts->day < 1) {
+    dts->month--;
+    if (dts->month < 1) {
+      dts->year--;
+      dts->month = 12;
+    }
+    isleap = is_leapyear(dts->year);
+    dts->day += days_per_month_table[isleap][dts->month - 1];
+  } else if (dts->day > 28) {
+    isleap = is_leapyear(dts->year);
+    if (dts->day > days_per_month_table[isleap][dts->month - 1]) {
+      dts->day -= days_per_month_table[isleap][dts->month - 1];
+      dts->month++;
+      if (dts->month > 12) {
+        dts->year++;
+        dts->month = 1;
+      }
+    }
+  }
+}
+
+/*
+ * Calculates the days offset from the 1970 epoch.
+ */
+npy_int64 get_datetimestruct_days(const npy_datetimestruct *dts) {
+  int i, month;
+  npy_int64 year, days = 0;
+  const int *month_lengths;
+
+  year = dts->year - 1970;
+  days = year * 365;
+
+  /* Adjust for leap years */
+  if (days >= 0) {
+    /*
+     * 1968 is the closest leap year before 1970.
+     * Exclude the current year, so add 1.
+     */
+    year += 1;
+    /* Add one day for each 4 years */
+    days += year / 4;
+    /* 1900 is the closest previous year divisible by 100 */
+    year += 68;
+    /* Subtract one day for each 100 years */
+    days -= year / 100;
+    /* 1600 is the closest previous year divisible by 400 */
+    year += 300;
+    /* Add one day for each 400 years */
+    days += year / 400;
+  } else {
+    /*
+     * 1972 is the closest later year after 1970.
+     * Include the current year, so subtract 2.
+     */
+    year -= 2;
+    /* Subtract one day for each 4 years */
+    days += year / 4;
+    /* 2000 is the closest later year divisible by 100 */
+    year -= 28;
+    /* Add one day for each 100 years */
+    days -= year / 100;
+    /* 2000 is also the closest later year divisible by 400 */
+    /* Subtract one day for each 400 years */
+    days += year / 400;
+  }
+
+  month_lengths = days_per_month_table[is_leapyear(dts->year)];
+  month = dts->month - 1;
+
+  /* Add the months */
+  for (i = 0; i < month; ++i) {
+    days += month_lengths[i];
+  }
+
+  /* Add the days */
+  days += dts->day - 1;
+
+  return days;
+}
+
+/*
+ * Modifies '*days_' to be the day offset within the year,
+ * and returns the year.
+ */
+static npy_int64 days_to_yearsdays(npy_int64 *days_) {
+  const npy_int64 days_per_400years = (400 * 365 + 100 - 4 + 1);
+  /* Adjust so it's relative to the year 2000 (divisible by 400) */
+  npy_int64 days = (*days_) - (365 * 30 + 7);
+  npy_int64 year;
+
+  /* Break down the 400 year cycle to get the year and day within the year */
+  if (days >= 0) {
+    year = 400 * (days / days_per_400years);
+    days = days % days_per_400years;
+  } else {
+    year = 400 * ((days - (days_per_400years - 1)) / days_per_400years);
+    days = days % days_per_400years;
+    if (days < 0) {
+      days += days_per_400years;
+    }
+  }
+
+  /* Work out the year/day within the 400 year cycle */
+  if (days >= 366) {
+    year += 100 * ((days - 1) / (100 * 365 + 25 - 1));
+    days = (days - 1) % (100 * 365 + 25 - 1);
+    if (days >= 365) {
+      year += 4 * ((days + 1) / (4 * 365 + 1));
+      days = (days + 1) % (4 * 365 + 1);
+      if (days >= 366) {
+        year += (days - 1) / 365;
+        days = (days - 1) % 365;
+      }
+    }
+  }
+
+  *days_ = days;
+  return year + 2000;
+}
+
+/*
+ * Fills in the year, month, day in 'dts' based on the days
+ * offset from 1970.
+ */
+static void set_datetimestruct_days(npy_int64 days, npy_datetimestruct *dts) {
+  const int *month_lengths;
+  int i;
+
+  dts->year = days_to_yearsdays(&days);
+  month_lengths = days_per_month_table[is_leapyear(dts->year)];
+
+  for (i = 0; i < 12; ++i) {
+    if (days < month_lengths[i]) {
+      dts->month = i + 1;
+      dts->day = (npy_int32)days + 1;
+      return;
+    } else {
+      days -= month_lengths[i];
+    }
+  }
+}
+
+/*
+ * Compares two npy_datetimestruct objects chronologically
+ */
+int cmp_npy_datetimestruct(const npy_datetimestruct *a,
+                           const npy_datetimestruct *b) {
+  if (a->year > b->year) {
+    return 1;
+  } else if (a->year < b->year) {
+    return -1;
+  }
+
+  if (a->month > b->month) {
+    return 1;
+  } else if (a->month < b->month) {
+    return -1;
+  }
+
+  if (a->day > b->day) {
+    return 1;
+  } else if (a->day < b->day) {
+    return -1;
+  }
+
+  if (a->hour > b->hour) {
+    return 1;
+  } else if (a->hour < b->hour) {
+    return -1;
+  }
+
+  if (a->min > b->min) {
+    return 1;
+  } else if (a->min < b->min) {
+    return -1;
+  }
+
+  if (a->sec > b->sec) {
+    return 1;
+  } else if (a->sec < b->sec) {
+    return -1;
+  }
+
+  if (a->us > b->us) {
+    return 1;
+  } else if (a->us < b->us) {
+    return -1;
+  }
+
+  if (a->ps > b->ps) {
+    return 1;
+  } else if (a->ps < b->ps) {
+    return -1;
+  }
+
+  if (a->as > b->as) {
+    return 1;
+  } else if (a->as < b->as) {
+    return -1;
+  }
+
+  return 0;
+}
+/*
+ * Returns the offset from utc of the timezone as a timedelta.
+ * The caller is responsible for ensuring that the tzinfo
+ * attribute exists on the datetime object.
+ *
+ * If the passed object is timezone naive, Py_None is returned.
+ * If extraction of the offset fails, NULL is returned.
+ *
+ * NOTE: This function is not vendored from numpy.
+ */
+PyObject *extract_utc_offset(PyObject *obj) {
+  PyObject *tmp = PyObject_GetAttrString(obj, "tzinfo");
+  if (tmp == NULL) {
+    return NULL;
+  }
+  if (tmp != Py_None) {
+    PyObject *offset = PyObject_CallMethod(tmp, "utcoffset", "O", obj);
+    if (offset == NULL) {
+      Py_DECREF(tmp);
+      return NULL;
+    }
+    return offset;
+  }
+  return tmp;
+}
+
+static inline int scaleYearToEpoch(int64_t year, int64_t *result) {
+  return checked_int64_sub(year, 1970, result);
+}
+
+static inline int scaleYearsToMonths(int64_t years, int64_t *result) {
+  return checked_int64_mul(years, 12, result);
+}
+
+static inline int scaleDaysToWeeks(int64_t days, int64_t *result) {
+  if (days >= 0) {
+    *result = days / 7;
+    return 0;
+  } else {
+    int res;
+    int64_t checked_days;
+    if ((res = checked_int64_sub(days, 6, &checked_days))) {
+      return res;
+    }
+
+    *result = checked_days / 7;
+    return 0;
+  }
+}
+
+static inline int scaleDaysToHours(int64_t days, int64_t *result) {
+  return checked_int64_mul(days, 24, result);
+}
+
+static inline int scaleHoursToMinutes(int64_t hours, int64_t *result) {
+  return checked_int64_mul(hours, 60, result);
+}
+
+static inline int scaleMinutesToSeconds(int64_t minutes, int64_t *result) {
+  return checked_int64_mul(minutes, 60, result);
+}
+
+static inline int scaleSecondsToMilliseconds(int64_t seconds, int64_t *result) {
+  return checked_int64_mul(seconds, 1000, result);
+}
+
+static inline int scaleSecondsToMicroseconds(int64_t seconds, int64_t *result) {
+  return checked_int64_mul(seconds, 1000000, result);
+}
+
+static inline int scaleMicrosecondsToNanoseconds(int64_t microseconds,
+                                                 int64_t *result) {
+  return checked_int64_mul(microseconds, 1000, result);
+}
+
+static inline int scaleMicrosecondsToPicoseconds(int64_t microseconds,
+                                                 int64_t *result) {
+  return checked_int64_mul(microseconds, 1000000, result);
+}
+
+static inline int64_t scalePicosecondsToFemtoseconds(int64_t picoseconds,
+                                                     int64_t *result) {
+  return checked_int64_mul(picoseconds, 1000, result);
+}
+
+static inline int64_t scalePicosecondsToAttoseconds(int64_t picoseconds,
+                                                    int64_t *result) {
+  return checked_int64_mul(picoseconds, 1000000, result);
+}
+
+/*
+ * Converts a datetime from a datetimestruct to a datetime based
+ * on a metadata unit. Returns -1 on and sets PyErr on error.
+ */
+npy_datetime npy_datetimestruct_to_datetime(NPY_DATETIMEUNIT base,
+                                            const npy_datetimestruct *dts) {
+  if ((base == NPY_FR_Y) || (base == NPY_FR_M)) {
+    int64_t years;
+    PD_CHECK_OVERFLOW(scaleYearToEpoch(dts->year, &years));
+
+    if (base == NPY_FR_Y) {
+      return years;
+    }
+
+    int64_t months;
+    PD_CHECK_OVERFLOW(scaleYearsToMonths(years, &months));
+
+    int64_t months_adder;
+    PD_CHECK_OVERFLOW(checked_int64_sub(dts->month, 1, &months_adder));
+    PD_CHECK_OVERFLOW(checked_int64_add(months, months_adder, &months));
+
+    if (base == NPY_FR_M) {
+      return months;
+    }
+  }
+
+  const int64_t days = get_datetimestruct_days(dts);
+  if (base == NPY_FR_D) {
+    return days;
+  }
+
+  if (base == NPY_FR_W) {
+    int64_t weeks;
+    PD_CHECK_OVERFLOW(scaleDaysToWeeks(days, &weeks));
+    return weeks;
+  }
+
+  int64_t hours;
+  PD_CHECK_OVERFLOW(scaleDaysToHours(days, &hours));
+  PD_CHECK_OVERFLOW(checked_int64_add(hours, dts->hour, &hours));
+
+  if (base == NPY_FR_h) {
+    return hours;
+  }
+
+  int64_t minutes;
+  PD_CHECK_OVERFLOW(scaleHoursToMinutes(hours, &minutes));
+  PD_CHECK_OVERFLOW(checked_int64_add(minutes, dts->min, &minutes));
+
+  if (base == NPY_FR_m) {
+    return minutes;
+  }
+
+  int64_t seconds;
+  PD_CHECK_OVERFLOW(scaleMinutesToSeconds(minutes, &seconds));
+  PD_CHECK_OVERFLOW(checked_int64_add(seconds, dts->sec, &seconds));
+
+  if (base == NPY_FR_s) {
+    return seconds;
+  }
+
+  if (base == NPY_FR_ms) {
+    int64_t milliseconds;
+    PD_CHECK_OVERFLOW(scaleSecondsToMilliseconds(seconds, &milliseconds));
+    PD_CHECK_OVERFLOW(
+        checked_int64_add(milliseconds, dts->us / 1000, &milliseconds));
+
+    return milliseconds;
+  }
+
+  int64_t microseconds;
+  PD_CHECK_OVERFLOW(scaleSecondsToMicroseconds(seconds, &microseconds));
+  PD_CHECK_OVERFLOW(checked_int64_add(microseconds, dts->us, &microseconds));
+
+  if (base == NPY_FR_us) {
+    return microseconds;
+  }
+
+  if (base == NPY_FR_ns) {
+    int64_t nanoseconds;
+
+    // Minimum valid timestamp in nanoseconds (1677-09-21 00:12:43.145224193).
+    const int64_t min_nanoseconds = NPY_MIN_INT64 + 1;
+    if (microseconds == min_nanoseconds / 1000 - 1) {
+      // For values within one microsecond of min_nanoseconds, use it as base
+      // and offset it with nanosecond delta to avoid overflow during scaling.
+      PD_CHECK_OVERFLOW(checked_int64_add(
+          min_nanoseconds, (dts->ps - _NS_MIN_DTS.ps) / 1000, &nanoseconds));
+    } else {
+      PD_CHECK_OVERFLOW(
+          scaleMicrosecondsToNanoseconds(microseconds, &nanoseconds));
+      PD_CHECK_OVERFLOW(
+          checked_int64_add(nanoseconds, dts->ps / 1000, &nanoseconds));
+    }
+
+    return nanoseconds;
+  }
+
+  int64_t picoseconds;
+  PD_CHECK_OVERFLOW(scaleMicrosecondsToPicoseconds(microseconds, &picoseconds));
+  PD_CHECK_OVERFLOW(checked_int64_add(picoseconds, dts->ps, &picoseconds));
+
+  if (base == NPY_FR_ps) {
+    return picoseconds;
+  }
+
+  if (base == NPY_FR_fs) {
+    int64_t femtoseconds;
+    PD_CHECK_OVERFLOW(
+        scalePicosecondsToFemtoseconds(picoseconds, &femtoseconds));
+    PD_CHECK_OVERFLOW(
+        checked_int64_add(femtoseconds, dts->as / 1000, &femtoseconds));
+    return femtoseconds;
+  }
+
+  if (base == NPY_FR_as) {
+    int64_t attoseconds;
+    PD_CHECK_OVERFLOW(scalePicosecondsToAttoseconds(picoseconds, &attoseconds));
+    PD_CHECK_OVERFLOW(checked_int64_add(attoseconds, dts->as, &attoseconds));
+    return attoseconds;
+  }
+
+  /* Something got corrupted */
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyErr_SetString(PyExc_ValueError,
+                  "NumPy datetime metadata with corrupt unit value");
+  PyGILState_Release(gstate);
+
+  return -1;
+}
+
+/*
+ * Port numpy#13188 https://github.com/numpy/numpy/pull/13188/
+ *
+ * Computes the python `ret, d = divmod(d, unit)`.
+ *
+ * Note that GCC is smart enough at -O2 to eliminate the `if(*d < 0)` branch
+ * for subsequent calls to this command - it is able to deduce that `*d >= 0`.
+ */
+npy_int64 extract_unit(npy_datetime *d, npy_datetime unit) {
+  assert(unit > 0);
+  npy_int64 div = *d / unit;
+  npy_int64 mod = *d % unit;
+  if (mod < 0) {
+    mod += unit;
+    div -= 1;
+  }
+  assert(mod >= 0);
+  *d = mod;
+  return div;
+}
+
+/*
+ * Converts a datetime based on the given metadata into a datetimestruct
+ */
+void pandas_datetime_to_datetimestruct(npy_datetime dt, NPY_DATETIMEUNIT base,
+                                       npy_datetimestruct *out) {
+  npy_int64 perday;
+
+  /* Initialize the output to all zeros */
+  memset(out, 0, sizeof(npy_datetimestruct));
+  out->year = 1970;
+  out->month = 1;
+  out->day = 1;
+
+  /*
+   * Note that care must be taken with the / and % operators
+   * for negative values.
+   */
+  switch (base) {
+  case NPY_FR_Y:
+    out->year = 1970 + dt;
+    break;
+
+  case NPY_FR_M:
+    out->year = 1970 + extract_unit(&dt, 12);
+    out->month = (npy_int32)dt + 1;
+    break;
+
+  case NPY_FR_W:
+    /* A week is 7 days */
+    set_datetimestruct_days(dt * 7, out);
+    break;
+
+  case NPY_FR_D:
+    set_datetimestruct_days(dt, out);
+    break;
+
+  case NPY_FR_h:
+    perday = 24LL;
+
+    set_datetimestruct_days(extract_unit(&dt, perday), out);
+    out->hour = (npy_int32)dt;
+    break;
+
+  case NPY_FR_m:
+    perday = 24LL * 60;
+
+    set_datetimestruct_days(extract_unit(&dt, perday), out);
+    out->hour = (npy_int32)extract_unit(&dt, 60);
+    out->min = (npy_int32)dt;
+    break;
+
+  case NPY_FR_s:
+    perday = 24LL * 60 * 60;
+
+    set_datetimestruct_days(extract_unit(&dt, perday), out);
+    out->hour = (npy_int32)extract_unit(&dt, 60 * 60);
+    out->min = (npy_int32)extract_unit(&dt, 60);
+    out->sec = (npy_int32)dt;
+    break;
+
+  case NPY_FR_ms:
+    perday = 24LL * 60 * 60 * 1000;
+
+    set_datetimestruct_days(extract_unit(&dt, perday), out);
+    out->hour = (npy_int32)extract_unit(&dt, 1000LL * 60 * 60);
+    out->min = (npy_int32)extract_unit(&dt, 1000LL * 60);
+    out->sec = (npy_int32)extract_unit(&dt, 1000LL);
+    out->us = (npy_int32)(dt * 1000);
+    break;
+
+  case NPY_FR_us:
+    perday = 24LL * 60LL * 60LL * 1000LL * 1000LL;
+
+    set_datetimestruct_days(extract_unit(&dt, perday), out);
+    out->hour = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 60 * 60);
+    out->min = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 60);
+    out->sec = (npy_int32)extract_unit(&dt, 1000LL * 1000);
+    out->us = (npy_int32)dt;
+    break;
+
+  case NPY_FR_ns:
+    perday = 24LL * 60LL * 60LL * 1000LL * 1000LL * 1000LL;
+
+    set_datetimestruct_days(extract_unit(&dt, perday), out);
+    out->hour = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 60 * 60);
+    out->min = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 60);
+    out->sec = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000);
+    out->us = (npy_int32)extract_unit(&dt, 1000LL);
+    out->ps = (npy_int32)(dt * 1000);
+    break;
+
+  case NPY_FR_ps:
+    perday = 24LL * 60 * 60 * 1000 * 1000 * 1000 * 1000;
+
+    set_datetimestruct_days(extract_unit(&dt, perday), out);
+    out->hour = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 60 * 60);
+    out->min = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 60);
+    out->sec = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000);
+    out->us = (npy_int32)extract_unit(&dt, 1000LL);
+    out->ps = (npy_int32)(dt * 1000);
+    break;
+
+  case NPY_FR_fs:
+    /* entire range is only +- 2.6 hours */
+    out->hour = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 1000 *
+                                                 1000 * 60 * 60);
+    if (out->hour < 0) {
+      out->year = 1969;
+      out->month = 12;
+      out->day = 31;
+      out->hour += 24;
+      assert(out->hour >= 0);
+    }
+    out->min =
+        (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 1000 * 1000 * 60);
+    out->sec = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 1000 * 1000);
+    out->us = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000);
+    out->ps = (npy_int32)extract_unit(&dt, 1000LL);
+    out->as = (npy_int32)(dt * 1000);
+    break;
+
+  case NPY_FR_as:
+    /* entire range is only +- 9.2 seconds */
+    out->sec =
+        (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 1000 * 1000 * 1000);
+    if (out->sec < 0) {
+      out->year = 1969;
+      out->month = 12;
+      out->day = 31;
+      out->hour = 23;
+      out->min = 59;
+      out->sec += 60;
+      assert(out->sec >= 0);
+    }
+    out->us = (npy_int32)extract_unit(&dt, 1000LL * 1000 * 1000 * 1000);
+    out->ps = (npy_int32)extract_unit(&dt, 1000LL * 1000);
+    out->as = (npy_int32)dt;
+    break;
+
+  default:
+    PyErr_SetString(PyExc_RuntimeError,
+                    "NumPy datetime metadata is corrupted with invalid "
+                    "base unit");
+  }
+}
+
+/*
+ * Converts a timedelta from a timedeltastruct to a timedelta based
+ * on a metadata unit. The timedelta is assumed to be valid.
+ *
+ * Returns 0 on success, -1 on failure.
+ */
+void pandas_timedelta_to_timedeltastruct(npy_timedelta td,
+                                         NPY_DATETIMEUNIT base,
+                                         pandas_timedeltastruct *out) {
+  npy_int64 frac;
+  npy_int64 sfrac;
+  npy_int64 ifrac;
+  int sign;
+  npy_int64 per_day;
+  npy_int64 per_sec;
+
+  /* Initialize the output to all zeros */
+  memset(out, 0, sizeof(pandas_timedeltastruct));
+
+  switch (base) {
+  case NPY_FR_ns:
+
+    per_day = 86400000000000LL;
+    per_sec = 1000LL * 1000LL * 1000LL;
+
+    // put frac in seconds
+    if (td < 0 && td % per_sec != 0)
+      frac = td / per_sec - 1;
+    else
+      frac = td / per_sec;
+
+    if (frac < 0) {
+      sign = -1;
+
+      // even fraction
+      if ((-frac % 86400LL) != 0) {
+        out->days = -frac / 86400LL + 1;
+        frac += 86400LL * out->days;
+      } else {
+        frac = -frac;
+      }
+    } else {
+      sign = 1;
+      out->days = 0;
+    }
+
+    if (frac >= 86400) {
+      out->days += frac / 86400LL;
+      frac -= out->days * 86400LL;
+    }
+
+    if (frac >= 3600) {
+      out->hrs = (npy_int32)(frac / 3600LL);
+      frac -= out->hrs * 3600LL;
+    } else {
+      out->hrs = 0;
+    }
+
+    if (frac >= 60) {
+      out->min = (npy_int32)(frac / 60LL);
+      frac -= out->min * 60LL;
+    } else {
+      out->min = 0;
+    }
+
+    if (frac >= 0) {
+      out->sec = (npy_int32)frac;
+      frac -= out->sec;
+    } else {
+      out->sec = 0;
+    }
+
+    sfrac = (out->hrs * 3600LL + out->min * 60LL + out->sec) * per_sec;
+
+    if (sign < 0)
+      out->days = -out->days;
+
+    ifrac = td - (out->days * per_day + sfrac);
+
+    if (ifrac != 0) {
+      out->ms = (npy_int32)(ifrac / (1000LL * 1000LL));
+      ifrac -= out->ms * 1000LL * 1000LL;
+      out->us = (npy_int32)(ifrac / 1000LL);
+      ifrac -= out->us * 1000LL;
+      out->ns = (npy_int32)ifrac;
+    } else {
+      out->ms = 0;
+      out->us = 0;
+      out->ns = 0;
+    }
+    break;
+
+  case NPY_FR_us:
+
+    per_day = 86400000000LL;
+    per_sec = 1000LL * 1000LL;
+
+    // put frac in seconds
+    if (td < 0 && td % per_sec != 0)
+      frac = td / per_sec - 1;
+    else
+      frac = td / per_sec;
+
+    if (frac < 0) {
+      sign = -1;
+
+      // even fraction
+      if ((-frac % 86400LL) != 0) {
+        out->days = -frac / 86400LL + 1;
+        frac += 86400LL * out->days;
+      } else {
+        frac = -frac;
+      }
+    } else {
+      sign = 1;
+      out->days = 0;
+    }
+
+    if (frac >= 86400) {
+      out->days += frac / 86400LL;
+      frac -= out->days * 86400LL;
+    }
+
+    if (frac >= 3600) {
+      out->hrs = (npy_int32)(frac / 3600LL);
+      frac -= out->hrs * 3600LL;
+    } else {
+      out->hrs = 0;
+    }
+
+    if (frac >= 60) {
+      out->min = (npy_int32)(frac / 60LL);
+      frac -= out->min * 60LL;
+    } else {
+      out->min = 0;
+    }
+
+    if (frac >= 0) {
+      out->sec = (npy_int32)frac;
+      frac -= out->sec;
+    } else {
+      out->sec = 0;
+    }
+
+    sfrac = (out->hrs * 3600LL + out->min * 60LL + out->sec) * per_sec;
+
+    if (sign < 0)
+      out->days = -out->days;
+
+    ifrac = td - (out->days * per_day + sfrac);
+
+    if (ifrac != 0) {
+      out->ms = (npy_int32)(ifrac / 1000LL);
+      ifrac -= out->ms * 1000LL;
+      out->us = (npy_int32)(ifrac / 1L);
+      ifrac -= out->us * 1L;
+      out->ns = (npy_int32)ifrac;
+    } else {
+      out->ms = 0;
+      out->us = 0;
+      out->ns = 0;
+    }
+    break;
+
+  case NPY_FR_ms:
+
+    per_day = 86400000LL;
+    per_sec = 1000LL;
+
+    // put frac in seconds
+    if (td < 0 && td % per_sec != 0)
+      frac = td / per_sec - 1;
+    else
+      frac = td / per_sec;
+
+    if (frac < 0) {
+      sign = -1;
+
+      // even fraction
+      if ((-frac % 86400LL) != 0) {
+        out->days = -frac / 86400LL + 1;
+        frac += 86400LL * out->days;
+      } else {
+        frac = -frac;
+      }
+    } else {
+      sign = 1;
+      out->days = 0;
+    }
+
+    if (frac >= 86400) {
+      out->days += frac / 86400LL;
+      frac -= out->days * 86400LL;
+    }
+
+    if (frac >= 3600) {
+      out->hrs = (npy_int32)(frac / 3600LL);
+      frac -= out->hrs * 3600LL;
+    } else {
+      out->hrs = 0;
+    }
+
+    if (frac >= 60) {
+      out->min = (npy_int32)(frac / 60LL);
+      frac -= out->min * 60LL;
+    } else {
+      out->min = 0;
+    }
+
+    if (frac >= 0) {
+      out->sec = (npy_int32)frac;
+      frac -= out->sec;
+    } else {
+      out->sec = 0;
+    }
+
+    sfrac = (out->hrs * 3600LL + out->min * 60LL + out->sec) * per_sec;
+
+    if (sign < 0)
+      out->days = -out->days;
+
+    ifrac = td - (out->days * per_day + sfrac);
+
+    if (ifrac != 0) {
+      out->ms = (npy_int32)ifrac;
+      out->us = 0;
+      out->ns = 0;
+    } else {
+      out->ms = 0;
+      out->us = 0;
+      out->ns = 0;
+    }
+    break;
+
+  case NPY_FR_s:
+    // special case where we can simplify many expressions bc per_sec=1
+
+    per_day = 86400LL;
+    per_sec = 1L;
+
+    // put frac in seconds
+    if (td < 0 && td % per_sec != 0)
+      frac = td / per_sec - 1;
+    else
+      frac = td / per_sec;
+
+    if (frac < 0) {
+      sign = -1;
+
+      // even fraction
+      if ((-frac % 86400LL) != 0) {
+        out->days = -frac / 86400LL + 1;
+        frac += 86400LL * out->days;
+      } else {
+        frac = -frac;
+      }
+    } else {
+      sign = 1;
+      out->days = 0;
+    }
+
+    if (frac >= 86400) {
+      out->days += frac / 86400LL;
+      frac -= out->days * 86400LL;
+    }
+
+    if (frac >= 3600) {
+      out->hrs = (npy_int32)(frac / 3600LL);
+      frac -= out->hrs * 3600LL;
+    } else {
+      out->hrs = 0;
+    }
+
+    if (frac >= 60) {
+      out->min = (npy_int32)(frac / 60LL);
+      frac -= out->min * 60LL;
+    } else {
+      out->min = 0;
+    }
+
+    if (frac >= 0) {
+      out->sec = (npy_int32)frac;
+      frac -= out->sec;
+    } else {
+      out->sec = 0;
+    }
+
+    sfrac = (out->hrs * 3600LL + out->min * 60LL + out->sec) * per_sec;
+
+    if (sign < 0)
+      out->days = -out->days;
+
+    ifrac = td - (out->days * per_day + sfrac);
+
+    if (ifrac != 0) {
+      out->ms = 0;
+      out->us = 0;
+      out->ns = 0;
+    } else {
+      out->ms = 0;
+      out->us = 0;
+      out->ns = 0;
+    }
+    break;
+
+  case NPY_FR_m:
+
+    out->days = td / 1440LL;
+    td -= out->days * 1440LL;
+    out->hrs = (npy_int32)(td / 60LL);
+    td -= out->hrs * 60LL;
+    out->min = (npy_int32)td;
+
+    out->sec = 0;
+    out->ms = 0;
+    out->us = 0;
+    out->ns = 0;
+    break;
+
+  case NPY_FR_h:
+    out->days = td / 24LL;
+    td -= out->days * 24LL;
+    out->hrs = (npy_int32)td;
+
+    out->min = 0;
+    out->sec = 0;
+    out->ms = 0;
+    out->us = 0;
+    out->ns = 0;
+    break;
+
+  case NPY_FR_D:
+    out->days = td;
+    out->hrs = 0;
+    out->min = 0;
+    out->sec = 0;
+    out->ms = 0;
+    out->us = 0;
+    out->ns = 0;
+    break;
+
+  case NPY_FR_W:
+    out->days = 7 * td;
+    out->hrs = 0;
+    out->min = 0;
+    out->sec = 0;
+    out->ms = 0;
+    out->us = 0;
+    out->ns = 0;
+    break;
+
+  default:
+    PyErr_SetString(PyExc_RuntimeError,
+                    "NumPy timedelta metadata is corrupted with "
+                    "invalid base unit");
+  }
+
+  out->seconds = out->hrs * 3600 + out->min * 60 + out->sec;
+  out->microseconds = out->ms * 1000 + out->us;
+  out->nanoseconds = out->ns;
+}
+
+/*
+ * This function returns a pointer to the DateTimeMetaData
+ * contained within the provided datetime dtype.
+ *
+ * Copied near-verbatim from numpy/core/src/multiarray/datetime.c
+ */
+PyArray_DatetimeMetaData
+get_datetime_metadata_from_dtype(PyArray_Descr *dtype) {
+#if NPY_ABI_VERSION < 0x02000000
+#define PyDataType_C_METADATA(dtype) ((dtype)->c_metadata)
+#endif
+  return ((PyArray_DatetimeDTypeMetaData *)PyDataType_C_METADATA(dtype))->meta;
+}
+```
+
+## pandas/pandas/_libs/src/vendored/numpy/datetime/np_datetime_strings.c.notice.txt
+
+```text
+/*
+
+Copyright (c) 2016, PyData Development Team
+All rights reserved.
+
+Distributed under the terms of the BSD Simplified License.
+
+The full license is in the LICENSE file, distributed with this software.
+
+Written by Mark Wiebe (mwwiebe@gmail.com)
+Copyright (c) 2011 by Enthought, Inc.
+
+Copyright (c) 2005-2011, NumPy Developers
+All rights reserved.
+
+See NUMPY_LICENSE.txt for the license.
+
+This file implements string parsing and creation for NumPy datetime.
+
+*/
+
+// LICENSES/NUMPY_LICENSE
+
+#define PY_SSIZE_T_CLEAN
+#define NO_IMPORT
+
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif // NPY_NO_DEPRECATED_API
+
+#include <Python.h>
+
+#include <time.h>
+
+#include <numpy/ndarraytypes.h>
+#include <numpy/npy_common.h>
+
+#include "pandas/portable.h"
+#include "pandas/vendored/numpy/datetime/np_datetime.h"
+#include "pandas/vendored/numpy/datetime/np_datetime_strings.h"
+
+/*
+ * Parses (almost) standard ISO 8601 date strings. The differences are:
+ *
+ * + Only seconds may have a decimal point, with up to 18 digits after it
+ *   (maximum attoseconds precision).
+ * + Either a 'T' as in ISO 8601 or a ' ' may be used to separate
+ *   the date and the time. Both are treated equivalently.
+ * + Doesn't (yet) handle the "YYYY-DDD" or "YYYY-Www" formats.
+ * + Doesn't handle leap seconds (seconds value has 60 in these cases).
+ * + Doesn't handle 24:00:00 as synonym for midnight (00:00:00) tomorrow
+ * + Accepts special values "NaT" (not a time), "Today", (current
+ *   day according to local time) and "Now" (current time in UTC).
+ * + ':' separator between hours, minutes, and seconds is optional. When
+ *   omitted, each component must be 2 digits if it appears. (GH-10041)
+ *
+ * 'str' must be a NULL-terminated string, and 'len' must be its length.
+ *
+ * 'out' gets filled with the parsed date-time.
+ * 'out_local' gets set to 1 if the parsed time contains timezone,
+ *      to 0 otherwise.
+ * 'out_tzoffset' gets set to timezone offset by minutes
+ *      if the parsed time was in local time,
+ *      to 0 otherwise. The values 'now' and 'today' don't get counted
+ *      as local, and neither do UTC +/-#### timezone offsets, because
+ *      they aren't using the computer's local timezone offset.
+ *
+ * Returns 0 on success, -1 on failure.
+ */
+
+typedef enum {
+  COMPARISON_SUCCESS,
+  COMPLETED_PARTIAL_MATCH,
+  COMPARISON_ERROR
+} DatetimePartParseResult;
+// This function will advance the pointer on format
+// and decrement characters_remaining by n on success
+// On failure will return COMPARISON_ERROR without incrementing
+// If `format_requirement` is PARTIAL_MATCH, and the `format` string has
+// been exhausted, then return COMPLETED_PARTIAL_MATCH.
+static DatetimePartParseResult
+compare_format(const char **format, int *characters_remaining,
+               const char *compare_to, int n,
+               const FormatRequirement format_requirement) {
+  if (format_requirement == INFER_FORMAT) {
+    return COMPARISON_SUCCESS;
+  }
+  if (*characters_remaining < 0) {
+    return COMPARISON_ERROR;
+  }
+  if (format_requirement == PARTIAL_MATCH && *characters_remaining == 0) {
+    return COMPLETED_PARTIAL_MATCH;
+  }
+  if (*characters_remaining < n) {
+    // TODO(pandas-dev): PyErr to differentiate what went wrong
+    return COMPARISON_ERROR;
+  } else {
+    if (strncmp(*format, compare_to, n)) {
+      // TODO(pandas-dev): PyErr to differentiate what went wrong
+      return COMPARISON_ERROR;
+    } else {
+      *format += n;
+      *characters_remaining -= n;
+      return COMPARISON_SUCCESS;
+    }
+  }
+  return COMPARISON_SUCCESS;
+}
+
+int parse_iso_8601_datetime(const char *str, int len, int want_exc,
+                            npy_datetimestruct *out,
+                            NPY_DATETIMEUNIT *out_bestunit, int *out_local,
+                            int *out_tzoffset, const char *format,
+                            int format_len,
+                            FormatRequirement format_requirement) {
+  if (len < 0 || format_len < 0)
+    goto parse_error;
+  int year_leap = 0;
+  int i, numdigits;
+  const char *substr;
+  int sublen;
+  NPY_DATETIMEUNIT bestunit = NPY_FR_GENERIC;
+  DatetimePartParseResult comparison;
+
+  /* If year-month-day are separated by a valid separator,
+   * months/days without leading zeroes will be parsed
+   * (though not iso8601). If the components aren't separated,
+   * 4 (YYYY) or 8 (YYYYMMDD) digits are expected. 6 digits are
+   * forbidden here (but parsed as YYMMDD elsewhere).
+   */
+  int has_ymd_sep = 0;
+  char ymd_sep = '\0';
+  char valid_ymd_sep[] = {'-', '.', '/', '\\', ' '};
+  int valid_ymd_sep_len = sizeof(valid_ymd_sep);
+
+  /* hour-minute-second may or may not separated by ':'. If not, then
+   * each component must be 2 digits. */
+  int has_hms_sep = 0;
+  int hour_was_2_digits = 0;
+
+  /* Initialize the output to all zeros */
+  memset(out, 0, sizeof(npy_datetimestruct));
+  out->month = 1;
+  out->day = 1;
+
+  substr = str;
+  sublen = len;
+
+  /* Skip leading whitespace */
+  while (sublen > 0 && isspace(*substr)) {
+    ++substr;
+    --sublen;
+    comparison =
+        compare_format(&format, &format_len, " ", 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+  }
+
+  /* Leading '-' sign for negative year */
+  if (*substr == '-') {
+    ++substr;
+    --sublen;
+  }
+
+  if (sublen == 0) {
+    goto parse_error;
+  }
+
+  /* PARSE THE YEAR (4 digits) */
+  comparison =
+      compare_format(&format, &format_len, "%Y", 2, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+
+  out->year = 0;
+  if (sublen >= 4 && isdigit(substr[0]) && isdigit(substr[1]) &&
+      isdigit(substr[2]) && isdigit(substr[3])) {
+    out->year = 1000 * (substr[0] - '0') + 100 * (substr[1] - '0') +
+                10 * (substr[2] - '0') + (substr[3] - '0');
+
+    substr += 4;
+    sublen -= 4;
+  }
+
+  /* Negate the year if necessary */
+  if (str[0] == '-') {
+    out->year = -out->year;
+  }
+  /* Check whether it's a leap-year */
+  year_leap = is_leapyear(out->year);
+
+  /* Next character must be a separator, start of month, or end of string */
+  if (sublen == 0) {
+    if (out_local != NULL) {
+      *out_local = 0;
+    }
+    if (format_len) {
+      goto parse_error;
+    }
+    bestunit = NPY_FR_Y;
+    goto finish;
+  }
+
+  if (!isdigit(*substr)) {
+    for (i = 0; i < valid_ymd_sep_len; ++i) {
+      if (*substr == valid_ymd_sep[i]) {
+        break;
+      }
+    }
+    if (i == valid_ymd_sep_len) {
+      goto parse_error;
+    }
+    has_ymd_sep = 1;
+    ymd_sep = valid_ymd_sep[i];
+    ++substr;
+    --sublen;
+
+    comparison =
+        compare_format(&format, &format_len, &ymd_sep, 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+    /* Cannot have trailing separator */
+    if (sublen == 0 || !isdigit(*substr)) {
+      goto parse_error;
+    }
+  }
+
+  /* PARSE THE MONTH */
+  comparison =
+      compare_format(&format, &format_len, "%m", 2, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+  /* First digit required */
+  out->month = (*substr - '0');
+  ++substr;
+  --sublen;
+  /* Second digit optional if there was a separator */
+  if (isdigit(*substr)) {
+    out->month = 10 * out->month + (*substr - '0');
+    ++substr;
+    --sublen;
+  } else if (!has_ymd_sep) {
+    goto parse_error;
+  }
+  if (out->month < 1 || out->month > 12) {
+    if (want_exc) {
+      PyErr_Format(PyExc_ValueError,
+                   "Month out of range in datetime string \"%s\"", str);
+    }
+    goto error;
+  }
+
+  /* Next character must be the separator, start of day, or end of string */
+  if (sublen == 0) {
+    bestunit = NPY_FR_M;
+    /* Forbid YYYYMM. Parsed instead as YYMMDD by someone else. */
+    if (!has_ymd_sep) {
+      goto parse_error;
+    }
+    if (format_len) {
+      goto parse_error;
+    }
+    if (out_local != NULL) {
+      *out_local = 0;
+    }
+    goto finish;
+  }
+
+  if (has_ymd_sep) {
+    /* Must have separator, but cannot be trailing */
+    if (*substr != ymd_sep || sublen == 1) {
+      goto parse_error;
+    }
+    ++substr;
+    --sublen;
+    comparison =
+        compare_format(&format, &format_len, &ymd_sep, 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+  }
+
+  /* PARSE THE DAY */
+  comparison =
+      compare_format(&format, &format_len, "%d", 2, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+  /* First digit required */
+  if (!isdigit(*substr)) {
+    goto parse_error;
+  }
+  out->day = (*substr - '0');
+  ++substr;
+  --sublen;
+  /* Second digit optional if there was a separator */
+  if (isdigit(*substr)) {
+    out->day = 10 * out->day + (*substr - '0');
+    ++substr;
+    --sublen;
+  } else if (!has_ymd_sep) {
+    goto parse_error;
+  }
+  if (out->day < 1 ||
+      out->day > days_per_month_table[year_leap][out->month - 1]) {
+    if (want_exc) {
+      PyErr_Format(PyExc_ValueError,
+                   "Day out of range in datetime string \"%s\"", str);
+    }
+    goto error;
+  }
+
+  /* Next character must be a 'T', ' ', or end of string */
+  if (sublen == 0) {
+    if (out_local != NULL) {
+      *out_local = 0;
+    }
+    if (format_len) {
+      goto parse_error;
+    }
+    bestunit = NPY_FR_D;
+    goto finish;
+  }
+
+  if ((*substr != 'T' && *substr != ' ') || sublen == 1) {
+    goto parse_error;
+  }
+  comparison =
+      compare_format(&format, &format_len, substr, 1, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+  ++substr;
+  --sublen;
+
+  /* PARSE THE HOURS */
+  comparison =
+      compare_format(&format, &format_len, "%H", 2, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+  /* First digit required */
+  if (!isdigit(*substr)) {
+    goto parse_error;
+  }
+  out->hour = (*substr - '0');
+  bestunit = NPY_FR_h;
+  ++substr;
+  --sublen;
+  /* Second digit optional */
+  if (isdigit(*substr)) {
+    hour_was_2_digits = 1;
+    out->hour = 10 * out->hour + (*substr - '0');
+    ++substr;
+    --sublen;
+    if (out->hour >= 24) {
+      if (want_exc) {
+        PyErr_Format(PyExc_ValueError,
+                     "Hours out of range in datetime string \"%s\"", str);
+      }
+      goto error;
+    }
+  }
+
+  /* Next character must be a ':' or the end of the string */
+  if (sublen == 0) {
+    if (!hour_was_2_digits) {
+      goto parse_error;
+    }
+    if (format_len) {
+      goto parse_error;
+    }
+    bestunit = NPY_FR_h;
+    goto finish;
+  }
+
+  if (*substr == ':') {
+    has_hms_sep = 1;
+    ++substr;
+    --sublen;
+    /* Cannot have a trailing separator */
+    if (sublen == 0 || !isdigit(*substr)) {
+      goto parse_error;
+    }
+    comparison =
+        compare_format(&format, &format_len, ":", 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+  } else if (!isdigit(*substr)) {
+    if (!hour_was_2_digits) {
+      goto parse_error;
+    }
+    goto parse_timezone;
+  }
+
+  /* PARSE THE MINUTES */
+  comparison =
+      compare_format(&format, &format_len, "%M", 2, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+  /* First digit required */
+  out->min = (*substr - '0');
+  bestunit = NPY_FR_m;
+  ++substr;
+  --sublen;
+  /* Second digit optional if there was a separator */
+  if (isdigit(*substr)) {
+    out->min = 10 * out->min + (*substr - '0');
+    ++substr;
+    --sublen;
+    if (out->min >= 60) {
+      if (want_exc) {
+        PyErr_Format(PyExc_ValueError,
+                     "Minutes out of range in datetime string \"%s\"", str);
+      }
+      goto error;
+    }
+  } else if (!has_hms_sep) {
+    goto parse_error;
+  }
+
+  if (sublen == 0) {
+    bestunit = NPY_FR_m;
+    if (format_len) {
+      goto parse_error;
+    }
+    goto finish;
+  }
+
+  /* If we make it through this condition block, then the next
+   * character is a digit. */
+  if (has_hms_sep && *substr == ':') {
+    comparison =
+        compare_format(&format, &format_len, ":", 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+    ++substr;
+    --sublen;
+    /* Cannot have a trailing ':' */
+    if (sublen == 0 || !isdigit(*substr)) {
+      goto parse_error;
+    }
+  } else if (!has_hms_sep && isdigit(*substr)) {
+  } else {
+    goto parse_timezone;
+  }
+
+  /* PARSE THE SECONDS */
+  comparison =
+      compare_format(&format, &format_len, "%S", 2, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+  /* First digit required */
+  out->sec = (*substr - '0');
+  ++substr;
+  --sublen;
+  /* Second digit optional if there was a separator */
+  if (isdigit(*substr)) {
+    out->sec = 10 * out->sec + (*substr - '0');
+    ++substr;
+    --sublen;
+    if (out->sec >= 60) {
+      if (want_exc) {
+        PyErr_Format(PyExc_ValueError,
+                     "Seconds out of range in datetime string \"%s\"", str);
+      }
+      goto error;
+    }
+  } else if (!has_hms_sep) {
+    goto parse_error;
+  }
+
+  /* Next character may be a '.' indicating fractional seconds */
+  if (sublen > 0 && *substr == '.') {
+    ++substr;
+    --sublen;
+    comparison =
+        compare_format(&format, &format_len, ".", 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+  } else {
+    bestunit = NPY_FR_s;
+    goto parse_timezone;
+  }
+
+  /* PARSE THE MICROSECONDS (0 to 6 digits) */
+  comparison =
+      compare_format(&format, &format_len, "%f", 2, format_requirement);
+  if (comparison == COMPARISON_ERROR) {
+    goto parse_error;
+  } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+    goto finish;
+  }
+  numdigits = 0;
+  for (i = 0; i < 6; ++i) {
+    out->us *= 10;
+    if (sublen > 0 && isdigit(*substr)) {
+      out->us += (*substr - '0');
+      ++substr;
+      --sublen;
+      ++numdigits;
+    }
+  }
+
+  if (sublen == 0 || !isdigit(*substr)) {
+    if (numdigits > 3) {
+      bestunit = NPY_FR_us;
+    } else {
+      bestunit = NPY_FR_ms;
+    }
+    goto parse_timezone;
+  }
+
+  /* PARSE THE PICOSECONDS (0 to 6 digits) */
+  numdigits = 0;
+  for (i = 0; i < 6; ++i) {
+    out->ps *= 10;
+    if (sublen > 0 && isdigit(*substr)) {
+      out->ps += (*substr - '0');
+      ++substr;
+      --sublen;
+      ++numdigits;
+    }
+  }
+
+  if (sublen == 0 || !isdigit(*substr)) {
+    if (numdigits > 3) {
+      bestunit = NPY_FR_ps;
+    } else {
+      bestunit = NPY_FR_ns;
+    }
+    goto parse_timezone;
+  }
+
+  /* PARSE THE ATTOSECONDS (0 to 6 digits) */
+  numdigits = 0;
+  for (i = 0; i < 6; ++i) {
+    out->as *= 10;
+    if (sublen > 0 && isdigit(*substr)) {
+      out->as += (*substr - '0');
+      ++substr;
+      --sublen;
+      ++numdigits;
+    }
+  }
+
+  if (numdigits > 3) {
+    bestunit = NPY_FR_as;
+  } else {
+    bestunit = NPY_FR_fs;
+  }
+
+parse_timezone:
+  /* trim any whitespace between time/timezone */
+  while (sublen > 0 && isspace(*substr)) {
+    ++substr;
+    --sublen;
+    comparison =
+        compare_format(&format, &format_len, " ", 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+  }
+
+  if (sublen == 0) {
+    // Unlike NumPy, treating no time zone as naive
+    if (format_len > 0) {
+      goto parse_error;
+    }
+    goto finish;
+  }
+
+  /* UTC specifier */
+  if (*substr == 'Z') {
+    comparison =
+        compare_format(&format, &format_len, "%z", 2, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+    /* "Z" should be equivalent to tz offset "+00:00" */
+    if (out_local != NULL) {
+      *out_local = 1;
+    }
+
+    if (out_tzoffset != NULL) {
+      *out_tzoffset = 0;
+    }
+
+    if (sublen == 1) {
+      if (format_len > 0) {
+        goto parse_error;
+      }
+      goto finish;
+    } else {
+      ++substr;
+      --sublen;
+    }
+  } else if (*substr == '-' || *substr == '+') {
+    comparison =
+        compare_format(&format, &format_len, "%z", 2, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+    /* Time zone offset */
+    int offset_neg = 0, offset_hour = 0, offset_minute = 0;
+
+    /*
+     * Since "local" means local with respect to the current
+     * machine, we say this is non-local.
+     */
+
+    if (*substr == '-') {
+      offset_neg = 1;
+    }
+    ++substr;
+    --sublen;
+
+    /* The hours offset */
+    if (sublen >= 2 && isdigit(substr[0]) && isdigit(substr[1])) {
+      offset_hour = 10 * (substr[0] - '0') + (substr[1] - '0');
+      substr += 2;
+      sublen -= 2;
+      if (offset_hour >= 24) {
+        if (want_exc) {
+          PyErr_Format(PyExc_ValueError,
+                       "Timezone hours offset out of range "
+                       "in datetime string \"%s\"",
+                       str);
+        }
+        goto error;
+      }
+    } else if (sublen >= 1 && isdigit(substr[0])) {
+      offset_hour = substr[0] - '0';
+      ++substr;
+      --sublen;
+    } else {
+      goto parse_error;
+    }
+
+    /* The minutes offset is optional */
+    if (sublen > 0) {
+      /* Optional ':' */
+      if (*substr == ':') {
+        ++substr;
+        --sublen;
+      }
+
+      /* The minutes offset (at the end of the string) */
+      if (sublen >= 2 && isdigit(substr[0]) && isdigit(substr[1])) {
+        offset_minute = 10 * (substr[0] - '0') + (substr[1] - '0');
+        substr += 2;
+        sublen -= 2;
+        if (offset_minute >= 60) {
+          if (want_exc) {
+            PyErr_Format(PyExc_ValueError,
+                         "Timezone minutes offset out of range "
+                         "in datetime string \"%s\"",
+                         str);
+          }
+          goto error;
+        }
+      } else if (sublen >= 1 && isdigit(substr[0])) {
+        offset_minute = substr[0] - '0';
+        ++substr;
+        --sublen;
+      } else {
+        goto parse_error;
+      }
+    }
+
+    /* Apply the time zone offset */
+    if (offset_neg) {
+      offset_hour = -offset_hour;
+      offset_minute = -offset_minute;
+    }
+    if (out_local != NULL) {
+      *out_local = 1;
+      // Unlike NumPy, do not change internal value to local time
+      *out_tzoffset = 60 * offset_hour + offset_minute;
+    }
+  }
+
+  /* Skip trailing whitespace */
+  while (sublen > 0 && isspace(*substr)) {
+    ++substr;
+    --sublen;
+    comparison =
+        compare_format(&format, &format_len, " ", 1, format_requirement);
+    if (comparison == COMPARISON_ERROR) {
+      goto parse_error;
+    } else if (comparison == COMPLETED_PARTIAL_MATCH) {
+      goto finish;
+    }
+  }
+
+  if ((sublen != 0) || (format_len != 0)) {
+    goto parse_error;
+  }
+
+finish:
+  if (out_bestunit != NULL) {
+    *out_bestunit = bestunit;
+  }
+  return 0;
+
+parse_error:
+  if (want_exc) {
+    PyErr_Format(PyExc_ValueError,
+                 "Error parsing datetime string \"%s\" at position %d", str,
+                 (int)(substr - str));
+  }
+  return -1;
+
+error:
+  return -1;
+}
+
+/*
+ * Provides a string length to use for converting datetime
+ * objects with the given local and unit settings.
+ */
+int get_datetime_iso_8601_strlen(int local, NPY_DATETIMEUNIT base) {
+  int len = 0;
+
+  switch (base) {
+  /* Generic units can only be used to represent NaT */
+  /*    return 4;*/
+  case NPY_FR_as:
+    len += 3; /* "###" */
+    PD_FALLTHROUGH;
+  case NPY_FR_fs:
+    len += 3; /* "###" */
+    PD_FALLTHROUGH;
+  case NPY_FR_ps:
+    len += 3; /* "###" */
+    PD_FALLTHROUGH;
+  case NPY_FR_ns:
+    len += 3; /* "###" */
+    PD_FALLTHROUGH;
+  case NPY_FR_us:
+    len += 3; /* "###" */
+    PD_FALLTHROUGH;
+  case NPY_FR_ms:
+    len += 4; /* ".###" */
+    PD_FALLTHROUGH;
+  case NPY_FR_s:
+    len += 3; /* ":##" */
+    PD_FALLTHROUGH;
+  case NPY_FR_m:
+    len += 3; /* ":##" */
+    PD_FALLTHROUGH;
+  case NPY_FR_h:
+    len += 3; /* "T##" */
+    PD_FALLTHROUGH;
+  case NPY_FR_D:
+  case NPY_FR_W:
+    len += 3; /* "-##" */
+    PD_FALLTHROUGH;
+  case NPY_FR_M:
+    len += 3; /* "-##" */
+    PD_FALLTHROUGH;
+  case NPY_FR_Y:
+    len += 21; /* 64-bit year */
+    break;
+  default:
+    len += 3; /* handle the now defunct NPY_FR_B */
+    break;
+  }
+
+  if (base >= NPY_FR_h) {
+    if (local) {
+      len += 5; /* "+####" or "-####" */
+    } else {
+      len += 1; /* "Z" */
+    }
+  }
+
+  len += 1; /* NULL terminator */
+
+  return len;
+}
+
+/*
+ * Converts an npy_datetimestruct to an (almost) ISO 8601
+ * NULL-terminated string using timezone Z (UTC). If the string fits in
+ * the space exactly, it leaves out the NULL terminator and returns success.
+ *
+ * The differences from ISO 8601 are the 'NaT' string, and
+ * the number of year digits is >= 4 instead of strictly 4.
+ *
+ * 'base' restricts the output to that unit. Set 'base' to
+ * -1 to auto-detect a base after which all the values are zero.
+ *
+ *  Returns 0 on success, -1 on failure (for example if the output
+ *  string was too short).
+ */
+int make_iso_8601_datetime(npy_datetimestruct *dts, char *outstr, size_t outlen,
+                           int utc, NPY_DATETIMEUNIT base) {
+  char *substr = outstr;
+  size_t sublen = outlen;
+  int tmplen;
+
+  /*
+   * Print weeks with the same precision as days.
+   *
+   * TODO: Could print weeks with YYYY-Www format if the week
+   *       epoch is a Monday.
+   */
+  if (base == NPY_FR_W) {
+    base = NPY_FR_D;
+  }
+
+/* YEAR */
+/*
+ * Can't use PyOS_snprintf, because it always produces a '\0'
+ * character at the end, and NumPy string types are permitted
+ * to have data all the way to the end of the buffer.
+ */
+#ifdef _WIN32
+  tmplen = _snprintf(substr, sublen, "%04" NPY_INT64_FMT, dts->year);
+#else
+  tmplen = snprintf(substr, sublen, "%04" NPY_INT64_FMT, dts->year);
+#endif // _WIN32
+  /* If it ran out of space or there isn't space for the NULL terminator */
+  if (tmplen < 0 || (size_t)tmplen > sublen) {
+    goto string_too_short;
+  }
+  substr += tmplen;
+  sublen -= tmplen;
+
+  /* Stop if the unit is years */
+  if (base == NPY_FR_Y) {
+    if (sublen > 0) {
+      *substr = '\0';
+    }
+    return 0;
+  }
+
+  /* MONTH */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = '-';
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->month / 10) + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->month % 10) + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is months */
+  if (base == NPY_FR_M) {
+    if (sublen > 0) {
+      *substr = '\0';
+    }
+    return 0;
+  }
+
+  /* DAY */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = '-';
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->day / 10) + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->day % 10) + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is days */
+  if (base == NPY_FR_D) {
+    if (sublen > 0) {
+      *substr = '\0';
+    }
+    return 0;
+  }
+
+  /* HOUR */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = 'T';
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->hour / 10) + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->hour % 10) + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is hours */
+  if (base == NPY_FR_h) {
+    goto add_time_zone;
+  }
+
+  /* MINUTE */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = ':';
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->min / 10) + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->min % 10) + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is minutes */
+  if (base == NPY_FR_m) {
+    goto add_time_zone;
+  }
+
+  /* SECOND */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = ':';
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->sec / 10) + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->sec % 10) + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is seconds */
+  if (base == NPY_FR_s) {
+    goto add_time_zone;
+  }
+
+  /* MILLISECOND */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = '.';
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->us / 100000) % 10 + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->us / 10000) % 10 + '0');
+  if (sublen < 4) {
+    goto string_too_short;
+  }
+  substr[3] = (char)((dts->us / 1000) % 10 + '0');
+  substr += 4;
+  sublen -= 4;
+
+  /* Stop if the unit is milliseconds */
+  if (base == NPY_FR_ms) {
+    goto add_time_zone;
+  }
+
+  /* MICROSECOND */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = (char)((dts->us / 100) % 10 + '0');
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->us / 10) % 10 + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)(dts->us % 10 + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is microseconds */
+  if (base == NPY_FR_us) {
+    goto add_time_zone;
+  }
+
+  /* NANOSECOND */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = (char)((dts->ps / 100000) % 10 + '0');
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->ps / 10000) % 10 + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->ps / 1000) % 10 + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is nanoseconds */
+  if (base == NPY_FR_ns) {
+    goto add_time_zone;
+  }
+
+  /* PICOSECOND */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = (char)((dts->ps / 100) % 10 + '0');
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->ps / 10) % 10 + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)(dts->ps % 10 + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is picoseconds */
+  if (base == NPY_FR_ps) {
+    goto add_time_zone;
+  }
+
+  /* FEMTOSECOND */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = (char)((dts->as / 100000) % 10 + '0');
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->as / 10000) % 10 + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)((dts->as / 1000) % 10 + '0');
+  substr += 3;
+  sublen -= 3;
+
+  /* Stop if the unit is femtoseconds */
+  if (base == NPY_FR_fs) {
+    goto add_time_zone;
+  }
+
+  /* ATTOSECOND */
+  if (sublen < 1) {
+    goto string_too_short;
+  }
+  substr[0] = (char)((dts->as / 100) % 10 + '0');
+  if (sublen < 2) {
+    goto string_too_short;
+  }
+  substr[1] = (char)((dts->as / 10) % 10 + '0');
+  if (sublen < 3) {
+    goto string_too_short;
+  }
+  substr[2] = (char)(dts->as % 10 + '0');
+  substr += 3;
+  sublen -= 3;
+
+add_time_zone:
+  /* UTC "Zulu" time */
+  if (utc) {
+    if (sublen < 1) {
+      goto string_too_short;
+    }
+    substr[0] = 'Z';
+    substr += 1;
+    sublen -= 1;
+  }
+  /* Add a NULL terminator, and return */
+  if (sublen > 0) {
+    substr[0] = '\0';
+  }
+
+  return 0;
+
+string_too_short:
+  PyErr_Format(PyExc_RuntimeError,
+               "The string provided for NumPy ISO datetime formatting "
+               "was too short, with length %d",
+               outlen);
+  return -1;
+}
+
+int make_iso_8601_timedelta(pandas_timedeltastruct *tds, char *outstr,
+                            size_t *outlen) {
+  *outlen = 0;
+  *outlen += snprintf(outstr, 60, // NOLINT
+                      "P%" NPY_INT64_FMT "DT%" NPY_INT32_FMT "H%" NPY_INT32_FMT
+                      "M%" NPY_INT32_FMT,
+                      tds->days, tds->hrs, tds->min, tds->sec);
+  outstr += *outlen;
+
+  if (tds->ns != 0) {
+    *outlen += snprintf(outstr, 12, // NOLINT
+                        ".%03" NPY_INT32_FMT "%03" NPY_INT32_FMT
+                        "%03" NPY_INT32_FMT "S",
+                        tds->ms, tds->us, tds->ns);
+  } else if (tds->us != 0) {
+    *outlen += snprintf(outstr, 9, // NOLINT
+                        ".%03" NPY_INT32_FMT "%03" NPY_INT32_FMT "S", tds->ms,
+                        tds->us);
+  } else if (tds->ms != 0) {
+    *outlen += snprintf(outstr, 6, // NOLINT
+                        ".%03" NPY_INT32_FMT "S", tds->ms);
+  } else {
+    *outlen += snprintf(outstr, 2, // NOLINT
+                        "%s", "S");
+  }
+
+  return 0;
+}
+```
+
+## pandas/pandas/_libs/src/vendored/ujson/lib/ultrajsondec.c.notice.txt
+
+```text
+/*
+Copyright (c) 2011-2013, ESN Social Software AB and Jonas Tarnstrom
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+* Neither the name of the ESN Social Software AB nor the
+names of its contributors may be used to endorse or promote products
+derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL ESN SOCIAL SOFTWARE AB OR JONAS TARNSTROM BE
+LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Portions of code from MODP_ASCII - Ascii transformations (upper/lower, etc)
+https://github.com/client9/stringencoders
+Copyright (c) 2007  Nick Galbreath -- nickg [at] modp [dot] com. All rights
+reserved.
+
+Numeric decoder derived from TCL library
+https://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
+* Copyright (c) 1988-1993 The Regents of the University of California.
+* Copyright (c) 1994 Sun Microsystems, Inc.
+*/
+
+// Licence at LICENSES/ULTRAJSON_LICENSE
+
+#include "pandas/vendored/ujson/lib/ultrajson.h"
+#include <errno.h>
+#include <limits.h>
+#include <locale.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
+#ifndef TRUE
+#define TRUE 1
+#define FALSE 0
+#endif
+#ifndef NULL
+#define NULL 0
+#endif
+
+struct DecoderState {
+  char *start;
+  char *end;
+  wchar_t *escStart;
+  wchar_t *escEnd;
+  int escHeap;
+  int lastType;
+  JSUINT32 objDepth;
+  void *prv;
+  JSONObjectDecoder *dec;
+};
+
+JSOBJ FASTCALL_MSVC decode_any(struct DecoderState *ds);
+typedef JSOBJ (*PFN_DECODER)(struct DecoderState *ds);
+
+static JSOBJ SetError(struct DecoderState *ds, int offset,
+                      const char *message) {
+  ds->dec->errorOffset = ds->start + offset;
+  ds->dec->errorStr = (char *)message;
+  return NULL;
+}
+
+double createDouble(double intNeg, double intValue, double frcValue,
+                    int frcDecimalCount) {
+  static const double g_pow10[] = {1.0,
+                                   0.1,
+                                   0.01,
+                                   0.001,
+                                   0.0001,
+                                   0.00001,
+                                   0.000001,
+                                   0.0000001,
+                                   0.00000001,
+                                   0.000000001,
+                                   0.0000000001,
+                                   0.00000000001,
+                                   0.000000000001,
+                                   0.0000000000001,
+                                   0.00000000000001,
+                                   0.000000000000001};
+  return (intValue + (frcValue * g_pow10[frcDecimalCount])) * intNeg;
+}
+
+JSOBJ FASTCALL_MSVC decodePreciseFloat(struct DecoderState *ds) {
+  char *end;
+  double value;
+  errno = 0;
+
+  value = strtod(ds->start, &end);
+
+  if (errno == ERANGE) {
+    return SetError(ds, -1, "Range error when decoding numeric as double");
+  }
+
+  ds->start = end;
+  return ds->dec->newDouble(ds->prv, value);
+}
+
+JSOBJ FASTCALL_MSVC decode_numeric(struct DecoderState *ds) {
+  int intNeg = 1;
+  JSUINT64 intValue;
+  JSUINT64 prevIntValue;
+  int chr;
+  int decimalCount = 0;
+  double frcValue = 0.0;
+  double expNeg;
+  double expValue;
+  char *offset = ds->start;
+
+  JSUINT64 overflowLimit = LLONG_MAX;
+
+  if (*(offset) == 'I') {
+    goto DECODE_INF;
+  } else if (*(offset) == 'N') {
+    goto DECODE_NAN;
+  } else if (*(offset) == '-') {
+    offset++;
+    intNeg = -1;
+    overflowLimit = LLONG_MIN;
+    if (*(offset) == 'I') {
+      goto DECODE_INF;
+    }
+  }
+
+  // Scan integer part
+  intValue = 0;
+
+  while (1) {
+    chr = (int)(unsigned char)*(offset);
+
+    switch (chr) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9': {
+      // PERF: Don't do 64-bit arithmetic here unless we have to
+      prevIntValue = intValue;
+      intValue = intValue * 10ULL + (JSLONG)(chr - 48);
+
+      if (intNeg == 1 && prevIntValue > intValue) {
+        return SetError(ds, -1, "Value is too big!");
+      } else if (intNeg == -1 && intValue > overflowLimit) {
+        return SetError(ds, -1,
+                        overflowLimit == LLONG_MAX ? "Value is too big!"
+                                                   : "Value is too small");
+      }
+
+      offset++;
+      break;
+    }
+    case '.': {
+      offset++;
+      goto DECODE_FRACTION;
+      break;
+    }
+    case 'e':
+    case 'E': {
+      offset++;
+      goto DECODE_EXPONENT;
+      break;
+    }
+
+    default: {
+      goto BREAK_INT_LOOP;
+      break;
+    }
+    }
+  }
+
+BREAK_INT_LOOP:
+
+  ds->lastType = JT_INT;
+  ds->start = offset;
+
+  if (intNeg == 1 && (intValue & 0x8000000000000000ULL) != 0)
+    return ds->dec->newUnsignedLong(ds->prv, intValue);
+  else if ((intValue >> 31))
+    return ds->dec->newLong(ds->prv, (JSINT64)(intValue * (JSINT64)intNeg));
+  else
+    return ds->dec->newInt(ds->prv, (JSINT32)(intValue * intNeg));
+
+DECODE_FRACTION:
+
+  if (ds->dec->preciseFloat) {
+    return decodePreciseFloat(ds);
+  }
+
+  // Scan fraction part
+  frcValue = 0.0;
+  for (;;) {
+    chr = (int)(unsigned char)*(offset);
+
+    switch (chr) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9': {
+      if (decimalCount < JSON_DOUBLE_MAX_DECIMALS) {
+        frcValue = frcValue * 10.0 + (double)(chr - 48);
+        decimalCount++;
+      }
+      offset++;
+      break;
+    }
+    case 'e':
+    case 'E': {
+      offset++;
+      goto DECODE_EXPONENT;
+      break;
+    }
+    default: {
+      goto BREAK_FRC_LOOP;
+    }
+    }
+  }
+
+BREAK_FRC_LOOP:
+  // FIXME: Check for arithmetic overflow here
+  ds->lastType = JT_DOUBLE;
+  ds->start = offset;
+  return ds->dec->newDouble(
+      ds->prv,
+      createDouble((double)intNeg, (double)intValue, frcValue, decimalCount));
+
+DECODE_EXPONENT:
+  if (ds->dec->preciseFloat) {
+    return decodePreciseFloat(ds);
+  }
+
+  expNeg = 1.0;
+
+  if (*(offset) == '-') {
+    expNeg = -1.0;
+    offset++;
+  } else if (*(offset) == '+') {
+    expNeg = +1.0;
+    offset++;
+  }
+
+  expValue = 0.0;
+
+  for (;;) {
+    chr = (int)(unsigned char)*(offset);
+
+    switch (chr) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9': {
+      expValue = expValue * 10.0 + (double)(chr - 48);
+      offset++;
+      break;
+    }
+    default: {
+      goto BREAK_EXP_LOOP;
+    }
+    }
+  }
+
+DECODE_NAN:
+  offset++;
+  if (*(offset++) != 'a')
+    goto SET_NAN_ERROR;
+  if (*(offset++) != 'N')
+    goto SET_NAN_ERROR;
+
+  ds->lastType = JT_NULL;
+  ds->start = offset;
+  return ds->dec->newNull(ds->prv);
+
+SET_NAN_ERROR:
+  return SetError(ds, -1, "Unexpected character found when decoding 'NaN'");
+
+DECODE_INF:
+  offset++;
+  if (*(offset++) != 'n')
+    goto SET_INF_ERROR;
+  if (*(offset++) != 'f')
+    goto SET_INF_ERROR;
+  if (*(offset++) != 'i')
+    goto SET_INF_ERROR;
+  if (*(offset++) != 'n')
+    goto SET_INF_ERROR;
+  if (*(offset++) != 'i')
+    goto SET_INF_ERROR;
+  if (*(offset++) != 't')
+    goto SET_INF_ERROR;
+  if (*(offset++) != 'y')
+    goto SET_INF_ERROR;
+
+  ds->start = offset;
+
+  if (intNeg == 1) {
+    ds->lastType = JT_POS_INF;
+    return ds->dec->newPosInf(ds->prv);
+  } else {
+    ds->lastType = JT_NEG_INF;
+    return ds->dec->newNegInf(ds->prv);
+  }
+
+SET_INF_ERROR:
+  if (intNeg == 1) {
+    const char *msg = "Unexpected character found when decoding 'Infinity'";
+    return SetError(ds, -1, msg);
+  } else {
+    const char *msg = "Unexpected character found when decoding '-Infinity'";
+    return SetError(ds, -1, msg);
+  }
+
+BREAK_EXP_LOOP:
+  // FIXME: Check for arithmetic overflow here
+  ds->lastType = JT_DOUBLE;
+  ds->start = offset;
+  return ds->dec->newDouble(
+      ds->prv,
+      createDouble((double)intNeg, (double)intValue, frcValue, decimalCount) *
+          pow(10.0, expValue * expNeg));
+}
+
+JSOBJ FASTCALL_MSVC decode_true(struct DecoderState *ds) {
+  char *offset = ds->start;
+  offset++;
+
+  if (*(offset++) != 'r')
+    goto SETERROR;
+  if (*(offset++) != 'u')
+    goto SETERROR;
+  if (*(offset++) != 'e')
+    goto SETERROR;
+
+  ds->lastType = JT_TRUE;
+  ds->start = offset;
+  return ds->dec->newTrue(ds->prv);
+
+SETERROR:
+  return SetError(ds, -1, "Unexpected character found when decoding 'true'");
+}
+
+JSOBJ FASTCALL_MSVC decode_false(struct DecoderState *ds) {
+  char *offset = ds->start;
+  offset++;
+
+  if (*(offset++) != 'a')
+    goto SETERROR;
+  if (*(offset++) != 'l')
+    goto SETERROR;
+  if (*(offset++) != 's')
+    goto SETERROR;
+  if (*(offset++) != 'e')
+    goto SETERROR;
+
+  ds->lastType = JT_FALSE;
+  ds->start = offset;
+  return ds->dec->newFalse(ds->prv);
+
+SETERROR:
+  return SetError(ds, -1, "Unexpected character found when decoding 'false'");
+}
+
+JSOBJ FASTCALL_MSVC decode_null(struct DecoderState *ds) {
+  char *offset = ds->start;
+  offset++;
+
+  if (*(offset++) != 'u')
+    goto SETERROR;
+  if (*(offset++) != 'l')
+    goto SETERROR;
+  if (*(offset++) != 'l')
+    goto SETERROR;
+
+  ds->lastType = JT_NULL;
+  ds->start = offset;
+  return ds->dec->newNull(ds->prv);
+
+SETERROR:
+  return SetError(ds, -1, "Unexpected character found when decoding 'null'");
+}
+
+void FASTCALL_MSVC SkipWhitespace(struct DecoderState *ds) {
+  char *offset;
+
+  for (offset = ds->start; (ds->end - offset) > 0; offset++) {
+    switch (*offset) {
+    case ' ':
+    case '\t':
+    case '\r':
+    case '\n':
+      break;
+
+    default:
+      ds->start = offset;
+      return;
+    }
+  }
+
+  if (offset == ds->end) {
+    ds->start = ds->end;
+  }
+}
+
+enum DECODESTRINGSTATE {
+  DS_ISNULL = 0x32,
+  DS_ISQUOTE,
+  DS_ISESCAPE,
+  DS_UTFLENERROR,
+};
+
+static const JSUINT8 g_decoderLookup[256] = {
+    /* 0x00 */ DS_ISNULL,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x10 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x20 */ 1,
+    1,
+    DS_ISQUOTE,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x30 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x40 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x50 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    DS_ISESCAPE,
+    1,
+    1,
+    1,
+    /* 0x60 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x70 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x80 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x90 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0xa0 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0xb0 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0xc0 */ 2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    /* 0xd0 */ 2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    /* 0xe0 */ 3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    /* 0xf0 */ 4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    DS_UTFLENERROR,
+    DS_UTFLENERROR,
+    DS_UTFLENERROR,
+    DS_UTFLENERROR,
+    DS_UTFLENERROR,
+    DS_UTFLENERROR,
+    DS_UTFLENERROR,
+    DS_UTFLENERROR,
+};
+
+JSOBJ FASTCALL_MSVC decode_string(struct DecoderState *ds) {
+  JSUTF16 sur[2] = {0};
+  int iSur = 0;
+  int index;
+  wchar_t *escOffset;
+  wchar_t *escStart;
+  size_t escLen = (ds->escEnd - ds->escStart);
+  JSUINT8 *inputOffset;
+  JSUINT8 oct;
+  JSUTF32 ucs;
+  ds->lastType = JT_INVALID;
+  ds->start++;
+
+  if ((size_t)(ds->end - ds->start) > escLen) {
+    size_t newSize = (ds->end - ds->start);
+
+    if (ds->escHeap) {
+      if (newSize > (SIZE_MAX / sizeof(wchar_t))) {
+        return SetError(ds, -1, "Could not reserve memory block");
+      }
+      escStart =
+          (wchar_t *)ds->dec->realloc(ds->escStart, newSize * sizeof(wchar_t));
+      if (!escStart) {
+        ds->dec->free(ds->escStart);
+        return SetError(ds, -1, "Could not reserve memory block");
+      }
+      ds->escStart = escStart;
+    } else {
+      wchar_t *oldStart = ds->escStart;
+      if (newSize > (SIZE_MAX / sizeof(wchar_t))) {
+        return SetError(ds, -1, "Could not reserve memory block");
+      }
+      ds->escStart = (wchar_t *)ds->dec->malloc(newSize * sizeof(wchar_t));
+      if (!ds->escStart) {
+        return SetError(ds, -1, "Could not reserve memory block");
+      }
+      ds->escHeap = 1;
+      memcpy(ds->escStart, oldStart, escLen * sizeof(wchar_t));
+    }
+
+    ds->escEnd = ds->escStart + newSize;
+  }
+
+  escOffset = ds->escStart;
+  inputOffset = (JSUINT8 *)ds->start;
+
+  for (;;) {
+    switch (g_decoderLookup[(JSUINT8)(*inputOffset)]) {
+    case DS_ISNULL: {
+      return SetError(ds, -1, "Unmatched ''\"' when when decoding 'string'");
+    }
+    case DS_ISQUOTE: {
+      ds->lastType = JT_UTF8;
+      inputOffset++;
+      ds->start += ((char *)inputOffset - (ds->start));
+      return ds->dec->newString(ds->prv, ds->escStart, escOffset);
+    }
+    case DS_UTFLENERROR: {
+      return SetError(ds, -1,
+                      "Invalid UTF-8 sequence length when decoding 'string'");
+    }
+    case DS_ISESCAPE:
+      inputOffset++;
+      switch (*inputOffset) {
+      case '\\':
+        *(escOffset++) = L'\\';
+        inputOffset++;
+        continue;
+      case '\"':
+        *(escOffset++) = L'\"';
+        inputOffset++;
+        continue;
+      case '/':
+        *(escOffset++) = L'/';
+        inputOffset++;
+        continue;
+      case 'b':
+        *(escOffset++) = L'\b';
+        inputOffset++;
+        continue;
+      case 'f':
+        *(escOffset++) = L'\f';
+        inputOffset++;
+        continue;
+      case 'n':
+        *(escOffset++) = L'\n';
+        inputOffset++;
+        continue;
+      case 'r':
+        *(escOffset++) = L'\r';
+        inputOffset++;
+        continue;
+      case 't':
+        *(escOffset++) = L'\t';
+        inputOffset++;
+        continue;
+
+      case 'u': {
+        int index;
+        inputOffset++;
+
+        for (index = 0; index < 4; index++) {
+          switch (*inputOffset) {
+          case '\0':
+            return SetError(ds, -1,
+                            "Unterminated unicode "
+                            "escape sequence when "
+                            "decoding 'string'");
+          default:
+            return SetError(ds, -1,
+                            "Unexpected character in "
+                            "unicode escape sequence "
+                            "when decoding 'string'");
+
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+            sur[iSur] = (sur[iSur] << 4) + (JSUTF16)(*inputOffset - '0');
+            break;
+
+          case 'a':
+          case 'b':
+          case 'c':
+          case 'd':
+          case 'e':
+          case 'f':
+            sur[iSur] = (sur[iSur] << 4) + 10 + (JSUTF16)(*inputOffset - 'a');
+            break;
+
+          case 'A':
+          case 'B':
+          case 'C':
+          case 'D':
+          case 'E':
+          case 'F':
+            sur[iSur] = (sur[iSur] << 4) + 10 + (JSUTF16)(*inputOffset - 'A');
+            break;
+          }
+
+          inputOffset++;
+        }
+
+        if (iSur == 0) {
+          if ((sur[iSur] & 0xfc00) == 0xd800) {
+            // First of a surrogate pair, continue parsing
+            iSur++;
+            break;
+          }
+          (*escOffset++) = (wchar_t)sur[iSur];
+          iSur = 0;
+        } else {
+          // Decode pair
+          if ((sur[1] & 0xfc00) != 0xdc00) {
+            return SetError(ds, -1,
+                            "Unpaired high surrogate when "
+                            "decoding 'string'");
+          }
+#if WCHAR_MAX == 0xffff
+          (*escOffset++) = (wchar_t)sur[0];
+          (*escOffset++) = (wchar_t)sur[1];
+#else
+          (*escOffset++) = (wchar_t)0x10000 +
+                           (((sur[0] - 0xd800) << 10) | (sur[1] - 0xdc00));
+#endif
+          iSur = 0;
+        }
+        break;
+      }
+
+      case '\0':
+        return SetError(ds, -1,
+                        "Unterminated escape sequence when "
+                        "decoding 'string'");
+      default:
+        return SetError(ds, -1,
+                        "Unrecognized escape sequence when "
+                        "decoding 'string'");
+      }
+      break;
+
+    case 1: {
+      *(escOffset++) = (wchar_t)(*inputOffset++);
+      break;
+    }
+
+    case 2: {
+      ucs = (*inputOffset++) & 0x1f;
+      ucs <<= 6;
+      if (((*inputOffset) & 0x80) != 0x80) {
+        return SetError(ds, -1,
+                        "Invalid octet in UTF-8 sequence when "
+                        "decoding 'string'");
+      }
+      ucs |= (*inputOffset++) & 0x3f;
+      if (ucs < 0x80)
+        return SetError(ds, -1,
+                        "Overlong 2 byte UTF-8 sequence detected "
+                        "when decoding 'string'");
+      *(escOffset++) = (wchar_t)ucs;
+      break;
+    }
+
+    case 3: {
+      JSUTF32 ucs = 0;
+      ucs |= (*inputOffset++) & 0x0f;
+
+      for (index = 0; index < 2; index++) {
+        ucs <<= 6;
+        oct = (*inputOffset++);
+
+        if ((oct & 0x80) != 0x80) {
+          return SetError(ds, -1,
+                          "Invalid octet in UTF-8 sequence when "
+                          "decoding 'string'");
+        }
+
+        ucs |= oct & 0x3f;
+      }
+
+      if (ucs < 0x800)
+        return SetError(ds, -1,
+                        "Overlong 3 byte UTF-8 sequence detected "
+                        "when encoding string");
+      *(escOffset++) = (wchar_t)ucs;
+      break;
+    }
+
+    case 4: {
+      JSUTF32 ucs = 0;
+      ucs |= (*inputOffset++) & 0x07;
+
+      for (index = 0; index < 3; index++) {
+        ucs <<= 6;
+        oct = (*inputOffset++);
+
+        if ((oct & 0x80) != 0x80) {
+          return SetError(ds, -1,
+                          "Invalid octet in UTF-8 sequence when "
+                          "decoding 'string'");
+        }
+
+        ucs |= oct & 0x3f;
+      }
+
+      if (ucs < 0x10000)
+        return SetError(ds, -1,
+                        "Overlong 4 byte UTF-8 sequence detected "
+                        "when decoding 'string'");
+
+#if WCHAR_MAX == 0xffff
+      if (ucs >= 0x10000) {
+        ucs -= 0x10000;
+        *(escOffset++) = (wchar_t)(ucs >> 10) + 0xd800;
+        *(escOffset++) = (wchar_t)(ucs & 0x3ff) + 0xdc00;
+      } else {
+        *(escOffset++) = (wchar_t)ucs;
+      }
+#else
+      *(escOffset++) = (wchar_t)ucs;
+#endif
+      break;
+    }
+    }
+  }
+}
+
+JSOBJ FASTCALL_MSVC decode_array(struct DecoderState *ds) {
+  JSOBJ itemValue;
+  JSOBJ newObj;
+  int len;
+  ds->objDepth++;
+  if (ds->objDepth > JSON_MAX_OBJECT_DEPTH) {
+    return SetError(ds, -1, "Reached object decoding depth limit");
+  }
+
+  newObj = ds->dec->newArray(ds->prv, ds->dec);
+  len = 0;
+
+  ds->lastType = JT_INVALID;
+  ds->start++;
+
+  for (;;) {
+    SkipWhitespace(ds);
+
+    if ((*ds->start) == ']') {
+      ds->objDepth--;
+      if (len == 0) {
+        ds->start++;
+        return ds->dec->endArray(ds->prv, newObj);
+      }
+
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      return SetError(
+          ds, -1, "Unexpected character found when decoding array value (1)");
+    }
+
+    itemValue = decode_any(ds);
+
+    if (itemValue == NULL) {
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      return NULL;
+    }
+
+    if (!ds->dec->arrayAddItem(ds->prv, newObj, itemValue)) {
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      return NULL;
+    }
+
+    SkipWhitespace(ds);
+
+    switch (*(ds->start++)) {
+    case ']': {
+      ds->objDepth--;
+      return ds->dec->endArray(ds->prv, newObj);
+    }
+    case ',':
+      break;
+
+    default:
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      return SetError(
+          ds, -1, "Unexpected character found when decoding array value (2)");
+    }
+
+    len++;
+  }
+}
+
+JSOBJ FASTCALL_MSVC decode_object(struct DecoderState *ds) {
+  JSOBJ itemName;
+  JSOBJ itemValue;
+  JSOBJ newObj;
+
+  ds->objDepth++;
+  if (ds->objDepth > JSON_MAX_OBJECT_DEPTH) {
+    return SetError(ds, -1, "Reached object decoding depth limit");
+  }
+
+  newObj = ds->dec->newObject(ds->prv, ds->dec);
+
+  ds->start++;
+
+  for (;;) {
+    SkipWhitespace(ds);
+
+    if ((*ds->start) == '}') {
+      ds->objDepth--;
+      ds->start++;
+      return ds->dec->endObject(ds->prv, newObj);
+    }
+
+    ds->lastType = JT_INVALID;
+    itemName = decode_any(ds);
+
+    if (itemName == NULL) {
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      return NULL;
+    }
+
+    if (ds->lastType != JT_UTF8) {
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      ds->dec->releaseObject(ds->prv, itemName, ds->dec);
+      return SetError(
+          ds, -1, "Key name of object must be 'string' when decoding 'object'");
+    }
+
+    SkipWhitespace(ds);
+
+    if (*(ds->start++) != ':') {
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      ds->dec->releaseObject(ds->prv, itemName, ds->dec);
+      return SetError(ds, -1, "No ':' found when decoding object value");
+    }
+
+    SkipWhitespace(ds);
+
+    itemValue = decode_any(ds);
+
+    if (itemValue == NULL) {
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      ds->dec->releaseObject(ds->prv, itemName, ds->dec);
+      return NULL;
+    }
+
+    if (!ds->dec->objectAddKey(ds->prv, newObj, itemName, itemValue)) {
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      ds->dec->releaseObject(ds->prv, itemName, ds->dec);
+      ds->dec->releaseObject(ds->prv, itemValue, ds->dec);
+      return NULL;
+    }
+
+    SkipWhitespace(ds);
+
+    switch (*(ds->start++)) {
+    case '}': {
+      ds->objDepth--;
+      return ds->dec->endObject(ds->prv, newObj);
+    }
+    case ',':
+      break;
+
+    default:
+      ds->dec->releaseObject(ds->prv, newObj, ds->dec);
+      return SetError(ds, -1,
+                      "Unexpected character found when decoding object value");
+    }
+  }
+}
+
+JSOBJ FASTCALL_MSVC decode_any(struct DecoderState *ds) {
+  for (;;) {
+    switch (*ds->start) {
+    case '\"':
+      return decode_string(ds);
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case 'I':
+    case 'N':
+    case '-':
+      return decode_numeric(ds);
+
+    case '[':
+      return decode_array(ds);
+    case '{':
+      return decode_object(ds);
+    case 't':
+      return decode_true(ds);
+    case 'f':
+      return decode_false(ds);
+    case 'n':
+      return decode_null(ds);
+
+    case ' ':
+    case '\t':
+    case '\r':
+    case '\n':
+      // White space
+      ds->start++;
+      break;
+
+    default:
+      return SetError(ds, -1, "Expected object or value");
+    }
+  }
+}
+
+JSOBJ JSON_DecodeObject(JSONObjectDecoder *dec, const char *buffer,
+                        size_t cbBuffer) {
+  /*
+  FIXME: Base the size of escBuffer of that of cbBuffer so that the unicode
+  escaping doesn't run into the wall each time */
+  char *locale;
+  struct DecoderState ds;
+  wchar_t escBuffer[(JSON_MAX_STACK_BUFFER_SIZE / sizeof(wchar_t))];
+  JSOBJ ret;
+
+  ds.start = (char *)buffer;
+  ds.end = ds.start + cbBuffer;
+
+  ds.escStart = escBuffer;
+  ds.escEnd = ds.escStart + (JSON_MAX_STACK_BUFFER_SIZE / sizeof(wchar_t));
+  ds.escHeap = 0;
+  ds.prv = dec->prv;
+  ds.dec = dec;
+  ds.dec->errorStr = NULL;
+  ds.dec->errorOffset = NULL;
+  ds.objDepth = 0;
+
+  ds.dec = dec;
+
+  locale = setlocale(LC_NUMERIC, NULL);
+  if (!locale) {
+    return SetError(&ds, -1, "setlocale call failed");
+  }
+
+  if (strcmp(locale, "C")) {
+    size_t len = strlen(locale) + 1;
+    char *saved_locale = malloc(len);
+    if (saved_locale == NULL) {
+      return SetError(&ds, -1, "Could not reserve memory block");
+    }
+    memcpy(saved_locale, locale, len);
+    setlocale(LC_NUMERIC, "C");
+    ret = decode_any(&ds);
+    setlocale(LC_NUMERIC, saved_locale);
+    free(saved_locale);
+  } else {
+    ret = decode_any(&ds);
+  }
+
+  if (ds.escHeap) {
+    dec->free(ds.escStart);
+  }
+
+  SkipWhitespace(&ds);
+
+  if (ds.start != ds.end && ret) {
+    dec->releaseObject(ds.prv, ret, ds.dec);
+    return SetError(&ds, -1, "Trailing data");
+  }
+
+  return ret;
+}
+```
+
+## pandas/pandas/_libs/src/vendored/ujson/lib/ultrajsonenc.c.notice.txt
+
+```text
+/*
+Copyright (c) 2011-2013, ESN Social Software AB and Jonas Tarnstrom
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the ESN Social Software AB nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL ESN SOCIAL SOFTWARE AB OR JONAS TARNSTROM BE
+LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Portions of code from MODP_ASCII - Ascii transformations (upper/lower, etc)
+https://github.com/client9/stringencoders
+Copyright (c) 2007  Nick Galbreath -- nickg [at] modp [dot] com. All rights
+reserved.
+
+Numeric decoder derived from TCL library
+https://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
+ * Copyright (c) 1988-1993 The Regents of the University of California.
+ * Copyright (c) 1994 Sun Microsystems, Inc.
+*/
+
+// Licence at LICENSES/ULTRAJSON_LICENSE
+
+#include "pandas/portable.h"
+#include "pandas/vendored/ujson/lib/ultrajson.h"
+#include <locale.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+/*
+Worst cases being:
+
+Control characters (ASCII < 32)
+0x00 (1 byte) input => \u0000 output (6 bytes)
+1 * 6 => 6 (6 bytes required)
+
+or UTF-16 surrogate pairs
+4 bytes input in UTF-8 => \uXXXX\uYYYY (12 bytes).
+
+4 * 6 => 24 bytes (12 bytes required)
+
+The extra 2 bytes are for the quotes around the string
+
+*/
+#define RESERVE_STRING(_len) (2 + ((_len) * 6))
+
+static const double g_pow10[] = {1,
+                                 10,
+                                 100,
+                                 1000,
+                                 10000,
+                                 100000,
+                                 1000000,
+                                 10000000,
+                                 100000000,
+                                 1000000000,
+                                 10000000000,
+                                 100000000000,
+                                 1000000000000,
+                                 10000000000000,
+                                 100000000000000,
+                                 1000000000000000};
+static const char g_hexChars[] = "0123456789abcdef";
+static const char g_escapeChars[] = "0123456789\\b\\t\\n\\f\\r\\\"\\\\\\/";
+
+/*
+FIXME: While this is fine dandy and working it's a magic value mess which
+probably only the author understands.
+Needs a cleanup and more documentation */
+
+/*
+Table for pure ascii output escaping all characters above 127 to \uXXXX */
+static const JSUINT8 g_asciiOutputTable[256] = {
+    /* 0x00 */ 0,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    10,
+    12,
+    14,
+    30,
+    16,
+    18,
+    30,
+    30,
+    /* 0x10 */ 30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    /* 0x20 */ 1,
+    1,
+    20,
+    1,
+    1,
+    1,
+    29,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    24,
+    /* 0x30 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    29,
+    1,
+    29,
+    1,
+    /* 0x40 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x50 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    22,
+    1,
+    1,
+    1,
+    /* 0x60 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x70 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x80 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0x90 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0xa0 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0xb0 */ 1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    /* 0xc0 */ 2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    /* 0xd0 */ 2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    /* 0xe0 */ 3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    /* 0xf0 */ 4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    5,
+    5,
+    5,
+    5,
+    6,
+    6,
+    1,
+    1};
+
+static void SetError(JSOBJ obj, JSONObjectEncoder *enc, const char *message) {
+  enc->errorMsg = message;
+  enc->errorObj = obj;
+}
+
+/*
+FIXME: Keep track of how big these get across several encoder calls and try to
+make an estimate
+That way we won't run our head into the wall each call */
+void Buffer_Realloc(JSONObjectEncoder *enc, size_t cbNeeded) {
+  size_t curSize = enc->end - enc->start;
+  size_t newSize = curSize * 2;
+  size_t offset = enc->offset - enc->start;
+
+  while (newSize < curSize + cbNeeded) {
+    newSize *= 2;
+  }
+
+  if (enc->heap) {
+    enc->start = (char *)enc->realloc(enc->start, newSize);
+    if (!enc->start) {
+      SetError(NULL, enc, "Could not reserve memory block");
+      return;
+    }
+  } else {
+    char *oldStart = enc->start;
+    enc->heap = 1;
+    enc->start = (char *)enc->malloc(newSize);
+    if (!enc->start) {
+      SetError(NULL, enc, "Could not reserve memory block");
+      return;
+    }
+    memcpy(enc->start, oldStart, offset);
+  }
+  enc->offset = enc->start + offset;
+  enc->end = enc->start + newSize;
+}
+
+INLINE_PREFIX void FASTCALL_MSVC
+Buffer_AppendShortHexUnchecked(char *outputOffset, unsigned short value) {
+  *(outputOffset++) = g_hexChars[(value & 0xf000) >> 12];
+  *(outputOffset++) = g_hexChars[(value & 0x0f00) >> 8];
+  *(outputOffset++) = g_hexChars[(value & 0x00f0) >> 4];
+  *(outputOffset++) = g_hexChars[(value & 0x000f) >> 0];
+}
+
+int Buffer_EscapeStringUnvalidated(JSONObjectEncoder *enc, const char *io,
+                                   const char *end) {
+  char *of = (char *)enc->offset;
+
+  for (;;) {
+    switch (*io) {
+    case 0x00: {
+      if (io < end) {
+        *(of++) = '\\';
+        *(of++) = 'u';
+        *(of++) = '0';
+        *(of++) = '0';
+        *(of++) = '0';
+        *(of++) = '0';
+        break;
+      } else {
+        enc->offset += (of - enc->offset);
+        return TRUE;
+      }
+    }
+    case '\"':
+      (*of++) = '\\';
+      (*of++) = '\"';
+      break;
+    case '\\':
+      (*of++) = '\\';
+      (*of++) = '\\';
+      break;
+    case '/':
+      (*of++) = '\\';
+      (*of++) = '/';
+      break;
+    case '\b':
+      (*of++) = '\\';
+      (*of++) = 'b';
+      break;
+    case '\f':
+      (*of++) = '\\';
+      (*of++) = 'f';
+      break;
+    case '\n':
+      (*of++) = '\\';
+      (*of++) = 'n';
+      break;
+    case '\r':
+      (*of++) = '\\';
+      (*of++) = 'r';
+      break;
+    case '\t':
+      (*of++) = '\\';
+      (*of++) = 't';
+      break;
+
+    case 0x26: // '/'
+    case 0x3c: // '<'
+    case 0x3e: // '>'
+    {
+      if (enc->encodeHTMLChars) {
+        // Fall through to \u00XX case below.
+        PD_FALLTHROUGH;
+      } else {
+        // Same as default case below.
+        (*of++) = (*io);
+        break;
+      }
+    }
+    case 0x01:
+    case 0x02:
+    case 0x03:
+    case 0x04:
+    case 0x05:
+    case 0x06:
+    case 0x07:
+    case 0x0b:
+    case 0x0e:
+    case 0x0f:
+    case 0x10:
+    case 0x11:
+    case 0x12:
+    case 0x13:
+    case 0x14:
+    case 0x15:
+    case 0x16:
+    case 0x17:
+    case 0x18:
+    case 0x19:
+    case 0x1a:
+    case 0x1b:
+    case 0x1c:
+    case 0x1d:
+    case 0x1e:
+    case 0x1f: {
+      *(of++) = '\\';
+      *(of++) = 'u';
+      *(of++) = '0';
+      *(of++) = '0';
+      *(of++) = g_hexChars[(unsigned char)(((*io) & 0xf0) >> 4)];
+      *(of++) = g_hexChars[(unsigned char)((*io) & 0x0f)];
+      break;
+    }
+    default:
+      (*of++) = (*io);
+      break;
+    }
+    io++;
+  }
+}
+
+int Buffer_EscapeStringValidated(JSOBJ obj, JSONObjectEncoder *enc,
+                                 const char *io, const char *end) {
+  JSUTF32 ucs;
+  char *of = (char *)enc->offset;
+
+  for (;;) {
+    JSUINT8 utflen = g_asciiOutputTable[(unsigned char)*io];
+
+    switch (utflen) {
+    case 0: {
+      if (io < end) {
+        *(of++) = '\\';
+        *(of++) = 'u';
+        *(of++) = '0';
+        *(of++) = '0';
+        *(of++) = '0';
+        *(of++) = '0';
+        io++;
+        continue;
+      } else {
+        enc->offset += (of - enc->offset);
+        return TRUE;
+      }
+    }
+
+    case 1: {
+      *(of++) = (*io++);
+      continue;
+    }
+
+    case 2: {
+      JSUTF32 in;
+      JSUTF16 in16;
+
+      if (end - io < 1) {
+        enc->offset += (of - enc->offset);
+        SetError(obj, enc, "Unterminated UTF-8 sequence when encoding string");
+        return FALSE;
+      }
+
+      memcpy(&in16, io, sizeof(JSUTF16));
+      in = (JSUTF32)in16;
+
+#ifdef __LITTLE_ENDIAN__
+      ucs = ((in & 0x1f) << 6) | ((in >> 8) & 0x3f);
+#else
+      ucs = ((in & 0x1f00) >> 2) | (in & 0x3f);
+#endif
+
+      if (ucs < 0x80) {
+        enc->offset += (of - enc->offset);
+        SetError(obj, enc,
+                 "Overlong 2 byte UTF-8 sequence detected when "
+                 "encoding string");
+        return FALSE;
+      }
+
+      io += 2;
+      break;
+    }
+
+    case 3: {
+      JSUTF32 in;
+      JSUTF16 in16;
+      JSUINT8 in8;
+
+      if (end - io < 2) {
+        enc->offset += (of - enc->offset);
+        SetError(obj, enc, "Unterminated UTF-8 sequence when encoding string");
+        return FALSE;
+      }
+
+      memcpy(&in16, io, sizeof(JSUTF16));
+      memcpy(&in8, io + 2, sizeof(JSUINT8));
+#ifdef __LITTLE_ENDIAN__
+      in = (JSUTF32)in16;
+      in |= in8 << 16;
+      ucs =
+          ((in & 0x0f) << 12) | ((in & 0x3f00) >> 2) | ((in & 0x3f0000) >> 16);
+#else
+      in = in16 << 8;
+      in |= in8;
+      ucs = ((in & 0x0f0000) >> 4) | ((in & 0x3f00) >> 2) | (in & 0x3f);
+#endif
+
+      if (ucs < 0x800) {
+        enc->offset += (of - enc->offset);
+        SetError(obj, enc,
+                 "Overlong 3 byte UTF-8 sequence detected when "
+                 "encoding string");
+        return FALSE;
+      }
+
+      io += 3;
+      break;
+    }
+    case 4: {
+      JSUTF32 in;
+
+      if (end - io < 3) {
+        enc->offset += (of - enc->offset);
+        SetError(obj, enc, "Unterminated UTF-8 sequence when encoding string");
+        return FALSE;
+      }
+
+      memcpy(&in, io, sizeof(JSUTF32));
+#ifdef __LITTLE_ENDIAN__
+      ucs = ((in & 0x07) << 18) | ((in & 0x3f00) << 4) |
+            ((in & 0x3f0000) >> 10) | ((in & 0x3f000000) >> 24);
+#else
+      ucs = ((in & 0x07000000) >> 6) | ((in & 0x3f0000) >> 4) |
+            ((in & 0x3f00) >> 2) | (in & 0x3f);
+#endif
+      if (ucs < 0x10000) {
+        enc->offset += (of - enc->offset);
+        SetError(obj, enc,
+                 "Overlong 4 byte UTF-8 sequence detected when "
+                 "encoding string");
+        return FALSE;
+      }
+
+      io += 4;
+      break;
+    }
+
+    case 5:
+    case 6: {
+      enc->offset += (of - enc->offset);
+      SetError(obj, enc,
+               "Unsupported UTF-8 sequence length when encoding string");
+      return FALSE;
+    }
+
+    case 29: {
+      if (enc->encodeHTMLChars) {
+        // Fall through to \u00XX case 30 below.
+        PD_FALLTHROUGH;
+      } else {
+        // Same as case 1 above.
+        *(of++) = (*io++);
+        continue;
+      }
+    }
+
+    case 30: {
+      // \uXXXX encode
+      *(of++) = '\\';
+      *(of++) = 'u';
+      *(of++) = '0';
+      *(of++) = '0';
+      *(of++) = g_hexChars[(unsigned char)(((*io) & 0xf0) >> 4)];
+      *(of++) = g_hexChars[(unsigned char)((*io) & 0x0f)];
+      io++;
+      continue;
+    }
+    case 10:
+    case 12:
+    case 14:
+    case 16:
+    case 18:
+    case 20:
+    case 22:
+    case 24: {
+      *(of++) = *((char *)(g_escapeChars + utflen + 0));
+      *(of++) = *((char *)(g_escapeChars + utflen + 1));
+      io++;
+      continue;
+    }
+    // This can never happen, it's here to make L4 VC++ happy
+    default: {
+      ucs = 0;
+      break;
+    }
+    }
+
+    /*
+    If the character is a UTF8 sequence of length > 1 we end up here */
+    if (ucs >= 0x10000) {
+      ucs -= 0x10000;
+      *(of++) = '\\';
+      *(of++) = 'u';
+      Buffer_AppendShortHexUnchecked(of, (unsigned short)(ucs >> 10) + 0xd800);
+      of += 4;
+
+      *(of++) = '\\';
+      *(of++) = 'u';
+      Buffer_AppendShortHexUnchecked(of,
+                                     (unsigned short)(ucs & 0x3ff) + 0xdc00);
+      of += 4;
+    } else {
+      *(of++) = '\\';
+      *(of++) = 'u';
+      Buffer_AppendShortHexUnchecked(of, (unsigned short)ucs);
+      of += 4;
+    }
+  }
+}
+
+#define Buffer_Reserve(__enc, __len)                                           \
+  if ((size_t)((__enc)->end - (__enc)->offset) < (size_t)(__len)) {            \
+    Buffer_Realloc((__enc), (__len));                                          \
+  }
+
+#define Buffer_AppendCharUnchecked(__enc, __chr) *((__enc)->offset++) = __chr;
+
+INLINE_PREFIX void FASTCALL_MSVC strreverse(char *begin, char *end) {
+  char aux;
+  while (end > begin)
+    aux = *end, *end-- = *begin, *begin++ = aux;
+}
+
+void Buffer_AppendIndentNewlineUnchecked(JSONObjectEncoder *enc) {
+  if (enc->indent > 0)
+    Buffer_AppendCharUnchecked(enc, '\n');
+}
+
+// This function could be refactored to only accept enc as an argument,
+// but this is a straight vendor from ujson source
+void Buffer_AppendIndentUnchecked(JSONObjectEncoder *enc, JSINT32 value) {
+  int i;
+  if (enc->indent > 0) {
+    while (value-- > 0)
+      for (i = 0; i < enc->indent; i++)
+        Buffer_AppendCharUnchecked(enc, ' ');
+  }
+}
+
+void Buffer_AppendIntUnchecked(JSONObjectEncoder *enc, JSINT32 value) {
+  char *wstr;
+  JSUINT32 uvalue = (value < 0) ? -value : value;
+  wstr = enc->offset;
+
+  // Conversion. Number is reversed.
+  do {
+    *wstr++ = (char)(48 + (uvalue % 10));
+  } while (uvalue /= 10);
+  if (value < 0)
+    *wstr++ = '-';
+
+  // Reverse string
+  strreverse(enc->offset, wstr - 1);
+  enc->offset += (wstr - (enc->offset));
+}
+
+void Buffer_AppendLongUnchecked(JSONObjectEncoder *enc, JSINT64 value) {
+  char *wstr;
+  JSUINT64 uvalue;
+  if (value == INT64_MIN) {
+    uvalue = INT64_MAX + UINT64_C(1);
+  } else {
+    uvalue = (value < 0) ? -value : value;
+  }
+
+  wstr = enc->offset;
+  // Conversion. Number is reversed.
+
+  do {
+    *wstr++ = (char)(48 + (uvalue % 10ULL));
+  } while (uvalue /= 10ULL);
+  if (value < 0)
+    *wstr++ = '-';
+
+  // Reverse string
+  strreverse(enc->offset, wstr - 1);
+  enc->offset += (wstr - (enc->offset));
+}
+
+int Buffer_AppendDoubleUnchecked(JSOBJ obj, JSONObjectEncoder *enc,
+                                 double value) {
+  /* if input is beyond the thresholds, revert to exponential */
+  const double thres_max = (double)1e16 - 1;
+  const double thres_min = (double)1e-15;
+  char precision_str[20];
+  int count;
+  double diff = 0.0;
+  char *str = enc->offset;
+  char *wstr = str;
+  unsigned long long whole;
+  double tmp;
+  unsigned long long frac;
+  int neg;
+  double pow10;
+
+  if (value == HUGE_VAL || value == -HUGE_VAL) {
+    SetError(obj, enc, "Invalid Inf value when encoding double");
+    return FALSE;
+  }
+
+  if (!(value == value)) {
+    SetError(obj, enc, "Invalid Nan value when encoding double");
+    return FALSE;
+  }
+
+  /* we'll work in positive values and deal with the
+  negative sign issue later */
+  neg = 0;
+  if (value < 0) {
+    neg = 1;
+    value = -value;
+  }
+
+  /*
+  for very large or small numbers switch back to native sprintf for
+  exponentials.  anyone want to write code to replace this? */
+  if (value > thres_max || (value != 0.0 && fabs(value) < thres_min)) {
+    precision_str[0] = '%';
+    precision_str[1] = '.';
+#if defined(_WIN32) && defined(_MSC_VER)
+    sprintf_s(precision_str + 2, sizeof(precision_str) - 2, "%ug",
+              enc->doublePrecision);
+    enc->offset += sprintf_s(str, enc->end - enc->offset, precision_str,
+                             neg ? -value : value);
+#else
+    snprintf(precision_str + 2, sizeof(precision_str) - 2, "%ug",
+             enc->doublePrecision);
+    enc->offset += snprintf(str, enc->end - enc->offset, precision_str,
+                            neg ? -value : value);
+#endif
+    return TRUE;
+  }
+
+  pow10 = g_pow10[enc->doublePrecision];
+
+  whole = (unsigned long long)value;
+  tmp = (value - whole) * pow10;
+  frac = (unsigned long long)(tmp);
+  diff = tmp - frac;
+
+  if (diff > 0.5) {
+    ++frac;
+  } else if (diff == 0.5 && ((frac == 0) || (frac & 1))) {
+    /* if halfway, round up if odd, OR
+    if last digit is 0.  That last part is strange */
+    ++frac;
+  }
+
+  // handle rollover, e.g.
+  // case 0.99 with prec 1 is 1.0 and case 0.95 with prec is 1.0 as well
+  if (frac >= pow10) {
+    frac = 0;
+    ++whole;
+  }
+
+  if (enc->doublePrecision == 0) {
+    diff = value - whole;
+
+    if (diff > 0.5) {
+      /* greater than 0.5, round up, e.g. 1.6 -> 2 */
+      ++whole;
+    } else if (diff == 0.5 && (whole & 1)) {
+      /* exactly 0.5 and ODD, then round up */
+      /* 1.5 -> 2, but 2.5 -> 2 */
+      ++whole;
+    }
+
+    // vvvvvvvvvvvvvvvvvvv  Diff from modp_dto2
+  } else if (frac) {
+    count = enc->doublePrecision;
+    // now do fractional part, as an unsigned number
+    // we know it is not 0 but we can have leading zeros, these
+    // should be removed
+    while (!(frac % 10)) {
+      --count;
+      frac /= 10;
+    }
+    //^^^^^^^^^^^^^^^^^^^  Diff from modp_dto2
+
+    // now do fractional part, as an unsigned number
+    do {
+      --count;
+      *wstr++ = (char)(48 + (frac % 10));
+    } while (frac /= 10);
+    // add extra 0s
+    while (count-- > 0) {
+      *wstr++ = '0';
+    }
+    // add decimal
+    *wstr++ = '.';
+  } else {
+    *wstr++ = '0';
+    *wstr++ = '.';
+  }
+
+  // Do whole part. Take care of sign
+  // conversion. Number is reversed.
+  do {
+    *wstr++ = (char)(48 + (whole % 10));
+  } while (whole /= 10);
+
+  if (neg) {
+    *wstr++ = '-';
+  }
+  strreverse(str, wstr - 1);
+  enc->offset += (wstr - (enc->offset));
+
+  return TRUE;
+}
+
+/*
+FIXME:
+Handle integration functions returning NULL here */
+
+/*
+FIXME:
+Perhaps implement recursion detection */
+
+void encode(JSOBJ obj, JSONObjectEncoder *enc, const char *name,
+            size_t cbName) {
+  const char *value;
+  char *objName;
+  int count;
+  JSOBJ iterObj;
+  size_t szlen;
+  JSONTypeContext tc;
+  tc.encoder = enc;
+
+  if (enc->level > enc->recursionMax) {
+    SetError(obj, enc, "Maximum recursion level reached");
+    return;
+  }
+
+  /*
+  This reservation must hold
+
+  length of _name as encoded worst case +
+  maxLength of double to string OR maxLength of JSLONG to string
+  */
+
+  Buffer_Reserve(enc, 256 + RESERVE_STRING(cbName));
+  if (enc->errorMsg) {
+    return;
+  }
+
+  if (name) {
+    Buffer_AppendCharUnchecked(enc, '\"');
+
+    if (enc->forceASCII) {
+      if (!Buffer_EscapeStringValidated(obj, enc, name, name + cbName)) {
+        return;
+      }
+    } else {
+      if (!Buffer_EscapeStringUnvalidated(enc, name, name + cbName)) {
+        return;
+      }
+    }
+
+    Buffer_AppendCharUnchecked(enc, '\"');
+
+    Buffer_AppendCharUnchecked(enc, ':');
+#ifndef JSON_NO_EXTRA_WHITESPACE
+    Buffer_AppendCharUnchecked(enc, ' ');
+#endif
+  }
+
+  enc->beginTypeContext(obj, &tc);
+
+  switch (tc.type) {
+  case JT_INVALID: {
+    return;
+  }
+
+  case JT_ARRAY: {
+    count = 0;
+    enc->iterBegin(obj, &tc);
+
+    Buffer_AppendCharUnchecked(enc, '[');
+    Buffer_AppendIndentNewlineUnchecked(enc);
+
+    while (enc->iterNext(obj, &tc)) {
+      if (count > 0) {
+        Buffer_AppendCharUnchecked(enc, ',');
+#ifndef JSON_NO_EXTRA_WHITESPACE
+        Buffer_AppendCharUnchecked(buffer, ' ');
+#endif
+        Buffer_AppendIndentNewlineUnchecked(enc);
+      }
+
+      iterObj = enc->iterGetValue(obj, &tc);
+
+      enc->level++;
+      Buffer_AppendIndentUnchecked(enc, enc->level);
+      encode(iterObj, enc, NULL, 0);
+      count++;
+    }
+
+    enc->iterEnd(obj, &tc);
+    Buffer_AppendIndentNewlineUnchecked(enc);
+    Buffer_AppendIndentUnchecked(enc, enc->level);
+    Buffer_AppendCharUnchecked(enc, ']');
+    break;
+  }
+
+  case JT_OBJECT: {
+    count = 0;
+    enc->iterBegin(obj, &tc);
+
+    Buffer_AppendCharUnchecked(enc, '{');
+    Buffer_AppendIndentNewlineUnchecked(enc);
+
+    while (enc->iterNext(obj, &tc)) {
+      if (count > 0) {
+        Buffer_AppendCharUnchecked(enc, ',');
+#ifndef JSON_NO_EXTRA_WHITESPACE
+        Buffer_AppendCharUnchecked(enc, ' ');
+#endif
+        Buffer_AppendIndentNewlineUnchecked(enc);
+      }
+
+      iterObj = enc->iterGetValue(obj, &tc);
+      objName = enc->iterGetName(obj, &tc, &szlen);
+
+      enc->level++;
+      Buffer_AppendIndentUnchecked(enc, enc->level);
+      encode(iterObj, enc, objName, szlen);
+      count++;
+    }
+
+    enc->iterEnd(obj, &tc);
+    Buffer_AppendIndentNewlineUnchecked(enc);
+    Buffer_AppendIndentUnchecked(enc, enc->level);
+    Buffer_AppendCharUnchecked(enc, '}');
+    break;
+  }
+
+  case JT_LONG: {
+    Buffer_AppendLongUnchecked(enc, enc->getLongValue(obj, &tc));
+    break;
+  }
+
+  case JT_INT: {
+    Buffer_AppendIntUnchecked(enc, enc->getIntValue(obj, &tc));
+    break;
+  }
+
+  case JT_TRUE: {
+    Buffer_AppendCharUnchecked(enc, 't');
+    Buffer_AppendCharUnchecked(enc, 'r');
+    Buffer_AppendCharUnchecked(enc, 'u');
+    Buffer_AppendCharUnchecked(enc, 'e');
+    break;
+  }
+
+  case JT_FALSE: {
+    Buffer_AppendCharUnchecked(enc, 'f');
+    Buffer_AppendCharUnchecked(enc, 'a');
+    Buffer_AppendCharUnchecked(enc, 'l');
+    Buffer_AppendCharUnchecked(enc, 's');
+    Buffer_AppendCharUnchecked(enc, 'e');
+    break;
+  }
+
+  case JT_NULL: {
+    Buffer_AppendCharUnchecked(enc, 'n');
+    Buffer_AppendCharUnchecked(enc, 'u');
+    Buffer_AppendCharUnchecked(enc, 'l');
+    Buffer_AppendCharUnchecked(enc, 'l');
+    break;
+  }
+
+  case JT_DOUBLE: {
+    if (!Buffer_AppendDoubleUnchecked(obj, enc,
+                                      enc->getDoubleValue(obj, &tc))) {
+      enc->endTypeContext(obj, &tc);
+      enc->level--;
+      return;
+    }
+    break;
+  }
+
+  case JT_UTF8: {
+    value = enc->getStringValue(obj, &tc, &szlen);
+    if (enc->errorMsg) {
+      enc->endTypeContext(obj, &tc);
+      return;
+    }
+    Buffer_Reserve(enc, RESERVE_STRING(szlen));
+    Buffer_AppendCharUnchecked(enc, '\"');
+
+    if (enc->forceASCII) {
+      if (!Buffer_EscapeStringValidated(obj, enc, value, value + szlen)) {
+        enc->endTypeContext(obj, &tc);
+        enc->level--;
+        return;
+      }
+    } else {
+      if (!Buffer_EscapeStringUnvalidated(enc, value, value + szlen)) {
+        enc->endTypeContext(obj, &tc);
+        enc->level--;
+        return;
+      }
+    }
+
+    Buffer_AppendCharUnchecked(enc, '\"');
+    break;
+  }
+
+  case JT_BIGNUM: {
+    value = enc->getBigNumStringValue(obj, &tc, &szlen);
+
+    Buffer_Reserve(enc, RESERVE_STRING(szlen));
+    if (enc->errorMsg) {
+      enc->endTypeContext(obj, &tc);
+      return;
+    }
+
+    if (enc->forceASCII) {
+      if (!Buffer_EscapeStringValidated(obj, enc, value, value + szlen)) {
+        enc->endTypeContext(obj, &tc);
+        enc->level--;
+        return;
+      }
+    } else {
+      if (!Buffer_EscapeStringUnvalidated(enc, value, value + szlen)) {
+        enc->endTypeContext(obj, &tc);
+        enc->level--;
+        return;
+      }
+    }
+
+    break;
+  }
+  }
+
+  enc->endTypeContext(obj, &tc);
+  enc->level--;
+}
+
+char *JSON_EncodeObject(JSOBJ obj, JSONObjectEncoder *enc, char *_buffer,
+                        size_t _cbBuffer) {
+  char *locale;
+  enc->malloc = enc->malloc ? enc->malloc : malloc;
+  enc->free = enc->free ? enc->free : free;
+  enc->realloc = enc->realloc ? enc->realloc : realloc;
+  enc->errorMsg = NULL;
+  enc->errorObj = NULL;
+  enc->level = 0;
+
+  if (enc->recursionMax < 1) {
+    enc->recursionMax = JSON_MAX_RECURSION_DEPTH;
+  }
+
+  if (enc->doublePrecision < 0 ||
+      enc->doublePrecision > JSON_DOUBLE_MAX_DECIMALS) {
+    enc->doublePrecision = JSON_DOUBLE_MAX_DECIMALS;
+  }
+
+  if (_buffer == NULL) {
+    _cbBuffer = 32768;
+    enc->start = (char *)enc->malloc(_cbBuffer);
+    if (!enc->start) {
+      SetError(obj, enc, "Could not reserve memory block");
+      return NULL;
+    }
+    enc->heap = 1;
+  } else {
+    enc->start = _buffer;
+    enc->heap = 0;
+  }
+
+  enc->end = enc->start + _cbBuffer;
+  enc->offset = enc->start;
+
+  locale = setlocale(LC_NUMERIC, NULL);
+  if (!locale) {
+    SetError(NULL, enc, "setlocale call failed");
+    return NULL;
+  }
+
+  if (strcmp(locale, "C")) {
+    size_t len = strlen(locale) + 1;
+    char *saved_locale = malloc(len);
+    if (saved_locale == NULL) {
+      SetError(NULL, enc, "Could not reserve memory block");
+      return NULL;
+    }
+    memcpy(saved_locale, locale, len);
+    setlocale(LC_NUMERIC, "C");
+    encode(obj, enc, NULL, 0);
+    setlocale(LC_NUMERIC, saved_locale);
+    free(saved_locale);
+  } else {
+    encode(obj, enc, NULL, 0);
+  }
+
+  Buffer_Reserve(enc, 1);
+  if (enc->errorMsg) {
+    return NULL;
+  }
+  Buffer_AppendCharUnchecked(enc, '\0');
+
+  return enc->start;
+}
+```
+
+## pandas/pandas/_libs/src/vendored/ujson/python/JSONtoObj.c.notice.txt
+
+```text
+/*
+Copyright (c) 2011-2013, ESN Social Software AB and Jonas Tarnstrom
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the ESN Social Software AB nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL ESN SOCIAL SOFTWARE AB OR JONAS TARNSTROM BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Portions of code from MODP_ASCII - Ascii transformations (upper/lower, etc)
+https://github.com/client9/stringencoders
+Copyright (c) 2007  Nick Galbreath -- nickg [at] modp [dot] com. All rights
+reserved.
+
+Numeric decoder derived from TCL library
+https://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
+ * Copyright (c) 1988-1993 The Regents of the University of California.
+ * Copyright (c) 1994 Sun Microsystems, Inc.
+*/
+
+// Licence at LICENSES/ULTRAJSON_LICENSE
+
+// clang-format off
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include "pandas/vendored/ujson/lib/ultrajson.h"
+// clang-format on
+
+static int Object_objectAddKey(void *Py_UNUSED(prv), JSOBJ obj, JSOBJ name,
+                               JSOBJ value) {
+  int ret = PyDict_SetItem(obj, name, value);
+  Py_DECREF((PyObject *)name);
+  Py_DECREF((PyObject *)value);
+  return ret == 0 ? 1 : 0;
+}
+
+static int Object_arrayAddItem(void *Py_UNUSED(prv), JSOBJ obj, JSOBJ value) {
+  int ret = PyList_Append(obj, value);
+  Py_DECREF((PyObject *)value);
+  return ret == 0 ? 1 : 0;
+}
+
+static JSOBJ Object_newString(void *Py_UNUSED(prv), wchar_t *start,
+                              wchar_t *end) {
+  return PyUnicode_FromWideChar(start, (end - start));
+}
+
+static JSOBJ Object_newTrue(void *Py_UNUSED(prv)) { Py_RETURN_TRUE; }
+
+static JSOBJ Object_newFalse(void *Py_UNUSED(prv)) { Py_RETURN_FALSE; }
+
+static JSOBJ Object_newNull(void *Py_UNUSED(prv)) { Py_RETURN_NONE; }
+
+static JSOBJ Object_newPosInf(void *Py_UNUSED(prv)) {
+  return PyFloat_FromDouble(Py_HUGE_VAL);
+}
+
+static JSOBJ Object_newNegInf(void *Py_UNUSED(prv)) {
+  return PyFloat_FromDouble(-Py_HUGE_VAL);
+}
+
+static JSOBJ Object_newObject(void *Py_UNUSED(prv), void *Py_UNUSED(decoder)) {
+  return PyDict_New();
+}
+
+static JSOBJ Object_endObject(void *Py_UNUSED(prv), JSOBJ obj) { return obj; }
+
+static JSOBJ Object_newArray(void *Py_UNUSED(prv), void *Py_UNUSED(decoder)) {
+  return PyList_New(0);
+}
+
+static JSOBJ Object_endArray(void *Py_UNUSED(prv), JSOBJ obj) { return obj; }
+
+static JSOBJ Object_newInteger(void *Py_UNUSED(prv), JSINT32 value) {
+  return PyLong_FromLong(value);
+}
+
+static JSOBJ Object_newLong(void *Py_UNUSED(prv), JSINT64 value) {
+  return PyLong_FromLongLong(value);
+}
+
+static JSOBJ Object_newUnsignedLong(void *Py_UNUSED(prv), JSUINT64 value) {
+  return PyLong_FromUnsignedLongLong(value);
+}
+
+static JSOBJ Object_newDouble(void *Py_UNUSED(prv), double value) {
+  return PyFloat_FromDouble(value);
+}
+
+static void Object_releaseObject(void *Py_UNUSED(prv), JSOBJ obj,
+                                 void *Py_UNUSED(decoder)) {
+  Py_XDECREF(((PyObject *)obj));
+}
+
+PyObject *JSONToObj(PyObject *Py_UNUSED(self), PyObject *args,
+                    PyObject *kwargs) {
+  JSONObjectDecoder dec = {.newString = Object_newString,
+                           .objectAddKey = Object_objectAddKey,
+                           .arrayAddItem = Object_arrayAddItem,
+                           .newTrue = Object_newTrue,
+                           .newFalse = Object_newFalse,
+                           .newNull = Object_newNull,
+                           .newPosInf = Object_newPosInf,
+                           .newNegInf = Object_newNegInf,
+                           .newObject = Object_newObject,
+                           .endObject = Object_endObject,
+                           .newArray = Object_newArray,
+                           .endArray = Object_endArray,
+                           .newInt = Object_newInteger,
+                           .newLong = Object_newLong,
+                           .newUnsignedLong = Object_newUnsignedLong,
+                           .newDouble = Object_newDouble,
+                           .releaseObject = Object_releaseObject,
+                           .malloc = PyObject_Malloc,
+                           .free = PyObject_Free,
+                           .realloc = PyObject_Realloc,
+                           .errorStr = NULL,
+                           .errorOffset = NULL,
+                           .preciseFloat = 0,
+                           .prv = NULL};
+
+  char *kwlist[] = {"obj", "precise_float", NULL};
+  char *buf;
+  Py_ssize_t len;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s#|b", kwlist, &buf, &len,
+                                   &dec.preciseFloat)) {
+    return NULL;
+  }
+
+  PyObject *ret = JSON_DecodeObject(&dec, buf, len);
+
+  if (PyErr_Occurred()) {
+    if (ret) {
+      Py_DECREF((PyObject *)ret);
+    }
+    return NULL;
+  }
+
+  if (dec.errorStr) {
+    /*
+    FIXME: It's possible to give a much nicer error message here with actual
+    failing element in input etc*/
+
+    PyErr_Format(PyExc_ValueError, "%s", dec.errorStr);
+
+    if (ret) {
+      Py_DECREF((PyObject *)ret);
+    }
+
+    return NULL;
+  }
+
+  return ret;
+}
+```
+
+## pandas/pandas/_libs/src/vendored/ujson/python/objToJSON.c.notice.txt
+
+```text
+/*
+Copyright (c) 2011-2013, ESN Social Software AB and Jonas Tarnstrom
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+* Neither the name of the ESN Social Software AB nor the
+names of its contributors may be used to endorse or promote products
+derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL ESN SOCIAL SOFTWARE AB OR JONAS TARNSTROM BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Portions of code from MODP_ASCII - Ascii transformations (upper/lower, etc)
+https://github.com/client9/stringencoders
+Copyright (c) 2007  Nick Galbreath -- nickg [at] modp [dot] com. All rights
+reserved.
+
+Numeric decoder derived from TCL library
+https://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
+* Copyright (c) 1988-1993 The Regents of the University of California.
+* Copyright (c) 1994 Sun Microsystems, Inc.
+*/
+
+// Licence at LICENSES/ULTRAJSON_LICENSE
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL UJSON_NUMPY
+#include "datetime.h"
+#include "pandas/datetime/pd_datetime.h"
+#include "pandas/vendored/ujson/lib/ultrajson.h"
+#include <numpy/arrayobject.h>
+#include <numpy/arrayscalars.h>
+#include <numpy/ndarraytypes.h>
+#include <numpy/npy_math.h>
+
+npy_int64 get_nat(void) { return NPY_MIN_INT64; }
+
+typedef char *(*PFN_PyTypeToUTF8)(JSOBJ obj, JSONTypeContext *ti,
+                                  size_t *_outLen);
+
+int object_is_decimal_type(PyObject *obj);
+int object_is_dataframe_type(PyObject *obj);
+int object_is_series_type(PyObject *obj);
+int object_is_index_type(PyObject *obj);
+int object_is_nat_type(PyObject *obj);
+int object_is_na_type(PyObject *obj);
+
+typedef struct __NpyArrContext {
+  PyObject *array;
+  char *dataptr;
+  npy_intp curdim;    // current dimension in array's order
+  npy_intp stridedim; // dimension we are striding over
+  int inc;            // stride dimension increment (+/- 1)
+  npy_intp dim;
+  npy_intp stride;
+  npy_intp ndim;
+  npy_intp index[NPY_MAXDIMS];
+  int type_num;
+
+  char **rowLabels;
+  char **columnLabels;
+} NpyArrContext;
+
+typedef struct __PdBlockContext {
+  Py_ssize_t colIdx;
+  Py_ssize_t ncols;
+  int transpose;
+
+  NpyArrContext **npyCtxts; // NpyArrContext for each column
+} PdBlockContext;
+
+typedef struct __TypeContext {
+  JSPFN_ITERBEGIN iterBegin;
+  JSPFN_ITEREND iterEnd;
+  JSPFN_ITERNEXT iterNext;
+  JSPFN_ITERGETNAME iterGetName;
+  JSPFN_ITERGETVALUE iterGetValue;
+  PFN_PyTypeToUTF8 PyTypeToUTF8;
+  PyObject *newObj;
+  PyObject *dictObj;
+  Py_ssize_t index;
+  Py_ssize_t size;
+  PyObject *itemValue;
+  PyObject *itemName;
+  PyObject *attrList;
+  PyObject *iterator;
+
+  double doubleValue;
+  JSINT64 longValue;
+
+  char *cStr;
+  NpyArrContext *npyarr;
+  PdBlockContext *pdblock;
+  int transpose;
+  char **rowLabels;
+  char **columnLabels;
+  npy_intp rowLabelsLen;
+  npy_intp columnLabelsLen;
+} TypeContext;
+
+typedef struct __PyObjectEncoder {
+  JSONObjectEncoder enc;
+
+  // pass through the NpyArrContext when encoding multi-dimensional arrays
+  NpyArrContext *npyCtxtPassthru;
+
+  // pass through the PdBlockContext when encoding blocks
+  PdBlockContext *blkCtxtPassthru;
+
+  // pass-through to encode numpy data directly
+  int npyType;
+  void *npyValue;
+
+  int datetimeIso;
+  NPY_DATETIMEUNIT datetimeUnit;
+  NPY_DATETIMEUNIT valueUnit;
+
+  // output format style for pandas data types
+  int outputFormat;
+  int originalOutputFormat;
+
+  PyObject *defaultHandler;
+} PyObjectEncoder;
+
+#define GET_TC(__ptrtc) ((TypeContext *)((__ptrtc)->prv))
+
+enum PANDAS_FORMAT { SPLIT, RECORDS, INDEX, COLUMNS, VALUES };
+
+static int PdBlock_iterNext(JSOBJ, JSONTypeContext *);
+
+static TypeContext *createTypeContext(void) {
+  TypeContext *pc = PyObject_Malloc(sizeof(TypeContext));
+  if (!pc) {
+    PyErr_NoMemory();
+    return NULL;
+  }
+  pc->newObj = NULL;
+  pc->dictObj = NULL;
+  pc->itemValue = NULL;
+  pc->itemName = NULL;
+  pc->attrList = NULL;
+  pc->index = 0;
+  pc->size = 0;
+  pc->longValue = 0;
+  pc->doubleValue = 0.0;
+  pc->cStr = NULL;
+  pc->npyarr = NULL;
+  pc->pdblock = NULL;
+  pc->rowLabels = NULL;
+  pc->columnLabels = NULL;
+  pc->transpose = 0;
+  pc->rowLabelsLen = 0;
+  pc->columnLabelsLen = 0;
+
+  return pc;
+}
+
+static PyObject *get_values(PyObject *obj) {
+  PyObject *values = NULL;
+
+  if (object_is_index_type(obj) || object_is_series_type(obj)) {
+    // The special cases to worry about are dt64tz and category[dt64tz].
+    //  In both cases we want the UTC-localized datetime64 ndarray,
+    //  without going through and object array of Timestamps.
+    if (PyObject_HasAttrString(obj, "tz")) {
+      PyObject *tz = PyObject_GetAttrString(obj, "tz");
+      if (tz != Py_None) {
+        // Go through object array if we have dt64tz, since tz info will
+        // be lost if values is used directly.
+        Py_DECREF(tz);
+        values = PyObject_CallMethod(obj, "__array__", NULL);
+        return values;
+      }
+      Py_DECREF(tz);
+    }
+    values = PyObject_GetAttrString(obj, "values");
+    if (values == NULL) {
+      // Clear so we can subsequently try another method
+      PyErr_Clear();
+    } else if (PyObject_HasAttrString(values, "__array__")) {
+      // We may have gotten a Categorical or Sparse array so call np.array
+      PyObject *array_values = PyObject_CallMethod(values, "__array__", NULL);
+      Py_DECREF(values);
+      values = array_values;
+    } else if (!PyArray_CheckExact(values)) {
+      // Didn't get a numpy array, so keep trying
+      Py_DECREF(values);
+      values = NULL;
+    }
+  }
+
+  if (values == NULL) {
+    PyObject *typeRepr = PyObject_Repr((PyObject *)Py_TYPE(obj));
+    PyObject *repr;
+    if (PyObject_HasAttrString(obj, "dtype")) {
+      PyObject *dtype = PyObject_GetAttrString(obj, "dtype");
+      repr = PyObject_Repr(dtype);
+      Py_DECREF(dtype);
+    } else {
+      repr = PyUnicode_FromString("<unknown dtype>");
+    }
+
+    PyErr_Format(PyExc_ValueError, "%R or %R are not JSON serializable yet",
+                 repr, typeRepr);
+    Py_DECREF(repr);
+    Py_DECREF(typeRepr);
+
+    return NULL;
+  }
+
+  return values;
+}
+
+static PyObject *get_sub_attr(PyObject *obj, char *attr, char *subAttr) {
+  PyObject *tmp = PyObject_GetAttrString(obj, attr);
+  if (tmp == 0) {
+    return 0;
+  }
+  PyObject *ret = PyObject_GetAttrString(tmp, subAttr);
+  Py_DECREF(tmp);
+
+  return ret;
+}
+
+static Py_ssize_t get_attr_length(PyObject *obj, char *attr) {
+  PyObject *tmp = PyObject_GetAttrString(obj, attr);
+  if (tmp == 0) {
+    return 0;
+  }
+  Py_ssize_t ret = PyObject_Length(tmp);
+  Py_DECREF(tmp);
+
+  if (ret == -1) {
+    return 0;
+  }
+
+  return ret;
+}
+
+static npy_int64 get_long_attr(PyObject *o, const char *attr) {
+  // NB we are implicitly assuming that o is a Timedelta or Timestamp, or NaT
+
+  PyObject *value = PyObject_GetAttrString(o, attr);
+  const npy_int64 long_val =
+      (PyLong_Check(value) ? PyLong_AsLongLong(value) : PyLong_AsLong(value));
+
+  Py_DECREF(value);
+
+  if (object_is_nat_type(o)) {
+    // i.e. o is NaT, long_val will be NPY_MIN_INT64
+    return long_val;
+  }
+
+  // ensure we are in nanoseconds, similar to Timestamp._as_creso or _as_unit
+  PyObject *reso = PyObject_GetAttrString(o, "_creso");
+  if (!PyLong_Check(reso)) {
+    // https://github.com/pandas-dev/pandas/pull/49034#discussion_r1023165139
+    Py_DECREF(reso);
+    return -1;
+  }
+
+  long cReso = PyLong_AsLong(reso);
+  Py_DECREF(reso);
+  if (cReso == -1 && PyErr_Occurred()) {
+    return -1;
+  }
+
+  if (cReso == NPY_FR_us) {
+    return long_val * 1000L;
+  } else if (cReso == NPY_FR_ms) {
+    return long_val * 1000000L;
+  } else if (cReso == NPY_FR_s) {
+    return long_val * 1000000000L;
+  }
+
+  return long_val;
+}
+
+static npy_float64 total_seconds(PyObject *td) {
+  PyObject *value = PyObject_CallMethod(td, "total_seconds", NULL);
+  const npy_float64 double_val = PyFloat_AS_DOUBLE(value);
+  Py_DECREF(value);
+  return double_val;
+}
+
+static char *PyBytesToUTF8(JSOBJ _obj, JSONTypeContext *Py_UNUSED(tc),
+                           size_t *_outLen) {
+  PyObject *obj = (PyObject *)_obj;
+  *_outLen = PyBytes_GET_SIZE(obj);
+  return PyBytes_AS_STRING(obj);
+}
+
+static char *PyUnicodeToUTF8(JSOBJ _obj, JSONTypeContext *tc, size_t *_outLen) {
+  char *encoded = (char *)PyUnicode_AsUTF8AndSize(_obj, (Py_ssize_t *)_outLen);
+  if (encoded == NULL) {
+    /* Something went wrong.
+      Set errorMsg(to tell encoder to stop),
+      and let Python exception propagate. */
+    JSONObjectEncoder *enc = (JSONObjectEncoder *)tc->encoder;
+    enc->errorMsg = "Encoding failed.";
+  }
+  return encoded;
+}
+
+/* JSON callback. returns a char* and mutates the pointer to *len */
+static char *NpyDateTimeToIsoCallback(JSOBJ Py_UNUSED(unused),
+                                      JSONTypeContext *tc, size_t *len) {
+  NPY_DATETIMEUNIT base = ((PyObjectEncoder *)tc->encoder)->datetimeUnit;
+  NPY_DATETIMEUNIT valueUnit = ((PyObjectEncoder *)tc->encoder)->valueUnit;
+  GET_TC(tc)->cStr = int64ToIso(GET_TC(tc)->longValue, valueUnit, base, len);
+  return GET_TC(tc)->cStr;
+}
+
+/* JSON callback. returns a char* and mutates the pointer to *len */
+static char *NpyTimeDeltaToIsoCallback(JSOBJ Py_UNUSED(unused),
+                                       JSONTypeContext *tc, size_t *len) {
+  GET_TC(tc)->cStr = int64ToIsoDuration(GET_TC(tc)->longValue, len);
+  return GET_TC(tc)->cStr;
+}
+
+/* JSON callback */
+static char *PyDateTimeToIsoCallback(JSOBJ obj, JSONTypeContext *tc,
+                                     size_t *len) {
+  if (!PyDate_Check(obj) && !PyDateTime_Check(obj)) {
+    PyErr_SetString(PyExc_TypeError, "Expected date or datetime object");
+    ((JSONObjectEncoder *)tc->encoder)->errorMsg = "";
+    return NULL;
+  }
+
+  NPY_DATETIMEUNIT base = ((PyObjectEncoder *)tc->encoder)->datetimeUnit;
+  GET_TC(tc)->cStr = PyDateTimeToIso(obj, base, len);
+  return GET_TC(tc)->cStr;
+}
+
+static char *PyTimeToJSON(JSOBJ _obj, JSONTypeContext *tc, size_t *outLen) {
+  PyObject *obj = (PyObject *)_obj;
+  PyObject *str = PyObject_CallMethod(obj, "isoformat", NULL);
+  if (str == NULL) {
+    *outLen = 0;
+    if (!PyErr_Occurred()) {
+      PyErr_SetString(PyExc_ValueError, "Failed to convert time");
+    }
+    ((JSONObjectEncoder *)tc->encoder)->errorMsg = "";
+    return NULL;
+  }
+  if (PyUnicode_Check(str)) {
+    PyObject *tmp = str;
+    str = PyUnicode_AsUTF8String(str);
+    Py_DECREF(tmp);
+  }
+
+  GET_TC(tc)->newObj = str;
+
+  *outLen = PyBytes_GET_SIZE(str);
+  char *outValue = PyBytes_AS_STRING(str);
+  return outValue;
+}
+
+//=============================================================================
+// Numpy array iteration functions
+//=============================================================================
+
+static void NpyArr_freeItemValue(JSOBJ Py_UNUSED(_obj), JSONTypeContext *tc) {
+  if (GET_TC(tc)->npyarr &&
+      GET_TC(tc)->itemValue != GET_TC(tc)->npyarr->array) {
+    Py_XDECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = NULL;
+  }
+}
+
+static int NpyArr_iterNextNone(JSOBJ Py_UNUSED(_obj),
+                               JSONTypeContext *Py_UNUSED(tc)) {
+  return 0;
+}
+
+static void NpyArr_iterBegin(JSOBJ _obj, JSONTypeContext *tc) {
+  PyArrayObject *obj =
+      (PyArrayObject *)(GET_TC(tc)->newObj ? GET_TC(tc)->newObj : _obj);
+
+  NpyArrContext *npyarr = PyObject_Malloc(sizeof(NpyArrContext));
+  GET_TC(tc)->npyarr = npyarr;
+
+  if (!npyarr) {
+    PyErr_NoMemory();
+    GET_TC(tc)->iterNext = NpyArr_iterNextNone;
+    return;
+  }
+
+  npyarr->array = (PyObject *)obj;
+  npyarr->dataptr = PyArray_DATA(obj);
+  npyarr->ndim = PyArray_NDIM(obj) - 1;
+  npyarr->curdim = 0;
+  npyarr->type_num = PyArray_DESCR(obj)->type_num;
+
+  if (GET_TC(tc)->transpose) {
+    npyarr->dim = PyArray_DIM(obj, (int)npyarr->ndim);
+    npyarr->stride = PyArray_STRIDE(obj, (int)npyarr->ndim);
+    npyarr->stridedim = npyarr->ndim;
+    npyarr->index[npyarr->ndim] = 0;
+    npyarr->inc = -1;
+  } else {
+    npyarr->dim = PyArray_DIM(obj, 0);
+    npyarr->stride = PyArray_STRIDE(obj, 0);
+    npyarr->stridedim = 0;
+    npyarr->index[0] = 0;
+    npyarr->inc = 1;
+  }
+
+  npyarr->columnLabels = GET_TC(tc)->columnLabels;
+  npyarr->rowLabels = GET_TC(tc)->rowLabels;
+}
+
+static void NpyArr_iterEnd(JSOBJ obj, JSONTypeContext *tc) {
+  NpyArrContext *npyarr = GET_TC(tc)->npyarr;
+
+  if (npyarr) {
+    NpyArr_freeItemValue(obj, tc);
+    PyObject_Free(npyarr);
+  }
+}
+
+static void NpyArrPassThru_iterBegin(JSOBJ Py_UNUSED(obj),
+                                     JSONTypeContext *Py_UNUSED(tc)) {}
+
+static void NpyArrPassThru_iterEnd(JSOBJ obj, JSONTypeContext *tc) {
+  NpyArrContext *npyarr = GET_TC(tc)->npyarr;
+  // finished this dimension, reset the data pointer
+  npyarr->curdim--;
+  npyarr->dataptr -= npyarr->stride * npyarr->index[npyarr->stridedim];
+  npyarr->stridedim -= npyarr->inc;
+
+  if (!PyArray_Check(npyarr->array)) {
+    PyErr_SetString(PyExc_TypeError,
+                    "NpyArrayPassThru_iterEnd received a non-array object");
+    return;
+  }
+  const PyArrayObject *arrayobj = (const PyArrayObject *)npyarr->array;
+  npyarr->dim = PyArray_DIM(arrayobj, (int)npyarr->stridedim);
+  npyarr->stride = PyArray_STRIDE(arrayobj, (int)npyarr->stridedim);
+  npyarr->dataptr += npyarr->stride;
+
+  NpyArr_freeItemValue(obj, tc);
+}
+
+static int NpyArr_iterNextItem(JSOBJ obj, JSONTypeContext *tc) {
+  NpyArrContext *npyarr = GET_TC(tc)->npyarr;
+
+  if (PyErr_Occurred()) {
+    return 0;
+  }
+
+  if (npyarr->index[npyarr->stridedim] >= npyarr->dim) {
+    return 0;
+  }
+
+  NpyArr_freeItemValue(obj, tc);
+
+  if (!PyArray_Check(npyarr->array)) {
+    PyErr_SetString(PyExc_TypeError,
+                    "NpyArr_iterNextItem received a non-array object");
+    return 0;
+  }
+  PyArrayObject *arrayobj = (PyArrayObject *)npyarr->array;
+
+  if (PyArray_ISDATETIME(arrayobj)) {
+    GET_TC(tc)->itemValue = obj;
+    Py_INCREF(obj);
+    ((PyObjectEncoder *)tc->encoder)->npyType = PyArray_TYPE(arrayobj);
+    // Also write the resolution (unit) of the ndarray
+    PyArray_Descr *dtype = PyArray_DESCR(arrayobj);
+    ((PyObjectEncoder *)tc->encoder)->valueUnit =
+        get_datetime_metadata_from_dtype(dtype).base;
+    ((PyObjectEncoder *)tc->encoder)->npyValue = npyarr->dataptr;
+    ((PyObjectEncoder *)tc->encoder)->npyCtxtPassthru = npyarr;
+  } else {
+    GET_TC(tc)->itemValue = PyArray_GETITEM(arrayobj, npyarr->dataptr);
+  }
+
+  npyarr->dataptr += npyarr->stride;
+  npyarr->index[npyarr->stridedim]++;
+  return 1;
+}
+
+static int NpyArr_iterNext(JSOBJ _obj, JSONTypeContext *tc) {
+  NpyArrContext *npyarr = GET_TC(tc)->npyarr;
+
+  if (PyErr_Occurred()) {
+    return 0;
+  }
+
+  if (npyarr->curdim >= npyarr->ndim ||
+      npyarr->index[npyarr->stridedim] >= npyarr->dim) {
+    // innermost dimension, start retrieving item values
+    GET_TC(tc)->iterNext = NpyArr_iterNextItem;
+    return NpyArr_iterNextItem(_obj, tc);
+  }
+
+  // dig a dimension deeper
+  npyarr->index[npyarr->stridedim]++;
+
+  npyarr->curdim++;
+  npyarr->stridedim += npyarr->inc;
+  if (!PyArray_Check(npyarr->array)) {
+    PyErr_SetString(PyExc_TypeError,
+                    "NpyArr_iterNext received a non-array object");
+    return 0;
+  }
+  const PyArrayObject *arrayobj = (const PyArrayObject *)npyarr->array;
+
+  npyarr->dim = PyArray_DIM(arrayobj, (int)npyarr->stridedim);
+  npyarr->stride = PyArray_STRIDE(arrayobj, (int)npyarr->stridedim);
+  npyarr->index[npyarr->stridedim] = 0;
+
+  ((PyObjectEncoder *)tc->encoder)->npyCtxtPassthru = npyarr;
+  GET_TC(tc)->itemValue = npyarr->array;
+  return 1;
+}
+
+static JSOBJ NpyArr_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *NpyArr_iterGetName(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc,
+                                size_t *outLen) {
+  NpyArrContext *npyarr = GET_TC(tc)->npyarr;
+  char *cStr;
+
+  if (GET_TC(tc)->iterNext == NpyArr_iterNextItem) {
+    const npy_intp idx = npyarr->index[npyarr->stridedim] - 1;
+    cStr = npyarr->columnLabels[idx];
+  } else {
+    const npy_intp idx = npyarr->index[npyarr->stridedim - npyarr->inc] - 1;
+    cStr = npyarr->rowLabels[idx];
+  }
+
+  *outLen = strlen(cStr);
+
+  return cStr;
+}
+
+//=============================================================================
+// Pandas block iteration functions
+//
+// Serialises a DataFrame column by column to avoid unnecessary data copies and
+// more representative serialisation when dealing with mixed dtypes.
+//
+// Uses a dedicated NpyArrContext for each column.
+//=============================================================================
+
+static void PdBlockPassThru_iterEnd(JSOBJ obj, JSONTypeContext *tc) {
+  PdBlockContext *blkCtxt = GET_TC(tc)->pdblock;
+
+  if (blkCtxt->transpose) {
+    blkCtxt->colIdx++;
+  } else {
+    blkCtxt->colIdx = 0;
+  }
+
+  NpyArr_freeItemValue(obj, tc);
+}
+
+static int PdBlock_iterNextItem(JSOBJ obj, JSONTypeContext *tc) {
+  PdBlockContext *blkCtxt = GET_TC(tc)->pdblock;
+
+  if (blkCtxt->colIdx >= blkCtxt->ncols) {
+    return 0;
+  }
+
+  GET_TC(tc)->npyarr = blkCtxt->npyCtxts[blkCtxt->colIdx];
+  blkCtxt->colIdx++;
+  return NpyArr_iterNextItem(obj, tc);
+}
+
+static char *PdBlock_iterGetName(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc,
+                                 size_t *outLen) {
+  PdBlockContext *blkCtxt = GET_TC(tc)->pdblock;
+  NpyArrContext *npyarr = blkCtxt->npyCtxts[0];
+  char *cStr;
+
+  if (GET_TC(tc)->iterNext == PdBlock_iterNextItem) {
+    const npy_intp idx = blkCtxt->colIdx - 1;
+    cStr = npyarr->columnLabels[idx];
+  } else {
+    const npy_intp idx =
+        GET_TC(tc)->iterNext != PdBlock_iterNext
+            ? npyarr->index[npyarr->stridedim - npyarr->inc] - 1
+            : npyarr->index[npyarr->stridedim];
+
+    cStr = npyarr->rowLabels[idx];
+  }
+
+  *outLen = strlen(cStr);
+  return cStr;
+}
+
+static char *PdBlock_iterGetName_Transpose(JSOBJ Py_UNUSED(obj),
+                                           JSONTypeContext *tc,
+                                           size_t *outLen) {
+  PdBlockContext *blkCtxt = GET_TC(tc)->pdblock;
+  NpyArrContext *npyarr = blkCtxt->npyCtxts[blkCtxt->colIdx];
+  char *cStr;
+
+  if (GET_TC(tc)->iterNext == NpyArr_iterNextItem) {
+    const npy_intp idx = npyarr->index[npyarr->stridedim] - 1;
+    cStr = npyarr->columnLabels[idx];
+  } else {
+    const npy_intp idx = blkCtxt->colIdx;
+    cStr = npyarr->rowLabels[idx];
+  }
+
+  *outLen = strlen(cStr);
+  return cStr;
+}
+
+static int PdBlock_iterNext(JSOBJ obj, JSONTypeContext *tc) {
+  PdBlockContext *blkCtxt = GET_TC(tc)->pdblock;
+
+  if (PyErr_Occurred() || ((JSONObjectEncoder *)tc->encoder)->errorMsg) {
+    return 0;
+  }
+
+  if (blkCtxt->transpose) {
+    if (blkCtxt->colIdx >= blkCtxt->ncols) {
+      return 0;
+    }
+  } else {
+    const NpyArrContext *npyarr = blkCtxt->npyCtxts[0];
+    if (npyarr->index[npyarr->stridedim] >= npyarr->dim) {
+      return 0;
+    }
+  }
+
+  ((PyObjectEncoder *)tc->encoder)->blkCtxtPassthru = blkCtxt;
+  GET_TC(tc)->itemValue = obj;
+
+  return 1;
+}
+
+static void PdBlockPassThru_iterBegin(JSOBJ Py_UNUSED(obj),
+                                      JSONTypeContext *tc) {
+  PdBlockContext *blkCtxt = GET_TC(tc)->pdblock;
+
+  if (blkCtxt->transpose) {
+    // if transposed we exhaust each column before moving to the next
+    GET_TC(tc)->iterNext = NpyArr_iterNextItem;
+    GET_TC(tc)->iterGetName = PdBlock_iterGetName_Transpose;
+    GET_TC(tc)->npyarr = blkCtxt->npyCtxts[blkCtxt->colIdx];
+  }
+}
+
+static void PdBlock_iterBegin(JSOBJ _obj, JSONTypeContext *tc) {
+  PyObject *obj = (PyObject *)_obj;
+
+  GET_TC(tc)->iterGetName = GET_TC(tc)->transpose
+                                ? PdBlock_iterGetName_Transpose
+                                : PdBlock_iterGetName;
+
+  PdBlockContext *blkCtxt = PyObject_Malloc(sizeof(PdBlockContext));
+  if (!blkCtxt) {
+    PyErr_NoMemory();
+    GET_TC(tc)->iterNext = NpyArr_iterNextNone;
+    return;
+  }
+  GET_TC(tc)->pdblock = blkCtxt;
+
+  blkCtxt->colIdx = 0;
+  blkCtxt->transpose = GET_TC(tc)->transpose;
+  blkCtxt->ncols = get_attr_length(obj, "columns");
+
+  if (blkCtxt->ncols == 0) {
+    blkCtxt->npyCtxts = NULL;
+
+    GET_TC(tc)->iterNext = NpyArr_iterNextNone;
+    return;
+  }
+
+  blkCtxt->npyCtxts = PyObject_Malloc(sizeof(NpyArrContext *) * blkCtxt->ncols);
+  if (!blkCtxt->npyCtxts) {
+    PyErr_NoMemory();
+    GET_TC(tc)->iterNext = NpyArr_iterNextNone;
+    return;
+  }
+
+  PyObject *arrays = get_sub_attr(obj, "_mgr", "column_arrays");
+  if (!arrays) {
+    GET_TC(tc)->iterNext = NpyArr_iterNextNone;
+    return;
+  }
+
+  for (Py_ssize_t i = 0; i < PyObject_Length(arrays); i++) {
+    PyObject *array = PyList_GET_ITEM(arrays, i);
+    if (!array) {
+      GET_TC(tc)->iterNext = NpyArr_iterNextNone;
+      goto ARR_RET;
+    }
+
+    // ensure we have a numpy array (i.e. np.asarray)
+    PyObject *values = PyObject_CallMethod(array, "__array__", NULL);
+    if ((!values) || (!PyArray_CheckExact(values))) {
+      // Didn't get a numpy array
+      ((JSONObjectEncoder *)tc->encoder)->errorMsg = "";
+      GET_TC(tc)->iterNext = NpyArr_iterNextNone;
+      goto ARR_RET;
+    }
+
+    GET_TC(tc)->newObj = values;
+
+    // init a dedicated context for this column
+    NpyArr_iterBegin(obj, tc);
+
+    GET_TC(tc)->itemValue = NULL;
+    ((PyObjectEncoder *)tc->encoder)->npyCtxtPassthru = NULL;
+
+    blkCtxt->npyCtxts[i] = GET_TC(tc)->npyarr;
+    GET_TC(tc)->newObj = NULL;
+  }
+  GET_TC(tc)->npyarr = blkCtxt->npyCtxts[0];
+  goto ARR_RET;
+
+ARR_RET:
+  Py_DECREF(arrays);
+}
+
+static void PdBlock_iterEnd(JSOBJ obj, JSONTypeContext *tc) {
+  GET_TC(tc)->itemValue = NULL;
+  NpyArrContext *npyarr = GET_TC(tc)->npyarr;
+  PdBlockContext *blkCtxt = GET_TC(tc)->pdblock;
+
+  if (blkCtxt) {
+    for (int i = 0; i < blkCtxt->ncols; i++) {
+      npyarr = blkCtxt->npyCtxts[i];
+      if (npyarr) {
+        if (npyarr->array) {
+          Py_DECREF(npyarr->array);
+          npyarr->array = NULL;
+        }
+
+        GET_TC(tc)->npyarr = npyarr;
+        NpyArr_iterEnd(obj, tc);
+
+        blkCtxt->npyCtxts[i] = NULL;
+      }
+    }
+
+    if (blkCtxt->npyCtxts) {
+      PyObject_Free(blkCtxt->npyCtxts);
+    }
+    PyObject_Free(blkCtxt);
+  }
+}
+
+//=============================================================================
+// Tuple iteration functions
+// itemValue is borrowed reference, no ref counting
+//=============================================================================
+static void Tuple_iterBegin(JSOBJ obj, JSONTypeContext *tc) {
+  GET_TC(tc)->index = 0;
+  GET_TC(tc)->size = PyTuple_GET_SIZE((PyObject *)obj);
+  GET_TC(tc)->itemValue = NULL;
+}
+
+static int Tuple_iterNext(JSOBJ obj, JSONTypeContext *tc) {
+
+  if (GET_TC(tc)->index >= GET_TC(tc)->size) {
+    return 0;
+  }
+
+  PyObject *item = PyTuple_GET_ITEM(obj, GET_TC(tc)->index);
+
+  GET_TC(tc)->itemValue = item;
+  GET_TC(tc)->index++;
+  return 1;
+}
+
+static void Tuple_iterEnd(JSOBJ Py_UNUSED(obj),
+                          JSONTypeContext *Py_UNUSED(tc)) {}
+
+static JSOBJ Tuple_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *Tuple_iterGetName(JSOBJ Py_UNUSED(obj),
+                               JSONTypeContext *Py_UNUSED(tc),
+                               size_t *Py_UNUSED(outLen)) {
+  return NULL;
+}
+
+//=============================================================================
+// Set iteration functions
+// itemValue is borrowed reference, no ref counting
+//=============================================================================
+static void Set_iterBegin(JSOBJ obj, JSONTypeContext *tc) {
+  GET_TC(tc)->itemValue = NULL;
+  GET_TC(tc)->iterator = PyObject_GetIter(obj);
+}
+
+static int Set_iterNext(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  if (GET_TC(tc)->itemValue) {
+    Py_DECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = NULL;
+  }
+
+  PyObject *item = PyIter_Next(GET_TC(tc)->iterator);
+
+  if (item == NULL) {
+    return 0;
+  }
+
+  GET_TC(tc)->itemValue = item;
+  return 1;
+}
+
+static void Set_iterEnd(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  if (GET_TC(tc)->itemValue) {
+    Py_DECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = NULL;
+  }
+
+  if (GET_TC(tc)->iterator) {
+    Py_DECREF(GET_TC(tc)->iterator);
+    GET_TC(tc)->iterator = NULL;
+  }
+}
+
+static JSOBJ Set_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *Set_iterGetName(JSOBJ Py_UNUSED(obj),
+                             JSONTypeContext *Py_UNUSED(tc),
+                             size_t *Py_UNUSED(outLen)) {
+  return NULL;
+}
+
+//=============================================================================
+// Dir iteration functions
+// itemName ref is borrowed from PyObject_Dir (attrList). No refcount
+// itemValue ref is from PyObject_GetAttr. Ref counted
+//=============================================================================
+static void Dir_iterBegin(JSOBJ obj, JSONTypeContext *tc) {
+  GET_TC(tc)->attrList = PyObject_Dir(obj);
+  GET_TC(tc)->index = 0;
+  GET_TC(tc)->size = PyList_GET_SIZE(GET_TC(tc)->attrList);
+}
+
+static void Dir_iterEnd(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  if (GET_TC(tc)->itemValue) {
+    Py_DECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = NULL;
+  }
+
+  if (GET_TC(tc)->itemName) {
+    Py_DECREF(GET_TC(tc)->itemName);
+    GET_TC(tc)->itemName = NULL;
+  }
+
+  Py_DECREF((PyObject *)GET_TC(tc)->attrList);
+}
+
+static int Dir_iterNext(JSOBJ _obj, JSONTypeContext *tc) {
+  PyObject *obj = (PyObject *)_obj;
+  PyObject *itemValue = GET_TC(tc)->itemValue;
+  PyObject *itemName = GET_TC(tc)->itemName;
+
+  if (PyErr_Occurred() || ((JSONObjectEncoder *)tc->encoder)->errorMsg) {
+    return 0;
+  }
+
+  if (itemValue) {
+    Py_DECREF(GET_TC(tc)->itemValue);
+    GET_TC(tc)->itemValue = itemValue = NULL;
+  }
+
+  if (itemName) {
+    Py_DECREF(GET_TC(tc)->itemName);
+    GET_TC(tc)->itemName = itemName = NULL;
+  }
+
+  for (; GET_TC(tc)->index < GET_TC(tc)->size; GET_TC(tc)->index++) {
+    PyObject *attrName =
+        PyList_GET_ITEM(GET_TC(tc)->attrList, GET_TC(tc)->index);
+    PyObject *attr = PyUnicode_AsUTF8String(attrName);
+    const char *attrStr = PyBytes_AS_STRING(attr);
+
+    if (attrStr[0] == '_') {
+      Py_DECREF(attr);
+      continue;
+    }
+
+    itemValue = PyObject_GetAttr(obj, attrName);
+    if (itemValue == NULL) {
+      PyErr_Clear();
+      Py_DECREF(attr);
+      continue;
+    }
+
+    if (PyCallable_Check(itemValue)) {
+      Py_DECREF(itemValue);
+      Py_DECREF(attr);
+      continue;
+    }
+
+    GET_TC(tc)->itemName = itemName;
+    GET_TC(tc)->itemValue = itemValue;
+
+    itemName = attr;
+    break;
+  }
+
+  if (itemName == NULL) {
+    GET_TC(tc)->index = GET_TC(tc)->size;
+    GET_TC(tc)->itemValue = NULL;
+    return 0;
+  }
+
+  GET_TC(tc)->itemName = itemName;
+  GET_TC(tc)->itemValue = itemValue;
+  GET_TC(tc)->index++;
+
+  return 1;
+}
+
+static JSOBJ Dir_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *Dir_iterGetName(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc,
+                             size_t *outLen) {
+  *outLen = PyBytes_GET_SIZE(GET_TC(tc)->itemName);
+  return PyBytes_AS_STRING(GET_TC(tc)->itemName);
+}
+
+//=============================================================================
+// List iteration functions
+// itemValue is borrowed from object (which is list). No refcounting
+//=============================================================================
+static void List_iterBegin(JSOBJ obj, JSONTypeContext *tc) {
+  GET_TC(tc)->index = 0;
+  GET_TC(tc)->size = PyList_GET_SIZE((PyObject *)obj);
+}
+
+static int List_iterNext(JSOBJ obj, JSONTypeContext *tc) {
+  if (GET_TC(tc)->index >= GET_TC(tc)->size) {
+    return 0;
+  }
+
+  GET_TC(tc)->itemValue = PyList_GET_ITEM(obj, GET_TC(tc)->index);
+  GET_TC(tc)->index++;
+  return 1;
+}
+
+static void List_iterEnd(JSOBJ Py_UNUSED(obj), JSONTypeContext *Py_UNUSED(tc)) {
+}
+
+static JSOBJ List_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *List_iterGetName(JSOBJ Py_UNUSED(obj),
+                              JSONTypeContext *Py_UNUSED(tc),
+                              size_t *Py_UNUSED(outLen)) {
+  return NULL;
+}
+
+//=============================================================================
+// pandas Index iteration functions
+//=============================================================================
+static void Index_iterBegin(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  GET_TC(tc)->index = 0;
+  GET_TC(tc)->cStr = PyObject_Malloc(20 * sizeof(char));
+  if (!GET_TC(tc)->cStr) {
+    PyErr_NoMemory();
+  }
+}
+
+static int Index_iterNext(JSOBJ obj, JSONTypeContext *tc) {
+  if (!GET_TC(tc)->cStr) {
+    return 0;
+  }
+
+  const Py_ssize_t index = GET_TC(tc)->index;
+  Py_XDECREF(GET_TC(tc)->itemValue);
+  if (index == 0) {
+    memcpy(GET_TC(tc)->cStr, "name", sizeof(char) * 5);
+    GET_TC(tc)->itemValue = PyObject_GetAttrString(obj, "name");
+  } else if (index == 1) {
+    memcpy(GET_TC(tc)->cStr, "data", sizeof(char) * 5);
+    GET_TC(tc)->itemValue = get_values(obj);
+    if (!GET_TC(tc)->itemValue) {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+
+  GET_TC(tc)->index++;
+  return 1;
+}
+
+static void Index_iterEnd(JSOBJ Py_UNUSED(obj),
+                          JSONTypeContext *Py_UNUSED(tc)) {}
+
+static JSOBJ Index_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *Index_iterGetName(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc,
+                               size_t *outLen) {
+  *outLen = strlen(GET_TC(tc)->cStr);
+  return GET_TC(tc)->cStr;
+}
+
+//=============================================================================
+// pandas Series iteration functions
+//=============================================================================
+static void Series_iterBegin(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  PyObjectEncoder *enc = (PyObjectEncoder *)tc->encoder;
+  GET_TC(tc)->index = 0;
+  GET_TC(tc)->cStr = PyObject_Malloc(20 * sizeof(char));
+  enc->outputFormat = VALUES; // for contained series
+  if (!GET_TC(tc)->cStr) {
+    PyErr_NoMemory();
+  }
+}
+
+static int Series_iterNext(JSOBJ obj, JSONTypeContext *tc) {
+  if (!GET_TC(tc)->cStr) {
+    return 0;
+  }
+
+  const Py_ssize_t index = GET_TC(tc)->index;
+  Py_XDECREF(GET_TC(tc)->itemValue);
+  if (index == 0) {
+    memcpy(GET_TC(tc)->cStr, "name", sizeof(char) * 5);
+    GET_TC(tc)->itemValue = PyObject_GetAttrString(obj, "name");
+  } else if (index == 1) {
+    memcpy(GET_TC(tc)->cStr, "index", sizeof(char) * 6);
+    GET_TC(tc)->itemValue = PyObject_GetAttrString(obj, "index");
+  } else if (index == 2) {
+    memcpy(GET_TC(tc)->cStr, "data", sizeof(char) * 5);
+    GET_TC(tc)->itemValue = get_values(obj);
+    if (!GET_TC(tc)->itemValue) {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+
+  GET_TC(tc)->index++;
+  return 1;
+}
+
+static void Series_iterEnd(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  PyObjectEncoder *enc = (PyObjectEncoder *)tc->encoder;
+  enc->outputFormat = enc->originalOutputFormat;
+}
+
+static JSOBJ Series_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *Series_iterGetName(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc,
+                                size_t *outLen) {
+  *outLen = strlen(GET_TC(tc)->cStr);
+  return GET_TC(tc)->cStr;
+}
+
+//=============================================================================
+// pandas DataFrame iteration functions
+//=============================================================================
+static void DataFrame_iterBegin(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  PyObjectEncoder *enc = (PyObjectEncoder *)tc->encoder;
+  GET_TC(tc)->index = 0;
+  GET_TC(tc)->cStr = PyObject_Malloc(20 * sizeof(char));
+  enc->outputFormat = VALUES; // for contained series & index
+  if (!GET_TC(tc)->cStr) {
+    PyErr_NoMemory();
+  }
+}
+
+static int DataFrame_iterNext(JSOBJ obj, JSONTypeContext *tc) {
+  if (!GET_TC(tc)->cStr) {
+    return 0;
+  }
+
+  const Py_ssize_t index = GET_TC(tc)->index;
+  Py_XDECREF(GET_TC(tc)->itemValue);
+  if (index == 0) {
+    memcpy(GET_TC(tc)->cStr, "columns", sizeof(char) * 8);
+    GET_TC(tc)->itemValue = PyObject_GetAttrString(obj, "columns");
+  } else if (index == 1) {
+    memcpy(GET_TC(tc)->cStr, "index", sizeof(char) * 6);
+    GET_TC(tc)->itemValue = PyObject_GetAttrString(obj, "index");
+  } else if (index == 2) {
+    memcpy(GET_TC(tc)->cStr, "data", sizeof(char) * 5);
+    Py_INCREF(obj);
+    GET_TC(tc)->itemValue = obj;
+  } else {
+    return 0;
+  }
+
+  GET_TC(tc)->index++;
+  return 1;
+}
+
+static void DataFrame_iterEnd(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  PyObjectEncoder *enc = (PyObjectEncoder *)tc->encoder;
+  enc->outputFormat = enc->originalOutputFormat;
+}
+
+static JSOBJ DataFrame_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *DataFrame_iterGetName(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc,
+                                   size_t *outLen) {
+  *outLen = strlen(GET_TC(tc)->cStr);
+  return GET_TC(tc)->cStr;
+}
+
+//=============================================================================
+// Dict iteration functions
+// itemName might converted to string (Python_Str). Do refCounting
+// itemValue is borrowed from object (which is dict). No refCounting
+//=============================================================================
+static void Dict_iterBegin(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  GET_TC(tc)->index = 0;
+}
+
+static int Dict_iterNext(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  if (GET_TC(tc)->itemName) {
+    Py_DECREF(GET_TC(tc)->itemName);
+    GET_TC(tc)->itemName = NULL;
+  }
+
+  if (!PyDict_Next((PyObject *)GET_TC(tc)->dictObj, &GET_TC(tc)->index,
+                   &GET_TC(tc)->itemName, &GET_TC(tc)->itemValue)) {
+    return 0;
+  }
+
+  if (PyUnicode_Check(GET_TC(tc)->itemName)) {
+    GET_TC(tc)->itemName = PyUnicode_AsUTF8String(GET_TC(tc)->itemName);
+  } else if (!PyBytes_Check(GET_TC(tc)->itemName)) {
+    GET_TC(tc)->itemName = PyObject_Str(GET_TC(tc)->itemName);
+    PyObject *itemNameTmp = GET_TC(tc)->itemName;
+    GET_TC(tc)->itemName = PyUnicode_AsUTF8String(GET_TC(tc)->itemName);
+    Py_DECREF(itemNameTmp);
+  } else {
+    Py_INCREF(GET_TC(tc)->itemName);
+  }
+  return 1;
+}
+
+static void Dict_iterEnd(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  if (GET_TC(tc)->itemName) {
+    Py_DECREF(GET_TC(tc)->itemName);
+    GET_TC(tc)->itemName = NULL;
+  }
+  Py_DECREF(GET_TC(tc)->dictObj);
+}
+
+static JSOBJ Dict_iterGetValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->itemValue;
+}
+
+static char *Dict_iterGetName(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc,
+                              size_t *outLen) {
+  *outLen = PyBytes_GET_SIZE(GET_TC(tc)->itemName);
+  return PyBytes_AS_STRING(GET_TC(tc)->itemName);
+}
+
+static void NpyArr_freeLabels(char **labels, npy_intp len) {
+  if (labels) {
+    for (npy_intp i = 0; i < len; i++) {
+      PyObject_Free(labels[i]);
+    }
+    PyObject_Free(labels);
+  }
+}
+
+/*
+ * Function: NpyArr_encodeLabels
+ * -----------------------------
+ *
+ * Builds an array of "encoded" labels.
+ *
+ * labels: PyArrayObject pointer for labels to be "encoded"
+ * num : number of labels
+ *
+ * "encode" is quoted above because we aren't really doing encoding
+ * For historical reasons this function would actually encode the entire
+ * array into a separate buffer with a separate call to JSON_Encode
+ * and would leave it to complex pointer manipulation from there to
+ * unpack values as needed. To make things simpler and more idiomatic
+ * this has instead just stringified any input save for datetime values,
+ * which may need to be represented in various formats.
+ */
+static char **NpyArr_encodeLabels(PyArrayObject *labels, PyObjectEncoder *enc,
+                                  npy_intp num) {
+  // NOTE this function steals a reference to labels.
+  PyObject *item = NULL;
+  const NPY_DATETIMEUNIT base = enc->datetimeUnit;
+
+  if (!labels) {
+    return 0;
+  }
+
+  if (PyArray_SIZE(labels) < num) {
+    PyErr_SetString(PyExc_ValueError,
+                    "Label array sizes do not match corresponding data shape");
+    Py_DECREF(labels);
+    return 0;
+  }
+
+  char **ret = PyObject_Malloc(sizeof(char *) * num);
+  if (!ret) {
+    PyErr_NoMemory();
+    Py_DECREF(labels);
+    return 0;
+  }
+
+  for (npy_intp i = 0; i < num; i++) {
+    ret[i] = NULL;
+  }
+
+  const npy_intp stride = PyArray_STRIDE(labels, 0);
+  char *dataptr = PyArray_DATA(labels);
+  const int type_num = PyArray_TYPE(labels);
+  PyArray_Descr *dtype = PyArray_DESCR(labels);
+
+  for (npy_intp i = 0; i < num; i++) {
+    item = PyArray_GETITEM(labels, dataptr);
+    if (!item) {
+      NpyArr_freeLabels(ret, num);
+      ret = 0;
+      break;
+    }
+
+    int is_datetimelike = 0;
+    int64_t i8date;
+    NPY_DATETIMEUNIT dateUnit = NPY_FR_ns;
+    if (PyTypeNum_ISDATETIME(type_num)) {
+      is_datetimelike = 1;
+      i8date = *(int64_t *)dataptr;
+      dateUnit = get_datetime_metadata_from_dtype(dtype).base;
+    } else if (PyDate_Check(item) || PyDelta_Check(item)) {
+      is_datetimelike = 1;
+      if (PyObject_HasAttrString(item, "_value")) {
+        // pd.Timestamp object or pd.NaT
+        // see test_date_index_and_values for case with non-nano
+        i8date = get_long_attr(item, "_value");
+      } else {
+        if (PyDelta_Check(item)) {
+          // TODO(anyone): cast below loses precision if total_seconds return
+          // value exceeds number of bits that significand can hold
+          // also liable to overflow
+          i8date = (int64_t)(total_seconds(item) *
+                             1000000000LL); // nanoseconds per second
+        } else {
+          // datetime.* objects don't follow above rules
+          i8date = PyDateTimeToEpoch(item, NPY_FR_ns);
+        }
+      }
+    }
+
+    size_t len;
+    char *cLabel;
+    if (is_datetimelike) {
+      if (i8date == get_nat()) {
+        len = 4;
+        cLabel = PyObject_Malloc(len + 1);
+        strncpy(cLabel, "null", len + 1);
+      } else {
+        if (enc->datetimeIso) {
+          if ((type_num == NPY_TIMEDELTA) || (PyDelta_Check(item))) {
+            // TODO(username): non-nano timedelta support?
+            cLabel = int64ToIsoDuration(i8date, &len);
+          } else {
+            if (type_num == NPY_DATETIME) {
+              cLabel = int64ToIso(i8date, dateUnit, base, &len);
+            } else {
+              cLabel = PyDateTimeToIso(item, base, &len);
+            }
+          }
+          if (cLabel == NULL) {
+            Py_DECREF(item);
+            NpyArr_freeLabels(ret, num);
+            ret = 0;
+            break;
+          }
+        } else {
+          int size_of_cLabel = 21; // 21 chars for int 64
+          cLabel = PyObject_Malloc(size_of_cLabel);
+          if (scaleNanosecToUnit(&i8date, base) == -1) {
+            NpyArr_freeLabels(ret, num);
+            ret = 0;
+            break;
+          }
+          snprintf(cLabel, size_of_cLabel, "%" PRId64, i8date);
+          len = strlen(cLabel);
+        }
+      }
+    } else { // Fallback to string representation
+      // Replace item with the string to keep it alive.
+      Py_SETREF(item, PyObject_Str(item));
+      if (item == NULL) {
+        NpyArr_freeLabels(ret, num);
+        ret = 0;
+        break;
+      }
+
+      cLabel = (char *)PyUnicode_AsUTF8(item);
+      len = strlen(cLabel);
+    }
+
+    // Add 1 to include NULL terminator
+    ret[i] = PyObject_Malloc(len + 1);
+    memcpy(ret[i], cLabel, len + 1);
+    Py_DECREF(item);
+
+    if (is_datetimelike) {
+      PyObject_Free(cLabel);
+    }
+
+    if (PyErr_Occurred()) {
+      NpyArr_freeLabels(ret, num);
+      ret = 0;
+      break;
+    }
+
+    if (!ret[i]) {
+      PyErr_NoMemory();
+      ret = 0;
+      break;
+    }
+
+    dataptr += stride;
+  }
+
+  Py_DECREF(labels);
+  return ret;
+}
+
+static void Object_invokeDefaultHandler(PyObject *obj, PyObjectEncoder *enc) {
+  PyObject *tmpObj = NULL;
+  tmpObj = PyObject_CallFunctionObjArgs(enc->defaultHandler, obj, NULL);
+  if (!PyErr_Occurred()) {
+    if (tmpObj == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Failed to execute default handler");
+    } else {
+      encode(tmpObj, (JSONObjectEncoder *)enc, NULL, 0);
+    }
+  }
+  Py_XDECREF(tmpObj);
+  return;
+}
+
+static void Object_beginTypeContext(JSOBJ _obj, JSONTypeContext *tc) {
+  tc->prv = NULL;
+
+  if (!_obj) {
+    tc->type = JT_INVALID;
+    return;
+  }
+
+  PyObject *obj = (PyObject *)_obj;
+  PyObjectEncoder *enc = (PyObjectEncoder *)tc->encoder;
+
+  if (PyBool_Check(obj)) {
+    tc->type = (obj == Py_True) ? JT_TRUE : JT_FALSE;
+    return;
+  } else if (obj == Py_None) {
+    tc->type = JT_NULL;
+    return;
+  }
+
+  TypeContext *pc = createTypeContext();
+  if (!pc) {
+    tc->type = JT_INVALID;
+    return;
+  }
+  tc->prv = pc;
+
+  if (PyTypeNum_ISDATETIME(enc->npyType)) {
+    int64_t longVal = *(npy_int64 *)enc->npyValue;
+    if (longVal == get_nat()) {
+      tc->type = JT_NULL;
+    } else {
+      if (enc->datetimeIso) {
+        if (enc->npyType == NPY_TIMEDELTA) {
+          pc->PyTypeToUTF8 = NpyTimeDeltaToIsoCallback;
+        } else {
+          pc->PyTypeToUTF8 = NpyDateTimeToIsoCallback;
+        }
+        // Currently no way to pass longVal to iso function, so use
+        // state management
+        pc->longValue = longVal;
+        tc->type = JT_UTF8;
+      } else {
+        NPY_DATETIMEUNIT base = ((PyObjectEncoder *)tc->encoder)->datetimeUnit;
+        if (scaleNanosecToUnit(&longVal, base) == -1) {
+          goto INVALID;
+        }
+        pc->longValue = longVal;
+        tc->type = JT_LONG;
+      }
+    }
+
+    // TODO(username): this prevents infinite loop with
+    // mixed-type DataFrames;
+    // refactor
+    enc->npyCtxtPassthru = NULL;
+    enc->npyType = -1;
+    return;
+  }
+
+  if (PyIter_Check(obj) || (PyArray_Check(obj) && !PyArray_CheckScalar(obj))) {
+    goto ISITERABLE;
+  }
+
+  if (PyLong_Check(obj)) {
+    tc->type = JT_LONG;
+    int overflow = 0;
+    pc->longValue = PyLong_AsLongLongAndOverflow(obj, &overflow);
+    int err;
+    err = (pc->longValue == -1) && PyErr_Occurred();
+
+    if (overflow) {
+      tc->type = JT_BIGNUM;
+    } else if (err) {
+      goto INVALID;
+    }
+
+    return;
+  } else if (PyFloat_Check(obj)) {
+    const double val = PyFloat_AS_DOUBLE(obj);
+    if (npy_isnan(val) || npy_isinf(val)) {
+      tc->type = JT_NULL;
+    } else {
+      pc->doubleValue = val;
+      tc->type = JT_DOUBLE;
+    }
+    return;
+  } else if (PyBytes_Check(obj)) {
+    pc->PyTypeToUTF8 = PyBytesToUTF8;
+    tc->type = JT_UTF8;
+    return;
+  } else if (PyUnicode_Check(obj)) {
+    pc->PyTypeToUTF8 = PyUnicodeToUTF8;
+    tc->type = JT_UTF8;
+    return;
+  } else if (object_is_decimal_type(obj)) {
+    pc->doubleValue = PyFloat_AsDouble(obj);
+    tc->type = JT_DOUBLE;
+    return;
+  } else if (PyDateTime_Check(obj) || PyDate_Check(obj)) {
+    if (object_is_nat_type(obj)) {
+      tc->type = JT_NULL;
+      return;
+    }
+
+    if (enc->datetimeIso) {
+      pc->PyTypeToUTF8 = PyDateTimeToIsoCallback;
+      tc->type = JT_UTF8;
+    } else {
+      NPY_DATETIMEUNIT base = ((PyObjectEncoder *)tc->encoder)->datetimeUnit;
+      pc->longValue = PyDateTimeToEpoch(obj, base);
+      tc->type = JT_LONG;
+    }
+    return;
+  } else if (PyTime_Check(obj)) {
+    pc->PyTypeToUTF8 = PyTimeToJSON;
+    tc->type = JT_UTF8;
+    return;
+  } else if (PyArray_IsScalar(obj, Datetime)) {
+    npy_int64 longVal;
+    if (((PyDatetimeScalarObject *)obj)->obval == get_nat()) {
+      tc->type = JT_NULL;
+      return;
+    }
+    PyArray_Descr *dtype = PyArray_DescrFromScalar(obj);
+    if (!PyTypeNum_ISDATETIME(dtype->type_num)) {
+      PyErr_Format(PyExc_ValueError, "Could not get resolution of datetime");
+      return;
+    }
+
+    PyArray_Descr *outcode = PyArray_DescrFromType(NPY_INT64);
+    PyArray_CastScalarToCtype(obj, &longVal, outcode);
+    Py_DECREF(outcode);
+
+    if (enc->datetimeIso) {
+      GET_TC(tc)->longValue = longVal;
+      pc->PyTypeToUTF8 = NpyDateTimeToIsoCallback;
+      enc->valueUnit = get_datetime_metadata_from_dtype(dtype).base;
+      tc->type = JT_UTF8;
+    } else {
+      NPY_DATETIMEUNIT base = ((PyObjectEncoder *)tc->encoder)->datetimeUnit;
+      pc->longValue = PyDateTimeToEpoch(obj, base);
+      tc->type = JT_LONG;
+    }
+    return;
+  } else if (PyDelta_Check(obj)) {
+    // pd.Timedelta object or pd.NaT should evaluate true here
+    // fallback to nanoseconds per sec for other objects
+    // TODO(anyone): cast below loses precision if total_seconds return
+    // value exceeds number of bits that significand can hold
+    // also liable to overflow
+    int64_t value = PyObject_HasAttrString(obj, "_value")
+                        ? get_long_attr(obj, "_value")
+                        : (int64_t)(total_seconds(obj) * 1000000000LL);
+
+    if (value == get_nat()) {
+      tc->type = JT_NULL;
+      return;
+    } else if (enc->datetimeIso) {
+      pc->PyTypeToUTF8 = NpyTimeDeltaToIsoCallback;
+      tc->type = JT_UTF8;
+    } else {
+      const int unit = ((PyObjectEncoder *)tc->encoder)->datetimeUnit;
+      if (scaleNanosecToUnit(&value, unit) != 0) {
+        // TODO(username): Add some kind of error handling here
+      }
+
+      if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_OverflowError)) {
+        goto INVALID;
+      }
+
+      tc->type = JT_LONG;
+    }
+    pc->longValue = value;
+    return;
+  } else if (PyArray_IsScalar(obj, Integer)) {
+    tc->type = JT_LONG;
+    PyArray_CastScalarToCtype(obj, &(pc->longValue),
+                              PyArray_DescrFromType(NPY_INT64));
+
+    if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_OverflowError)) {
+      goto INVALID;
+    }
+
+    return;
+  } else if (PyArray_IsScalar(obj, Bool)) {
+    PyArray_CastScalarToCtype(obj, &(pc->longValue),
+                              PyArray_DescrFromType(NPY_BOOL));
+    tc->type = (pc->longValue) ? JT_TRUE : JT_FALSE;
+    return;
+  } else if (PyArray_IsScalar(obj, Float) || PyArray_IsScalar(obj, Double)) {
+    PyArray_CastScalarToCtype(obj, &(pc->doubleValue),
+                              PyArray_DescrFromType(NPY_DOUBLE));
+    tc->type = JT_DOUBLE;
+    return;
+  } else if (PyArray_CheckScalar(obj)) {
+    PyErr_Format(PyExc_TypeError,
+                 "%R (numpy-scalar) is not JSON serializable at the moment",
+                 obj);
+    goto INVALID;
+  } else if (object_is_na_type(obj)) {
+    tc->type = JT_NULL;
+    return;
+  }
+
+ISITERABLE:
+
+  if (object_is_index_type(obj)) {
+    if (enc->outputFormat == SPLIT) {
+      tc->type = JT_OBJECT;
+      pc->iterBegin = Index_iterBegin;
+      pc->iterEnd = Index_iterEnd;
+      pc->iterNext = Index_iterNext;
+      pc->iterGetValue = Index_iterGetValue;
+      pc->iterGetName = Index_iterGetName;
+      return;
+    }
+
+    pc->newObj = get_values(obj);
+    if (pc->newObj) {
+      tc->type = JT_ARRAY;
+      pc->iterBegin = NpyArr_iterBegin;
+      pc->iterEnd = NpyArr_iterEnd;
+      pc->iterNext = NpyArr_iterNext;
+      pc->iterGetValue = NpyArr_iterGetValue;
+      pc->iterGetName = NpyArr_iterGetName;
+    } else {
+      goto INVALID;
+    }
+
+    return;
+  } else if (object_is_series_type(obj)) {
+    if (enc->outputFormat == SPLIT) {
+      tc->type = JT_OBJECT;
+      pc->iterBegin = Series_iterBegin;
+      pc->iterEnd = Series_iterEnd;
+      pc->iterNext = Series_iterNext;
+      pc->iterGetValue = Series_iterGetValue;
+      pc->iterGetName = Series_iterGetName;
+      return;
+    }
+
+    pc->newObj = get_values(obj);
+    if (!pc->newObj) {
+      goto INVALID;
+    }
+
+    if (enc->outputFormat == INDEX || enc->outputFormat == COLUMNS) {
+      tc->type = JT_OBJECT;
+      PyObject *tmpObj = PyObject_GetAttrString(obj, "index");
+      if (!tmpObj) {
+        goto INVALID;
+      }
+      PyObject *values = get_values(tmpObj);
+      Py_DECREF(tmpObj);
+      if (!values) {
+        goto INVALID;
+      }
+
+      if (!PyArray_Check(pc->newObj)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Object_beginTypeContext received a non-array object");
+        goto INVALID;
+      }
+      const PyArrayObject *arrayobj = (const PyArrayObject *)pc->newObj;
+      pc->columnLabelsLen = PyArray_DIM(arrayobj, 0);
+      pc->columnLabels = NpyArr_encodeLabels((PyArrayObject *)values, enc,
+                                             pc->columnLabelsLen);
+      if (!pc->columnLabels) {
+        goto INVALID;
+      }
+    } else {
+      tc->type = JT_ARRAY;
+    }
+    pc->iterBegin = NpyArr_iterBegin;
+    pc->iterEnd = NpyArr_iterEnd;
+    pc->iterNext = NpyArr_iterNext;
+    pc->iterGetValue = NpyArr_iterGetValue;
+    pc->iterGetName = NpyArr_iterGetName;
+    return;
+  } else if (PyArray_Check(obj)) {
+    if (enc->npyCtxtPassthru) {
+      pc->npyarr = enc->npyCtxtPassthru;
+      tc->type = (pc->npyarr->columnLabels ? JT_OBJECT : JT_ARRAY);
+
+      pc->iterBegin = NpyArrPassThru_iterBegin;
+      pc->iterNext = NpyArr_iterNext;
+      pc->iterEnd = NpyArrPassThru_iterEnd;
+      pc->iterGetValue = NpyArr_iterGetValue;
+      pc->iterGetName = NpyArr_iterGetName;
+
+      enc->npyCtxtPassthru = NULL;
+      return;
+    }
+
+    tc->type = JT_ARRAY;
+    pc->iterBegin = NpyArr_iterBegin;
+    pc->iterEnd = NpyArr_iterEnd;
+    pc->iterNext = NpyArr_iterNext;
+    pc->iterGetValue = NpyArr_iterGetValue;
+    pc->iterGetName = NpyArr_iterGetName;
+    return;
+  } else if (object_is_dataframe_type(obj)) {
+    if (enc->blkCtxtPassthru) {
+      pc->pdblock = enc->blkCtxtPassthru;
+      tc->type =
+          (pc->pdblock->npyCtxts[0]->columnLabels ? JT_OBJECT : JT_ARRAY);
+
+      pc->iterBegin = PdBlockPassThru_iterBegin;
+      pc->iterEnd = PdBlockPassThru_iterEnd;
+      pc->iterNext = PdBlock_iterNextItem;
+      pc->iterGetName = PdBlock_iterGetName;
+      pc->iterGetValue = NpyArr_iterGetValue;
+
+      enc->blkCtxtPassthru = NULL;
+      return;
+    }
+
+    if (enc->outputFormat == SPLIT) {
+      tc->type = JT_OBJECT;
+      pc->iterBegin = DataFrame_iterBegin;
+      pc->iterEnd = DataFrame_iterEnd;
+      pc->iterNext = DataFrame_iterNext;
+      pc->iterGetValue = DataFrame_iterGetValue;
+      pc->iterGetName = DataFrame_iterGetName;
+      return;
+    }
+
+    pc->iterBegin = PdBlock_iterBegin;
+    pc->iterEnd = PdBlock_iterEnd;
+    pc->iterNext = PdBlock_iterNext;
+    pc->iterGetName = PdBlock_iterGetName;
+    pc->iterGetValue = NpyArr_iterGetValue;
+
+    if (enc->outputFormat == VALUES) {
+      tc->type = JT_ARRAY;
+    } else if (enc->outputFormat == RECORDS) {
+      tc->type = JT_ARRAY;
+      PyObject *tmpObj = PyObject_GetAttrString(obj, "columns");
+      if (!tmpObj) {
+        goto INVALID;
+      }
+      PyObject *values = get_values(tmpObj);
+      if (!values) {
+        Py_DECREF(tmpObj);
+        goto INVALID;
+      }
+      pc->columnLabelsLen = PyObject_Size(tmpObj);
+      pc->columnLabels = NpyArr_encodeLabels((PyArrayObject *)values, enc,
+                                             pc->columnLabelsLen);
+      Py_DECREF(tmpObj);
+      if (!pc->columnLabels) {
+        goto INVALID;
+      }
+    } else if (enc->outputFormat == INDEX || enc->outputFormat == COLUMNS) {
+      tc->type = JT_OBJECT;
+      PyObject *tmpObj =
+          (enc->outputFormat == INDEX ? PyObject_GetAttrString(obj, "index")
+                                      : PyObject_GetAttrString(obj, "columns"));
+      if (!tmpObj) {
+        goto INVALID;
+      }
+      PyObject *values = get_values(tmpObj);
+      if (!values) {
+        Py_DECREF(tmpObj);
+        goto INVALID;
+      }
+      pc->rowLabelsLen = PyObject_Size(tmpObj);
+      pc->rowLabels =
+          NpyArr_encodeLabels((PyArrayObject *)values, enc, pc->rowLabelsLen);
+      Py_DECREF(tmpObj);
+      tmpObj =
+          (enc->outputFormat == INDEX ? PyObject_GetAttrString(obj, "columns")
+                                      : PyObject_GetAttrString(obj, "index"));
+      if (!tmpObj) {
+        NpyArr_freeLabels(pc->rowLabels, pc->rowLabelsLen);
+        pc->rowLabels = NULL;
+        goto INVALID;
+      }
+      values = get_values(tmpObj);
+      if (!values) {
+        Py_DECREF(tmpObj);
+        NpyArr_freeLabels(pc->rowLabels, pc->rowLabelsLen);
+        pc->rowLabels = NULL;
+        goto INVALID;
+      }
+      pc->columnLabelsLen = PyObject_Size(tmpObj);
+      pc->columnLabels = NpyArr_encodeLabels((PyArrayObject *)values, enc,
+                                             pc->columnLabelsLen);
+      Py_DECREF(tmpObj);
+      if (!pc->columnLabels) {
+        NpyArr_freeLabels(pc->rowLabels, pc->rowLabelsLen);
+        pc->rowLabels = NULL;
+        goto INVALID;
+      }
+
+      if (enc->outputFormat == COLUMNS) {
+        pc->transpose = 1;
+      }
+    } else {
+      goto INVALID;
+    }
+    return;
+  } else if (PyDict_Check(obj)) {
+    tc->type = JT_OBJECT;
+    pc->iterBegin = Dict_iterBegin;
+    pc->iterEnd = Dict_iterEnd;
+    pc->iterNext = Dict_iterNext;
+    pc->iterGetValue = Dict_iterGetValue;
+    pc->iterGetName = Dict_iterGetName;
+    pc->dictObj = obj;
+    Py_INCREF(obj);
+
+    return;
+  } else if (PyList_Check(obj)) {
+    tc->type = JT_ARRAY;
+    pc->iterBegin = List_iterBegin;
+    pc->iterEnd = List_iterEnd;
+    pc->iterNext = List_iterNext;
+    pc->iterGetValue = List_iterGetValue;
+    pc->iterGetName = List_iterGetName;
+    return;
+  } else if (PyTuple_Check(obj)) {
+    tc->type = JT_ARRAY;
+    pc->iterBegin = Tuple_iterBegin;
+    pc->iterEnd = Tuple_iterEnd;
+    pc->iterNext = Tuple_iterNext;
+    pc->iterGetValue = Tuple_iterGetValue;
+    pc->iterGetName = Tuple_iterGetName;
+    return;
+  } else if (PyAnySet_Check(obj)) {
+    tc->type = JT_ARRAY;
+    pc->iterBegin = Set_iterBegin;
+    pc->iterEnd = Set_iterEnd;
+    pc->iterNext = Set_iterNext;
+    pc->iterGetValue = Set_iterGetValue;
+    pc->iterGetName = Set_iterGetName;
+    return;
+  }
+
+  PyObject *toDictFunc = PyObject_GetAttrString(obj, "toDict");
+
+  if (toDictFunc) {
+    PyObject *tuple = PyTuple_New(0);
+    PyObject *toDictResult = PyObject_Call(toDictFunc, tuple, NULL);
+    Py_DECREF(tuple);
+    Py_DECREF(toDictFunc);
+
+    if (toDictResult == NULL) {
+      PyErr_Clear();
+      tc->type = JT_NULL;
+      return;
+    }
+
+    if (!PyDict_Check(toDictResult)) {
+      Py_DECREF(toDictResult);
+      tc->type = JT_NULL;
+      return;
+    }
+
+    tc->type = JT_OBJECT;
+    pc->iterBegin = Dict_iterBegin;
+    pc->iterEnd = Dict_iterEnd;
+    pc->iterNext = Dict_iterNext;
+    pc->iterGetValue = Dict_iterGetValue;
+    pc->iterGetName = Dict_iterGetName;
+    pc->dictObj = toDictResult;
+    return;
+  }
+
+  PyErr_Clear();
+
+  if (enc->defaultHandler) {
+    Object_invokeDefaultHandler(obj, enc);
+    goto INVALID;
+  }
+
+  tc->type = JT_OBJECT;
+  pc->iterBegin = Dir_iterBegin;
+  pc->iterEnd = Dir_iterEnd;
+  pc->iterNext = Dir_iterNext;
+  pc->iterGetValue = Dir_iterGetValue;
+  pc->iterGetName = Dir_iterGetName;
+  return;
+
+INVALID:
+  tc->type = JT_INVALID;
+  PyObject_Free(tc->prv);
+  tc->prv = NULL;
+  return;
+}
+
+static void Object_endTypeContext(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  if (tc->prv) {
+    Py_XDECREF(GET_TC(tc)->newObj);
+    GET_TC(tc)->newObj = NULL;
+    NpyArr_freeLabels(GET_TC(tc)->rowLabels, GET_TC(tc)->rowLabelsLen);
+    GET_TC(tc)->rowLabels = NULL;
+    NpyArr_freeLabels(GET_TC(tc)->columnLabels, GET_TC(tc)->columnLabelsLen);
+    GET_TC(tc)->columnLabels = NULL;
+    PyObject_Free(GET_TC(tc)->cStr);
+    GET_TC(tc)->cStr = NULL;
+    PyObject_Free(tc->prv);
+    tc->prv = NULL;
+  }
+}
+
+static const char *Object_getStringValue(JSOBJ obj, JSONTypeContext *tc,
+                                         size_t *_outLen) {
+  return GET_TC(tc)->PyTypeToUTF8(obj, tc, _outLen);
+}
+
+static JSINT64 Object_getLongValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->longValue;
+}
+
+static double Object_getDoubleValue(JSOBJ Py_UNUSED(obj), JSONTypeContext *tc) {
+  return GET_TC(tc)->doubleValue;
+}
+
+static const char *Object_getBigNumStringValue(JSOBJ obj, JSONTypeContext *tc,
+                                               size_t *_outLen) {
+  PyObject *repr = PyObject_Str(obj);
+  const char *str = PyUnicode_AsUTF8AndSize(repr, (Py_ssize_t *)_outLen);
+  char *bytes = PyObject_Malloc(*_outLen + 1);
+  memcpy(bytes, str, *_outLen + 1);
+  GET_TC(tc)->cStr = bytes;
+
+  Py_DECREF(repr);
+
+  return GET_TC(tc)->cStr;
+}
+
+static void Object_releaseObject(JSOBJ _obj) { Py_DECREF((PyObject *)_obj); }
+
+static void Object_iterBegin(JSOBJ obj, JSONTypeContext *tc) {
+  GET_TC(tc)->iterBegin(obj, tc);
+}
+
+static int Object_iterNext(JSOBJ obj, JSONTypeContext *tc) {
+  return GET_TC(tc)->iterNext(obj, tc);
+}
+
+static void Object_iterEnd(JSOBJ obj, JSONTypeContext *tc) {
+  GET_TC(tc)->iterEnd(obj, tc);
+}
+
+static JSOBJ Object_iterGetValue(JSOBJ obj, JSONTypeContext *tc) {
+  return GET_TC(tc)->iterGetValue(obj, tc);
+}
+
+static char *Object_iterGetName(JSOBJ obj, JSONTypeContext *tc,
+                                size_t *outLen) {
+  return GET_TC(tc)->iterGetName(obj, tc, outLen);
+}
+
+PyObject *objToJSON(PyObject *Py_UNUSED(self), PyObject *args,
+                    PyObject *kwargs) {
+  PyDateTime_IMPORT;
+  if (PyDateTimeAPI == NULL) {
+    return NULL;
+  }
+
+  PandasDateTime_IMPORT;
+  if (PandasDateTimeAPI == NULL) {
+    return NULL;
+  }
+
+  static char *kwlist[] = {"obj",
+                           "ensure_ascii",
+                           "double_precision",
+                           "encode_html_chars",
+                           "orient",
+                           "date_unit",
+                           "iso_dates",
+                           "default_handler",
+                           "indent",
+                           NULL};
+
+  PyObject *oinput = NULL;
+  PyObject *oensureAscii = NULL;
+  int idoublePrecision = 10; // default double precision setting
+  PyObject *oencodeHTMLChars = NULL;
+  char *sOrient = NULL;
+  char *sdateFormat = NULL;
+  PyObject *oisoDates = 0;
+  PyObject *odefHandler = 0;
+  int indent = 0;
+
+  PyObjectEncoder pyEncoder = {
+      {
+          .beginTypeContext = Object_beginTypeContext,
+          .endTypeContext = Object_endTypeContext,
+          .getStringValue = Object_getStringValue,
+          .getLongValue = Object_getLongValue,
+          .getIntValue = NULL,
+          .getDoubleValue = Object_getDoubleValue,
+          .getBigNumStringValue = Object_getBigNumStringValue,
+          .iterBegin = Object_iterBegin,
+          .iterNext = Object_iterNext,
+          .iterEnd = Object_iterEnd,
+          .iterGetValue = Object_iterGetValue,
+          .iterGetName = Object_iterGetName,
+          .releaseObject = Object_releaseObject,
+          .malloc = PyObject_Malloc,
+          .realloc = PyObject_Realloc,
+          .free = PyObject_Free,
+          .recursionMax = -1,
+          .doublePrecision = idoublePrecision,
+          .forceASCII = 1,
+          .encodeHTMLChars = 0,
+          .indent = indent,
+          .errorMsg = NULL,
+      },
+      .npyCtxtPassthru = NULL,
+      .blkCtxtPassthru = NULL,
+      .npyType = -1,
+      .npyValue = NULL,
+      .datetimeIso = 0,
+      .datetimeUnit = NPY_FR_ms,
+      .outputFormat = COLUMNS,
+      .defaultHandler = NULL,
+  };
+  JSONObjectEncoder *encoder = (JSONObjectEncoder *)&pyEncoder;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OiOssOOi", kwlist, &oinput,
+                                   &oensureAscii, &idoublePrecision,
+                                   &oencodeHTMLChars, &sOrient, &sdateFormat,
+                                   &oisoDates, &odefHandler, &indent)) {
+    return NULL;
+  }
+
+  if (oensureAscii != NULL && !PyObject_IsTrue(oensureAscii)) {
+    encoder->forceASCII = 0;
+  }
+
+  if (oencodeHTMLChars != NULL && PyObject_IsTrue(oencodeHTMLChars)) {
+    encoder->encodeHTMLChars = 1;
+  }
+
+  if (idoublePrecision > JSON_DOUBLE_MAX_DECIMALS || idoublePrecision < 0) {
+    PyErr_Format(
+        PyExc_ValueError,
+        "Invalid value '%d' for option 'double_precision', max is '%u'",
+        idoublePrecision, JSON_DOUBLE_MAX_DECIMALS);
+    return NULL;
+  }
+  encoder->doublePrecision = idoublePrecision;
+
+  if (sOrient != NULL) {
+    if (strcmp(sOrient, "records") == 0) {
+      pyEncoder.outputFormat = RECORDS;
+    } else if (strcmp(sOrient, "index") == 0) {
+      pyEncoder.outputFormat = INDEX;
+    } else if (strcmp(sOrient, "split") == 0) {
+      pyEncoder.outputFormat = SPLIT;
+    } else if (strcmp(sOrient, "values") == 0) {
+      pyEncoder.outputFormat = VALUES;
+    } else if (strcmp(sOrient, "columns") != 0) {
+      PyErr_Format(PyExc_ValueError, "Invalid value '%s' for option 'orient'",
+                   sOrient);
+      return NULL;
+    }
+  }
+
+  if (sdateFormat != NULL) {
+    if (strcmp(sdateFormat, "s") == 0) {
+      pyEncoder.datetimeUnit = NPY_FR_s;
+    } else if (strcmp(sdateFormat, "ms") == 0) {
+      pyEncoder.datetimeUnit = NPY_FR_ms;
+    } else if (strcmp(sdateFormat, "us") == 0) {
+      pyEncoder.datetimeUnit = NPY_FR_us;
+    } else if (strcmp(sdateFormat, "ns") == 0) {
+      pyEncoder.datetimeUnit = NPY_FR_ns;
+    } else {
+      PyErr_Format(PyExc_ValueError,
+                   "Invalid value '%s' for option 'date_unit'", sdateFormat);
+      return NULL;
+    }
+  }
+
+  if (oisoDates != NULL && PyObject_IsTrue(oisoDates)) {
+    pyEncoder.datetimeIso = 1;
+  }
+
+  if (odefHandler != NULL && odefHandler != Py_None) {
+    if (!PyCallable_Check(odefHandler)) {
+      PyErr_SetString(PyExc_TypeError, "Default handler is not callable");
+      return NULL;
+    }
+    pyEncoder.defaultHandler = odefHandler;
+  }
+
+  encoder->indent = indent;
+
+  pyEncoder.originalOutputFormat = pyEncoder.outputFormat;
+
+  char buffer[65536];
+  char *ret = JSON_EncodeObject(oinput, encoder, buffer, sizeof(buffer));
+  if (PyErr_Occurred()) {
+    return NULL;
+  }
+
+  if (encoder->errorMsg) {
+    if (ret != buffer) {
+      encoder->free(ret);
+    }
+    PyErr_Format(PyExc_OverflowError, "%s", encoder->errorMsg);
+    return NULL;
+  }
+
+  PyObject *newobj = PyUnicode_FromString(ret);
+
+  if (ret != buffer) {
+    encoder->free(ret);
+  }
+
+  return newobj;
+}
+```
+
+## pandas/pandas/_libs/src/vendored/ujson/python/ujson.c.notice.txt
+
+```text
+/*
+Copyright (c) 2011-2013, ESN Social Software AB and Jonas Tarnstrom
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+* Neither the name of the ESN Social Software AB nor the
+names of its contributors may be used to endorse or promote products
+derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL ESN SOCIAL SOFTWARE AB OR JONAS TARNSTROM BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Portions of code from MODP_ASCII - Ascii transformations (upper/lower, etc)
+https://github.com/client9/stringencoders
+Copyright (c) 2007  Nick Galbreath -- nickg [at] modp [dot] com. All rights
+reserved.
+
+Numeric decoder derived from TCL library
+https://www.opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
+* Copyright (c) 1988-1993 The Regents of the University of California.
+* Copyright (c) 1994 Sun Microsystems, Inc.
+*/
+
+// Licence at LICENSES/ULTRAJSON_LICENSE
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#define PY_ARRAY_UNIQUE_SYMBOL UJSON_NUMPY
+#include "numpy/arrayobject.h"
+
+/* objToJSON */
+PyObject *objToJSON(PyObject *self, PyObject *args, PyObject *kwargs);
+void *initObjToJSON(void);
+
+/* JSONToObj */
+PyObject *JSONToObj(PyObject *self, PyObject *args, PyObject *kwargs);
+
+#define ENCODER_HELP_TEXT                                                      \
+  "Use ensure_ascii=false to output UTF-8. Pass in double_precision to "       \
+  "alter the maximum digit precision of doubles. Set "                         \
+  "encode_html_chars=True to encode < > & as unicode escape sequences."
+
+static PyMethodDef ujsonMethods[] = {
+    {"ujson_dumps", (PyCFunction)(void (*)(void))objToJSON,
+     METH_VARARGS | METH_KEYWORDS,
+     "Converts arbitrary object recursively into JSON. " ENCODER_HELP_TEXT},
+    {"ujson_loads", (PyCFunction)(void (*)(void))JSONToObj,
+     METH_VARARGS | METH_KEYWORDS,
+     "Converts JSON as string to dict object structure. Use precise_float=True "
+     "to use high precision float decoder."},
+    {NULL, NULL, 0, NULL} /* Sentinel */
+};
+
+typedef struct {
+  PyObject *type_decimal;
+  PyObject *type_dataframe;
+  PyObject *type_series;
+  PyObject *type_index;
+  PyObject *type_nat;
+  PyObject *type_na;
+} modulestate;
+
+#define modulestate(o) ((modulestate *)PyModule_GetState(o))
+
+static int module_traverse(PyObject *m, visitproc visit, void *arg);
+static int module_clear(PyObject *m);
+static void module_free(void *module);
+
+static struct PyModuleDef moduledef = {.m_base = PyModuleDef_HEAD_INIT,
+                                       .m_name = "pandas._libs.json",
+                                       .m_methods = ujsonMethods,
+                                       .m_size = sizeof(modulestate),
+                                       .m_traverse = module_traverse,
+                                       .m_clear = module_clear,
+                                       .m_free = module_free};
+
+#ifndef PYPY_VERSION
+/* Used in objToJSON.c */
+int object_is_decimal_type(PyObject *obj) {
+  PyObject *module = PyState_FindModule(&moduledef);
+  if (module == NULL)
+    return 0;
+  modulestate *state = modulestate(module);
+  if (state == NULL)
+    return 0;
+  PyObject *type_decimal = state->type_decimal;
+  if (type_decimal == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_decimal);
+  if (result == -1) {
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_dataframe_type(PyObject *obj) {
+  PyObject *module = PyState_FindModule(&moduledef);
+  if (module == NULL)
+    return 0;
+  modulestate *state = modulestate(module);
+  if (state == NULL)
+    return 0;
+  PyObject *type_dataframe = state->type_dataframe;
+  if (type_dataframe == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_dataframe);
+  if (result == -1) {
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_series_type(PyObject *obj) {
+  PyObject *module = PyState_FindModule(&moduledef);
+  if (module == NULL)
+    return 0;
+  modulestate *state = modulestate(module);
+  if (state == NULL)
+    return 0;
+  PyObject *type_series = state->type_series;
+  if (type_series == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_series);
+  if (result == -1) {
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_index_type(PyObject *obj) {
+  PyObject *module = PyState_FindModule(&moduledef);
+  if (module == NULL)
+    return 0;
+  modulestate *state = modulestate(module);
+  if (state == NULL)
+    return 0;
+  PyObject *type_index = state->type_index;
+  if (type_index == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_index);
+  if (result == -1) {
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_nat_type(PyObject *obj) {
+  PyObject *module = PyState_FindModule(&moduledef);
+  if (module == NULL)
+    return 0;
+  modulestate *state = modulestate(module);
+  if (state == NULL)
+    return 0;
+  PyObject *type_nat = state->type_nat;
+  if (type_nat == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_nat);
+  if (result == -1) {
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_na_type(PyObject *obj) {
+  PyObject *module = PyState_FindModule(&moduledef);
+  if (module == NULL)
+    return 0;
+  modulestate *state = modulestate(module);
+  if (state == NULL)
+    return 0;
+  PyObject *type_na = state->type_na;
+  if (type_na == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_na);
+  if (result == -1) {
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+#else
+/* Used in objToJSON.c */
+int object_is_decimal_type(PyObject *obj) {
+  PyObject *module = PyImport_ImportModule("decimal");
+  if (module == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  PyObject *type_decimal = PyObject_GetAttrString(module, "Decimal");
+  if (type_decimal == NULL) {
+    Py_DECREF(module);
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_decimal);
+  if (result == -1) {
+    Py_DECREF(module);
+    Py_DECREF(type_decimal);
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_dataframe_type(PyObject *obj) {
+  PyObject *module = PyImport_ImportModule("pandas");
+  if (module == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  PyObject *type_dataframe = PyObject_GetAttrString(module, "DataFrame");
+  if (type_dataframe == NULL) {
+    Py_DECREF(module);
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_dataframe);
+  if (result == -1) {
+    Py_DECREF(module);
+    Py_DECREF(type_dataframe);
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_series_type(PyObject *obj) {
+  PyObject *module = PyImport_ImportModule("pandas");
+  if (module == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  PyObject *type_series = PyObject_GetAttrString(module, "Series");
+  if (type_series == NULL) {
+    Py_DECREF(module);
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_series);
+  if (result == -1) {
+    Py_DECREF(module);
+    Py_DECREF(type_series);
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_index_type(PyObject *obj) {
+  PyObject *module = PyImport_ImportModule("pandas");
+  if (module == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  PyObject *type_index = PyObject_GetAttrString(module, "Index");
+  if (type_index == NULL) {
+    Py_DECREF(module);
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_index);
+  if (result == -1) {
+    Py_DECREF(module);
+    Py_DECREF(type_index);
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_nat_type(PyObject *obj) {
+  PyObject *module = PyImport_ImportModule("pandas._libs.tslibs.nattype");
+  if (module == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  PyObject *type_nat = PyObject_GetAttrString(module, "NaTType");
+  if (type_nat == NULL) {
+    Py_DECREF(module);
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_nat);
+  if (result == -1) {
+    Py_DECREF(module);
+    Py_DECREF(type_nat);
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+int object_is_na_type(PyObject *obj) {
+  PyObject *module = PyImport_ImportModule("pandas._libs.missing");
+  if (module == NULL) {
+    PyErr_Clear();
+    return 0;
+  }
+  PyObject *type_na = PyObject_GetAttrString(module, "NAType");
+  if (type_na == NULL) {
+    Py_DECREF(module);
+    PyErr_Clear();
+    return 0;
+  }
+  int result = PyObject_IsInstance(obj, type_na);
+  if (result == -1) {
+    Py_DECREF(module);
+    Py_DECREF(type_na);
+    PyErr_Clear();
+    return 0;
+  }
+  return result;
+}
+
+#endif
+
+static int module_traverse(PyObject *m, visitproc visit, void *arg) {
+  Py_VISIT(modulestate(m)->type_decimal);
+  Py_VISIT(modulestate(m)->type_dataframe);
+  Py_VISIT(modulestate(m)->type_series);
+  Py_VISIT(modulestate(m)->type_index);
+  Py_VISIT(modulestate(m)->type_nat);
+  Py_VISIT(modulestate(m)->type_na);
+  return 0;
+}
+
+static int module_clear(PyObject *m) {
+  Py_CLEAR(modulestate(m)->type_decimal);
+  Py_CLEAR(modulestate(m)->type_dataframe);
+  Py_CLEAR(modulestate(m)->type_series);
+  Py_CLEAR(modulestate(m)->type_index);
+  Py_CLEAR(modulestate(m)->type_nat);
+  Py_CLEAR(modulestate(m)->type_na);
+  return 0;
+}
+
+static void module_free(void *module) { module_clear((PyObject *)module); }
+
+PyMODINIT_FUNC PyInit_json(void) {
+  import_array() PyObject *module;
+
+#ifndef PYPY_VERSION
+  // This function is not supported in PyPy.
+  if ((module = PyState_FindModule(&moduledef)) != NULL) {
+    Py_INCREF(module);
+    return module;
+  }
+#endif
+
+  module = PyModule_Create(&moduledef);
+  if (module == NULL) {
+    return NULL;
+  }
+
+#ifndef PYPY_VERSION
+  PyObject *mod_decimal = PyImport_ImportModule("decimal");
+  if (mod_decimal) {
+    PyObject *type_decimal = PyObject_GetAttrString(mod_decimal, "Decimal");
+    assert(type_decimal != NULL);
+    modulestate(module)->type_decimal = type_decimal;
+    Py_DECREF(mod_decimal);
+  }
+
+  PyObject *mod_pandas = PyImport_ImportModule("pandas");
+  if (mod_pandas) {
+    PyObject *type_dataframe = PyObject_GetAttrString(mod_pandas, "DataFrame");
+    assert(type_dataframe != NULL);
+    modulestate(module)->type_dataframe = type_dataframe;
+
+    PyObject *type_series = PyObject_GetAttrString(mod_pandas, "Series");
+    assert(type_series != NULL);
+    modulestate(module)->type_series = type_series;
+
+    PyObject *type_index = PyObject_GetAttrString(mod_pandas, "Index");
+    assert(type_index != NULL);
+    modulestate(module)->type_index = type_index;
+
+    Py_DECREF(mod_pandas);
+  }
+
+  PyObject *mod_nattype = PyImport_ImportModule("pandas._libs.tslibs.nattype");
+  if (mod_nattype) {
+    PyObject *type_nat = PyObject_GetAttrString(mod_nattype, "NaTType");
+    assert(type_nat != NULL);
+    modulestate(module)->type_nat = type_nat;
+
+    Py_DECREF(mod_nattype);
+  }
+
+  PyObject *mod_natype = PyImport_ImportModule("pandas._libs.missing");
+  if (mod_natype) {
+    PyObject *type_na = PyObject_GetAttrString(mod_natype, "NAType");
+    assert(type_na != NULL);
+    modulestate(module)->type_na = type_na;
+
+    Py_DECREF(mod_natype);
+  } else {
+    PyErr_Clear();
+  }
+#endif
+
+  /* Not vendored for now
+  JSONDecodeError = PyErr_NewException("ujson.JSONDecodeError",
+  PyExc_ValueError, NULL); Py_XINCREF(JSONDecodeError); if
+  (PyModule_AddObject(module, "JSONDecodeError", JSONDecodeError) < 0)
+  {
+    Py_XDECREF(JSONDecodeError);
+    Py_CLEAR(JSONDecodeError);
+    Py_DECREF(module);
+    return NULL;
+  }
+  */
+
+  return module;
+}
+```
+
 ## pycli-LICENSE
 
 ```text

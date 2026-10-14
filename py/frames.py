@@ -274,7 +274,7 @@ def frame_save(df,meta,masks,p,inferred):
     if len(body)>1024*1024:raise OutputTooLarge('table metadata exceeds 1MiB')
     arrays['__pycli_table__']=np.frombuffer(body,dtype='uint8')
     if sum(a.nbytes for a in arrays.values())>TABLE_BYTES-1024*1024:raise OutputTooLarge('table artifact exceeds 256MiB')
-    np.savez(p['output_file'],**arrays)
+    np.savez(p['output_file'],allow_pickle=False,**arrays)
     if os.path.getsize(p['output_file'])>TABLE_BYTES:raise OutputTooLarge('table artifact exceeds 256MiB')
     return {'status':'OK','shape':[len(df),len(df.columns)],'column_meta':meta,'inferred':inferred,'preview':frame_preview(df,meta,masks,range(min(len(df),min(10,1000//len(df.columns)))))}
 

@@ -41,7 +41,19 @@
   },
   "pandas": {
     "files": {
-      "LICENSE": "533eb6d0b98e5be3ddd12dce97be35dd11282f5c47cdf8d08c81756fd5d70a26"
+      "LICENSE": "533eb6d0b98e5be3ddd12dce97be35dd11282f5c47cdf8d08c81756fd5d70a26",
+      "pandas/_libs/include/pandas/vendored/klib/khash.h.notice.txt": "b518e2db90efcf9da57d5361fd2edc38c1bb9c4c22b9bc863ccc82ab636bd80d",
+      "pandas/_libs/include/pandas/vendored/klib/khash_python.h.notice.txt": "727209adb2370bb68969650a70abbb99366bec41c403f84658d8aa3376947b80",
+      "pandas/_libs/include/pandas/vendored/numpy/datetime/np_datetime.h.notice.txt": "0b5aa56502af63f060c25d64b6a735e87c94183ba9397580366dabf059062955",
+      "pandas/_libs/include/pandas/vendored/numpy/datetime/np_datetime_strings.h.notice.txt": "12e981e69089c5d003dcc13f514861c993cf85250de2a728327cfcceae9c8a71",
+      "pandas/_libs/include/pandas/vendored/ujson/lib/ultrajson.h.notice.txt": "f25335a65aee6f7943c7fd74b2c943c45e3dc4a536635fdbd163c205ac6f5543",
+      "pandas/_libs/src/vendored/numpy/datetime/np_datetime.c.notice.txt": "cb842e72988f571ea741277c93816aa0670f16bc9fcacb8a75bf3ab689d7d783",
+      "pandas/_libs/src/vendored/numpy/datetime/np_datetime_strings.c.notice.txt": "a2576d6dbcfd481dccf359382d5b99d536ea2c7531a57e7d3ddd0add86714687",
+      "pandas/_libs/src/vendored/ujson/lib/ultrajsondec.c.notice.txt": "abfc88325d4f536ce98f6813cf0544847d8b6529a2f4713b786447fc03810501",
+      "pandas/_libs/src/vendored/ujson/lib/ultrajsonenc.c.notice.txt": "a28153a9888008fdab968daa8fbc53aece4cbdad2128a591616cae604a6f803d",
+      "pandas/_libs/src/vendored/ujson/python/JSONtoObj.c.notice.txt": "a0cbf959a7ec36ac4ec233466eddc9bc6c3228b436b5704e6f6c1a1af37efa61",
+      "pandas/_libs/src/vendored/ujson/python/objToJSON.c.notice.txt": "e9ec26cb77a1b175341f84a0c593f4654f08ea0c25d961463612f72f11fa3f2e",
+      "pandas/_libs/src/vendored/ujson/python/ujson.c.notice.txt": "83e14a5ed32a815571d0c2d70f26a567ca5c5fff2a25bae3d9049d0970bf15a6"
     },
     "sha256": "e05e1af93b977f7eafa636d043f9f94c7ee3ac81af99c13508215942e64c993b",
     "source": "https://files.pythonhosted.org/packages/33/01/d40b85317f86cf08d853a4f495195c73815fdf205eef3993821720274518/pandas-2.3.3.tar.gz",

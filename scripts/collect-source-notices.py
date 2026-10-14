@@ -18,7 +18,7 @@ for name,version in (('numpy','2.3.3'),('scipy','1.16.2'),('pandas','2.3.3'),('p
                 'scipy/stats/libnpyrandom/logfactorial.c', 'scipy/interpolate/_bary_rational.py',
                 'scipy/integrate/_lebedev.py'}
             relative_name='/'.join(pathlib.PurePosixPath(entry.name).parts[1:])
-            source_notice=relative_name in embedded
+            source_notice=relative_name in embedded or (name=='pandas' and '/vendored/' in relative_name and pathlib.PurePosixPath(relative_name).suffix in ('.h','.c','.cpp','.py'))
             if not source_notice and not basename.startswith(('license','licence','copying','notice')):continue
             relative=pathlib.PurePosixPath(*pathlib.PurePosixPath(entry.name).parts[1:])
             assert '..' not in relative.parts
