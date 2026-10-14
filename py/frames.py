@@ -413,6 +413,20 @@ def frame_operation(op,p):
         except (ValueError, TypeError) as exc:raise BadData('invalid aggregation: '+str(exc)) from exc
         data={c:[None if pd.isna(v) else ('Inf' if v>0 else '-Inf') if isinstance(v,(float,np.floating)) and math.isinf(float(v)) else v.isoformat() if isinstance(v,pd.Timestamp) else v.item() if isinstance(v,np.generic) else v for v in out[c]] for c in out}
         policies={c:meta[c] for c in (p['keys'] if op=='frame_groupby' else [p['time']])}
-        # Preserve categorical and timezone policies of keys; infer aggregate result types explicitly.
+        # Derive aggregate policies from the operation and source, including all-null
+        # groups: absence of observations must not turn numeric/datetime/category
+        # results into inferred strings. Statistical numeric reductions are float64.
+        for col,functions in p['aggs'].items():
+            for function in functions:
+                name=col+'__'+function;source=meta[col]
+                if function in ('count','nunique'):
+                    policy={'dtype':'int64'}
+                elif function in ('mean','median','std','var') and source['dtype'] in ('int64','float64','bool'):
+                    policy={'dtype':'float64'}
+                elif function=='sum' and source['dtype']=='bool':
+                    policy={'dtype':'int64'}
+                else:
+                    policy=dict(source)
+                policies[name]=policy;inferred[name]=policy['dtype']
         df,meta,masks=frame_build(data,policies,inferred)
     return frame_save(df,meta,masks,p,inferred)
