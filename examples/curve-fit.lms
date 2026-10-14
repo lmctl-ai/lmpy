@@ -1,0 +1,33 @@
+// access: read
+// What it does: generates exponential-decay data y = c + a*exp(-b*t) plus closed-form deterministic pseudo-noise, fits
+//   it with opt_least_squares, and checks the recovered parameters, the residual level and the reported standard errors.
+// Tolerance: parameters within 0.05 of the generating values (2.5, 0.7, 0.1); rss below the bound set by the noise.
+// How to run: put the pycli bin directory on PATH, then run lmscript examples/curve-fit.lms
+import "../cli.schema.dev.json" as pycli;
+
+E = 2.718281828459045;
+truth = {a: 2.5, b: 0.7, c: 0.1};
+t = [];
+y = [];
+rss_bound = 0;
+for (i = 0; i < 30; i = i + 1) {
+  ti = 0.2 * i;
+  noise = ((i * 37 + 11) % 17 - 8) / 400;    // deterministic zig-zag in [-0.02, 0.02]
+  t = concat(t, [ti]);
+  y = concat(y, [truth.c + truth.a * pow(E, -truth.b * ti) + noise]);
+  rss_bound = rss_bound + 0.02 * 0.02;
+}
+fit = pycli.opt_least_squares({model: "c + a*exp(-b*t)", response: "y", data: {t: t, y: y}, x0: {a: 1, b: 0.2, c: 0}});
+if (fit.status == "simulated") { println("Fit simulated."); exit(0); }
+if (fit.status != "ok" || fit.result.status != "OK") { println("Curve fit failed:", json_stringify(fit)); exit(1); }
+p = fit.result.par;
+println(sprintf("a=%.4f b=%.4f c=%.4f  rss=%.3e  m=%d  cov=%s", p.a, p.b, p.c, fit.result.rss, fit.result.n_residuals, fit.result.cov_status));
+if (abs(p.a - truth.a) > 0.05 || abs(p.b - truth.b) > 0.05 || abs(p.c - truth.c) > 0.05) { println("Recovered parameters differ from the generating values"); exit(1); }
+// The least-squares residual cannot exceed the noise itself (the generating parameters are a feasible point).
+if (fit.result.rss > rss_bound) { println("Residual is larger than the injected noise"); exit(1); }
+if (fit.result.cov_status != "OK" || fit.result.std_err.a <= 0 || fit.result.std_err.b <= 0 || fit.result.std_err.a > 0.2) { println("Unexpected standard errors:", json_stringify(fit.result.std_err)); exit(1); }
+// Independent residual recomputation at the fitted parameters.
+check = 0;
+for (i = 0; i < 30; i = i + 1) { r = y[i] - (p.c + p.a * pow(E, -p.b * t[i])); check = check + r * r; }
+if (abs(check - fit.result.rss) > 0.000000001) { println("Reported rss disagrees with the recomputed residuals"); exit(1); }
+println("Curve-fit oracle passed.");

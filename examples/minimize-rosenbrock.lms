@@ -1,0 +1,27 @@
+// access: read
+// What it does: minimises Rosenbrock's function twice with opt_minimize (finite differences, then analytic gradient
+//   expressions) and checks the known minimum (1, 1), an independent recomputation of the objective, and that the
+//   analytic gradient needs fewer objective evaluations.
+// Tolerance: parameters within 1e-3 of 1 and value below 1e-6.
+// How to run: put the pycli bin directory on PATH, then run lmscript examples/minimize-rosenbrock.lms
+import "../cli.schema.dev.json" as pycli;
+
+objective = "100*(y-x^2)^2 + (1-x)^2";
+fd = pycli.opt_minimize({objective: objective, x0: {x: -1.2, y: 1}, method: "BFGS", tol: 0.000001});
+if (fd.status == "simulated") { println("Minimisation simulated."); exit(0); }
+if (fd.status != "ok" || fd.result.status != "OK") { println("Rosenbrock minimisation failed:", json_stringify(fd)); exit(1); }
+x = fd.result.par.x;
+y = fd.result.par.y;
+println(sprintf("finite differences: x=%.6f y=%.6f value=%.3e nfev=%d", x, y, fd.result.fun, fd.result.nfev));
+if (abs(x - 1) > 0.001 || abs(y - 1) > 0.001 || fd.result.fun > 0.000001) { println("Rosenbrock minimum mismatch"); exit(1); }
+// Independent check: evaluate the objective in lmscript at the reported point.
+recomputed = 100 * (y - x * x) * (y - x * x) + (1 - x) * (1 - x);
+if (abs(recomputed - fd.result.fun) > 0.000000001) { println("Reported value disagrees with the objective at par"); exit(1); }
+
+exact = pycli.opt_minimize({objective: objective, x0: {x: -1.2, y: 1}, method: "BFGS", tol: 0.000001,
+  gradient: ["-400*x*(y-x^2) - 2*(1-x)", "200*(y-x^2)"]});
+if (exact.status != "ok" || exact.result.status != "OK") { println("Analytic-gradient run failed:", json_stringify(exact)); exit(1); }
+println(sprintf("analytic gradient:  x=%.6f y=%.6f value=%.3e nfev=%d", exact.result.par.x, exact.result.par.y, exact.result.fun, exact.result.nfev));
+if (abs(exact.result.par.x - 1) > 0.000001 || abs(exact.result.par.y - 1) > 0.000001) { println("Analytic-gradient minimum mismatch"); exit(1); }
+if (exact.result.nfev >= fd.result.nfev) { println("Analytic gradient did not reduce objective evaluations"); exit(1); }
+println("Rosenbrock oracle passed.");

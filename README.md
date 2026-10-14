@@ -1,6 +1,6 @@
 # pycli
 
-An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 (S0–S2).
+An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 (S0–S3).
 Each call starts a fresh Python child. The fixed dispatch and validated inputs
 accept no caller code. The Docker container is the isolation boundary.
 
@@ -15,6 +15,10 @@ accept no caller code. The Docker container is the isolation boundary.
 | `la_lstsq` | read | a (m by n), b, rcond, driver=gelsd/gelsy/gelss | x (<=1000 numbers), rank, singular_values, residues, residual_norm, status OK/RANK_DEFICIENT/NO_CONVERGENCE |
 | `la_lstsq_to` | write | same plus exclusive out.safetensors | x descriptor and the same fields; RANK_DEFICIENT still writes the minimum-norm x |
 | `la_props` | read | a, what (det, slogdet, rank, cond, norm, trace, inverse), norm_ord, cond_p, rank_tol | requested scalars; inverse (<=1000 numbers) with inverse_residual; status OK/SINGULAR/NO_CONVERGENCE |
+| `opt_minimize` | read | objective expression, x0 `{name: number\|[numbers]}`, method (Nelder-Mead, Powell, BFGS, L-BFGS-B, SLSQP, trust-constr), bounds, constraints `[{type: eq\|ineq, expr}]`, gradient expressions, data, tol, maxiter, max_evals, nonfinite | par, fun, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE, message, nit, nfev, evals, nonfinite_evals, constraint_violation |
+| `opt_least_squares` | read | model + response or residual expressions, x0, data, bounds, method trf/dogbox/lm, loss, f_scale, sigma, absolute_sigma, tol, max_nfev | par, std_err (Jacobian), cov_status, cost, rss, status, nfev |
+| `num_quad` | read | f(x), a, b (finite or "Inf"/"-Inf"), epsabs, epsrel, limit, points | value, abserr, neval, subdivisions, status OK/NO_CONVERGENCE/NON_FINITE/EVAL_LIMIT |
+| `num_root` | read | f(x), bracket lower/upper, method brentq/bisect/ridder/toms748, xtol, rtol, maxiter | root, f_root, iterations, function_calls, status |
 | `la_decomp` | write | a, kind=svd/qr/eig/eigh/cholesky/lu, full, pivoting, lower, exclusive out.safetensors | one descriptor per factor, small eigen/singular values inline, reconstruction_error, status |
 
 Arrays accept nested row-major JSON, `{shape:[r,c],data:[...]}`, or cwd-confined
@@ -28,7 +32,7 @@ before any allocation. The `.npy` header is parsed by a hand-written closed gram
 Array artifacts written by pycli are F64 (`I64` for the qr pivot vector `p`); table artifacts use the S2 dtype whitelist below.
 
 Limits: 1000 numbers per inline array, 200000 per referenced array/CSV file (inline CSV text
-1000), 256 MiB per artifact (32 MiB per CSV), at most 2,000,000 output numbers per call.
+1000), 256 MiB per artifact, 32 MiB per array CSV (`array_import`; frame CSV is 16 MiB, see Tables), at most 2,000,000 output numbers per call.
 
 Matrix order is **447 by ref / 31 inline** (square). la_solve returns <=1000 solution
 numbers; larger solutions require la_solve_to (likewise la_lstsq / la_lstsq_to). stats_dist returns <=1000 values.
@@ -88,6 +92,52 @@ are what the tests check against scipy called directly):
 Writes use the same exclusive anonymous-inode install as `la_solve_to`; an existing target is
 CONFLICT (5), `PYCLI_READONLY` rejects writes (6), dry-run creates nothing. Import and inspect
 never start Python, so they work (and are tested) with the interpreter missing.
+
+### S3 expressions, optimisation, quadrature, roots
+
+Callers never send code. An expression is an ASCII string (<=2048 bytes, <=512 tokens and nodes, depth 32, <=16
+nested calls) in rcli's grammar: numbers, declared names, `+ - * / ^`, unary minus, relational and `& |` only inside
+`ifelse(cond, a, b)`, the constants `pi` and `e`, and the allowlisted functions of `expr-spec.json` (`exp log log1p expm1
+log2 log10 sqrt abs sin cos tan asin acos atan sinh cosh tanh floor ceiling trunc round sign gamma lgamma digamma pnorm dnorm
+qnorm plogis atan2 pmin pmax beta lbeta choose lchoose`; reducers `sum mean prod min max` only where data columns
+exist). The spec file and the shared accept/reject corpus (13/57) are byte-identical copies of rcli's (SHA-256 pinned in
+the tests); the C++ parser is a copy with one extension: a variable declared as a vector (`x0: {"v": [1, 2]}`) may be used
+only as `v[0]`, `v[1]` with an integer literal below its length, and a scalar may not be indexed. Rejections happen in
+C++ before any process starts (`EXPR_SYNTAX`, `EXPR_BAD_BYTE`, `EXPR_UNKNOWN_IDENT`, `EXPR_UNKNOWN_FUNCTION`, `EXPR_ARITY`,
+`EXPR_TOO_LONG`, `EXPR_TOO_DEEP`, `EXPR_TOO_MANY_NODES`, `EXPR_NAME_COLLISION`, `EXPR_NOT_SCALAR`, `EXPR_INDEX`,
+`EXPR_VECTOR_INDEX`, with `position` and `near`). Python receives only the JSON AST and compiles it iteratively
+(no recursion, no `eval`/`exec`/`compile`/`getattr` on caller data) into a postfix program of numpy/scipy function *objects*
+from a closed table, re-checking node kinds, arities, names and indices (`INTERNAL_ERROR`/`EXPR_SPEC_MISMATCH` otherwise).
+`^` is `numpy.power` on float64 (so `(-8)^(1/3)` is NaN as in R); `ifelse` evaluates both branches (`numpy.where`).
+
+Unknowns are scalars or vectors of at most 64 components in total; they are ordered by name (vector components by index),
+which fixes the order of `gradient` expressions and of the flat vector. Data columns (`data`) are finite vectors from inline
+arrays or `.npy` / `.safetensors#key` refs, equal length, <=200000 rows, <=32 columns; table (`.npz`) refs are not read
+directly (export a column with `array_import`). Names are `[a-z][a-z0-9_]{0,31}` and may not collide with functions,
+constants or each other (`BAD_NAME`, `EXPR_NAME_COLLISION`).
+
+Statuses (exit 0): `OK`, `NO_CONVERGENCE` (the solver's own verdict, with its message, including "precision loss"),
+`EVAL_LIMIT` (`max_evals`, default 500000, cap 2,000,000, counting every objective, gradient, constraint and residual
+call), `TIME_LIMIT` (a wall-clock budget of the call timeout minus 10 s, so the worker stops before the hard kill) and
+`NON_FINITE`. `EVAL_LIMIT`/`TIME_LIMIT`/`NON_FINITE` return the best point found so far. A non-finite objective at `x0`
+is `NONFINITE_OBJECTIVE` (exit 2); later non-finite objectives count as +Inf (`nonfinite: "inf"`, reported as
+`nonfinite_evals` plus a warning) or stop the run (`nonfinite: "error"`). Constraint violation above 1e-6 turns a solver
+success into `NO_CONVERGENCE`. Gradient expressions are compared with finite differences at `x0` and a mismatch is a
+`NumericalWarning`. Method rules are validated up front: bounds not for BFGS, constraints only SLSQP/trust-constr,
+gradients not for Nelder-Mead/Powell; the default method is SLSQP with constraints, L-BFGS-B with bounds, else BFGS.
+
+`opt_least_squares` fits `model` against the `response` column (residual = (model - response)/sigma, `sigma` a positive
+number or data column) or minimises concatenated `residuals` expressions. Standard errors: with the central-difference
+Jacobian J at the solution (scipy's own 2-point Jacobian is only first-order accurate with an absolute step and was off in the
+5th digit for NIST Misra1a), `cov = (J'J)^-1`, columns equilibrated, rank decided at 1e-8, multiplied by `2*cost/(m-n)`
+(`curve_fit` convention) unless `absolute_sigma`. `cov_status` is `OK`, `SINGULAR_JACOBIAN` or `NO_DOF` (standard errors are
+then `"NA"`). With a robust `loss` scipy's loss-modified Jacobian is used and `std_err` is approximate. The solver runs
+with `x_scale="jac"` and `tol` (default 1e-10) for ftol/xtol/gtol.
+
+`num_quad` is QUADPACK (`scipy.integrate.quad`, `full_output`): a warning-level failure (oscillatory or divergent integrand,
+`limit` exhausted) is `NO_CONVERGENCE` with the QUADPACK message and the unreliable `value`/`abserr`; a non-finite integrand
+value (e.g. a pole on a Gauss-Kronrod node) is `NON_FINITE`. `num_root` needs finite `f(lower)`, `f(upper)` of opposite
+sign (`NONFINITE_BRACKET`, `BAD_INTERVAL`, exit 2).
 
 Distribution params accept loc (default 0), scale (positive, default 1), and
 positive df for t. ppf rejects probabilities outside [0,1], including infinities;

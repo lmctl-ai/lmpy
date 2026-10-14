@@ -7,11 +7,6 @@ There is no name-to-callable lookup other than those tables and no recursion ove
 EXPR_INSTRUCTIONS = ('push', 'var', 'idx', 'f1', 'f2', 'f3')
 
 
-class ExprMismatch(Exception):
-    """The AST contradicts the spec or the declared names: a C++/Python disagreement, never a caller error."""
-    code = 'EXPR_SPEC_MISMATCH'
-
-
 class SolverStop(Exception):
     status = 'STOPPED'
 

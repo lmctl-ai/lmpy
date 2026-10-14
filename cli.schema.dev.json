@@ -693,6 +693,337 @@
           "description": "New .npz table artifact."
         }
       ]
+    },
+    {
+      "name": "opt_minimize",
+      "access": "read",
+      "returns": "object",
+      "description": "Minimise a scalar expression with scipy.optimize.minimize (closed method list). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE; gradients by finite differences unless gradient expressions are given. Result: par, fun, nit, nfev, evals, nonfinite_evals, constraint_violation",
+      "params": [
+        {
+          "name": "objective",
+          "type": "string",
+          "occurs": "1",
+          "description": "Expression (<=2048 bytes, 512 nodes) in the unknowns and data columns; sum/mean/prod/min/max reducers only with data."
+        },
+        {
+          "name": "x0",
+          "type": "object",
+          "occurs": "1",
+          "description": "Start values {name: number | [numbers]} (names [a-z][a-z0-9_]{0,31}; at most 64 scalars). A vector variable is used as name[0], name[1] with integer literals. Variables are ordered by name, vector components by index."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "Nelder-Mead",
+            "Powell",
+            "BFGS",
+            "L-BFGS-B",
+            "SLSQP",
+            "trust-constr"
+          ],
+          "description": "Default: SLSQP with constraints, L-BFGS-B with bounds, else BFGS. Bounds: not BFGS. Constraints: SLSQP, trust-constr. Gradient expressions: not Nelder-Mead/Powell."
+        },
+        {
+          "name": "bounds",
+          "type": "object",
+          "occurs": "?",
+          "description": "{name: [lower, upper]} with null/\"-Inf\"/\"Inf\" for open ends, applied to every component; lower < upper and x0 inside."
+        },
+        {
+          "name": "constraints",
+          "type": "array",
+          "occurs": "?",
+          "description": "Up to 16 {\"type\":\"eq\"|\"ineq\",\"expr\":...}; ineq means expr >= 0.",
+          "items": "object"
+        },
+        {
+          "name": "gradient",
+          "type": "array",
+          "occurs": "?",
+          "description": "One expression per scalar unknown (sorted name order); checked against finite differences at x0.",
+          "items": "string"
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "?",
+          "description": "Data columns {name: inline array (<=1000 numbers) | file.npy | file.safetensors#key}: finite vectors of equal length (<=200000), at most 32."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "Solver tolerance in (0, 1]; default is the method's own."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000,
+          "description": "Iteration cap, 1..10000."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."
+        },
+        {
+          "name": "nonfinite",
+          "type": "string",
+          "occurs": "?",
+          "default": "inf",
+          "enum": [
+            "inf",
+            "error"
+          ],
+          "description": "inf: a non-finite objective counts as +Inf; error: stop with status NON_FINITE."
+        }
+      ]
+    },
+    {
+      "name": "opt_least_squares",
+      "access": "read",
+      "returns": "object",
+      "description": "Nonlinear least squares with scipy.optimize.least_squares (trf/dogbox/lm): model y ~ f(data; params) or a residual expression list. Result: par, std_err (from the Jacobian: cov = (J'J)^-1 times 2*cost/(m-n) unless absolute_sigma), cost, rss, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE, cov_status",
+      "params": [
+        {
+          "name": "model",
+          "type": "string",
+          "occurs": "?",
+          "description": "Expression in the unknowns and data columns; residual = (model - response)/sigma."
+        },
+        {
+          "name": "response",
+          "type": "string",
+          "occurs": "?",
+          "description": "Data column fitted by model."
+        },
+        {
+          "name": "residuals",
+          "type": "array",
+          "occurs": "?",
+          "description": "Alternative to model: 1..64 residual expressions (each scalar or vector over data columns), concatenated.",
+          "items": "string"
+        },
+        {
+          "name": "x0",
+          "type": "object",
+          "occurs": "1",
+          "description": "Start values {name: number | [numbers]} (names [a-z][a-z0-9_]{0,31}; at most 64 scalars). A vector variable is used as name[0], name[1] with integer literals. Variables are ordered by name, vector components by index."
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "?",
+          "description": "Data columns {name: inline array (<=1000 numbers) | file.npy | file.safetensors#key}: finite vectors of equal length (<=200000), at most 32."
+        },
+        {
+          "name": "bounds",
+          "type": "object",
+          "occurs": "?",
+          "description": "As opt_minimize; not with method lm."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "trf",
+          "enum": [
+            "trf",
+            "dogbox",
+            "lm"
+          ],
+          "description": "lm needs at least as many residuals as unknowns, no bounds, linear loss."
+        },
+        {
+          "name": "loss",
+          "type": "string",
+          "occurs": "?",
+          "default": "linear",
+          "enum": [
+            "linear",
+            "soft_l1",
+            "huber",
+            "cauchy",
+            "arctan"
+          ],
+          "description": "Robust loss; std_err then uses the robust cost (documented)."
+        },
+        {
+          "name": "f_scale",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "Loss scale, > 0."
+        },
+        {
+          "name": "sigma",
+          "type": "json",
+          "occurs": "?",
+          "description": "model only: name of a positive data column or a positive number; residuals are divided by it."
+        },
+        {
+          "name": "absolute_sigma",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Treat sigma as absolute (no rescaling of the covariance by the residual variance)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-10,
+          "description": "ftol = xtol = gtol, in [2.3e-16, 0.1]."
+        },
+        {
+          "name": "max_nfev",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000,
+          "description": "Residual evaluation budget for the solver, 1..100000."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Cap on expression evaluations, 1..2000000."
+        }
+      ]
+    },
+    {
+      "name": "num_quad",
+      "access": "read",
+      "returns": "object",
+      "description": "One-dimensional QUADPACK integral (scipy.integrate.quad) of an expression in x over finite or infinite bounds. Statuses OK, NO_CONVERGENCE (message from QUADPACK), NON_FINITE, EVAL_LIMIT. Result: value, abserr, neval, subdivisions",
+      "params": [
+        {
+          "name": "f",
+          "type": "string",
+          "occurs": "1",
+          "description": "Expression in x (no reducers, no data)."
+        },
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "Lower bound: finite number or \"-Inf\"/\"Inf\"."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "1",
+          "description": "Upper bound."
+        },
+        {
+          "name": "epsabs",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.49e-08,
+          "description": "Absolute tolerance in [0, 1]."
+        },
+        {
+          "name": "epsrel",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.49e-08,
+          "description": "Relative tolerance in [0, 1); at least 1e-13 when epsabs is 0."
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 50,
+          "description": "Maximum subdivisions, 1..1000."
+        },
+        {
+          "name": "points",
+          "type": "array",
+          "occurs": "?",
+          "description": "Up to 64 break points strictly inside finite bounds.",
+          "items": "number"
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Cap on expression evaluations."
+        }
+      ]
+    },
+    {
+      "name": "num_root",
+      "access": "read",
+      "returns": "object",
+      "description": "Bracketed scalar root of an expression in x (scipy.optimize brentq/bisect/ridder/toms748). f(lower) and f(upper) must be finite with opposite signs (BAD_INTERVAL otherwise). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT. Result: root, f_root, iterations, function_calls",
+      "params": [
+        {
+          "name": "f",
+          "type": "string",
+          "occurs": "1",
+          "description": "Expression in x (no reducers, no data)."
+        },
+        {
+          "name": "lower",
+          "type": "number",
+          "occurs": "1",
+          "description": "Bracket start (finite)."
+        },
+        {
+          "name": "upper",
+          "type": "number",
+          "occurs": "1",
+          "description": "Bracket end (finite, > lower)."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "brentq",
+          "enum": [
+            "brentq",
+            "bisect",
+            "ridder",
+            "toms748"
+          ],
+          "description": "Bracketing method."
+        },
+        {
+          "name": "xtol",
+          "type": "number",
+          "occurs": "?",
+          "default": 2e-12,
+          "description": "Absolute x tolerance, > 0."
+        },
+        {
+          "name": "rtol",
+          "type": "number",
+          "occurs": "?",
+          "default": 8.881784197001252e-16,
+          "description": "Relative x tolerance, >= 4*eps."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 100,
+          "description": "Iterations, 1..1000."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Cap on expression evaluations."
+        }
+      ]
     }
   ]
 }

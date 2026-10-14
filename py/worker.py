@@ -42,6 +42,11 @@ class BadData(ValueError):
         self.code = code
 
 
+class ExprMismatch(Exception):
+    """The AST contradicts the spec or the declared names: a C++/Python disagreement, never a caller error."""
+    code = 'EXPR_SPEC_MISMATCH'
+
+
 class Int64Overflow(ArithmeticError):
     pass
 
@@ -376,8 +381,15 @@ class NumericalWarning(RuntimeWarning):
     pass
 
 
-OPS = {'opt_minimize': opt_minimize, 'opt_least_squares': opt_least_squares, 'num_quad': num_quad, 'num_root': num_root,
-       'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution,
+NUMERIC_OPS = ('opt_minimize', 'opt_least_squares', 'num_quad', 'num_root')
+
+
+def numeric_operation(name):
+    """S3 dispatch table, resolved at call time so py/worker.py still imports on its own (numerics.py is prepended)."""
+    return {'opt_minimize': opt_minimize, 'opt_least_squares': opt_least_squares, 'num_quad': num_quad, 'num_root': num_root}[name]
+
+
+OPS = {'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution,
        'la_lstsq': lstsq, 'la_lstsq_to': lstsq, 'la_props': props, 'la_decomp': decomp}
 
 
@@ -394,7 +406,7 @@ def main():
             import scipy.stats
         elif request['op'] in ('la_solve', 'la_solve_to', 'la_lstsq', 'la_lstsq_to', 'la_props', 'la_decomp'):
             import scipy.linalg
-        elif request['op'] in ('opt_minimize', 'opt_least_squares', 'num_quad', 'num_root'):
+        elif request['op'] in NUMERIC_OPS:
             import scipy.optimize
             import scipy.integrate
             import scipy.special
@@ -415,7 +427,9 @@ def main():
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter('always')
             with np.errstate(all='warn'):
-                result = frame_operation(request['op'], request['params']) if request['op'].startswith('frame_') else OPS[request['op']](request['params'])
+                result = (frame_operation(request['op'], request['params']) if request['op'].startswith('frame_')
+                          else numeric_operation(request['op'])(request['params']) if request['op'] in NUMERIC_OPS
+                          else OPS[request['op']](request['params']))
         result['meta'] = {'python': sys.version.split()[0], 'numpy': np.__version__,
                           'scipy': sys.modules['scipy'].__version__ if 'scipy' in sys.modules else 'unloaded',
                           'pandas': sys.modules['pandas'].__version__ if 'pandas' in sys.modules else 'unloaded',
