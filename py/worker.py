@@ -13,12 +13,22 @@ import time
 import warnings
 
 
+BLOCKED_MODULES = {'pi' + 'ckle', '_pi' + 'ckle', 'socket', '_socket',
+                   'subprocess', 'multiprocessing', 'urllib', 'http', 'ftplib'}
+
+
+class BlockedImports:
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split('.')[0] in BLOCKED_MODULES:
+            raise RuntimeError('blocked module: ' + fullname)
+        return None
+
+
 def audit(event, args):
     if event == 'import':
         top = args[0].split('.')[0]
         # Construct the serialization module name without a forbidden identifier.
-        if top in {'pi' + 'ckle', '_pi' + 'ckle', 'socket', '_socket',
-                   'subprocess', 'multiprocessing', 'urllib', 'http', 'ftplib'}:
+        if top in BLOCKED_MODULES:
             raise RuntimeError('blocked module: ' + top)
     if event.startswith(('socket.', 'subprocess.')) or event in ('os.system', 'os.posix_spawn', 'os.fork'):
         raise RuntimeError('blocked audit event: ' + event)
@@ -143,11 +153,10 @@ def main():
             import scipy.linalg
         elif request['op'] == 'py_info':
             import scipy
-        denied = {'pi' + 'ckle', '_pi' + 'ckle', 'socket', '_socket',
-                  'subprocess', 'multiprocessing', 'urllib', 'http', 'ftplib'}
         for module in list(sys.modules):
-            if module.split('.')[0] in denied:
+            if module.split('.')[0] in BLOCKED_MODULES:
                 sys.modules.pop(module, None)
+        sys.meta_path.insert(0, BlockedImports())
         sys.addaudithook(audit)
         imported = time.monotonic()
         with warnings.catch_warnings(record=True) as captured:

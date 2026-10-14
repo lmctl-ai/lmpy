@@ -21,6 +21,7 @@ import numpy, scipy.stats, importlib
 blocked={'pickle','_pickle','socket','_socket','subprocess','multiprocessing','urllib','http','ftplib'}
 for name in list(sys.modules):
     if name.split('.')[0] in blocked: sys.modules.pop(name,None)
+sys.meta_path.insert(0,w.BlockedImports())
 sys.addaudithook(w.audit)
 for name in ('pickle','socket','subprocess','urllib','http'):
     try: importlib.import_module(name)
