@@ -46,8 +46,17 @@ class NumericalFailure(ArithmeticError):
     pass
 
 
+class FrameNull:
+    pass
+
+
+FRAME_NULL = FrameNull()
+
+
 def codec(value):
     """Strict JSON with exact %.17g binary64 and explicit nonfinite tokens."""
+    if isinstance(value, FrameNull):
+        return 'null'
     if value is None:
         return '"NA"'
     if isinstance(value, bool):
@@ -376,6 +385,12 @@ def main():
             import scipy.stats
         elif request['op'] in ('la_solve', 'la_solve_to', 'la_lstsq', 'la_lstsq_to', 'la_props', 'la_decomp'):
             import scipy.linalg
+        elif request['op'].startswith('frame_'):
+            import pandas
+            import csv
+            import zoneinfo
+            zoneinfo.reset_tzpath(())  # use the pinned tzdata wheel, never the base database
+            csv.field_size_limit(1024*1024)
         elif request['op'] == 'py_info':
             import scipy
         for module in list(sys.modules):
@@ -387,9 +402,10 @@ def main():
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter('always')
             with np.errstate(all='warn'):
-                result = OPS[request['op']](request['params'])
+                result = frame_operation(request['op'], request['params']) if request['op'].startswith('frame_') else OPS[request['op']](request['params'])
         result['meta'] = {'python': sys.version.split()[0], 'numpy': np.__version__,
                           'scipy': sys.modules['scipy'].__version__ if 'scipy' in sys.modules else 'unloaded',
+                          'pandas': sys.modules['pandas'].__version__ if 'pandas' in sys.modules else 'unloaded',
                           'import_ms': (imported-start)*1000, 'elapsed_ms': (time.monotonic()-start)*1000}
         response = {'ok': True, 'result': result}
     except Exception as exc:

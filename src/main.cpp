@@ -13,6 +13,7 @@
 #include <cstring>
 #include <csignal>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 using namespace lmcpp;
 namespace fs = std::filesystem;
@@ -23,7 +24,7 @@ void cleanup_signal(int sig) {
     // All per-call filenames are fixed; signal cleanup uses POSIX-safe calls only.
     if(!active_dir[0])_exit(128+sig);
     char path[4096];
-    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","x.npy","output.bin","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin"}){
+    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","x.npy","output.bin","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","frame.npz","input.csv","table.npz","export.bin"}){
         size_t n=0;while(active_dir[n] && n<sizeof(path)-64){path[n]=active_dir[n];++n;}
         path[n++]='/';while(*file)path[n++]=*file++;path[n]=0;unlink(path);
     }
@@ -85,6 +86,7 @@ NpyHeader parse_npy_header(const std::string& h){
     eat(")");if(peek()==',')++i;if(peek()==' ')++i;eat("}");while(peek()==' ')++i;eat("\n");
     if(i!=h.size())invalid("trailing bytes in npy header","BAD_NPY");return out;
 }
+#include "frames.hpp"
 struct DType{const char* npy;const char* name;size_t size;};
 const DType kDTypes[]={{"<f8","F64",8},{"<f4","F32",4},{"<i8","I64",8},{"<i4","I32",4},{"|b1","BOOL",1},{"|u1","U8",1}};
 const DType& dtype_by_name(const std::string& name){for(const auto& d:kDTypes)if(name==d.name)return d;invalid("unsupported dtype "+name,"UNSUPPORTED_DTYPE");}
@@ -282,6 +284,29 @@ Json call(const std::string& op,const Params& input){
     if(op=="array_import")return array_import(input);
     if(op=="array_inspect")return array_inspect(input);
     Params p=input;std::map<std::string,Array> arrays;
+    bool frame=op.rfind("frame_",0)==0;std::string table_input,table_bytes,table_output;
+    if(frame){
+        if(op=="frame_import"){
+            size_t sources=p.count("columns")+p.count("records")+p.count("csv")+p.count("frame");if(sources!=1)invalid("provide exactly one of columns, records, csv, frame");
+        }else if(p.contains("columns")){p["select_columns"]=p["columns"];p.erase("columns");}
+        if(p.contains("columns")||p.contains("records")){
+            Json names=Json::array();uint64_t rows=0,cells=0;
+            if(p.contains("columns")){if(!p["columns"].is_object())invalid("columns must be a column map");for(auto it=p["columns"].begin();it!=p["columns"].end();++it){names.push_back(it.key());if(!it.value().is_array())invalid("column values must be arrays");if(names.size()==1)rows=it.value().size();if(it.value().size()!=rows)invalid("ragged columns");for(auto& v:it.value())if(v.is_object()||v.is_array())invalid("nested cells unsupported");cells+=rows;}}
+            else{auto& records=p["records"];if(!records.is_array()||records.empty())invalid("records must be nonempty array");rows=records.size();if(!records[0].is_object())invalid("record must be object");for(auto it=records[0].begin();it!=records[0].end();++it)names.push_back(it.key());for(auto& r:records){if(!r.is_object()||r.size()!=names.size())invalid("ragged records");for(auto& n:names){if(!r.contains(n.get<std::string>()))invalid("ragged records");auto& v=r[n.get<std::string>()];if(v.is_array()||v.is_object())invalid("nested cells unsupported");}}cells=rows*names.size();}
+            frames::names(names);if(cells>MAX_INLINE||rows>frames::ROWS)invalid("inline tables limited to 1000 cells");
+        }
+        if(p.contains("max_rows")){int64_t n=p["max_rows"];if(n<0||n>2000000)invalid("max_rows must be 0..2M");}
+        if(p.contains("csv")){table_input="input.csv";table_bytes=frames::bounded_read(confined(p["csv"]));frames::csv(table_bytes,p.value("delimiter",std::string(",")),p.value("max_rows",uint64_t(2000000)));p.erase("csv");}
+        if(p.contains("frame")){table_input="frame.npz";auto path=confined(p["frame"]);if(fs::path(path).extension()!=".npz")invalid("table ref requires .npz");table_bytes=frames::bounded_read(path);auto metadata=frames::npz(table_bytes);p.erase("frame");
+            if(op=="frame_inspect"){uint64_t rows=metadata["n_rows"],cols=metadata["columns"].size();uint64_t head=p.value("head",uint64_t(10)),tail=p.value("tail",uint64_t(0));if((std::min(rows,head)+std::min(rows,tail))*cols>1000)invalid("preview exceeds 1000 cells");}}
+        if(p.contains("where"))frames::predicate(p["where"]);
+        if(p.contains("rule"))frames::rule(p["rule"]);
+        if(p.contains("limit")&&(p["limit"].get<int64_t>()<0||p["limit"].get<int64_t>()>2000000))invalid("limit must be 0..2M");
+        for(const char* key:{"head","tail"})if(p.contains(key)&&(p[key].get<int64_t>()<0||p[key].get<int64_t>()>1000))invalid("preview rows must be 0..1000");
+        if(p.contains("aggs")){auto& a=p["aggs"];std::set<std::string> allowed={"sum","mean","min","max","count","std","var","median","nunique","first","last"};uint64_t count=0;if(!a.is_object()||a.empty())invalid("aggs must be nonempty column map");for(auto it=a.begin();it!=a.end();++it){if(!it.value().is_array()||it.value().empty())invalid("aggregation list required");std::set<std::string> seen;for(auto& v:it.value()){if(!v.is_string()||!allowed.count(v.get<std::string>())||!seen.insert(v.get<std::string>()).second)invalid("invalid or duplicate aggregation");if(++count>256)invalid("aggregation column cap");}}}
+        if(p.contains("sort_by")){if(!p["sort_by"].is_array()||p["sort_by"].size()>256)invalid("invalid sort_by");for(auto& item:p["sort_by"]){if(!item.is_object()||!item.contains("col")||!item["col"].is_string()||item.size()>(item.contains("desc")?2:1)||(item.contains("desc")&&!item["desc"].is_boolean()))invalid("sort_by requires {col,desc?}");}}
+        if(p.contains("out")){table_output=confined(p["out"],true);auto ext=fs::path(table_output).extension();if(op!="frame_export"&&ext!=".npz")invalid("table out must end in .npz");p.erase("out");}
+    }
     if(op=="la_solve"||op=="la_solve_to"){
         arrays["a"]=load(p["a"]);arrays["b"]=load(p["b"]);auto& a=arrays["a"];auto& b=arrays["b"];
         if(a.shape.size()!=2||a.shape[0]!=a.shape[1]||b.shape.empty()||b.shape[0]!=a.shape[0]||a.shape[0]>447)invalid("incompatible solve shapes or order >447");
@@ -329,6 +354,7 @@ Json call(const std::string& op,const Params& input){
         if(p["fn"]=="ppf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid("ppf probabilities must lie in [0,1]","BAD_PROBABILITY");
     }
     TempDir temp;
+    if(frame){if(!table_input.empty()){auto file=temp.file(table_input.c_str());std::ofstream f(file,std::ios::binary);f.write(table_bytes.data(),table_bytes.size());if(!f)throw std::runtime_error("cannot copy table input");p[table_input=="frame.npz"?"frame_file":"csv_file"]=file;table_bytes.clear();}if(!table_output.empty())p["output_file"]=temp.file(op=="frame_export"?"export.bin":"table.npz");}
     for(const auto& entry:arrays){auto file=temp.file((entry.first+".npy").c_str());write_npy(entry.second,file);p.erase(entry.first);p[entry.first+"_file"]=file;}
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");
     Json request=p;
@@ -371,6 +397,12 @@ Json call(const std::string& op,const Params& input){
         if(op=="la_lstsq_to")result["x"]=pycli::descriptor({path,"x"},bundle.tensors.at("x"));
         if(op=="la_decomp"||!tensors.empty())result["tensors"]=tensors;
     }
+    if(frame&&!table_output.empty()){
+        auto output=p["output_file"].get<std::string>();if(!fs::is_regular_file(output))no_artifact(result,"frame operation produced no artifact");
+        if(op!="frame_export")frames::npz(frames::bounded_read(output));
+        size_t shown=inline_numbers(result);if(shown>MAX_INLINE)output_too_large("table summary exceeds 1000 cells");
+        frames::install(output,table_output);result["artifact"]={{"ref",table_output},{"path",table_output},{"nbytes",fs::file_size(table_output)}};
+    }
     size_t shown=inline_numbers(result);
     if(shown>MAX_INLINE)throw Error{ErrorCode::CommandFailed,"CAP exceeded: result holds "+std::to_string(shown)+" inline numbers (limit 1000); the worker must write large vectors to the artifact",{{"tool_code","OUTPUT_TOO_LARGE"}}};
     return result;
@@ -411,6 +443,13 @@ int main(int argc,char** argv){
         Param{"pivoting",Type::Boolean,false,false,{},"qr only: column pivoting, adds int64 tensor p with A[:,p]=Q@R."},
         Param{"lower",Type::Boolean,false,true,{},"cholesky only: false returns the upper factor u."}}};
     CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
+    auto common=[](){return std::vector<Param>{Param{"frame",Type::String,true,nullptr,{},"Stored-only .npz table ref inside cwd."}};};
+    std::vector<Param> import_params={Param{"columns",Type::Object,false,nullptr,{},"Inline column map, <=1000 cells."},Param{"records",Type::Array,false,nullptr,{},"Inline records with identical keys, <=1000 cells.","",false,false,false,{},Type::Object},Param{"csv",Type::String,false,nullptr,{},"UTF-8 CSV path with header, <=256MiB and 2M rows."},Param{"frame",Type::String,false,nullptr,{},"Existing table ref to copy."},Param{"dtypes",Type::Object,false,Json::object(),{},"Column dtype overrides: int64,float64,bool,string,datetime64[ns],category; object specs may give tz/categories/ordered."},Param{"delimiter",Type::String,false,",",{},"Single-byte CSV delimiter."},Param{"na_values",Type::Array,false,Json::array(),{},"CSV missing tokens in addition to empty cells.","",false,false,false,{},Type::String},Param{"parse_dates",Type::Array,false,Json::array(),{},"ISO datetime columns; timezone requires a dtype object override.","",false,false,false,{},Type::String},Param{"max_rows",Type::Integer,false,2000000,{},"CSV maximum data rows, 0..2M."},Param{"out",Type::String,true,nullptr,{},"New .npz table artifact; CONFLICT if exists."}};
+    spec.operations.push_back(Operation{"frame_import",Access::Write,"Import typed tables; inference is returned explicitly","object",import_params});
+    auto inspect=common();inspect.emplace_back("head",Type::Integer,false,10,std::vector<Json>{},"Head rows; total head+tail <=1000 cells.");inspect.emplace_back("tail",Type::Integer,false,0,std::vector<Json>{},"Tail rows; total head+tail <=1000 cells.");inspect.emplace_back("describe",Type::Boolean,false,false,std::vector<Json>{},"Numeric describe statistics; combined inline cap 1000 cells.");spec.operations.push_back(Operation{"frame_inspect",Access::Read,"Shape, dtype policies, NA masks, bounded previews and statistics","object",inspect});
+    auto exportp=common();exportp.emplace_back("format",Type::String,false,"csv",std::vector<Json>{"csv","json"},"Export UTF-8 CSV or columnar JSON.");exportp.emplace_back("out",Type::String,false,nullptr,std::vector<Json>{},"New output path; omit only for <=1000 cells inline. Atomic no-replace write.");spec.operations.push_back(Operation{"frame_export",Access::Write,"Export a table inline or to an exclusive file","object",exportp});
+    auto select=common();select.emplace_back("columns",Type::Array,false,nullptr,std::vector<Json>{},"Selected columns in requested order.","",false,false,false,std::vector<std::string>{},Type::String);select.emplace_back("where",Type::Object,false,nullptr,std::vector<Json>{},"Predicate tree: and/or/not; col/op/value leaves with eq/ne/lt/le/gt/ge/isin/isnull/between/startswith/contains literal.");select.emplace_back("sort_by",Type::Array,false,Json::array(),std::vector<Json>{},"Stable sort list of {col,desc?}.","",false,false,false,std::vector<std::string>{},Type::Object);select.emplace_back("limit",Type::Integer,false,nullptr,std::vector<Json>{},"Maximum selected rows, 0..2M.");select.emplace_back("out",Type::String,true,nullptr,std::vector<Json>{},"New .npz table artifact.");spec.operations.push_back(Operation{"frame_select",Access::Write,"Structured filtering, column selection and stable sorting","object",select});
+    for(bool resample:{false,true}){auto params=common();if(resample){params.emplace_back("time",Type::String,true,nullptr,std::vector<Json>{},"Datetime column materialized as output bins; NaT rejected.");params.emplace_back("rule",Type::String,true,nullptr,std::vector<Json>{},"1..10000 followed by min,h,D,W,MS,ME,QS,YS; no other offset syntax.");for(const char* k:{"closed","label"})params.emplace_back(k,Type::String,false,"left",std::vector<Json>{"left","right"},"Bin edge closure or label.");}else{params.emplace_back("keys",Type::Array,true,nullptr,std::vector<Json>{},"Group key columns; output keys are ordinary columns.","",false,false,false,std::vector<std::string>{},Type::String);params.emplace_back("dropna",Type::Boolean,false,false,std::vector<Json>{},"Drop groups whose keys are missing.");}params.emplace_back("aggs",Type::Object,true,nullptr,std::vector<Json>{},"Column -> list of sum,mean,min,max,count,std,var,median,nunique,first,last. Outputs named column__function; std/var ddof=1.");params.emplace_back("out",Type::String,true,nullptr,std::vector<Json>{},"New .npz table artifact.");spec.operations.push_back(Operation{resample?"frame_resample":"frame_groupby",Access::Write,resample?"Timezone-aware bounded resampling":"Closed-function grouped aggregates, sorted keys and observed categories","object",params});}
     for(auto& op:spec.operations){std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }
