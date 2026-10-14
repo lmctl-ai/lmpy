@@ -197,8 +197,14 @@ S2 adds six narrow pandas operations:
 | `frame_groupby` | write | `keys` and column -> aggregation-list `aggs`; sorted keys, observed categories, optional `dropna` |
 | `frame_resample` | write | Datetime `time` column, validated `rule`, aggregation lists, left/right `closed` and `label`; DST-aware bins |
 
-Tables allow 2M rows, 256 columns, 256MiB files, 1MiB CSV fields, and <=1000
-inline cells in inputs or combined previews. Larger tables remain in artifacts.
+Tables allow 200,000 rows, 500,000 cells, 256 columns and 256MiB artifacts.
+CSV inputs are limited before spawn to 16MiB and UTF-8 string cells to 65,536 bytes.
+Inputs and combined previews allow <=1000 inline cells. Summaries have a 32KiB
+byte budget including metadata; the final response is limited to 64KiB. Preview
+strings truncate to 64 characters with `preview_truncated:true`; categories retain
+at most 20 levels with `n_categories`/`categories_truncated`, or metadata is omitted
+with `column_meta_in_artifact:true`. Inline exports are lossless or fail with
+OUTPUT_TOO_LARGE: use `out` for larger results. Full values remain in artifacts.
 A table artifact is a single **stored-only NPZ** (compressed archives are refused),
 with `__pycli_table__` UTF-8 JSON as a uint8 array, `cN` column arrays and `mN`
 boolean missing masks. NumPy reads always disable object deserialization. C++ checks
@@ -215,10 +221,13 @@ means missing for every table dtype; numeric `NA` also means missing, while
 `NaN`, `Inf`, `-Inf` are numeric values. String `NA` remains a literal string.
 CSV empty fields and explicit `na_values` are missing; quoted empty fields also
 count as missing. CSV defaults use strict integer/float/bool/string inference,
-reported in `inferred`; dates require `parse_dates` or a dtype override. Explicit
+reported in `inferred`; leading-zero or plus-prefixed CSV numeric tokens infer
+string to preserve identifiers. Numeric `NA` participates in nullable integer
+inference; numeric overrides reject underscores and non-decimal syntax. Dates require `parse_dates` or a dtype override. Explicit
 float overflow fails instead of becoming infinity. CSV exports use 17 significant
-digits and empty missing fields, so CSV cannot preserve all NA/NaN/type/category
-semantics; NPZ is the lossless handoff. JSON export is columnar, without hidden index.
+digits, explicit `NaN`/`Inf`/`-Inf` tokens and empty missing/NaT fields.
+With matching dtype policies, numeric nonfinite values and missing masks round-trip.
+CSV cannot preserve category policy or distinguish empty strings from null; NPZ is the lossless handoff. JSON export is columnar, without hidden index.
 
 Dtype objects accept `dtype` plus `tz` for datetime, or `categories`/`ordered` for
 category. Closed timezones: UTC, America/New_York, America/Chicago,
@@ -228,15 +237,21 @@ Aware ISO input requires explicit timezone; mixed aware/naive input is refused.
 Naive local DST ambiguity/nonexistent times fail; offset-bearing input disambiguates.
 Resample rejects NaT in its time column. Rules are 1..10000 plus
 `min`, `h`, `D`, `W`, `MS`, `ME`, `QS`, or `YS`; default closure and labels are left,
-including weekly rules. Bins and group keys are materialized as ordinary columns.
+except `ME` and `W`, which use pandas right/right defaults. Explicit options override these. Bins and group keys are materialized as ordinary columns.
 Aggregates use a closed function table: sum, mean, min, max, count, std, var,
 median, nunique, first, last. std/var use ddof=1; first/last skip missing values.
+Integer sums use exact Python integers and fail `INT64_OVERFLOW` (exit 1) if
+the result cannot fit int64; no wrapped artifact is written. String/category sums
+are rejected. Reductions return missing for undefined results (including singleton
+std); float NaN and masked null group keys merge into one missing group.
+Datetime cells and predicates accept dashed ISO dates/timestamps only; natural
+language and pandas special words are rejected. Empty CSV lines are ignored.
 Aggregate names are flattened as `column__function`; collisions fail.
 
 `where` uses `{and:[...]}`, `{or:[...]}`, `{not:...}`, or
 `{col:"name",op:"eq",value:"literal"}`. Leaf operators: eq/ne/lt/le/gt/ge,
 isin (list), isnull (no value), between (two inclusive bounds), startswith,
-contains (literal, no regex). Comparisons exclude masked null cells; isnull selects only the missing mask, not explicit float NaN. Numeric predicates require numbers (float columns also accept NaN/Inf/-Inf tokens), int64 predicates require int64 integers, bool predicates require booleans, and string/category predicates require strings. Datetime predicates require ISO literals with matching timezone awareness.
+contains (literal, no regex). Comparisons exclude masked null cells; isnull selects only the missing mask, not explicit float NaN. Numeric predicates require numbers (float columns also accept NaN/Inf/-Inf tokens), int64 predicates require integral int64 values (50.0 accepted; 50.5 refused), bool predicates require booleans, and string/category predicates require strings. Datetime predicates require ISO literals with matching timezone awareness.
 Predicate depth <=32 and nodes <=256. Column names and values are data.
 Pandas is imported only by frame ops; other Python ops report `meta.pandas:"unloaded"`.
 The audit guard remains defence in depth; the container is the process boundary.

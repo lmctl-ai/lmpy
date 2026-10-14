@@ -1,8 +1,51 @@
 """Fixed table operations; embedded with the main worker, never imported by path."""
-TABLE_ROWS = 2_000_000
+TABLE_ROWS = 200_000
 TABLE_COLS = 256
 TABLE_BYTES = 256 * 1024 * 1024
+TABLE_CELLS = 500_000
+STRING_BYTES = 65_536
+INLINE_BYTES = 32_768
 TABLE_TZ = {'UTC', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Europe/London', 'Europe/Berlin', 'Asia/Tokyo', 'Asia/Kolkata', 'Australia/Sydney'}
+
+
+def frame_iso(value):
+    import re
+    if not isinstance(value,str) or not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}(?:[T ][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]{1,9})?)?(?:Z|[+-][0-9]{2}:[0-9]{2})?)?',value):
+        raise BadData('datetime requires an ISO date or timestamp')
+    return value
+
+
+def frame_summary(result):
+    # Summaries have a byte budget including dtype/category metadata. Full data
+    # remains in the artifact; inline exports are lossless or refused.
+    import copy
+    result=copy.deepcopy(result)
+    for spec in result.get('column_meta',{}).values():
+        if 'categories' in spec:
+            levels=spec['categories'];spec['n_categories']=len(levels)
+            if len(levels)>20 or len(codec(levels).encode())>2048:
+                spec['categories']=levels[:20];spec['categories_truncated']=True
+    truncated=False
+    for key in ('preview','head','tail'):
+        for values in result.get(key,{}).get('data',{}).values():
+            for i,value in enumerate(values):
+                if isinstance(value,str) and len(value)>64:
+                    values[i]=value[:64];truncated=True
+    result['preview_truncated']=truncated
+    cells=sum(len(v) for key in ('preview','head','tail') for v in result.get(key,{}).get('data',{}).values())
+    for spec in result.get('column_meta',{}).values():
+        if 'categories' in spec and cells+len(spec['categories'])>1000:
+            spec['categories']=[];spec['categories_truncated']=True
+        cells+=len(spec.get('categories',[]))
+    if len(codec(result).encode())>INLINE_BYTES:
+        for key in ('preview','head','tail'):
+            if key in result:result[key]['data']={};result[key]['n_rows']=0
+        result['preview_truncated']=True
+    if len(codec(result).encode())>INLINE_BYTES:
+        result.pop('column_meta',None);result['column_meta_in_artifact']=True
+    if len(codec(result).encode())>INLINE_BYTES:
+        raise OutputTooLarge('table summary exceeds 32KiB')
+    return result
 
 
 def frame_columns(names):
@@ -36,7 +79,8 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=(), normaliz
         raise BadData('dtype override names an unknown column')
     lengths = {len(v) for v in data.values()}
     if len(lengths) != 1 or next(iter(lengths)) > TABLE_ROWS:
-        raise BadData('ragged columns or more than 2M rows')
+        raise BadData('ragged columns or more than 200000 rows')
+    if next(iter(lengths))*len(data)>TABLE_CELLS:raise BadData('table exceeds 500000 cells')
     series, meta, masks = {}, {}, {}
     for col, original in data.items():
         vals = list(original)
@@ -46,12 +90,14 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=(), normaliz
             vals = [None if v == '' or v in na_values else v for v in vals]
         spec = policies.get(col)
         if spec is None:
-            nonnull = [v for v in vals if v is not None]
+            nonnull = [v for v in vals if v is not None and (not from_csv or v != 'NA')]
             if from_csv:
                 import re
-                intpat = re.compile(r'[+-]?[0-9]+\Z')
+                intpat = re.compile(r'-?(?:0|[1-9][0-9]*)\Z')
                 floatpat = re.compile(r'[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?\Z')
-                if nonnull and all(intpat.fullmatch(v) for v in nonnull):
+                if any(v.startswith('+') or re.fullmatch(r'-?0[0-9]+',v) for v in nonnull):
+                    spec = 'string'
+                elif nonnull and all(intpat.fullmatch(v) for v in nonnull):
                     spec = 'int64'
                 elif nonnull and all(floatpat.fullmatch(v) or v in ('NA','NaN','Inf','-Inf') for v in nonnull):
                     spec = 'float64'
@@ -79,6 +125,9 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=(), normaliz
                         parsed.append(0);continue
                     if isinstance(v, bool) or isinstance(v, float) and (not normalized or not v.is_integer()):
                         raise BadData('int64 requires integral cells')
+                    if isinstance(v,str):
+                        import re
+                        if not re.fullmatch(r'[+-]?[0-9]+',v):raise BadData('invalid int64 token')
                     n = int(v)
                     if not -(1 << 63) <= n < (1 << 63):
                         raise BadData('int64 cell out of range')
@@ -91,6 +140,9 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=(), normaliz
                         parsed.append(np.nan);continue
                     if isinstance(v, bool):
                         raise BadData('float64 does not accept bool')
+                    if isinstance(v,str) and v not in ('NaN','Inf','-Inf'):
+                        import re
+                        if not re.fullmatch(r'[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?',v):raise BadData('invalid float64 token')
                     n = float({'NaN': 'nan', 'Inf': 'inf', '-Inf': '-inf'}.get(v, v) if isinstance(v,str) else v)
                     if not math.isfinite(n) and v not in ('NaN', 'Inf', '-Inf'):
                         raise BadData('float64 overflow; use explicit nonfinite tokens')
@@ -114,12 +166,15 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=(), normaliz
             elif dtype in ('string','category'):
                 if any(v is not None and not isinstance(v,str) for v in vals):
                     raise BadData('string/category requires strings')
+                if any(v is not None and len(v.encode('utf-8'))>STRING_BYTES for v in vals):raise BadData('string width exceeds 65536 UTF-8 bytes')
                 if dtype == 'string':
                     s = pd.Series(vals,dtype='string')
                 else:
-                    levels = spec.get('categories', sorted({v for v in vals if v is not None}))
-                    if not isinstance(levels,list) or any(not isinstance(v,str) for v in levels) or len(set(levels)) != len(levels) or any(v is not None and v not in levels for v in vals):
+                    levels = spec.get('categories', list(dict.fromkeys(v for v in vals if v is not None)))
+                    if not isinstance(levels,list) or any(not isinstance(v,str) for v in levels) or len(set(levels)) != len(levels) :
                         raise BadData('invalid category levels')
+                    levelset=set(levels)
+                    if any(v is not None and v not in levelset for v in vals):raise BadData('invalid category levels')
                     spec.update(categories=levels,ordered=bool(spec.get('ordered',False)))
                     s = pd.Series(pd.Categorical(vals,categories=levels,ordered=spec['ordered']))
             else:
@@ -127,6 +182,8 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=(), normaliz
                 if any(v is not None and not isinstance(v,str) for v in vals):
                     raise BadData('datetime cells require ISO strings')
                 # ISO only. Mixed naive/aware is rejected; naive local DST ambiguity raises.
+                for v in vals:
+                    if v is not None:frame_iso(v)
                 aware = [pd.Timestamp(v).tzinfo is not None for v in vals if v is not None]
                 if aware and any(aware) != all(aware):
                     raise BadData('cannot mix naive and aware datetimes')
@@ -180,7 +237,7 @@ def frame_load(p):
                         raise BadData('table dtype mismatch')
                     elif dtype=='datetime64[ns]':
                         s=pd.Series(pd.to_datetime(raw,unit='ns',utc=bool(spec.get('tz'))))
-                        if spec.get('tz'):s=s.dt.tz_convert(spec['tz'])
+                        if spec.get('tz'):s=s.dt.tz_convert(spec['tz']).copy()
                         s[mask]=pd.NaT
                         if not np.array_equal(s.isna().to_numpy(),mask):raise BadData('NaT/mask mismatch')
                     elif dtype=='category':
@@ -203,6 +260,7 @@ def frame_load(p):
             rows=csv.reader(f,delimiter=p.get('delimiter',','),strict=True)
             names=next(rows);frame_columns(names);data={col:[] for col in names}
             for row in rows:
+                if not row:continue
                 if len(row)!=len(names):raise BadData('ragged CSV')
                 for col,v in zip(names,row):data[col].append(v)
         iscsv=True
@@ -246,7 +304,7 @@ def frame_preview(df,meta,masks,indices):
 
 def frame_save(df,meta,masks,p,inferred):
     import numpy as np
-    if len(df)>TABLE_ROWS or len(df.columns)>TABLE_COLS:raise OutputTooLarge('table output cap exceeded')
+    if len(df)>TABLE_ROWS or df.size>TABLE_CELLS or len(df.columns)>TABLE_COLS:raise OutputTooLarge('table output cap exceeded')
     frame_columns(list(df.columns));arrays={}
     # Fixed-width byte strings can expand a tiny CSV into gigabytes. Budget every
     # column and mask before constructing any storage array (including siblings).
@@ -257,7 +315,9 @@ def frame_save(df,meta,masks,p,inferred):
         if dtype=='string':
             values=[('' if m else str(v)).encode('utf-8') for v,m in zip(df[col],masks[col])]
             if any(b'\x00' in v for v in values):raise BadData('NUL in strings unsupported')
-            width=max(1,max(map(len,values),default=0));string_values[col]=(values,width)
+            width=max(1,max(map(len,values),default=0));
+            if width>STRING_BYTES:raise BadData('string width exceeds 65536 UTF-8 bytes')
+            string_values[col]=(values,width)
         else:
             width=1 if dtype=='bool' else 8
         projected+=len(df)*(width+1)
@@ -279,7 +339,7 @@ def frame_save(df,meta,masks,p,inferred):
     if sum(a.nbytes for a in arrays.values())>TABLE_BYTES-1024*1024:raise OutputTooLarge('table artifact exceeds 256MiB')
     np.savez(p['output_file'],allow_pickle=False,**arrays)
     if os.path.getsize(p['output_file'])>TABLE_BYTES:raise OutputTooLarge('table artifact exceeds 256MiB')
-    return {'status':'OK','shape':[len(df),len(df.columns)],'column_meta':meta,'inferred':inferred,'preview':frame_preview(df,meta,masks,range(min(len(df),min(10,1000//len(df.columns)))))}
+    return frame_summary({'status':'OK','shape':[len(df),len(df.columns)],'column_meta':meta,'inferred':inferred,'preview':frame_preview(df,meta,masks,range(min(len(df),min(10,1000//len(df.columns)))))})
 
 
 def frame_predicate(df,node,meta,masks):
@@ -297,7 +357,8 @@ def frame_predicate(df,node,meta,masks):
             if isinstance(value,str) and value in ('NaN','Inf','-Inf'):return float({'NaN':'nan','Inf':'inf','-Inf':'-inf'}[value])
             if not isinstance(value,(int,float)) or isinstance(value,bool):raise BadData('numeric predicate requires numbers or nonfinite tokens')
         elif dtype=='int64':
-            if not isinstance(value,int) or isinstance(value,bool) or not -(1<<63)<=value<(1<<63):raise BadData('int64 predicate requires int64 values')
+            if isinstance(value,float) and math.isfinite(value) and value.is_integer():value=int(value)
+            if not isinstance(value,int) or isinstance(value,bool) or not -(1<<63)<=value<(1<<63):raise BadData('int64 predicate requires integral int64 values')
         elif dtype=='bool':
             if not isinstance(value,bool):raise BadData('bool predicate requires booleans')
         elif dtype in ('string','category'):
@@ -305,7 +366,7 @@ def frame_predicate(df,node,meta,masks):
         else:
             if not isinstance(value,str):raise BadData('datetime predicate requires ISO strings')
             try:
-                timestamp=pd.Timestamp(value)
+                timestamp=pd.Timestamp(frame_iso(value))
                 if pd.isna(timestamp) or (timestamp.tzinfo is not None)!=bool(meta[col].get('tz')):raise BadData('datetime predicate awareness mismatch')
                 # The literal must be ISO, not pandas natural-language date syntax.
                 pd.to_datetime([value],format='ISO8601',utc=bool(meta[col].get('tz')))
@@ -326,7 +387,13 @@ def frame_predicate(df,node,meta,masks):
     except (TypeError, ValueError, AttributeError) as exc:raise BadData('invalid predicate for column dtype') from exc
 
 
-def frame_aggregations(df,aggs):
+def frame_exact_sum(s):
+    total=sum(int(v) for v in s.dropna())
+    if not -(1<<63)<=total<(1<<63):raise Int64Overflow('int64 sum overflow')
+    return total
+
+
+def frame_aggregations(df,aggs,meta):
     import pandas as pd
     # Caller names select our function objects, never pandas string dispatch.
     functions={'sum':pd.Series.sum,'mean':pd.Series.mean,'min':pd.Series.min,'max':pd.Series.max,'count':pd.Series.count,'std':pd.Series.std,'var':pd.Series.var,'median':pd.Series.median,'nunique':pd.Series.nunique,'first':lambda s:s.dropna().iloc[0] if len(s.dropna()) else None,'last':lambda s:s.dropna().iloc[-1] if len(s.dropna()) else None}
@@ -336,7 +403,9 @@ def frame_aggregations(df,aggs):
         for op in ops:
             name=col+'__'+op
             if name in df or name in out:raise BadData('flattened aggregation name collision')
-            out[name]=pd.NamedAgg(column=col,aggfunc=functions[op])
+            if op=='sum' and meta[col]['dtype'] in ('string','category'):raise BadData('sum requires numeric columns')
+            function=frame_exact_sum if op=='sum' and meta[col]['dtype']=='int64' else functions[op]
+            out[name]=pd.NamedAgg(column=col,aggfunc=function)
     return out
 
 
@@ -358,25 +427,30 @@ def frame_operation(op,p):
             numeric=[c for c in df if meta[c]['dtype'] in ('int64','float64')]
             if len(numeric)*8+ (min(head,len(df))+min(tail,len(df)))*len(df.columns)>1000:raise OutputTooLarge('describe plus preview exceeds 1000 cells')
             result['describe']={c:{str(k):float(v) for k,v in df[c].describe().items()} for c in numeric}
-        return result
+        return frame_summary(result)
     if op=='frame_export':
         if not p.get('output_file') and df.size>1000:raise OutputTooLarge('inline export exceeds 1000 cells; pass out')
         if p['format']=='json':
             table=frame_preview(df,meta,masks,range(len(df)))
             if p.get('output_file'):
                 with open(p['output_file'],'w',encoding='utf-8') as f:f.write(codec(table))
-            else:return {'table':table}
+            else:
+                result={'table':table}
+                if len(codec(result).encode())>INLINE_BYTES:raise OutputTooLarge('inline export exceeds 32KiB; pass out')
+                return result
         else:
             import csv
             def rows():
                 yield list(df.columns)
                 for i in range(len(df)):
-                    yield [('' if masks[c][i] else format(float(df[c].iloc[i]),'.17g') if meta[c]['dtype']=='float64' else df[c].iloc[i].isoformat() if meta[c]['dtype']=='datetime64[ns]' else str(df[c].iloc[i])) for c in df]
+                    yield [('' if masks[c][i] else ('NaN' if math.isnan(float(df[c].iloc[i])) else 'Inf' if float(df[c].iloc[i])==math.inf else '-Inf' if float(df[c].iloc[i])==-math.inf else format(float(df[c].iloc[i]),'.17g')) if meta[c]['dtype']=='float64' else df[c].iloc[i].isoformat() if meta[c]['dtype']=='datetime64[ns]' else str(df[c].iloc[i])) for c in df]
             if p.get('output_file'):
                 with open(p['output_file'],'w',encoding='utf-8',newline='') as f:csv.writer(f,lineterminator='\n').writerows(rows())
             else:
                 import io
-                f=io.StringIO();csv.writer(f,lineterminator='\n').writerows(rows());return {'csv':f.getvalue()}
+                f=io.StringIO();csv.writer(f,lineterminator='\n').writerows(rows())
+                if len(f.getvalue().encode())>INLINE_BYTES:raise OutputTooLarge('inline export exceeds 32KiB; pass out')
+                return {'csv':f.getvalue()}
         return {'status':'OK','shape':[len(df),len(df.columns)]}
     if op=='frame_select':
         if 'where' in p:df=df.loc[frame_predicate(df,p['where'],meta,masks)]
@@ -391,7 +465,7 @@ def frame_operation(op,p):
             df=df[names]
         masks={c:masks[c][df.index.to_numpy()] for c in df};meta={c:meta[c] for c in df};df=df.reset_index(drop=True)
     elif op in ('frame_groupby','frame_resample'):
-        aggs=frame_aggregations(df,p['aggs'])
+        aggs=frame_aggregations(df,p['aggs'],meta)
         try:
             if op=='frame_groupby':
                 keys=p['keys']
@@ -409,7 +483,7 @@ def frame_operation(op,p):
                     count,unit=re.fullmatch(r'([1-9][0-9]*)(min|h|D|W|MS|ME|QS|YS)',p['rule']).groups()
                     seconds={'min':60,'h':3600,'D':82800,'W':7*82800,'MS':28*82800,'ME':28*82800,'QS':84*82800,'YS':365*82800}[unit]*int(count)
                     if (df[timecol].max()-df[timecol].min()).total_seconds()/seconds+3>TABLE_ROWS:raise BadData('resample bin count exceeds cap')
-                out=df.resample(p['rule'],on=timecol,closed=p.get('closed','left'),label=p.get('label','left')).agg(**aggs).reset_index()
+                out=df.resample(p['rule'],on=timecol,closed=p.get('closed','right' if p['rule'].endswith(('ME','W')) else 'left'),label=p.get('label','right' if p['rule'].endswith(('ME','W')) else 'left')).agg(**aggs).reset_index()
         except (ValueError, TypeError) as exc:raise BadData('invalid aggregation: '+str(exc)) from exc
         data={c:[None if pd.isna(v) else ('Inf' if v>0 else '-Inf') if isinstance(v,(float,np.floating)) and math.isinf(float(v)) else v.isoformat() if isinstance(v,pd.Timestamp) else v.item() if isinstance(v,np.generic) else v for v in out[c]] for c in out}
         policies={c:meta[c] for c in (p['keys'] if op=='frame_groupby' else [p['time']])}

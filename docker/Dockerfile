@@ -68,5 +68,6 @@ COPY THIRD_PARTY_NOTICES.md /usr/share/doc/pycli/THIRD_PARTY_NOTICES.md
 COPY licenses /usr/share/doc/pycli/upstream
 COPY scripts/prune.py /prune.py
 # Hide pip already present in the base; no scientific test bytes were copied.
-RUN python /prune.py && rm /prune.py
+RUN python /prune.py && rm /prune.py \
+ && python -m compileall -q -f -j2 --invalidation-mode checked-hash -x /site-packages/ /usr/local/lib/python3.12
 ENTRYPOINT ["/usr/local/bin/pycli"]

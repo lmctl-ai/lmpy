@@ -38,6 +38,10 @@ class BadData(ValueError):
     pass
 
 
+class Int64Overflow(ArithmeticError):
+    pass
+
+
 class OutputTooLarge(OverflowError):
     pass
 
@@ -409,7 +413,7 @@ def main():
                           'import_ms': (imported-start)*1000, 'elapsed_ms': (time.monotonic()-start)*1000}
         response = {'ok': True, 'result': result}
     except Exception as exc:
-        code = 'OUTPUT_TOO_LARGE' if isinstance(exc, OutputTooLarge) else 'BAD_DATA' if isinstance(exc, BadData) else 'PY_ERROR'
+        code = 'INT64_OVERFLOW' if isinstance(exc, Int64Overflow) else 'OUTPUT_TOO_LARGE' if isinstance(exc, OutputTooLarge) else 'BAD_DATA' if isinstance(exc, BadData) else 'PY_ERROR'
         response = {'ok': False, 'tool_code': code, 'message': str(exc), 'exception': type(exc).__name__}
     grouped = {}
     for warning in captured:

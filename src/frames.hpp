@@ -1,7 +1,7 @@
 // Bounded, stored-only NPZ preflight. No decompressor or caller dtype dispatch.
 #pragma once
 namespace frames {
-constexpr uint64_t ROWS=2000000, BYTES=256*1024*1024, COLS=256;
+constexpr uint64_t ROWS=200000, BYTES=256*1024*1024, COLS=256, CELLS=500000, CSV_BYTES=16*1024*1024, STRING_BYTES=65536;
 inline void bad(const std::string& s){invalid(s,"BAD_DATA");}
 inline uint64_t le(const std::string& b,size_t p,size_t n){if(p>b.size()||n>b.size()-p)bad("truncated table ZIP");uint64_t v=0;for(size_t i=0;i<n;++i)v|=uint64_t(static_cast<unsigned char>(b[p+i]))<<(8*i);return v;}
 inline std::string bounded_read(const std::string& path){std::ifstream f(path,std::ios::binary);std::string b;char buf[65536];while(f){f.read(buf,sizeof buf);auto n=f.gcount();if(b.size()+n>BYTES)bad("table file exceeds 256 MiB");b.append(buf,n);}if(!f.eof())bad("cannot read table");return b;}
@@ -24,6 +24,7 @@ inline Json npz(const std::string& b){
   auto compressed=le(b,p+20,4),bytes=le(b,p+24,4),nl=le(b,p+28,2),extra=le(b,p+30,2),comment=le(b,p+32,2),local=le(b,p+42,4);
   if(bytes!=compressed||bytes>BYTES||total>BYTES-bytes||!nl||nl>64||extra||comment||le(b,p+34,2))bad("table ZIP member cap/format");total+=bytes;
   if(p+46+nl> end)bad("truncated ZIP name");std::string name=b.substr(p+46,nl);
+  if(name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.")!=std::string::npos)bad("invalid table member name bytes");
   if(name.find('/')!=std::string::npos||name.find('\\')!=std::string::npos||!seen.insert(name).second||name.size()<5||name.substr(name.size()-4)!=".npy")bad("invalid table member name");
   if(le(b,local,4)!=0x04034b50||le(b,local+6,2)||le(b,local+8,2)||le(b,local+26,2)!=nl)bad("invalid table local header");
   auto lextra=le(b,local+28,2);if(lextra!=0&&lextra!=20)bad("unexpected local ZIP extra");
@@ -38,7 +39,7 @@ inline Json npz(const std::string& b){
   else if(parsed.descr=="|b1"||parsed.descr=="|u1")width=1;
   else if(parsed.descr.rfind("|S",0)==0){auto s=parsed.descr.substr(2);if(s.empty()||s.size()>7||s.find_first_not_of("0123456789")!=std::string::npos)bad("invalid UTF-8 byte array dtype");width=std::stoull(s);}
   else bad("object or unsupported table array dtype");
-  if(!width||width>1024*1024||n>ROWS||n>BYTES/width||10+h+n*width!=bytes)bad("table array cap/payload mismatch");
+  if(!width||width>STRING_BYTES||n>ROWS||n>BYTES/width||10+h+n*width!=bytes)bad("table array cap/payload mismatch");
   if(name=="__pycli_table__.npy"){
    if(parsed.descr!="|u1"||n>1024*1024)bad("invalid metadata array");
    try{metadata=Json::parse(b.substr(data+10+h,n),[](int depth,Json::parse_event_t,Json&){if(depth>32)bad("table metadata nesting cap");return true;});}catch(const Json::exception&){bad("invalid table metadata JSON");}
@@ -48,16 +49,19 @@ inline Json npz(const std::string& b){
  }
  if(p!=end||!seen.count("__pycli_table__.npy"))bad("missing table metadata or trailing directory bytes");
  std::sort(spans.begin(),spans.end());uint64_t next=0;for(auto& s:spans){if(s.first!=next)bad("ZIP member overlap or gap");next=s.second;}if(next!=offset)bad("unexpected bytes before directory");
+ std::set<std::string> expected={"__pycli_table__.npy"};for(size_t i=0;i<metadata["columns"].size();++i){expected.insert("c"+std::to_string(i)+".npy");expected.insert("m"+std::to_string(i)+".npy");}if(seen!=expected)bad("unexpected table members");
+ if(metadata["n_rows"].get<uint64_t>()*metadata["columns"].size()>CELLS)bad("table exceeds 500000 cells");
  return metadata;
 }
 inline void csv(const std::string& b,const std::string& delimiter,uint64_t maxrows){
  if(delimiter.size()!=1||delimiter[0]=='"'||delimiter[0]=='\r'||delimiter[0]=='\n'||delimiter[0]=='\0')bad("delimiter must be one non-control byte");
+ if(b.size()>CSV_BYTES)invalid("CSV exceeds 16MiB byte budget","INPUT_TOO_LARGE");
  utf8(b);
  bool quoted=false,after=false,start=true;uint64_t field=0,fields=1,rows=0,expected=0;std::string value;Json header=Json::array();
  auto finishfield=[&]{if(rows==0)header.push_back(value);value.clear();field=0;start=true;after=false;};
- auto finishrow=[&]{finishfield();if(!rows){expected=fields;names(header);}else if(fields!=expected)bad("ragged CSV");if(rows++>maxrows)bad("CSV row cap exceeded");fields=1;};
+ auto finishrow=[&]{if(rows&&start&&fields==1&&field<=1){field=0;return;}finishfield();if(!rows){expected=fields;names(header);}else if(fields!=expected)bad("ragged CSV");if(rows++>maxrows)invalid("CSV row cap exceeded","INPUT_TOO_LARGE");if((rows-1)*expected>CELLS)invalid("CSV exceeds 500000 cell budget","INPUT_TOO_LARGE");fields=1;};
  size_t i=b.compare(0,3,"\xef\xbb\xbf")==0?3:0;bool pending=false;
- for(;i<b.size();++i){char c=b[i];if(c=='\0')bad("NUL in CSV");pending=true;if(++field>1024*1024)bad("CSV field exceeds 1MiB");
+ for(;i<b.size();++i){char c=b[i];if(c=='\0')bad("NUL in CSV");pending=true;if(++field>STRING_BYTES+2)invalid("CSV string width exceeds 65536 bytes","INPUT_TOO_LARGE");
   if(quoted){if(c=='"'){if(i+1<b.size()&&b[i+1]=='"'){if(!rows)value+='"';++i;}else{quoted=false;after=true;}}else if(!rows)value+=c;continue;}
   if(c==delimiter[0]){finishfield();if(++fields>COLS)bad("CSV column cap exceeded");continue;}
   if(c=='\r'||c=='\n'){if(c=='\r'){if(i+1>=b.size()||b[i+1]!='\n')bad("CSV requires LF or CRLF");++i;}finishrow();pending=false;continue;}
