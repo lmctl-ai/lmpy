@@ -9,7 +9,8 @@ NUMPY_DTYPE = {'F64': '<f8', 'F32': '<f4', 'I64': '<i8', 'I32': '<i4', 'U8': 'u1
 
 def read_safetensors(path):
     """Strict independent reader: returns {key: ndarray}; asserts a canonical layout."""
-    raw = open(path, 'rb').read()
+    with open(path, 'rb') as f:
+        raw = f.read()
     n = struct.unpack('<Q', raw[:8])[0]
     assert 8 + n <= len(raw)
     header = json.loads(raw[8:8 + n])

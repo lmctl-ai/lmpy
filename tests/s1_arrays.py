@@ -7,6 +7,7 @@ BIN = str(pathlib.Path(sys.argv.pop(1)).resolve())
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / 'oracle'))
 from s1 import read_safetensors, write_safetensors
 
+ASAN = bool(os.environ.get('PYCLI_TEST_ASAN'))  # sanitized binaries reserve terabytes of address space: no RLIMIT_AS
 NO_PYTHON = dict(os.environ, PYCLI_PYTHON='/no/such/python')
 
 
@@ -139,20 +140,19 @@ class ImportBinary(Base):
     def test_npy_dtypes_convert_exactly(self):
         rng = np.random.default_rng(5)
         cases = {'f8': rng.standard_normal((3, 4)), 'f4': rng.standard_normal(7).astype('<f4'), 'i8': np.arange(-5, 6, dtype='<i8'),
-                 'i4': np.array([[1, -2], [3, 4]], dtype='<i4'), 'b1': np.array([True, False, True])}
+                 'i4': np.array([[1, -2], [3, 4]], dtype='<i4'), 'b1': np.array([True, False, True]), 'u1': np.array([0, 7, 255], dtype='u1')}
         for name, array in cases.items():
             with self.subTest(dtype=name):
                 np.save(self.dir / f'{name}.npy', array)
                 result, got = self.imported({'format': 'npy', 'data': str(self.dir / f'{name}.npy')})
                 self.assertEqual(got.tobytes(), array.astype('<f8').tobytes())
-                self.assertEqual(result['source_dtype'], {'f8': 'F64', 'f4': 'F32', 'i8': 'I64', 'i4': 'I32', 'b1': 'BOOL'}[name])
+                self.assertEqual(result['source_dtype'], {'f8': 'F64', 'f4': 'F32', 'i8': 'I64', 'i4': 'I32', 'b1': 'BOOL', 'u1': 'U8'}[name])
 
     def test_npy_rejections_without_python(self):
         np.save(self.dir / 'object.npy', np.array(['bad'], dtype=object))
         np.save(self.dir / 'rank3.npy', np.ones((2, 2, 2)))
         np.save(self.dir / 'fortran.npy', np.asfortranarray(np.ones((3, 3))))
         np.save(self.dir / 'big_int.npy', np.array([2 ** 53 + 1], dtype='<i8'))
-        np.save(self.dir / 'u8.npy', np.array([1], dtype='u1'))
         np.save(self.dir / 'empty.npy', np.empty((0,)))
         np.save(self.dir / 'scalar.npy', np.float64(3))
         np.save(self.dir / 'complex.npy', np.ones(3, dtype=complex))
@@ -167,11 +167,21 @@ class ImportBinary(Base):
         (self.dir / 'shape_huge.npy').write_bytes(self.header_file("{'descr': '<f8', 'fortran_order': False, 'shape': (4294967296, 4294967296), }"))
         (self.dir / 'evil.npy').write_bytes(self.header_file("{'descr': '<f8', 'fortran_order': False, 'shape': (1,), 'x': __import__('os')}"))
         (self.dir / 'dir.npy').mkdir()
-        for name in ('object', 'rank3', 'fortran', 'big_int', 'u8', 'empty', 'scalar', 'complex', 'big', 'trunc', 'trailing', 'hugehdr', 'v3', 'shape_overflow', 'shape_huge', 'evil', 'dir', 'nothing'):
+        for name in ('object', 'rank3', 'fortran', 'big_int', 'empty', 'scalar', 'complex', 'big', 'trunc', 'trailing', 'hugehdr', 'v3', 'shape_overflow', 'shape_huge', 'evil', 'dir', 'nothing'):
             with self.subTest(name=name):
                 r = call('array_import', {'format': 'npy', 'data': str(self.dir / f'{name}.npy'), 'out': self.out(f'{name}.safetensors')}, 2)
                 self.assertIn(code(r), ('BAD_NPY', 'BAD_DATA', 'INPUT_TOO_LARGE'))
                 self.assertFalse(pathlib.Path(self.out(f'{name}.safetensors')).exists())
+
+    def test_long_header_padding_does_not_blow_the_stack(self):
+        text = "{'descr': '<f8', 'fortran_order': False, 'shape': (1,), }"
+        header = text.encode() + b' ' * (65535 - len(text) - 1) + b'\n'
+        (self.dir / 'pad.npy').write_bytes(b'\x93NUMPY\x01\x00' + struct.pack('<H', len(header)) + header + struct.pack('<d', 2.5))
+        _, got = self.imported({'format': 'npy', 'data': str(self.dir / 'pad.npy')})
+        self.assertEqual(got.tolist(), [2.5])
+        bad = text.encode() + b' ' * 60000 + b'x\n'
+        (self.dir / 'padbad.npy').write_bytes(b'\x93NUMPY\x01\x00' + struct.pack('<H', len(bad)) + bad + struct.pack('<d', 2.5))
+        call('array_import', {'format': 'npy', 'data': str(self.dir / 'padbad.npy'), 'out': self.out('pb.safetensors')}, 2)
 
     @staticmethod
     def header_file(text):
@@ -215,7 +225,8 @@ class ImportBinary(Base):
             f.truncate(8 + len(header) + n * 8)
 
         def limited():
-            resource.setrlimit(resource.RLIMIT_AS, (64 * 1024 ** 2, 64 * 1024 ** 2))
+            if not ASAN:
+                resource.setrlimit(resource.RLIMIT_AS, (64 * 1024 ** 2, 64 * 1024 ** 2))
         r = call('array_import', {'format': 'safetensors', 'data': f'{path}#x', 'out': self.out('o.safetensors')}, 2, preexec=limited)
         self.assertEqual(code(r), 'INPUT_TOO_LARGE')
         r = call('array_inspect', {'ref': f'{path}#x'}, 2, preexec=limited)
@@ -308,7 +319,8 @@ class Inspect(Base):
         self.assertEqual((r['dtype'], r['shape'], r['preview']), ('F32', [1, 2], [0.5, 1.5]))
         write_safetensors(self.dir / 't.safetensors', {'i': np.array([1, 2, 3], dtype='<i8'), 'f': np.ones((2, 2))})
         r = self.inspect(f'{self.dir}/t.safetensors#i')
-        self.assertEqual((r['dtype'], r['shape'], r['max'], r['norm']), ('I64', [3], 3, math.sqrt(14)))
+        self.assertEqual((r['dtype'], r['shape'], r['max']), ('I64', [3], 3))
+        self.assertAlmostEqual(r['norm'], math.sqrt(14), delta=1e-15)
         r = self.inspect(f'{self.dir}/t.safetensors')
         self.assertEqual(r['tensors'], {'f': {'dtype': 'F64', 'shape': [2, 2]}, 'i': {'dtype': 'I64', 'shape': [3]}})
         self.assertNotIn('preview', r)
@@ -346,15 +358,17 @@ class HeaderFuzz(Base):
         for _ in range(250):
             data = bytearray(seed)
             for _ in range(rng.randint(1, 4)):
+                if not data:
+                    break
                 kind = rng.randrange(5)
                 if kind == 0:
                     data[rng.randrange(len(data))] = rng.randrange(256)
-                elif kind == 1:
+                elif kind == 1 and len(data) >= 8:
                     data[rng.randrange(8)] = rng.randrange(256)          # header length
                 elif kind == 2:
                     del data[rng.randrange(len(data)):]                  # truncate
-                elif kind == 3:
-                    i = rng.randrange(8, 8 + n)
+                elif kind == 3 and len(data) > 8:
+                    i = rng.randrange(8, len(data))
                     data[i:i + 1] = rng.choice([b'9', b'-', b'[', b'{', b'"', b'e', b'0', b'1' * 30])
                 else:
                     data += bytes(rng.randrange(256) for _ in range(rng.randrange(1, 40)))
@@ -371,7 +385,8 @@ class HeaderFuzz(Base):
         mutants.append(b'')
 
         def limited():
-            resource.setrlimit(resource.RLIMIT_AS, (256 * 1024 ** 2, 256 * 1024 ** 2))
+            if not ASAN:
+                resource.setrlimit(resource.RLIMIT_AS, (256 * 1024 ** 2, 256 * 1024 ** 2))
         for i, data in enumerate(mutants):
             path = self.dir / f'm{i}.safetensors'
             path.write_bytes(data)

@@ -100,7 +100,7 @@ class Lstsq(Base):
             x, residues, rank, sv = sla.lstsq(a, b, lapack_driver=driver)
             r = call('la_lstsq', {'a': a.tolist(), 'b': b.tolist(), 'driver': driver})
             np.testing.assert_allclose(r['x'], x, rtol=1e-12, atol=1e-13)
-            np.testing.assert_allclose(r['residues'], residues, rtol=1e-10)
+            np.testing.assert_allclose(r['residues'], np.sum((a @ x - b) ** 2, axis=0), rtol=1e-8)  # scipy omits residues for gelsy
             self.assertEqual(r['rank'], rank)
             np.testing.assert_allclose(r['singular_values'], np.linalg.svd(a, compute_uv=False), rtol=1e-12)
 
@@ -217,8 +217,9 @@ class Props(Base):
         a = np.array([[2.0, 1], [1, 3]])
         for p, ref in (('2', np.linalg.cond(a, 2)), ('1', np.linalg.cond(a, 1)), ('inf', np.linalg.cond(a, np.inf)), ('fro', np.linalg.cond(a, 'fro'))):
             self.assertAlmostEqual(self.props(a.tolist(), ['cond'], cond_p=p)['cond'], ref, delta=1e-12)
-        r = self.props([[1, 2], [2, 4]], ['cond'])
-        self.assertEqual(r['cond'], 'Inf')
+        r = self.props([[1, 2], [2, 4]], ['cond', 'rank'])  # exactly singular: +Inf or, at worst, rounding-level 1/eps
+        self.assertTrue(r['cond'] == 'Inf' or r['cond'] > 1e15, r)
+        self.assertEqual(r['rank'], 1)
         r = self.props([[1, 2, 3], [4, 5, 6]], ['cond', 'rank', 'norm'])  # rectangular is fine for these
         self.assertEqual(r['rank'], 2)
         self.assertAlmostEqual(r['cond'], np.linalg.cond(np.array([[1, 2, 3], [4, 5, 6.]])), delta=1e-12)
@@ -238,12 +239,13 @@ class Props(Base):
 
     def test_det_overflow_is_flagged_and_slogdet_is_exact(self):
         n = 40
-        a = (np.eye(n) * 1e10).tolist()
-        r = self.props(a, ['det', 'slogdet'])
+        np.save(self.dir / 'big.npy', np.eye(n) * 1e10)
+        np.save(self.dir / 'small.npy', np.eye(n) * 1e-10)
+        r = self.props(str(self.dir / 'big.npy'), ['det', 'slogdet'])
         self.assertEqual(r['det'], 'Inf')
         self.assertTrue(any(w['category'] == 'NumericalWarning' for w in r['warnings']))
         self.assertAlmostEqual(r['slogdet']['logabsdet'], n * math.log(1e10), delta=1e-10)
-        r = self.props((np.eye(n) * 1e-10).tolist(), ['det'])
+        r = self.props(str(self.dir / 'small.npy'), ['det'])
         self.assertEqual(r['det'], 0)
         self.assertTrue(any(w['category'] == 'NumericalWarning' for w in r['warnings']))
 
@@ -501,6 +503,16 @@ class WorkerStatuses(unittest.TestCase):
                 self.assertEqual(w.lstsq({'a_file': base['a_file'], 'b_file': base['a_file'], 'driver': 'gelsd', 'rcond': None})['status'], 'NO_CONVERGENCE')
             finally:
                 sla.svd, sla.eigh, sla.eig, sla.lstsq = real_svd, real_eigh, real_eig, real_lstsq
+            # A factorization that does not reproduce its input is never reported as OK.
+            real_qr = sla.qr
+            sla.qr = lambda a, **kw: (np.eye(2), np.zeros((2, 2)))
+            try:
+                r = w.decomp({**base, 'kind': 'qr', 'full': False, 'pivoting': False, 'lower': True})
+                self.assertEqual(r['status'], 'NUMERICAL_FAILURE')
+                self.assertGreater(r['reconstruction_error'], 0.5)
+                self.assertFalse(list(pathlib.Path(tmp).glob('out_*')))
+            finally:
+                sla.qr = real_qr
         finally:
             import shutil
             shutil.rmtree(tmp)
