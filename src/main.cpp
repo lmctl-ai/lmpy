@@ -1,7 +1,10 @@
 #include <lmcpp/lmcpp.hpp>
 #include "worker.hpp"
 #include "safetensors.hpp"
+#include "expr_parser.hpp"
 #include <filesystem>
+#include <iostream>
+#include <map>
 #include <fstream>
 #include <algorithm>
 #include <cerrno>
@@ -24,7 +27,7 @@ void cleanup_signal(int sig) {
     // All per-call filenames are fixed; signal cleanup uses POSIX-safe calls only.
     if(!active_dir[0])_exit(128+sig);
     char path[4096];
-    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","x.npy","output.bin","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","frame.npz","input.csv","table.npz","export.bin"}){
+    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","x.npy","output.bin","expr_spec.json","d_0.npy","d_1.npy","d_2.npy","d_3.npy","d_4.npy","d_5.npy","d_6.npy","d_7.npy","d_8.npy","d_9.npy","d_10.npy","d_11.npy","d_12.npy","d_13.npy","d_14.npy","d_15.npy","d_16.npy","d_17.npy","d_18.npy","d_19.npy","d_20.npy","d_21.npy","d_22.npy","d_23.npy","d_24.npy","d_25.npy","d_26.npy","d_27.npy","d_28.npy","d_29.npy","d_30.npy","d_31.npy","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","frame.npz","input.csv","table.npz","export.bin"}){
         size_t n=0;while(active_dir[n] && n<sizeof(path)-64){path[n]=active_dir[n];++n;}
         path[n++]='/';while(*file)path[n++]=*file++;path[n]=0;unlink(path);
     }
@@ -280,6 +283,192 @@ size_t inline_numbers(const Json& v,const std::string& key=""){
     else if(v.is_object())for(auto it=v.begin();it!=v.end();++it)n+=inline_numbers(it.value(),it.key());
     return n;
 }
+// ---- S3: safe expressions, optimisation, quadrature, roots. Everything caller-supplied is validated here;
+// the worker only receives ASTs that this parser produced and rebuilds them from a closed function table.
+const Json& expr_spec(){static const Json spec=Json::parse(PYCLI_EXPR_SPEC_JSON);return spec;}
+[[noreturn]] void bad_param(const std::string& message){invalid(message,"BAD_PARAM");}
+void check_variable_name(const std::string& name,const char* what="variable"){
+    bool ok=!name.empty()&&name.size()<=32&&name[0]>='a'&&name[0]<='z';
+    for(char c:name)ok=ok&&((c>='a'&&c<='z')||(c>='0'&&c<='9')||c=='_');
+    if(!ok)invalid(std::string(what)+" names must match [a-z][a-z0-9_]{0,31}","BAD_NAME");
+    const auto& spec=expr_spec();bool reserved=spec["functions"].contains(name)||spec["constants"].contains(name);
+    for(const auto& word:spec["reserved"])reserved=reserved||word.get<std::string>()==name;
+    if(reserved)invalid(std::string(what)+" name collides with a function, constant or reserved word: "+name,"EXPR_NAME_COLLISION");
+}
+Json parse_expression(const std::string& text,const std::set<std::string>& names,const std::map<std::string,size_t>& dims,bool reducers,const std::string& param){
+    try{pycli_expr::Parser parser(text,names,reducers,dims);return parser.parse();}
+    catch(const pycli_expr::ParseFailure& e){throw Error{ErrorCode::ValidationError,"invalid expression in "+param+": "+e.code+" at byte "+std::to_string(e.position),{{"tool_code",e.code},{"position",e.position},{"near",e.near},{"param",param}}};}
+}
+constexpr size_t MAX_VARIABLES=64, MAX_COLUMNS=32, MAX_CONSTRAINTS=16;
+struct Vars{std::vector<std::pair<std::string,size_t>> layout;std::vector<double> x0;std::set<std::string> names;std::map<std::string,size_t> dims;};
+Vars read_vars(const Json& x0){
+    Vars v;if(!x0.is_object()||x0.empty())bad_param("x0 must be a nonempty object of start values");
+    for(auto it=x0.begin();it!=x0.end();++it){  // nlohmann objects iterate in sorted key order: the flat layout is deterministic
+        check_variable_name(it.key());const Json& value=it.value();
+        if(value.is_number()){v.layout.emplace_back(it.key(),0);v.x0.push_back(value.get<double>());}
+        else if(value.is_array()&&!value.empty()&&value.size()<=MAX_VARIABLES){
+            for(const auto& item:value){if(!item.is_number())bad_param("vector start values must be numbers");v.x0.push_back(item.get<double>());}
+            v.layout.emplace_back(it.key(),value.size());v.dims[it.key()]=value.size();
+        }else bad_param("x0 values must be numbers or nonempty number arrays of at most 64 entries");
+        v.names.insert(it.key());
+        if(v.x0.size()>MAX_VARIABLES)bad_param("at most 64 scalar unknowns in total");
+    }
+    for(double d:v.x0)if(!std::isfinite(d))bad_param("x0 values must be finite");
+    return v;
+}
+Json layout_json(const Vars& v){Json out=Json::array();for(const auto& item:v.layout)out.push_back({{"n",item.first},{"len",item.second}});return out;}
+struct Columns{std::vector<std::string> names;size_t rows=0;};
+// Data columns: inline arrays (<=1000 numbers) or .npy/.safetensors#key refs (<=200000), rank 1, finite, equal length.
+Columns read_data(const Json* data,const Vars& v,std::map<std::string,Array>& arrays){
+    Columns c;if(!data)return c;
+    if(!data->is_object()||data->empty()||data->size()>MAX_COLUMNS)bad_param("data must be an object with 1..32 columns");
+    size_t index=0;
+    for(auto it=data->begin();it!=data->end();++it,++index){
+        check_variable_name(it.key(),"data column");if(v.names.count(it.key()))invalid("data column collides with an unknown: "+it.key(),"EXPR_NAME_COLLISION");
+        Array a=load(it.value());if(a.shape.size()!=1)invalid("data columns must be vectors","BAD_DATA");need_finite(a,it.key().c_str());
+        if(index&&a.data.size()!=c.rows)invalid("data columns must have equal length","BAD_DATA");c.rows=a.data.size();
+        c.names.push_back(it.key());arrays["d_"+std::to_string(index)]=std::move(a);
+    }
+    return c;
+}
+Json data_json(const Columns& c){Json out=Json::array();for(size_t i=0;i<c.names.size();++i)out.push_back({{"n",c.names[i]},{"key","d_"+std::to_string(i)}});return out;}
+std::set<std::string> all_names(const Vars& v,const Columns& c){auto names=v.names;for(const auto& n:c.names)names.insert(n);return names;}
+// bounds: {name: [lo, hi]} with null/"-Inf"/"Inf" for open ends; broadcast over vector components; returned as flat null-able arrays.
+void read_bounds(const Json& bounds,const Vars& v,Json& lb,Json& ub){
+    if(!bounds.is_object())bad_param("bounds must be an object");
+    std::map<std::string,std::pair<double,double>> by_name;
+    for(auto it=bounds.begin();it!=bounds.end();++it){
+        if(!v.names.count(it.key()))invalid("bounds name is not an unknown: "+it.key(),"BAD_BOUNDS");
+        const Json& pair=it.value();if(!pair.is_array()||pair.size()!=2)invalid("bounds need [lower, upper]","BAD_BOUNDS");
+        double ends[2];
+        for(int k=0;k<2;++k){
+            const Json& e=pair[k];
+            if(e.is_null()||(e.is_string()&&e==(k?"Inf":"-Inf")))ends[k]=k?INFINITY:-INFINITY;
+            else if(e.is_number()&&std::isfinite(e.get<double>()))ends[k]=e.get<double>();
+            else invalid("bound ends must be finite numbers, null, \"-Inf\" (lower) or \"Inf\" (upper)","BAD_BOUNDS");
+        }
+        if(!(ends[0]<ends[1]))invalid("lower bound must be strictly below the upper bound","BAD_BOUNDS");
+        by_name[it.key()]={ends[0],ends[1]};
+    }
+    lb=Json::array();ub=Json::array();size_t at=0;
+    for(const auto& item:v.layout){
+        size_t count=item.second?item.second:1;auto found=by_name.find(item.first);
+        for(size_t k=0;k<count;++k,++at){
+            double lo=-INFINITY,hi=INFINITY;if(found!=by_name.end()){lo=found->second.first;hi=found->second.second;}
+            if(v.x0[at]<lo||v.x0[at]>hi)invalid("x0 lies outside its bounds: "+item.first,"BAD_BOUNDS");
+            lb.push_back(std::isinf(lo)?Json(nullptr):Json(lo));ub.push_back(std::isinf(hi)?Json(nullptr):Json(hi));
+        }
+    }
+}
+int64_t int_param(const Json& in,const char* name,int64_t lo,int64_t hi){int64_t value=in[name];if(value<lo||value>hi)bad_param(std::string(name)+" must be in "+std::to_string(lo)+".."+std::to_string(hi));return value;}
+Json prepare_minimize(const Params& in,std::map<std::string,Array>& arrays){
+    Vars v=read_vars(in["x0"]);Columns data=read_data(in.contains("data")?&in["data"]:nullptr,v,arrays);
+    auto names=all_names(v,data);bool reducers=!data.names.empty();
+    bool has_bounds=in.contains("bounds"),has_constraints=in.contains("constraints")&&!in["constraints"].empty(),has_gradient=in.contains("gradient")&&!in["gradient"].empty();
+    std::string method=in.contains("method")?in["method"].get<std::string>():(has_constraints?"SLSQP":has_bounds?"L-BFGS-B":"BFGS");
+    if(has_bounds&&method=="BFGS")bad_param("BFGS does not support bounds; use L-BFGS-B, SLSQP, Powell, Nelder-Mead or trust-constr");
+    if(has_constraints&&method!="SLSQP"&&method!="trust-constr")bad_param("constraints need method SLSQP or trust-constr");
+    if(has_gradient&&(method=="Nelder-Mead"||method=="Powell"))bad_param(method+" does not use gradients; omit gradient");
+    Json request={{"method",method},{"variables",layout_json(v)},{"x0_flat",v.x0},{"data",data_json(data)}};
+    request["objective_ast"]=parse_expression(in["objective"],names,v.dims,reducers,"objective");
+    if(has_bounds){Json lb,ub;read_bounds(in["bounds"],v,lb,ub);request["lb"]=lb;request["ub"]=ub;}
+    if(has_constraints){
+        const Json& list=in["constraints"];if(list.size()>MAX_CONSTRAINTS)bad_param("at most 16 constraints");
+        request["constraints"]=Json::array();
+        for(size_t i=0;i<list.size();++i){
+            const Json& c=list[i];
+            if(!c.is_object()||c.size()!=2||!c.contains("type")||!c.contains("expr")||!c["type"].is_string()||!c["expr"].is_string()||(c["type"]!="eq"&&c["type"]!="ineq"))bad_param("each constraint is {\"type\":\"eq\"|\"ineq\",\"expr\":\"...\"} (ineq means expr >= 0)");
+            request["constraints"].push_back({{"type",c["type"]},{"ast",parse_expression(c["expr"],names,v.dims,reducers,"constraints["+std::to_string(i)+"]")}});
+        }
+    }
+    if(has_gradient){
+        const Json& list=in["gradient"];
+        if(list.size()!=v.x0.size())invalid("gradient needs one expression per scalar unknown ("+std::to_string(v.x0.size())+" in sorted name order, vector components in index order), got "+std::to_string(list.size()),"GRADIENT_ARITY");
+        request["gradient_asts"]=Json::array();
+        for(size_t i=0;i<list.size();++i)request["gradient_asts"].push_back(parse_expression(list[i],names,v.dims,reducers,"gradient["+std::to_string(i)+"]"));
+    }
+    if(in.contains("tol")){double t=in["tol"];if(!(t>0&&t<=1))bad_param("tol must be in (0, 1]");request["tol"]=t;}
+    request["maxiter"]=int_param(in,"maxiter",1,10000);request["max_evals"]=int_param(in,"max_evals",1,2000000);request["nonfinite"]=in["nonfinite"];
+    return request;
+}
+Json prepare_least_squares(const Params& in,std::map<std::string,Array>& arrays){
+    Vars v=read_vars(in["x0"]);Columns data=read_data(in.contains("data")?&in["data"]:nullptr,v,arrays);
+    auto names=all_names(v,data);std::string method=in["method"],loss=in["loss"];
+    bool model=in.contains("model"),residuals=in.contains("residuals");
+    if(model==residuals)bad_param("give exactly one of model or residuals");
+    Json request={{"method",method},{"loss",loss},{"variables",layout_json(v)},{"x0_flat",v.x0},{"data",data_json(data)}};
+    if(method=="lm"&&in.contains("bounds"))bad_param("method lm does not support bounds; use trf or dogbox");
+    if(method=="lm"&&loss!="linear")bad_param("method lm supports only the linear loss");
+    double f_scale=in["f_scale"];if(!(f_scale>0&&std::isfinite(f_scale)))bad_param("f_scale must be positive");request["f_scale"]=f_scale;
+    request["absolute_sigma"]=in["absolute_sigma"];
+    size_t m=0;
+    if(model){
+        if(!in.contains("response")||!std::count(data.names.begin(),data.names.end(),in["response"].get<std::string>()))bad_param("model needs response naming a data column");
+        request["model_ast"]=parse_expression(in["model"],names,v.dims,false,"model");request["response"]=in["response"];m=data.rows;
+        if(m<1)bad_param("model needs data");
+        if(in.contains("sigma")){
+            const Json& sigma=in["sigma"];
+            if(sigma.is_string()){
+                std::string column=sigma;auto at=std::find(data.names.begin(),data.names.end(),column);
+                if(at==data.names.end()||column==in["response"].get<std::string>())bad_param("sigma must name another data column or be a positive number");
+                for(double d:arrays["d_"+std::to_string(at-data.names.begin())].data)if(!(d>0))invalid("sigma column must be strictly positive","BAD_DATA");
+                request["sigma_key"]=column;
+            }else if(sigma.is_number()&&sigma.get<double>()>0&&std::isfinite(sigma.get<double>()))request["sigma_value"]=sigma;
+            else bad_param("sigma must name a data column or be a positive number");
+        }
+    }else{
+        if(in.contains("response")||in.contains("sigma"))bad_param("response and sigma apply to model only");
+        const Json& list=in["residuals"];if(list.empty()||list.size()>MAX_VARIABLES)bad_param("residuals needs 1..64 expressions");
+        request["residual_asts"]=Json::array();
+        for(size_t i=0;i<list.size();++i)request["residual_asts"].push_back(parse_expression(list[i],names,v.dims,false,"residuals["+std::to_string(i)+"]"));
+    }
+    if(method=="lm"&&model&&m<v.x0.size())invalid("method lm needs at least as many residuals as unknowns","BAD_DATA");
+    if(in.contains("bounds")){Json lb,ub;read_bounds(in["bounds"],v,lb,ub);request["lb"]=lb;request["ub"]=ub;}
+    double tol=in["tol"];if(!(tol>=2.3e-16&&tol<=0.1))bad_param("tol must be in [2.3e-16, 0.1]");request["tol"]=tol;
+    request["max_nfev"]=int_param(in,"max_nfev",1,100000);request["max_evals"]=int_param(in,"max_evals",1,2000000);
+    return request;
+}
+Json bound_value(const Json& v,const char* name){
+    if(v.is_number()&&std::isfinite(v.get<double>()))return v.get<double>();
+    if(v.is_string()&&(v=="Inf"||v=="-Inf"))return v;
+    bad_param(std::string(name)+" must be a finite number or \"Inf\"/\"-Inf\"");
+}
+Json prepare_quad(const Params& in){
+    Json request={{"expression_ast",parse_expression(in["f"],{"x"},{},false,"f")}};
+    request["a"]=bound_value(in["a"],"a");request["b"]=bound_value(in["b"],"b");
+    if(request["a"].is_string()&&request["a"]==request["b"])bad_param("a and b are the same infinity");
+    double epsabs=in["epsabs"],epsrel=in["epsrel"];
+    if(!(epsabs>=0&&epsabs<=1)||!(epsrel>=0&&epsrel<1)||(epsabs==0&&epsrel<1e-13))bad_param("need 0<=epsabs<=1, 0<=epsrel<1 and epsrel>=1e-13 when epsabs is 0");
+    request["epsabs"]=epsabs;request["epsrel"]=epsrel;request["limit"]=int_param(in,"limit",1,1000);request["max_evals"]=int_param(in,"max_evals",1,2000000);
+    if(in.contains("points")&&!in["points"].empty()){
+        if(request["a"].is_string()||request["b"].is_string())bad_param("points need finite bounds");
+        double lo=std::min(request["a"].get<double>(),request["b"].get<double>()),hi=std::max(request["a"].get<double>(),request["b"].get<double>());
+        if(in["points"].size()>MAX_VARIABLES)bad_param("at most 64 points");
+        for(const auto& point:in["points"]){double d=point.get<double>();if(!(d>lo&&d<hi))bad_param("points must lie strictly between the bounds");}
+        request["points"]=in["points"];
+    }
+    return request;
+}
+Json prepare_root(const Params& in){
+    Json request={{"expression_ast",parse_expression(in["f"],{"x"},{},false,"f")}};
+    double lower=in["lower"],upper=in["upper"];if(!(std::isfinite(lower)&&std::isfinite(upper)&&lower<upper))bad_param("need finite lower < upper");
+    double xtol=in["xtol"],rtol=in["rtol"];if(!(xtol>0&&std::isfinite(xtol)))bad_param("xtol must be positive");if(!(rtol>=8.881784197001252e-16&&rtol<1))bad_param("rtol must be in [4*eps, 1)");
+    request["lower"]=lower;request["upper"]=upper;request["xtol"]=xtol;request["rtol"]=rtol;request["method"]=in["method"];
+    request["maxiter"]=int_param(in,"maxiter",1,1000);request["max_evals"]=int_param(in,"max_evals",1,2000000);
+    return request;
+}
+int expr_check_cli(){
+    try{
+        std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
+        std::set<std::string> names;for(const auto& n:in.value("names",Json::array())){if(!n.is_string())throw std::runtime_error("names must be strings");names.insert(n.get<std::string>());}
+        std::map<std::string,size_t> dims;if(in.contains("dims"))for(auto it=in["dims"].begin();it!=in["dims"].end();++it)dims[it.key()]=it.value().get<size_t>();
+        pycli_expr::Parser parser(in.at("expression").get<std::string>(),names,in.value("allow_reducers",false),dims);Json ast=parser.parse();
+        Json ids=Json::array();for(const auto& n:parser.identifiers())ids.push_back(n);
+        std::cout<<Json{{"accepted",true},{"ast",ast},{"identifiers",ids},{"sha256",PYCLI_EXPR_SPEC_SHA256}}.dump()<<"\n";
+    }catch(const pycli_expr::ParseFailure& e){std::cout<<Json{{"accepted",false},{"tool_code",e.code},{"position",e.position},{"near",e.near},{"sha256",PYCLI_EXPR_SPEC_SHA256}}.dump()<<"\n";}
+    catch(const std::exception& e){std::cout<<Json{{"accepted",false},{"tool_code","EXPR_SYNTAX"},{"message",e.what()},{"sha256",PYCLI_EXPR_SPEC_SHA256}}.dump()<<"\n";}
+    return 0;
+}
 Json call(const std::string& op,const Params& input){
     if(op=="array_import")return array_import(input);
     if(op=="array_inspect")return array_inspect(input);
@@ -353,7 +542,14 @@ Json call(const std::string& op,const Params& input){
         if(params.contains("scale")&&params["scale"]<=0)invalid("scale must be positive");if(p["dist"]=="t"&&(!params.contains("df")||params["df"]<=0))invalid("t requires positive df");p["missing"]=arrays["x"].missing;
         if(p["fn"]=="ppf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid("ppf probabilities must lie in [0,1]","BAD_PROBABILITY");
     }
+    bool numeric=op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
+    if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
     TempDir temp;
+    int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
+    if(numeric){
+        {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
+        p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=std::max(1,seconds-10);  // worker stops cooperatively before the hard kill
+    }
     if(frame){if(!table_input.empty()){auto file=temp.file(table_input.c_str());std::ofstream f(file,std::ios::binary);f.write(table_bytes.data(),table_bytes.size());if(!f)throw std::runtime_error("cannot copy table input");p[table_input=="frame.npz"?"frame_file":"csv_file"]=file;table_bytes.clear();}if(!table_output.empty())p["output_file"]=temp.file(op=="frame_export"?"export.bin":"table.npz");}
     for(const auto& entry:arrays){auto file=temp.file((entry.first+".npy").c_str());write_npy(entry.second,file);p.erase(entry.first);p[entry.first+"_file"]=file;}
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");
@@ -373,13 +569,12 @@ Json call(const std::string& op,const Params& input){
     env["OPENBLAS_CORETYPE"]="Haswell"; // Provisional until amd64 CI measures it.
 #endif
     if(const char* core=getenv("PYCLI_BLAS_CORETYPE")){std::string c=core;if(c!="ARMV8"&&c!="Haswell")invalid("unsupported BLAS coretype");env["OPENBLAS_CORETYPE"]=c;}
-    int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
     auto child=run_child({python,"-P","-s","-B","-X","faulthandler",temp.file("worker.py"),temp.file("req.json"),temp.file("resp.json")},env,std::chrono::seconds(seconds),1024*1024);
     if(child.timed_out)throw Error{ErrorCode::Timeout,"Python worker timed out",{{"tool_code","TIMEOUT"}}};
     if(child.exec_failed)throw Error{ErrorCode::ServiceUnavailable,"Python interpreter unavailable",{{"tool_code","PYTHON_NOT_FOUND"}}};
     if(child.status_unknown||child.exit_code!=0)throw Error{ErrorCode::InternalError,"Python worker crashed",{{"tool_code","TOOL_CRASH"},{"signal",child.signal},{"stderr",child.err.substr(child.err.size()>4096?child.err.size()-4096:0)}}};
     auto response=read_result_file(temp.file("resp.json"),"json");
-    if(!response.value("ok",false)){auto code=response.value("tool_code",std::string("PY_ERROR"));throw Error{code=="BAD_DATA"?ErrorCode::ValidationError:ErrorCode::CommandFailed,response.value("message",std::string("worker failure")),{{"tool_code",code},{"exception",response.value("exception",std::string())},{"warnings",response.value("warnings",Json::array())}}};}
+    if(!response.value("ok",false)){auto code=response.value("tool_code",std::string("PY_ERROR"));auto kind=response.value("error_class",std::string());throw Error{(code=="BAD_DATA"||kind=="validation")?ErrorCode::ValidationError:kind=="internal"?ErrorCode::InternalError:ErrorCode::CommandFailed,response.value("message",std::string("worker failure")),{{"tool_code",code},{"exception",response.value("exception",std::string())},{"warnings",response.value("warnings",Json::array())}}};}
     Json result=response["result"];
     if(op=="py_info")result["worker_sha256"]=PYCLI_WORKER_SHA256;
     if(op=="la_solve_to"&&result.value("status",std::string())!="OK")throw Error{ErrorCode::CommandFailed,"solve produced no artifact",{{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}}};
@@ -410,6 +605,8 @@ Json call(const std::string& op,const Params& input){
 }
 }
 int main(int argc,char** argv){
+    if(argc==2&&std::string(argv[1])=="--expr-spec-hash"){std::cout<<PYCLI_EXPR_SPEC_SHA256<<"\n";return 0;}
+    if(argc==2&&std::string(argv[1])=="--expr-check")return expr_check_cli();
     struct sigaction action{};action.sa_handler=cleanup_signal;sigemptyset(&action.sa_mask);
     sigaction(SIGTERM,&action,nullptr);sigaction(SIGINT,&action,nullptr);
     Operation info{"py_info",Access::Read,"Pinned Python scientific runtime, BLAS pools and determinism","object",{}};
@@ -451,6 +648,46 @@ int main(int argc,char** argv){
     auto exportp=common();exportp.emplace_back("format",Type::String,false,"csv",std::vector<Json>{"csv","json"},"Export UTF-8 CSV or columnar JSON.");exportp.emplace_back("out",Type::String,false,nullptr,std::vector<Json>{},"New output path; omit only for <=1000 cells inline. Atomic no-replace write.");spec.operations.push_back(Operation{"frame_export",Access::Write,"Export a table inline or to an exclusive file","object",exportp});
     auto select=common();select.emplace_back("columns",Type::Array,false,nullptr,std::vector<Json>{},"Selected columns in requested order.","",false,false,false,std::vector<std::string>{},Type::String);select.emplace_back("where",Type::Object,false,nullptr,std::vector<Json>{},"Predicate tree: and/or/not; col/op/value leaves with eq/ne/lt/le/gt/ge/isin/isnull/between/startswith/contains literal.");select.emplace_back("sort_by",Type::Array,false,Json::array(),std::vector<Json>{},"Stable sort list of {col,desc?}.","",false,false,false,std::vector<std::string>{},Type::Object);select.emplace_back("limit",Type::Integer,false,nullptr,std::vector<Json>{},"Maximum selected rows, 0..2M.");select.emplace_back("out",Type::String,true,nullptr,std::vector<Json>{},"New .npz table artifact.");spec.operations.push_back(Operation{"frame_select",Access::Write,"Structured filtering, column selection and stable sorting","object",select});
     for(bool resample:{false,true}){auto params=common();if(resample){params.emplace_back("time",Type::String,true,nullptr,std::vector<Json>{},"Datetime column materialized as output bins; NaT rejected.");params.emplace_back("rule",Type::String,true,nullptr,std::vector<Json>{},"1..10000 followed by min,h,D,W,MS,ME,QS,YS; no other offset syntax.");for(const char* k:{"closed","label"})params.emplace_back(k,Type::String,false,nullptr,std::vector<Json>{"left","right"},"Bin edge closure or label; pandas defaults: right for ME/W, left otherwise.");}else{params.emplace_back("keys",Type::Array,true,nullptr,std::vector<Json>{},"Group key columns; output keys are ordinary columns.","",false,false,false,std::vector<std::string>{},Type::String);params.emplace_back("dropna",Type::Boolean,false,false,std::vector<Json>{},"Drop groups whose keys are missing.");}params.emplace_back("aggs",Type::Object,true,nullptr,std::vector<Json>{},"Column -> list of sum,mean,min,max,count,std,var,median,nunique,first,last. Outputs named column__function; std/var ddof=1.");params.emplace_back("out",Type::String,true,nullptr,std::vector<Json>{},"New .npz table artifact.");spec.operations.push_back(Operation{resample?"frame_resample":"frame_groupby",Access::Write,resample?"Timezone-aware bounded resampling":"Closed-function grouped aggregates, sorted keys and observed categories","object",params});}
+    // S3: caller expressions are parsed to a closed AST here; Python rebuilds them from a fixed function table.
+    auto obj=[](const char* name,bool required,const char* text){return Param{name,Type::Object,required,nullptr,{},text};};
+    auto num=[](const char* name,Json def,const char* text){return Param{name,Type::Number,false,std::move(def),{},text};};
+    auto integer=[](const char* name,Json def,const char* text){return Param{name,Type::Integer,false,std::move(def),{},text};};
+    const char* x0_text="Start values {name: number | [numbers]} (names [a-z][a-z0-9_]{0,31}; at most 64 scalars). A vector variable is used as name[0], name[1] with integer literals. Variables are ordered by name, vector components by index.";
+    const char* data_text="Data columns {name: inline array (<=1000 numbers) | file.npy | file.safetensors#key}: finite vectors of equal length (<=200000), at most 32.";
+    spec.operations.push_back(Operation{"opt_minimize",Access::Read,"Minimise a scalar expression with scipy.optimize.minimize (closed method list). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE; gradients by finite differences unless gradient expressions are given. Result: par, fun, nit, nfev, evals, nonfinite_evals, constraint_violation","object",{
+        Param{"objective",Type::String,true,nullptr,{},"Expression (<=2048 bytes, 512 nodes) in the unknowns and data columns; sum/mean/prod/min/max reducers only with data."},
+        obj("x0",true,x0_text),
+        Param{"method",Type::String,false,nullptr,{"Nelder-Mead","Powell","BFGS","L-BFGS-B","SLSQP","trust-constr"},"Default: SLSQP with constraints, L-BFGS-B with bounds, else BFGS. Bounds: not BFGS. Constraints: SLSQP, trust-constr. Gradient expressions: not Nelder-Mead/Powell."},
+        obj("bounds",false,"{name: [lower, upper]} with null/\"-Inf\"/\"Inf\" for open ends, applied to every component; lower < upper and x0 inside."),
+        Param{"constraints",Type::Array,false,nullptr,{},"Up to 16 {\"type\":\"eq\"|\"ineq\",\"expr\":...}; ineq means expr >= 0.","",false,false,false,{},Type::Object},
+        Param{"gradient",Type::Array,false,nullptr,{},"One expression per scalar unknown (sorted name order); checked against finite differences at x0.","",false,false,false,{},Type::String},
+        obj("data",false,data_text),
+        num("tol",nullptr,"Solver tolerance in (0, 1]; default is the method's own."),
+        integer("maxiter",1000,"Iteration cap, 1..10000."),integer("max_evals",500000,"Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."),
+        Param{"nonfinite",Type::String,false,"inf",{"inf","error"},"inf: a non-finite objective counts as +Inf; error: stop with status NON_FINITE."}}});
+    spec.operations.push_back(Operation{"opt_least_squares",Access::Read,"Nonlinear least squares with scipy.optimize.least_squares (trf/dogbox/lm): model y ~ f(data; params) or a residual expression list. Result: par, std_err (from the Jacobian: cov = (J'J)^-1 times 2*cost/(m-n) unless absolute_sigma), cost, rss, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE, cov_status","object",{
+        Param{"model",Type::String,false,nullptr,{},"Expression in the unknowns and data columns; residual = (model - response)/sigma."},
+        Param{"response",Type::String,false,nullptr,{},"Data column fitted by model."},
+        Param{"residuals",Type::Array,false,nullptr,{},"Alternative to model: 1..64 residual expressions (each scalar or vector over data columns), concatenated.","",false,false,false,{},Type::String},
+        obj("x0",true,x0_text),obj("data",false,data_text),obj("bounds",false,"As opt_minimize; not with method lm."),
+        Param{"method",Type::String,false,"trf",{"trf","dogbox","lm"},"lm needs at least as many residuals as unknowns, no bounds, linear loss."},
+        Param{"loss",Type::String,false,"linear",{"linear","soft_l1","huber","cauchy","arctan"},"Robust loss; std_err then uses the robust cost (documented)."},
+        num("f_scale",1.0,"Loss scale, > 0."),
+        Param{"sigma",Type::Json,false,nullptr,{},"model only: name of a positive data column or a positive number; residuals are divided by it."},
+        Param{"absolute_sigma",Type::Boolean,false,false,{},"Treat sigma as absolute (no rescaling of the covariance by the residual variance)."},
+        num("tol",1e-10,"ftol = xtol = gtol, in [2.3e-16, 0.1]."),integer("max_nfev",1000,"Residual evaluation budget for the solver, 1..100000."),integer("max_evals",500000,"Cap on expression evaluations, 1..2000000.")}});
+    spec.operations.push_back(Operation{"num_quad",Access::Read,"One-dimensional QUADPACK integral (scipy.integrate.quad) of an expression in x over finite or infinite bounds. Statuses OK, NO_CONVERGENCE (message from QUADPACK), NON_FINITE, EVAL_LIMIT. Result: value, abserr, neval, subdivisions","object",{
+        Param{"f",Type::String,true,nullptr,{},"Expression in x (no reducers, no data)."},
+        Param{"a",Type::Json,true,nullptr,{},"Lower bound: finite number or \"-Inf\"/\"Inf\"."},Param{"b",Type::Json,true,nullptr,{},"Upper bound."},
+        num("epsabs",1.49e-8,"Absolute tolerance in [0, 1]."),num("epsrel",1.49e-8,"Relative tolerance in [0, 1); at least 1e-13 when epsabs is 0."),
+        integer("limit",50,"Maximum subdivisions, 1..1000."),
+        Param{"points",Type::Array,false,nullptr,{},"Up to 64 break points strictly inside finite bounds.","",false,false,false,{},Type::Number},
+        integer("max_evals",500000,"Cap on expression evaluations.")}});
+    spec.operations.push_back(Operation{"num_root",Access::Read,"Bracketed scalar root of an expression in x (scipy.optimize brentq/bisect/ridder/toms748). f(lower) and f(upper) must be finite with opposite signs (BAD_INTERVAL otherwise). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT. Result: root, f_root, iterations, function_calls","object",{
+        Param{"f",Type::String,true,nullptr,{},"Expression in x (no reducers, no data)."},
+        Param{"lower",Type::Number,true,nullptr,{},"Bracket start (finite)."},Param{"upper",Type::Number,true,nullptr,{},"Bracket end (finite, > lower)."},
+        Param{"method",Type::String,false,"brentq",{"brentq","bisect","ridder","toms748"},"Bracketing method."},
+        num("xtol",2e-12,"Absolute x tolerance, > 0."),num("rtol",8.881784197001252e-16,"Relative x tolerance, >= 4*eps."),integer("maxiter",100,"Iterations, 1..1000."),integer("max_evals",500000,"Cap on expression evaluations.")}});
     for(auto& op:spec.operations){std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }

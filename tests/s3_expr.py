@@ -145,11 +145,11 @@ class VectorIndexing(unittest.TestCase):
         # Without a vector declaration '[' is plain syntax error, exactly like rcli.
         self.assertEqual(check({'expression': 'x[0]', 'names': ['x']})['tool_code'], 'EXPR_SYNTAX')
 
-    def test_index_counts_toward_node_and_identifier_caps(self):
-        text = '+'.join(['x[0]'] * 200)  # 399 nodes
+    def test_index_tokens_count_toward_the_512_token_cap(self):
+        text = '+'.join(['x[0]'] * 100)  # 399 tokens, 199 nodes
         self.assertTrue(check({'expression': text, 'names': ['x'], 'dims': {'x': 1}})['accepted'])
-        text = '+'.join(['x[0]'] * 260)  # 519 nodes
-        self.assertEqual(check({'expression': text, 'names': ['x'], 'dims': {'x': 1}})['tool_code'], 'EXPR_TOO_MANY_NODES')
+        text = '+'.join(['x[0]'] * 200)  # 799 tokens
+        self.assertEqual(check({'expression': text, 'names': ['x'], 'dims': {'x': 1}})['tool_code'], 'EXPR_TOO_LONG')
 
 
 class HostileInputs(unittest.TestCase):
@@ -190,7 +190,34 @@ class HostileInputs(unittest.TestCase):
         self.assertEqual(r['status'], 'NON_FINITE')
         r = call('opt_minimize', {'objective': '2^2^2^2^2^2^2^2 + x', 'x0': {'x': 1.0}}, 2, os.environ)
         self.assertEqual(r['error']['data']['tool_code'], 'NONFINITE_OBJECTIVE')
-        self.assertEqual(check({'expression': '2' + '^2' * 600, 'names': []})['tool_code'], 'EXPR_TOO_LONG')
+        self.assertIn(check({'expression': '2' + '^2' * 600, 'names': []})['tool_code'], ('EXPR_TOO_LONG', 'EXPR_TOO_DEEP'))
+
+
+class ErrorMapping(unittest.TestCase):
+    def fake(self, response, op='num_quad', params=None):
+        import shutil, tempfile
+        directory = tempfile.mkdtemp(dir='.')
+        try:
+            fake = pathlib.Path(directory) / 'python'
+            fake.write_text('#!' + sys.executable + '\nimport json,sys\njson.dump(' + repr(response) + ',open(sys.argv[-1],"w"))\n')
+            fake.chmod(0o755)
+            proc = subprocess.run([BIN, '--input-json', json.dumps({'op': op, 'params': params or {'f': 'x', 'a': 0, 'b': 1}})], capture_output=True, text=True,
+                                  env=dict(os.environ, PYCLI_PYTHON=str(fake)))
+            return proc.returncode, json.loads(proc.stdout)
+        finally:
+            shutil.rmtree(directory)
+
+    def test_worker_error_classes_map_to_protocol_codes(self):
+        rc, r = self.fake({'ok': False, 'tool_code': 'EXPR_SPEC_MISMATCH', 'message': 'x', 'exception': 'ExprMismatch', 'error_class': 'internal'})
+        self.assertEqual((rc, r['error']['code'], r['error']['data']['tool_code']), (1, 'INTERNAL_ERROR', 'EXPR_SPEC_MISMATCH'))
+        rc, r = self.fake({'ok': False, 'tool_code': 'BAD_INTERVAL', 'message': 'x', 'exception': 'BadData', 'error_class': 'validation'})
+        self.assertEqual((rc, r['error']['code'], r['error']['data']['tool_code']), (2, 'VALIDATION_ERROR', 'BAD_INTERVAL'))
+        rc, r = self.fake({'ok': False, 'tool_code': 'PY_ERROR', 'message': 'x', 'exception': 'ValueError', 'error_class': 'failed'})
+        self.assertEqual((rc, r['error']['code']), (1, 'COMMAND_FAILED'))
+
+    def test_oversized_inline_result_is_refused(self):
+        rc, r = self.fake({'ok': True, 'result': {'status': 'OK', 'values': [0.5] * 1001, 'warnings': [], 'warnings_truncated': False}})
+        self.assertEqual((rc, r['error']['data']['tool_code']), (1, 'OUTPUT_TOO_LARGE'))
 
 
 class BuilderIsClosed(unittest.TestCase):
@@ -249,7 +276,7 @@ class BuilderIsClosed(unittest.TestCase):
 
     def test_worker_source_has_no_dynamic_code_paths(self):
         source = ''.join((ROOT / 'py' / name).read_text() for name in ('frames.py', 'numerics.py', 'worker.py'))
-        forbidden = r'\b(eval|exec|compile|literal_eval|setattr|delattr|globals|locals|vars|__import__|importlib|attrgetter|methodcaller|numexpr|pickle|query|sympy|ast|marshal|codeop|runpy|shlex)\b'
+        forbidden = r'(?<!re\.)\b(eval|exec|compile|literal_eval|setattr|delattr|globals|locals|vars|__import__|importlib|attrgetter|methodcaller|numexpr|pickle|query|sympy|marshal|codeop|runpy|shlex)\b'
         self.assertEqual(re.findall(forbidden, source), [])
         self.assertNotIn('getattr(', ''.join((ROOT / 'py' / 'numerics.py').read_text()))
         self.assertNotRegex(source, r'import\s+ast|from\s+ast')

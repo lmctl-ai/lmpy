@@ -35,7 +35,11 @@ def audit(event, args):
 
 
 class BadData(ValueError):
-    pass
+    """Caller-input problem found by the worker; `code` becomes the tool_code (exit 2)."""
+
+    def __init__(self, message='', code='BAD_DATA'):
+        super().__init__(message)
+        self.code = code
 
 
 class Int64Overflow(ArithmeticError):
@@ -372,7 +376,8 @@ class NumericalWarning(RuntimeWarning):
     pass
 
 
-OPS = {'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution,
+OPS = {'opt_minimize': opt_minimize, 'opt_least_squares': opt_least_squares, 'num_quad': num_quad, 'num_root': num_root,
+       'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution,
        'la_lstsq': lstsq, 'la_lstsq_to': lstsq, 'la_props': props, 'la_decomp': decomp}
 
 
@@ -389,6 +394,10 @@ def main():
             import scipy.stats
         elif request['op'] in ('la_solve', 'la_solve_to', 'la_lstsq', 'la_lstsq_to', 'la_props', 'la_decomp'):
             import scipy.linalg
+        elif request['op'] in ('opt_minimize', 'opt_least_squares', 'num_quad', 'num_root'):
+            import scipy.optimize
+            import scipy.integrate
+            import scipy.special
         elif request['op'].startswith('frame_'):
             import pandas
             import csv
@@ -413,8 +422,9 @@ def main():
                           'import_ms': (imported-start)*1000, 'elapsed_ms': (time.monotonic()-start)*1000}
         response = {'ok': True, 'result': result}
     except Exception as exc:
-        code = 'INT64_OVERFLOW' if isinstance(exc, Int64Overflow) else 'OUTPUT_TOO_LARGE' if isinstance(exc, OutputTooLarge) else 'BAD_DATA' if isinstance(exc, BadData) else 'PY_ERROR'
-        response = {'ok': False, 'tool_code': code, 'message': str(exc), 'exception': type(exc).__name__}
+        code = 'INT64_OVERFLOW' if isinstance(exc, Int64Overflow) else 'OUTPUT_TOO_LARGE' if isinstance(exc, OutputTooLarge) else exc.code if isinstance(exc, BadData) else ExprMismatch.code if isinstance(exc, ExprMismatch) else 'PY_ERROR'
+        response = {'ok': False, 'tool_code': code, 'message': str(exc), 'exception': type(exc).__name__,
+                    'error_class': 'validation' if isinstance(exc, BadData) else 'internal' if isinstance(exc, ExprMismatch) else 'failed'}
     grouped = {}
     for warning in captured:
         key = (warning.category.__name__, str(warning.message))
