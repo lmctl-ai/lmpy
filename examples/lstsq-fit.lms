@@ -1,0 +1,36 @@
+// access: read
+// What it does: fits y = c0 + c1 x + c2 x^2 to generated data with la_lstsq, then verifies the fit
+//   with two checks that do not trust the solver: the residual is close to the injected noise level,
+//   and the normal equations A^T r = 0 hold (a least-squares residual is orthogonal to every column).
+// Tolerance: coefficients within 0.05 of the generating values; |A^T r| <= 1e-9.
+// How to run: put the pycli bin directory on PATH, then run lmscript examples/lstsq-fit.lms
+import "../cli.schema.dev.json" as pycli;
+
+truth = [2, 3, -0.5];
+a = [];
+b = [];
+for (i = 0; i < 21; i = i + 1) {
+  x = i / 4;
+  noise = ((i * 37 + 11) % 17 - 8) / 400;   // deterministic zig-zag in [-0.02, 0.02]
+  a = concat(a, [[1, x, x * x]]);
+  b = concat(b, [truth[0] + truth[1] * x + truth[2] * x * x + noise]);
+}
+fit = pycli.la_lstsq({a: a, b: b});
+if (fit.status == "simulated") { println("Fit simulated."); exit(0); }
+if (fit.status != "ok" || fit.result.status != "OK") { println("Least squares failed:", json_stringify(fit)); exit(1); }
+c = fit.result.x;
+println(sprintf("coefficients: c0=%.6f c1=%.6f c2=%.6f  rank=%d  residual_norm=%.6f", c[0], c[1], c[2], fit.result.rank, fit.result.residual_norm));
+for (j = 0; j < 3; j = j + 1) {
+  if (abs(c[j] - truth[j]) > 0.05) { println("Coefficient", j, "differs from the generating value"); exit(1); }
+}
+// 21 residuals of size <= 0.02 bound the residual norm by 0.02 * sqrt(21).
+if (fit.result.residual_norm > 0.02 * sqrt(21)) { println("Residual is larger than the injected noise"); exit(1); }
+// Independent check: A^T (A c - b) must vanish for the least-squares minimiser.
+for (j = 0; j < 3; j = j + 1) {
+  g = 0;
+  for (i = 0; i < 21; i = i + 1) { g = g + a[i][j] * (a[i][0] * c[0] + a[i][1] * c[1] + a[i][2] * c[2] - b[i]); }
+  if (abs(g) > 0.000000001) { println("Normal equation", j, "violated:", g); exit(1); }
+}
+p = pycli.la_props({a: a, what: ["rank", "cond"]});
+if (p.status != "ok" || p.result.rank != 3) { println("Design matrix is not full rank:", json_stringify(p)); exit(1); }
+println("Polynomial least-squares fit passed.");
