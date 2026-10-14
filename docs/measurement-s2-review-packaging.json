@@ -59,6 +59,6 @@
   "stdlib_cache_bytes": 12311809,
   "checked_hash_files": 686,
   "runtime_docker_ls_mb": 527,
-  "test_docker_ls_mb": 974,
+  "test_docker_ls_mb": 975,
   "control_docker_ls_mb": 509
 }

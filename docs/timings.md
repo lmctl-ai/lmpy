@@ -136,7 +136,7 @@ docker run --rm --network=none pycli:test (16/16, 268.04 s, exit 0),
 
 The original S2 table above is historical; review-run samples are recorded
 separately rather than overwriting them. Final runtime Docker ls reports 527 MB
-(test 974 MB); inspect content is 115,126,863 bytes (test 208,263,484 bytes).
+(test 975 MB); inspect content is 115,126,863 bytes (test 208,263,484 bytes).
 The otherwise identical no-stdlib-bytecode control reports 509 MB / 110,692,682
 content bytes. Every layer except the last RUN matches. Restoring caches adds
 4,434,181 content bytes (about 18 MB in the rounded Docker ls display). There are

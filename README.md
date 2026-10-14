@@ -258,7 +258,7 @@ The audit guard remains defence in depth; the container is the process boundary.
 All frame outputs use anonymous atomic no-replace installation and honor readonly/dryrun.
 
 S2 review measurements (aarch64, ten sequential calls; p95=max): runtime
-**527 MB** / **115,126,863 content bytes**, test **974 MB**. Restoring checked-hash
+**527 MB** / **115,126,863 content bytes**, test **975 MB**. Restoring checked-hash
 stdlib caches adds 4,434,181 content bytes versus an otherwise identical control.
 Fresh pandas import compiles no stdlib sources. These are shared-host loaded
 samples; an idle-host rerun is deferred because unrelated work remained active.
