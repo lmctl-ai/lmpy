@@ -1,0 +1,359 @@
+{
+ "accept": [
+  {
+   "expression": "x[0]",
+   "names": [
+    "x"
+   ],
+   "dims": {
+    "x": 1
+   }
+  },
+  {
+   "expression": "100*(x[1]-x[0]^2)^2 + (1-x[0])^2",
+   "names": [
+    "x"
+   ],
+   "dims": {
+    "x": 2
+   }
+  },
+  {
+   "expression": "x [ 0 ] + y",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 1
+   }
+  },
+  {
+   "expression": "x[63]",
+   "names": [
+    "x"
+   ],
+   "dims": {
+    "x": 64
+   }
+  },
+  {
+   "expression": "ifelse(v[0]>v[1],v[0],v[1])",
+   "names": [
+    "v"
+   ],
+   "dims": {
+    "v": 2
+   }
+  },
+  {
+   "expression": "exp(-a[0]*t) + sum(d)",
+   "names": [
+    "a",
+    "t",
+    "d"
+   ],
+   "dims": {
+    "a": 1
+   },
+   "allow_reducers": true
+  },
+  {
+   "expression": "--x[0]",
+   "names": [
+    "x"
+   ],
+   "dims": {
+    "x": 1
+   }
+  }
+ ],
+ "reject": [
+  {
+   "expression": "x",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_VECTOR_INDEX"
+  },
+  {
+   "expression": "x+1",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_VECTOR_INDEX"
+  },
+  {
+   "expression": "x[2]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[99999999999]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[1.5]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[-1]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[0",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "x[]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[0][0]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "x[y]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[0]()",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "y[0]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "x[00]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[0x1]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[1e0]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[(0)]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[64]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 64
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[ 1 2 ]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 4
+   },
+   "expected_tool_code": "EXPR_INDEX"
+  },
+  {
+   "expression": "x[0]]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "x[١]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_BAD_BYTE"
+  },
+  {
+   "expression": "exp[0]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_NAME_COLLISION"
+  },
+  {
+   "expression": "x[0](1)",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "[0]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "x[0]^[1]",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "ifelse(x[0],1,2)",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_SYNTAX"
+  },
+  {
+   "expression": "sum(x[0])",
+   "names": [
+    "x",
+    "y"
+   ],
+   "dims": {
+    "x": 2
+   },
+   "expected_tool_code": "EXPR_NOT_SCALAR"
+  }
+ ]
+}

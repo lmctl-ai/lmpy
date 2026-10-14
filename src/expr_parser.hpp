@@ -3,6 +3,7 @@
 #include "expr_spec.hpp"
 #include <cerrno>
 #include <cstdlib>
+#include <map>
 #include <set>
 
 namespace pycli_expr {
@@ -11,8 +12,10 @@ struct ParseFailure { std::string code; size_t position; std::string near; };
 
 class Parser {
  public:
-  Parser(std::string text, std::set<std::string> names, bool allow_reducers)
-      : text_(std::move(text)), names_(std::move(names)), allow_reducers_(allow_reducers), spec_(Json::parse(PYCLI_EXPR_SPEC_JSON)) {}
+  // pycli extension (not in the shared rcli spec): names listed in `dims` are vectors that may only appear as
+  // name[<unsigned integer literal>] with the literal below their length. With empty `dims` this is rcli's parser.
+  Parser(std::string text, std::set<std::string> names, bool allow_reducers, std::map<std::string,size_t> dims = {})
+      : text_(std::move(text)), names_(std::move(names)), allow_reducers_(allow_reducers), dims_(std::move(dims)), spec_(Json::parse(PYCLI_EXPR_SPEC_JSON)) {}
 
   Json parse() {
     if (text_.size() > cap("bytes")) fail("EXPR_TOO_LONG", cap("bytes"));
@@ -34,7 +37,7 @@ class Parser {
   const std::set<std::string>& identifiers() const { return identifiers_; }
 
  private:
-  std::string text_; std::set<std::string> names_; bool allow_reducers_;
+  std::string text_; std::set<std::string> names_; bool allow_reducers_; std::map<std::string,size_t> dims_;
   Json spec_; size_t pos_=0, tokens_=0, nodes_=0, calls_=0;
   std::set<std::string> identifiers_;
   size_t cap(const char *name) const { return spec_["caps"][name].get<size_t>(); }
@@ -78,7 +81,19 @@ class Parser {
       if(spec_["functions"].contains(name))fail("EXPR_NAME_COLLISION",start);
       for(const auto&reserved:spec_.value("reserved",Json::array()))if(reserved.get<std::string>()==name)fail("EXPR_NAME_COLLISION",start);
       if(!names_.count(name))fail("EXPR_UNKNOWN_IDENT",start);
-      identifiers_.insert(name);return node(Json{{"t","var"},{"n",name}});
+      identifiers_.insert(name);
+      auto vec=dims_.find(name);
+      if(vec!=dims_.end()){
+        whitespace();if(pos_>=text_.size()||text_[pos_]!='[')fail("EXPR_VECTOR_INDEX",start);
+        ++pos_;token();whitespace();
+        const size_t digits=pos_;while(pos_<text_.size()&&text_[pos_]>='0'&&text_[pos_]<='9')++pos_;
+        if(pos_==digits||pos_-digits>6||(text_[digits]=='0'&&pos_-digits>1))fail("EXPR_INDEX",digits);
+        const size_t index=std::stoul(text_.substr(digits,pos_-digits));
+        whitespace();if(pos_>=text_.size())fail("EXPR_SYNTAX",pos_);
+        if(text_[pos_]!=']'||index>=vec->second)fail("EXPR_INDEX",digits);
+        ++pos_;token();return node(Json{{"t","idx"},{"n",name},{"i",index}});
+      }
+      return node(Json{{"t","var"},{"n",name}});
     }
     fail("EXPR_SYNTAX",pos_);
   }
