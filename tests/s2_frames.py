@@ -102,6 +102,12 @@ class Frames(unittest.TestCase):
   self.assertEqual(self.inspect('converted.npz')['dtypes']['x'],'float64')
   self.call('frame_groupby',frame='t.npz',keys=['k'],aggs={'v':['sum']},out='g.npz');self.assertEqual(self.inspect('g.npz')['head']['data']['v__sum'],['Inf'])
   self.call('frame_import',rc=2,columns={'x':[1]},dtypes={'x':{'dtype':[]}},out='bad.npz')
+ def test_typed_predicate_nonfinite_tokens(self):
+  self.table({'x':['Inf','-Inf','NaN',None],'s':['1','two','three','four']},dtypes={'x':'float64'})
+  self.call('frame_select',frame='t.npz',where={'col':'x','op':'eq','value':'Inf'},out='inf.npz');self.assertEqual(self.inspect('inf.npz')['shape'][0],1)
+  self.call('frame_select',rc=2,frame='t.npz',where={'col':'x','op':'eq','value':'text'},out='bad.npz')
+  self.call('frame_select',rc=2,frame='t.npz',where={'col':'s','op':'eq','value':1},out='bad.npz')
+  (self.cwd/'tiny.csv').write_text('x\n1e-999\n');self.call('frame_import',rc=2,csv='tiny.csv',out='bad.npz')
  def test_minimal_dependencies(self):
   import importlib.util
   for name in ('pyarrow','numexpr','bottleneck','openpyxl'):self.assertIsNone(importlib.util.find_spec(name),name)
