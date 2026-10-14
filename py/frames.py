@@ -170,7 +170,9 @@ def frame_load(p):
                     expected_dtype={'int64':'<i8','float64':'<f8','bool':'|b1','datetime64[ns]':'<i8','category':'<i8'}
                     if dtype=='string':
                         if raw.dtype.kind!='S':raise BadData('strings require UTF-8 bytes arrays')
-                        vals=[bytes(v).decode('utf-8') for v in raw];s=pd.Series(vals,dtype='string');s[mask]=pd.NA
+                        vals=[bytes(v).decode('utf-8') for v in raw]
+                        if any('\x00' in v for v in vals):raise BadData('NUL in strings unsupported')
+                        s=pd.Series(vals,dtype='string');s[mask]=pd.NA
                     elif raw.dtype!=np.dtype(expected_dtype[dtype]):
                         raise BadData('table dtype mismatch')
                     elif dtype=='datetime64[ns]':
@@ -316,6 +318,12 @@ def frame_operation(op,p):
     import numpy as np
     import pandas as pd
     df,meta,masks,inferred=frame_load(p)
+    if op=='frame_import' and 'frame_file' in p and (p.get('dtypes') or p.get('parse_dates')):
+        policies=dict(meta);policies.update(p.get('dtypes',{}))
+        for col in p.get('parse_dates',[]):policies[col]='datetime64[ns]'
+        table=frame_preview(df,meta,masks,range(len(df)))
+        data={c:[None if isinstance(v,FrameNull) else 'NaN' if isinstance(v,float) and math.isnan(v) else 'Inf' if isinstance(v,float) and v==math.inf else '-Inf' if isinstance(v,float) and v==-math.inf else v for v in vals] for c,vals in table['data'].items()}
+        df,meta,masks=frame_build(data,policies,inferred)
     if op=='frame_inspect':
         head=p.get('head',10);tail=p.get('tail',0)
         if (min(head,len(df))+min(tail,len(df)))*len(df.columns)>1000:raise BadData('head+tail exceeds 1000 cells')
