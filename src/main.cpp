@@ -296,7 +296,7 @@ Json call(const std::string& op,const Params& input){
             frames::names(names);if(cells>MAX_INLINE||rows>frames::ROWS)invalid("inline tables limited to 1000 cells");
         }
         if(p.contains("max_rows")){int64_t n=p["max_rows"];if(n<0||n>200000)invalid("max_rows must be 0..200000");}
-        if(p.contains("csv")){table_input="input.csv";table_bytes=frames::bounded_read(confined(p["csv"]));frames::csv(table_bytes,p.value("delimiter",std::string(",")),p.value("max_rows",uint64_t(200000)));p.erase("csv");}
+        if(p.contains("csv")){table_input="input.csv";table_bytes=frames::bounded_read(confined(p["csv"]),frames::CSV_BYTES);frames::csv(table_bytes,p.value("delimiter",std::string(",")),p.value("max_rows",uint64_t(200000)));p.erase("csv");}
         if(p.contains("frame")){table_input="frame.npz";auto path=confined(p["frame"]);if(fs::path(path).extension()!=".npz")invalid("table ref requires .npz");table_bytes=frames::bounded_read(path);auto metadata=frames::npz(table_bytes);p.erase("frame");
             if(op=="frame_inspect"){uint64_t rows=metadata["n_rows"],cols=metadata["columns"].size();uint64_t head=p.value("head",uint64_t(10)),tail=p.value("tail",uint64_t(0));if((std::min(rows,head)+std::min(rows,tail))*cols>1000)invalid("preview exceeds 1000 cells");}}
         if(p.contains("where"))frames::predicate(p["where"]);

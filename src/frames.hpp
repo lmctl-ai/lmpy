@@ -4,7 +4,7 @@ namespace frames {
 constexpr uint64_t ROWS=200000, BYTES=256*1024*1024, COLS=256, CELLS=500000, CSV_BYTES=16*1024*1024, STRING_BYTES=65536;
 inline void bad(const std::string& s){invalid(s,"BAD_DATA");}
 inline uint64_t le(const std::string& b,size_t p,size_t n){if(p>b.size()||n>b.size()-p)bad("truncated table ZIP");uint64_t v=0;for(size_t i=0;i<n;++i)v|=uint64_t(static_cast<unsigned char>(b[p+i]))<<(8*i);return v;}
-inline std::string bounded_read(const std::string& path){std::ifstream f(path,std::ios::binary);std::string b;char buf[65536];while(f){f.read(buf,sizeof buf);auto n=f.gcount();if(b.size()+n>BYTES)bad("table file exceeds 256 MiB");b.append(buf,n);}if(!f.eof())bad("cannot read table");return b;}
+inline std::string bounded_read(const std::string& path,uint64_t limit=BYTES){std::ifstream f(path,std::ios::binary);std::string b;char buf[65536];while(f){f.read(buf,sizeof buf);auto n=f.gcount();if(b.size()+n>limit)invalid("table file exceeds byte budget","INPUT_TOO_LARGE");b.append(buf,n);}if(!f.eof())bad("cannot read table");return b;}
 inline void utf8(const std::string& s){
  for(size_t i=0;i<s.size();){unsigned char c=s[i++];if(c<128)continue;size_t n;uint32_t code,minimum;
  if(c>=0xc2&&c<=0xdf){n=1;code=c&31;minimum=128;}else if(c>=0xe0&&c<=0xef){n=2;code=c&15;minimum=2048;}else if(c>=0xf0&&c<=0xf4){n=3;code=c&7;minimum=65536;}else bad("invalid UTF-8");
