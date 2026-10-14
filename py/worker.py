@@ -110,7 +110,7 @@ def info(p):
     import scipy
     return {'python': platform.python_version(), 'numpy': np.__version__, 'scipy': scipy.__version__,
             'blas': blas_info(), 'threads': 1, 'rng': 'PCG64', 'arch': platform.machine(),
-            'hash_randomization': sys.flags.hash_randomization, 'hash_probe': hash('pycli'),
+            'hash_randomization': sys.flags.hash_randomization, 'hash_probe': str(hash('pycli')),
             'safe_path': sys.flags.safe_path, 'user_site': bool(sys.flags.no_user_site == 0),
             'coretype_requested': os.environ.get('OPENBLAS_CORETYPE', 'automatic')}
 

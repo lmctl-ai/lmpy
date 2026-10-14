@@ -35,6 +35,7 @@ class Review(unittest.TestCase):
                 r=call('py_info',env=env,cwd=directory)
                 self.assertEqual(r['hash_randomization'],0)
                 self.assertTrue(r['safe_path'])
+                self.assertIsInstance(r['hash_probe'],str)
                 self.assertFalse(r['user_site'])
                 self.assertEqual(r['hash_probe'],call('py_info')['hash_probe'])
     def test_F6_binary64_boundary(self):

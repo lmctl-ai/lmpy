@@ -44,17 +44,22 @@ class Containers(unittest.TestCase):
             p,cid,top=self.start_call()
             config=json.loads(docker('inspect',cid).stdout)[0]
             host=config['HostConfig'];self.assertEqual(host['NetworkMode'],'none');self.assertTrue(host['ReadonlyRootfs'])
-            self.assertEqual(host['CapDrop'],['ALL']);self.assertEqual(host['PidsLimit'],128);self.assertEqual(host['Memory'],4*1024**3)
+            self.assertEqual(host['CapDrop'],['ALL']);self.assertEqual(host['PidsLimit'],128);self.assertEqual(host['Memory'],4*1024**3);self.assertEqual(host['NanoCpus'],2000000000)
             self.assertIn('no-new-privileges',host['SecurityOpt']);self.assertTrue(host.get('Init',False));self.assertNotIn('seccomp=unconfined',host['SecurityOpt'])
-            self.assertIn('/tmp',host['Tmpfs']);self.assertEqual(len(config['Mounts']),3) # cwd bind plus tmpfs
+            self.assertIn('/tmp',host['Tmpfs']);self.assertEqual(len(config['Mounts']),2) # cwd bind and readonly test fixture; tmpfs is HostConfig.Tmpfs
+            self.assertEqual(sum(m['RW'] for m in config['Mounts']),1)
+            self.assertTrue(any(m['Source']==str(self.root) and m['RW'] for m in config['Mounts']))
             for word in ('CapEff:\t0000000000000000','NoNewPrivs:\t1','Seccomp:\t2'):
                 status=docker('exec',cid,'cat','/proc/1/status',check=False).stdout
                 self.assertIn(word,status)
+            worker_pids=[int(line.split()[0]) for line in top.splitlines() if 'worker.py' in line]
             started=time.monotonic();p.send_signal(sig);out,err=p.communicate(timeout=3)
             self.assertEqual(p.returncode,rc,(out,err));self.assertLess(time.monotonic()-started,3)
             self.assertFalse((self.root/'cancel.safetensors').exists())
             self.assertFalse(list(self.root.glob('.pycli-tmp*')))
             self.assertEqual(docker('ps','-q','--filter','id='+cid).stdout.strip(),'')
+            for pid in worker_pids:
+                with self.assertRaises(ProcessLookupError):os.kill(pid,0)
     def test_O4_container_kill_no_workspace_copies(self):
         p,cid,top=self.start_call();docker('kill','--signal','KILL',cid);p.communicate(timeout=3)
         self.assertFalse(list(self.root.glob('.pycli-tmp*')))
