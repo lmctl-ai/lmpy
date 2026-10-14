@@ -95,7 +95,7 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=(), normaliz
                 import re
                 intpat = re.compile(r'-?(?:0|[1-9][0-9]*)\Z')
                 floatpat = re.compile(r'[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?\Z')
-                if any(v.startswith('+') or re.fullmatch(r'-?0[0-9]+',v) for v in nonnull):
+                if any(v.startswith('+') or re.match(r'-?0[0-9]',v) for v in nonnull):
                     spec = 'string'
                 elif nonnull and all(intpat.fullmatch(v) for v in nonnull):
                     spec = 'int64'
