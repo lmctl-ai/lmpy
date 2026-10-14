@@ -116,6 +116,9 @@ class Frames(unittest.TestCase):
   self.table({'k':['a','a'],'x':[None,None],'when':[None,None],'cat':[None,None]},dtypes={'x':'int64','when':{'dtype':'datetime64[ns]','tz':'UTC'},'cat':{'dtype':'category','categories':['b','a'],'ordered':True}})
   self.call('frame_groupby',frame='t.npz',keys=['k'],aggs={'x':['std','min','count'],'when':['first'],'cat':['last']},out='g.npz')
   got=self.inspect('g.npz');self.assertEqual(got['dtypes']['x__std'],'float64');self.assertEqual(got['dtypes']['x__min'],'int64');self.assertEqual(got['dtypes']['x__count'],'int64');self.assertEqual(got['dtypes']['when__first'],'datetime64[ns]');self.assertEqual(got['column_meta']['when__first']['tz'],'UTC');self.assertEqual(got['column_meta']['cat__last']['categories'],['b','a'])
+ def test_int64_wire_overflow_does_not_round_into_range(self):
+  self.call('frame_import',rc=2,columns={'x':[-(1<<63)-1]},dtypes={'x':'int64'},out='bad.npz')
+  self.call('frame_import',rc=2,columns={'x':[(1<<63)]},dtypes={'x':'int64'},out='bad.npz')
  def test_minimal_dependencies(self):
   import importlib.util
   for name in ('pyarrow','numexpr','bottleneck','openpyxl'):self.assertIsNone(importlib.util.find_spec(name),name)
