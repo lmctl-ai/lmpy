@@ -77,7 +77,7 @@ class ImportInline(Base):
                 call('array_import', {'format': 'json', 'data': [1], 'key': bad, 'out': self.out('k.safetensors')}, 2)
 
     def test_shape_rules(self):
-        for bad in ([], [[]], [1, [2]], [[1, 2], [3]], [[[1]]], 5, 'x', {'shape': [3], 'data': [1, 2]}, {'shape': [0], 'data': []}, {'shape': [1.5], 'data': [1]}):
+        for bad in ([], [[]], [1, [2]], [[1, 2], [3]], [[[1]]], 5, 'x', {'shape': [3], 'data': [1, 2]}, {'shape': [4], 'data': [[1, 2], [3, 4]]}, {'shape': [4, 1], 'data': [[1, 2], [3, 4]]}, {'shape': [2, 2], 'data': [[1, 2, 3, 4]]}, {'shape': [0], 'data': []}, {'shape': [1.5], 'data': [1]}):
             with self.subTest(bad=bad):
                 call('array_import', {'format': 'json', 'data': bad, 'out': self.out('s.safetensors')}, 2)
         call('array_import', {'format': 'json', 'data': ['x'], 'out': self.out('s.safetensors')}, 2)
@@ -133,7 +133,8 @@ class ImportCsv(Base):
         r = call('array_import', {'format': 'csv_file', 'data': str(self.dir / 'huge.csv'), 'out': self.out('h.safetensors')}, 2)
         self.assertEqual(code(r), 'INPUT_TOO_LARGE')
         call('array_import', {'format': 'csv_file', 'data': '/etc/passwd', 'out': self.out('p.safetensors')}, 2)
-        call('array_import', {'format': 'csv_file', 'data': str(self.dir / 'missing.csv'), 'out': self.out('p.safetensors')}, 2)
+        r = call('array_import', {'format': 'csv_file', 'data': str(self.dir / 'missing.csv'), 'out': self.out('p.safetensors')}, 4)
+        self.assertEqual(r['error']['code'], 'NOT_FOUND')
 
 
 class ImportBinary(Base):
@@ -169,7 +170,7 @@ class ImportBinary(Base):
         (self.dir / 'dir.npy').mkdir()
         for name in ('object', 'rank3', 'fortran', 'big_int', 'empty', 'scalar', 'complex', 'big', 'trunc', 'trailing', 'hugehdr', 'v3', 'shape_overflow', 'shape_huge', 'evil', 'dir', 'nothing'):
             with self.subTest(name=name):
-                r = call('array_import', {'format': 'npy', 'data': str(self.dir / f'{name}.npy'), 'out': self.out(f'{name}.safetensors')}, 2)
+                r = call('array_import', {'format': 'npy', 'data': str(self.dir / f'{name}.npy'), 'out': self.out(f'{name}.safetensors')}, 4 if name == 'nothing' else 2)
                 self.assertIn(code(r), ('BAD_NPY', 'BAD_DATA', 'INPUT_TOO_LARGE'))
                 self.assertFalse(pathlib.Path(self.out(f'{name}.safetensors')).exists())
 
@@ -213,7 +214,11 @@ class ImportBinary(Base):
         write_safetensors(self.dir / 't.safetensors', {'a': np.ones(3), 'big': np.array([2 ** 60], dtype='<i8'), 'r3': np.ones((2, 2, 2)), 'z': np.empty((0,)), 'many': np.ones(200001)})
         for ref in ('t.safetensors', 't.safetensors#nokey', 't.safetensors#', '#a', 't.safetensors#big', 't.safetensors#r3', 't.safetensors#z', 't.safetensors#many', 't.safetensors#a#a', 'missing.safetensors#a'):
             with self.subTest(ref=ref):
-                call('array_import', {'format': 'safetensors', 'data': f'{self.dir}/{ref}', 'out': self.out('s.safetensors')}, 2)
+                # protocol 6.1 (and torchcli): an absent file or tensor key is NOT_FOUND (4); every other defect is a validation error.
+                rc = 4 if ref in ('t.safetensors#nokey', 'missing.safetensors#a') else 2
+                r = call('array_import', {'format': 'safetensors', 'data': f'{self.dir}/{ref}', 'out': self.out('s.safetensors')}, rc)
+                if rc == 4:
+                    self.assertEqual(r['error']['code'], 'NOT_FOUND')
         self.assertFalse(pathlib.Path(self.out('s.safetensors')).exists())
 
     def test_header_validated_before_allocation(self):
@@ -341,7 +346,7 @@ class Inspect(Base):
     def test_bad_refs(self):
         for ref in ('/etc/passwd', '../x.npy', 'a.txt', '', 'x.npy#k', f'{self.dir}/none.npy', 5, {'a': 1}, [], [[1], [2, 3]]):
             with self.subTest(ref=ref):
-                call('array_inspect', {'ref': ref}, 2)
+                call('array_inspect', {'ref': ref}, 4 if ref == f'{self.dir}/none.npy' else 2)
 
 
 class HeaderFuzz(Base):
@@ -395,6 +400,41 @@ class HeaderFuzz(Base):
                 self.assertIn(proc.returncode, (0, 2), (i, ref, proc.returncode, proc.stdout[:300], proc.stderr[:300]))
                 json.loads(proc.stdout)
             path.unlink()
+
+
+class ReviewFixes(Base):
+    def test_mixed_dtype_file_only_fails_for_the_requested_tensor(self):
+        # F16/BF16/I16/U32 entries are valid safetensors; only selecting one of them is unsupported.
+        import numpy as np
+        header = {'x': {'dtype': 'F64', 'shape': [2], 'data_offsets': [0, 16]}, 'h': {'dtype': 'F16', 'shape': [3], 'data_offsets': [16, 22]},
+                  'b': {'dtype': 'BF16', 'shape': [1], 'data_offsets': [22, 24]}, 'i': {'dtype': 'I16', 'shape': [1], 'data_offsets': [24, 26]},
+                  'u': {'dtype': 'U32', 'shape': [1], 'data_offsets': [26, 30]}, 'f8': {'dtype': 'F8_E4M3', 'shape': [2], 'data_offsets': [30, 32]}}
+        text = json.dumps(header).encode()
+        text += b' ' * ((-len(text)) % 8)
+        payload = np.array([1.5, 2.5], dtype='<f8').tobytes() + b'\0' * 16
+        (self.dir / 'mixed.safetensors').write_bytes(len(text).to_bytes(8, 'little') + text + payload)
+        ref = f'{self.dir}/mixed.safetensors'
+        r = call('array_inspect', {'ref': ref + '#x'})
+        self.assertEqual((r['dtype'], r['preview']), ('F64', [1.5, 2.5]))
+        listing = call('array_inspect', {'ref': ref})['tensors']
+        self.assertEqual({k: v['dtype'] for k, v in listing.items()}, {'x': 'F64', 'h': 'F16', 'b': 'BF16', 'i': 'I16', 'u': 'U32', 'f8': 'F8_E4M3'})
+        _, got = self.imported({'format': 'safetensors', 'data': ref + '#x'})
+        self.assertEqual(got.tolist(), [1.5, 2.5])
+        for key in ('h', 'b', 'i', 'u', 'f8'):
+            r = call('array_inspect', {'ref': f'{ref}#{key}'}, 2)
+            self.assertEqual(code(r), 'UNSUPPORTED_DTYPE')
+        # A wrong byte count for a known dtype is still rejected for the whole file.
+        header['h']['data_offsets'] = [16, 21]
+        text = json.dumps(header).encode()
+        text += b' ' * ((-len(text)) % 8)
+        (self.dir / 'bad.safetensors').write_bytes(len(text).to_bytes(8, 'little') + text + payload)
+        call('array_inspect', {'ref': f'{self.dir}/bad.safetensors'}, 2)
+
+    def test_shape_envelope_accepts_flat_or_matching_nesting(self):
+        _, got = self.imported({'format': 'json', 'data': {'shape': [2, 3], 'data': [1, 2, 3, 4, 5, 6]}})
+        self.assertEqual(got.shape, (2, 3))
+        _, got = self.imported({'format': 'json', 'data': {'shape': [2, 2], 'data': [[1, 2], [3, 4]]}})
+        self.assertEqual(got.tolist(), [[1, 2], [3, 4]])
 
 
 if __name__ == '__main__':

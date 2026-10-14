@@ -218,7 +218,10 @@ class Props(Base):
         for p, ref in (('2', np.linalg.cond(a, 2)), ('1', np.linalg.cond(a, 1)), ('inf', np.linalg.cond(a, np.inf)), ('fro', np.linalg.cond(a, 'fro'))):
             self.assertAlmostEqual(self.props(a.tolist(), ['cond'], cond_p=p)['cond'], ref, delta=1e-12)
         r = self.props([[1, 2], [2, 4]], ['cond', 'rank'])  # exactly singular: +Inf or, at worst, rounding-level 1/eps
-        self.assertTrue(r['cond'] == 'Inf' or r['cond'] > 1e15, r)
+        self.assertEqual(r['cond'], 'Inf')  # rank-deficient under numpy's default tolerance: README promises Inf, not 4.8e16
+        self.assertEqual(self.props([[1, 0], [0, 1e-20]], ['cond'])['cond'], 'Inf')
+        for p in ('1', 'inf', 'fro'):
+            self.assertEqual(self.props([[1, 2], [2, 4]], ['cond'], cond_p=p)['cond'], 'Inf', p)
         self.assertEqual(r['rank'], 1)
         r = self.props([[1, 2, 3], [4, 5, 6]], ['cond', 'rank', 'norm'])  # rectangular is fine for these
         self.assertEqual(r['rank'], 2)
@@ -249,6 +252,11 @@ class Props(Base):
         self.assertEqual(r['det'], 0)
         self.assertTrue(any(w['category'] == 'NumericalWarning' for w in r['warnings']))
 
+    def test_default_properties_work_for_rectangular_input(self):
+        r = call('la_props', {'a': [[1, 2, 3], [4, 5, 6]]})
+        self.assertEqual(sorted(k for k in r if k in ('det', 'rank', 'cond', 'norm', 'trace')), ['cond', 'norm', 'rank'])
+        self.assertEqual(r['rank'], 2)
+
     def test_defaults_and_requested_keys_only(self):
         r = call('la_props', {'a': [[2, 0], [0, 3]]})
         self.assertEqual(sorted(k for k in r if k in ('det', 'rank', 'cond', 'norm', 'trace', 'inverse', 'slogdet')), ['cond', 'det', 'norm', 'rank', 'trace'])
@@ -266,7 +274,7 @@ class Props(Base):
     def test_validation_before_spawn(self):
         sq = [[1, 2], [3, 4]]
         for name, p in {'nan': {'a': [[1, 'NaN'], [0, 1]]}, 'rect_det': {'a': [[1, 2, 3], [4, 5, 6]], 'what': ['det']}, 'rect_inverse': {'a': [[1, 2, 3], [4, 5, 6]], 'what': ['inverse']},
-                        'rect_slogdet': {'a': [[1, 2, 3], [4, 5, 6]], 'what': ['slogdet']}, 'rect_cond1': {'a': [[1, 2, 3], [4, 5, 6]], 'what': ['cond'], 'cond_p': '1'},
+                        'rect_slogdet': {'a': [[1, 2, 3], [4, 5, 6]], 'what': ['slogdet']}, 'rect_trace': {'a': [[1, 2, 3], [4, 5, 6]], 'what': ['trace']}, 'rect_cond1': {'a': [[1, 2, 3], [4, 5, 6]], 'what': ['cond'], 'cond_p': '1'},
                         'unknown_what': {'a': sq, 'what': ['eigs']}, 'empty_what': {'a': sq, 'what': []}, 'bad_ord': {'a': sq, 'norm_ord': '3'}, 'bad_p': {'a': sq, 'cond_p': '7'},
                         'neg_tol': {'a': sq, 'rank_tol': -1}, 'vector': {'a': [1, 2]}, 'dup_what': {'a': sq, 'what': ['det', 'det']},
                         'inline_cap': {'a': np.eye(32).tolist(), 'what': ['rank']}}.items():
@@ -282,6 +290,15 @@ class Props(Base):
         a = (np.eye(31) * 2 + np.eye(31, k=1)).tolist()
         r = self.props(a, ['inverse'])
         np.testing.assert_allclose(r['inverse'], np.linalg.inv(np.array(a)), rtol=1e-12)
+
+
+def match_up_to_sign(testcase, got, ref, axis=0, **tol):
+    """Singular/eigen/Q vectors are only defined up to a sign per column (LAPACK/BLAS dependent: amd64 may differ),
+    so compare after aligning each column of `got` to `ref`; the products/identities are asserted separately."""
+    got, ref = np.moveaxis(np.asarray(got), axis, 0), np.moveaxis(np.asarray(ref), axis, 0)
+    signs = np.sign(np.sum(got * ref, axis=tuple(range(1, got.ndim))))
+    signs[signs == 0] = 1
+    np.testing.assert_allclose(got * signs.reshape((-1,) + (1,) * (got.ndim - 1)), ref, **tol)
 
 
 def sorted_eig(w, v):
@@ -303,9 +320,11 @@ class Decomp(Base):
                 r, t = self.decomp(a.tolist(), 'svd', f'{shape}{full}.safetensors', full=full)
                 u, s, vt = sla.svd(a, full_matrices=full)
                 self.assertEqual(sorted(t), ['s', 'u', 'vt'])
-                for got, ref in ((t['u'], u), (t['s'], s), (t['vt'], vt)):
-                    self.assertEqual(got.shape, ref.shape)
-                    np.testing.assert_allclose(got, ref, rtol=1e-12, atol=1e-13)  # same LAPACK driver: signs agree
+                self.assertEqual((t['u'].shape, t['s'].shape, t['vt'].shape), (u.shape, s.shape, vt.shape))
+                np.testing.assert_allclose(t['s'], s, rtol=1e-12, atol=1e-13)
+                k = min(shape)
+                match_up_to_sign(self, t['u'][:, :k], u[:, :k], axis=1, rtol=1e-9, atol=1e-11)
+                match_up_to_sign(self, t['vt'][:k], vt[:k], axis=0, rtol=1e-9, atol=1e-11)
                 self.assertTrue(np.all(np.diff(t['s']) <= 0) and t['s'][-1] >= 0)
                 k = min(shape)
                 np.testing.assert_allclose((t['u'][:, :k] * t['s']) @ t['vt'][:k], a, atol=1e-13)
@@ -323,8 +342,8 @@ class Decomp(Base):
         for full in (False, True):
             r, t = self.decomp(a.tolist(), 'qr', f'q{full}.safetensors', full=full)
             q, rr = sla.qr(a, mode='full' if full else 'economic')
-            np.testing.assert_allclose(t['q'], q, rtol=1e-12, atol=1e-13)
-            np.testing.assert_allclose(t['r'], rr, rtol=1e-12, atol=1e-13)
+            match_up_to_sign(self, t['q'], q, axis=1, rtol=1e-9, atol=1e-11)
+            match_up_to_sign(self, t['r'], rr, axis=0, rtol=1e-9, atol=1e-11)
             np.testing.assert_allclose(t['q'].T @ t['q'], np.eye(t['q'].shape[1]), atol=1e-13)
             np.testing.assert_allclose(t['q'] @ t['r'], a, atol=1e-13)
             self.assertNotIn('p', t)
@@ -348,7 +367,7 @@ class Decomp(Base):
         r, t = self.decomp(a.tolist(), 'eigh', 'e2.safetensors')
         w, v = sla.eigh(a)
         np.testing.assert_allclose(t['w'], w, rtol=1e-12, atol=1e-13)
-        np.testing.assert_allclose(t['v'], v, rtol=1e-10, atol=1e-12)
+        match_up_to_sign(self, t['v'], v, axis=1, rtol=1e-8, atol=1e-10)
         self.assertTrue(np.all(np.diff(t['w']) >= 0))
         np.testing.assert_allclose(a @ t['v'], t['v'] * t['w'], atol=1e-12)
         np.testing.assert_allclose(t['v'].T @ t['v'], np.eye(6), atol=1e-13)
@@ -475,6 +494,129 @@ class Decomp(Base):
         self.assertLess(r['reconstruction_error'], 1e-15)
         r, t = self.decomp([[1, 2], [2, 4]], 'lu', 'l.safetensors')
         self.assertLess(r['reconstruction_error'], 1e-15)
+
+
+def run_with_fake_worker(response, params, op='la_decomp'):
+    """Run the CLI against a stand-in interpreter that answers with a canned worker response."""
+    tmp = tempfile.mkdtemp(dir='.')
+    try:
+        fake = pathlib.Path(tmp) / 'python'
+        fake.write_text('#!' + sys.executable + '\nimport json,sys\njson.dump(' + repr(response) + ',open(sys.argv[-1],"w"))\n')
+        fake.chmod(0o755)
+        proc = subprocess.run([BIN, '--input-json', json.dumps({'op': op, 'params': params})], capture_output=True, text=True,
+                              env=dict(os.environ, PYCLI_PYTHON=str(fake)))
+        return proc.returncode, json.loads(proc.stdout)
+    finally:
+        import shutil
+        shutil.rmtree(tmp)
+
+
+class ReviewFixes(Base):
+    def test_lstsq_counts_every_inline_vector(self):
+        # x (n*k) + residues (k) + singular values (min(m,n)) must fit in 1000 before anything runs.
+        a, b = [[2.0]], [list(map(float, range(1, 501)))]  # n*k = 500, residues 500, s 1: 1001 numbers
+        r = call('la_lstsq', {'a': a, 'b': b}, 1, NO_PYTHON)
+        self.assertEqual(code(r), 'OUTPUT_TOO_LARGE')
+        ok = call('la_lstsq', {'a': a, 'b': [b[0][:499]]})
+        self.assertEqual(len(ok['x'][0]) + len(ok['residues']) + len(ok['singular_values']), 999)
+
+    def test_lstsq_to_moves_large_vectors_into_the_artifact(self):
+        np.save(self.dir / 'a.npy', np.array([[2.0]]))
+        b = np.arange(1, 200001, dtype=float).reshape(1, 200000)
+        np.save(self.dir / 'b.npy', b)
+        out = self.out('x.safetensors')
+        proc = subprocess.run([BIN, '--input-json', json.dumps({'op': 'la_lstsq_to', 'params': {'a': str(self.dir / 'a.npy'), 'b': str(self.dir / 'b.npy'), 'out': out}})], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertLess(len(proc.stdout), 16 * 1024)
+        r = json.loads(proc.stdout)
+        t = read_safetensors(out)
+        np.testing.assert_allclose(t['x'], b / 2, rtol=1e-14)
+        np.testing.assert_allclose(t['residues'], np.zeros(200000), atol=1e-6)
+        self.assertEqual(r['residues_count'], 200000)
+        self.assertNotIn('residues', r)
+        self.assertEqual(r['tensors']['residues']['shape'], [200000])
+        self.assertAlmostEqual(r['residues_max'], float(t['residues'].max()))
+
+    def test_small_lstsq_to_keeps_vectors_inline(self):
+        r = call('la_lstsq_to', {'a': [[1, 0], [0, 1], [1, 1]], 'b': [1, 2, 3], 'out': self.out()})
+        self.assertEqual(len(r['residues']), 1)
+        self.assertEqual(len(r['singular_values']), 2)
+
+    def test_eig_nilpotent_and_defective_fixtures_are_not_failures(self):
+        fixtures = {'rank1_nilpotent': [[1, -1], [1, -1]], 'nilpotent_scaled': [[1, 2], [-0.5, -1]], 'strict_upper': [[0, 1], [0, 0]],
+                    'shift3': [[0, 1, 0], [0, 0, 1], [0, 0, 0]], 'jordan': [[1, 1], [0, 1]], 'jordan3': [[2, 1, 0], [0, 2, 1], [0, 0, 2]],
+                    'near_defective': [[1e-10, 1], [0, 0]], 'zero': [[0, 0], [0, 0]]}
+        for name, a in fixtures.items():
+            with self.subTest(name=name):
+                out = self.out(name + '.safetensors')
+                r = call('la_decomp', {'a': a, 'kind': 'eig', 'out': out})
+                self.assertEqual(r['status'], 'OK')
+                t = read_safetensors(out)
+                v = t['vr_re'] + 1j * t['vr_im']
+                w = t['w_re'] + 1j * t['w_im']
+                A = np.array(a, float)
+                scale = max(np.linalg.norm(A) * np.linalg.norm(v), 1e-300)
+                self.assertLess(np.linalg.norm(A @ v - v * w) / scale, 1e-14)
+                self.assertLess(r['reconstruction_error'], 1e-14)
+        # Jordan-type matrices have (nearly) parallel eigenvectors: still OK, but never silently.
+        for name in ('jordan', 'jordan3', 'near_defective', 'rank1_nilpotent', 'strict_upper', 'shift3'):
+            with self.subTest(defective=name):
+                r = call('la_decomp', {'a': fixtures[name], 'kind': 'eig', 'out': self.out(name + '.d.safetensors')})
+                self.assertTrue(r['vr_cond'] == 'Inf' or r['vr_cond'] > 6.7e7, r['vr_cond'])
+                self.assertTrue(any(w['category'] == 'NumericalWarning' and 'defective' in w['message'] for w in r['warnings']), r['warnings'])
+        r = call('la_decomp', {'a': [[2, 1], [1, 2]], 'kind': 'eig', 'out': self.out('sym.safetensors')})
+        self.assertLess(r['vr_cond'], 10)
+        self.assertEqual([w for w in r['warnings'] if w['category'] == 'NumericalWarning'], [])
+
+    def test_random_rank1_nilpotent_matrices_never_fail(self):
+        rng = np.random.default_rng(77)
+        for trial in range(20):
+            n = int(rng.integers(2, 6))
+            u = rng.standard_normal(n)
+            v = rng.standard_normal(n)
+            v -= u * (u @ v) / (u @ u)  # orthogonal to u => outer(u, v)^2 = 0
+            a = np.outer(u, v)
+            r = call('la_decomp', {'a': a.tolist(), 'kind': 'eig', 'out': self.out(f'n{trial}.safetensors')})
+            self.assertEqual(r['status'], 'OK', (trial, a.tolist()))
+            self.assertLess(r['reconstruction_error'], 1e-12)
+
+    def test_eigh_residual_uses_the_same_scaling(self):
+        r, t = Decomp.decomp(self, [[0, 0], [0, 0]], 'eigh')
+        self.assertLess(r['reconstruction_error'], 1e-15)
+
+    def test_failure_envelopes_keep_diagnostics(self):
+        rc, r = run_with_fake_worker({'ok': True, 'result': {'status': 'NUMERICAL_FAILURE', 'kind': 'qr', 'reconstruction_error': 0.5, 'message': 'bad', 'driver': 'gesdd', 'warnings': [], 'warnings_truncated': False}},
+                                     {'a': [[1, 0], [0, 1]], 'kind': 'qr', 'out': self.out()})
+        self.assertEqual(rc, 1)
+        data = r['error']['data']
+        self.assertEqual((data['tool_code'], data['kind'], data['reconstruction_error'], data['message'], data['driver']), ('NUMERICAL_FAILURE', 'qr', 0.5, 'bad', 'gesdd'))
+        r = call('la_decomp', {'a': [[1, 2], [2, 1]], 'kind': 'cholesky', 'out': self.out('c.safetensors')}, 1)
+        self.assertEqual(r['error']['data']['kind'], 'cholesky')
+
+    def test_schema_lists_numerical_failure(self):
+        proc = subprocess.run([BIN, '--schema'], capture_output=True, text=True)
+        ops = {o['name']: o['description'] for o in json.loads(proc.stdout)['operations']}
+        for name in ('la_lstsq', 'la_lstsq_to', 'la_decomp'):
+            self.assertIn('NUMERICAL_FAILURE', ops[name], name)
+        self.assertIn('NO_CONVERGENCE', ops['la_decomp'])
+
+    def test_decomposition_and_lstsq_consume_safetensors_refs(self):
+        rng = np.random.default_rng(31)
+        a32 = rng.standard_normal((6, 4)).astype('<f4')
+        ints = rng.integers(-9, 10, (5, 5)).astype('<i8')
+        s1.write_safetensors(self.dir / 'in.safetensors', {'a32': a32, 'ints': ints, 'b': rng.standard_normal(6)})
+        ref = f'{self.dir}/in.safetensors'
+        a = a32.astype(float)  # F32 -> F64 conversion is exact
+        r, t = Decomp.decomp(self, ref + '#a32', 'svd')
+        np.testing.assert_allclose(t['s'], sla.svdvals(a), rtol=1e-12)
+        np.testing.assert_allclose((t['u'] * t['s']) @ t['vt'], a, atol=1e-13)
+        r, t = Decomp.decomp(self, ref + '#ints', 'lu', 'lu.safetensors')
+        np.testing.assert_allclose(t['p'] @ t['l'] @ t['u'], ints.astype(float), atol=1e-12)
+        b = read_safetensors(ref)['b']
+        fit = call('la_lstsq', {'a': ref + '#a32', 'b': ref + '#b'})
+        np.testing.assert_allclose(fit['x'], sla.lstsq(a, b)[0], rtol=1e-10)
+        p = call('la_props', {'a': ref + '#ints', 'what': ['rank', 'trace']})
+        self.assertEqual((p['rank'], p['trace']), (np.linalg.matrix_rank(ints.astype(float)), float(np.trace(ints))))
 
 
 class WorkerStatuses(unittest.TestCase):
