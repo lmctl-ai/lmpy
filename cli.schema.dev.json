@@ -25,13 +25,13 @@
           "name": "a",
           "type": "json",
           "occurs": "1",
-          "description": "a input; see README for S0 shapes and limits."
+          "description": "a input; see README for shapes and limits."
         },
         {
           "name": "b",
           "type": "json",
           "occurs": "1",
-          "description": "b input; see README for S0 shapes and limits."
+          "description": "b input; see README for shapes and limits."
         },
         {
           "name": "assume_a",
@@ -43,7 +43,7 @@
             "sym",
             "pos"
           ],
-          "description": "assume_a input; see README for S0 shapes and limits."
+          "description": "assume_a input; see README for shapes and limits."
         }
       ]
     },
@@ -57,13 +57,13 @@
           "name": "a",
           "type": "json",
           "occurs": "1",
-          "description": "a input; see README for S0 shapes and limits."
+          "description": "a input; see README for shapes and limits."
         },
         {
           "name": "b",
           "type": "json",
           "occurs": "1",
-          "description": "b input; see README for S0 shapes and limits."
+          "description": "b input; see README for shapes and limits."
         },
         {
           "name": "assume_a",
@@ -75,13 +75,13 @@
             "sym",
             "pos"
           ],
-          "description": "assume_a input; see README for S0 shapes and limits."
+          "description": "assume_a input; see README for shapes and limits."
         },
         {
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "out input; see README for S0 shapes and limits."
+          "description": "out input; see README for shapes and limits."
         }
       ]
     },
@@ -99,7 +99,7 @@
             "norm",
             "t"
           ],
-          "description": "dist input; see README for S0 shapes and limits."
+          "description": "dist input; see README for shapes and limits."
         },
         {
           "name": "fn",
@@ -111,20 +111,299 @@
             "ppf",
             "sf"
           ],
-          "description": "fn input; see README for S0 shapes and limits."
+          "description": "fn input; see README for shapes and limits."
         },
         {
           "name": "x",
           "type": "json",
           "occurs": "1",
-          "description": "x input; see README for S0 shapes and limits."
+          "description": "x input; see README for shapes and limits."
         },
         {
           "name": "params",
           "type": "object",
           "occurs": "?",
           "default": {},
-          "description": "params input; see README for S0 shapes and limits."
+          "description": "params input; see README for shapes and limits."
+        }
+      ]
+    },
+    {
+      "name": "array_import",
+      "access": "write",
+      "returns": "object",
+      "description": "Convert inline JSON, CSV, a read-only .npy or a safetensors tensor into a new F64 safetensors artifact; fails with CONFLICT if out exists",
+      "params": [
+        {
+          "name": "format",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "json",
+            "csv",
+            "csv_file",
+            "npy",
+            "safetensors"
+          ],
+          "description": "json: inline array or {shape,data}; csv: inline CSV text; csv_file/npy: path to .csv/.npy; safetensors: path.safetensors#key."
+        },
+        {
+          "name": "data",
+          "type": "json",
+          "occurs": "1",
+          "description": "Source data selected by format. Inline sources hold at most 1000 numbers, files at most 200000."
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "occurs": "?",
+          "default": "x",
+          "description": "Tensor name in the output artifact: [A-Za-z_][A-Za-z0-9_.-]{0,63}."
+        },
+        {
+          "name": "header",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "csv/csv_file only: skip the first line as a header."
+        },
+        {
+          "name": "na",
+          "type": "string",
+          "occurs": "?",
+          "default": "nan",
+          "enum": [
+            "nan",
+            "error"
+          ],
+          "description": "Missing values (null, NA, empty CSV field): store NaN, or fail with NA_NOT_ALLOWED."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory."
+        }
+      ]
+    },
+    {
+      "name": "array_inspect",
+      "access": "read",
+      "returns": "object",
+      "description": "Shape, dtype, finite/NaN/Inf counts, min, max, norm and a preview of an array (<=1000 numbers); a bare .safetensors path lists its tensors from the header only",
+      "params": [
+        {
+          "name": "ref",
+          "type": "json",
+          "occurs": "1",
+          "description": "Inline array, file.npy, file.safetensors#key, or file.safetensors to list tensors."
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 20,
+          "description": "Preview length, 1..1000."
+        }
+      ]
+    },
+    {
+      "name": "la_lstsq",
+      "access": "read",
+      "returns": "object",
+      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE; read form returns <=1000 solution numbers, write form stores x as safetensors",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "m-by-n matrix, finite."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "1",
+          "description": "Right-hand side with m rows (vector or m-by-k)."
+        },
+        {
+          "name": "rcond",
+          "type": "number",
+          "occurs": "?",
+          "description": "Singular values below rcond*largest are treated as zero, in [0,1); default machine epsilon."
+        },
+        {
+          "name": "driver",
+          "type": "string",
+          "occurs": "?",
+          "default": "gelsd",
+          "enum": [
+            "gelsd",
+            "gelsy",
+            "gelss"
+          ],
+          "description": "LAPACK driver."
+        }
+      ]
+    },
+    {
+      "name": "la_lstsq_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE; read form returns <=1000 solution numbers, write form stores x as safetensors",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "m-by-n matrix, finite."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "1",
+          "description": "Right-hand side with m rows (vector or m-by-k)."
+        },
+        {
+          "name": "rcond",
+          "type": "number",
+          "occurs": "?",
+          "description": "Singular values below rcond*largest are treated as zero, in [0,1); default machine epsilon."
+        },
+        {
+          "name": "driver",
+          "type": "string",
+          "occurs": "?",
+          "default": "gelsd",
+          "enum": [
+            "gelsd",
+            "gelsy",
+            "gelss"
+          ],
+          "description": "LAPACK driver."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path for x."
+        }
+      ]
+    },
+    {
+      "name": "la_props",
+      "access": "read",
+      "returns": "object",
+      "description": "Scalar matrix properties: det, slogdet, rank, cond, norm, trace and optionally the inverse (<=1000 numbers); SINGULAR when the inverse is withheld",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite matrix."
+        },
+        {
+          "name": "what",
+          "type": "array",
+          "occurs": "?",
+          "enum": [
+            "det",
+            "slogdet",
+            "rank",
+            "cond",
+            "norm",
+            "trace",
+            "inverse"
+          ],
+          "description": "Properties to compute; default det, rank, cond, norm, trace.",
+          "items": "string"
+        },
+        {
+          "name": "norm_ord",
+          "type": "string",
+          "occurs": "?",
+          "default": "fro",
+          "enum": [
+            "fro",
+            "1",
+            "inf",
+            "2",
+            "nuc"
+          ],
+          "description": "Matrix norm order."
+        },
+        {
+          "name": "cond_p",
+          "type": "string",
+          "occurs": "?",
+          "default": "2",
+          "enum": [
+            "2",
+            "1",
+            "inf",
+            "fro"
+          ],
+          "description": "Condition number norm; values other than 2 need a square matrix."
+        },
+        {
+          "name": "rank_tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "Rank threshold on singular values; default max(m,n)*eps*sigma_max."
+        }
+      ]
+    },
+    {
+      "name": "la_decomp",
+      "access": "write",
+      "returns": "object",
+      "description": "Matrix factorization written to a new safetensors artifact: svd (u,s,vt), qr (q,r[,p]), eig (w_re,w_im,vr_re,vr_im), eigh (w,v), cholesky (l or u), lu (p,l,u with A=P@L@U)",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite matrix; eigh/cholesky need exact symmetry, eig/eigh/cholesky need a square matrix."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "svd",
+            "qr",
+            "eig",
+            "eigh",
+            "cholesky",
+            "lu"
+          ],
+          "description": "Factorization."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path."
+        },
+        {
+          "name": "full",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "svd/qr: full_matrices / full Q instead of economic."
+        },
+        {
+          "name": "pivoting",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "qr only: column pivoting, adds int64 tensor p with A[:,p]=Q@R."
+        },
+        {
+          "name": "lower",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "cholesky only: false returns the upper factor u."
         }
       ]
     }

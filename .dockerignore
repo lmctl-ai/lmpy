@@ -24,3 +24,4 @@
 !licenses/**
 !examples/
 !examples/**
+!cli.schema.dev.json

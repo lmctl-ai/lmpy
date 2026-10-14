@@ -28,7 +28,7 @@ COPY lmcpp /src/lmcpp
 RUN cp /src/lmcpp/LICENSE /provenance/lmcpp-LICENSE \
  && cmake -S /src/lmcpp -B /build-lmcpp -G Ninja -DCMAKE_BUILD_TYPE=Release -DLMCPP_BUILD_TESTS=OFF -DLMCPP_STATIC_STDLIB=ON -DCMAKE_INSTALL_PREFIX=/opt/lmcpp \
  && cmake --build /build-lmcpp --parallel 2 && cmake --install /build-lmcpp
-COPY CMakeLists.txt expr-spec.json LICENSE README.md /src/pycli/
+COPY CMakeLists.txt cli.schema.dev.json expr-spec.json LICENSE README.md /src/pycli/
 COPY src /src/pycli/src
 COPY py /src/pycli/py
 COPY tests /src/pycli/tests
