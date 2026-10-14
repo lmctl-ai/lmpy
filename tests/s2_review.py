@@ -59,6 +59,18 @@ class Review(unittest.TestCase):
   self.assertEqual(self.call('frame_inspect',frame='t.npz')['warnings'],[])
   self.call('frame_groupby',rc=2,frame='t.npz',keys=['x'],aggs={'s':['sum']},out='bad.npz')
   self.call('frame_select',frame='t.npz',where={'col':'x','op':'eq','value':50.0},out='p.npz');self.assertEqual(self.inspect('p.npz')['x'],[50])
+ def test_string_sum_rejected(self):
+  self.table({'k':['a','a'],'s':['x','y']})
+  self.call('frame_groupby',rc=2,frame='t.npz',keys=['k'],aggs={'s':['sum']},out='bad.npz')
+ def test_integral_float_predicate(self):
+  self.table({'x':[50,51]})
+  self.call('frame_select',frame='t.npz',where={'col':'x','op':'eq','value':50.0},out='p.npz');self.assertEqual(self.inspect('p.npz')['x'],[50])
+  self.call('frame_select',rc=2,frame='t.npz',where={'col':'x','op':'gt','value':50.5},out='bad.npz')
+ def test_dst_daily_and_weekly_right_defaults(self):
+  self.table({'ts':['2026-03-07T12:00:00-05:00','2026-03-08T12:00:00-04:00','2026-03-09T12:00:00-04:00'],'x':[1,2,3]},dtypes={'ts':{'dtype':'datetime64[ns]','tz':'America/New_York'}})
+  self.call('frame_resample',frame='t.npz',time='ts',rule='1D',aggs={'x':['sum']},out='d.npz');d=self.inspect('d.npz');self.assertEqual(d,{'ts':['2026-03-07T00:00:00-05:00','2026-03-08T00:00:00-05:00','2026-03-09T00:00:00-04:00'],'x__sum':[1,2,3]})
+  self.call('frame_resample',frame='t.npz',time='ts',rule='1W',aggs={'x':['sum']},out='w.npz');self.assertEqual(self.inspect('w.npz'),{'ts':['2026-03-08T00:00:00-05:00','2026-03-15T00:00:00-04:00'],'x__sum':[3,3]})
+  self.call('frame_resample',frame='t.npz',time='ts',rule='1W',closed='right',label='right',aggs={'x':['sum']},out='explicit.npz');self.assertEqual(self.inspect('explicit.npz'),self.inspect('w.npz'))
  def test_nan_null_group_policy(self):
   self.table({'k':['NaN',None,'NaN',1.5],'x':[1,2,3,4]},dtypes={'k':'float64'})
   self.call('frame_groupby',frame='t.npz',keys=['k'],aggs={'x':['sum','std']},out='g.npz');d=self.inspect('g.npz');self.assertEqual(d['k'],[1.5,None]);self.assertEqual(d['x__sum'],[4,6]);self.assertIsNone(d['x__std'][0])

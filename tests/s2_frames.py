@@ -21,7 +21,7 @@ class Frames(unittest.TestCase):
   cols={'i':[9223372036854775807,None,-9223372036854775808],'f':['NaN','Inf',None],'b':[True,None,False],'s':['NA','雪😀',None],'dt':['2026-01-01T00:00:00.000000001',None,'2026-01-03'],'cat':['b','a',None]}
   d={'i':'int64','f':'float64','b':'bool','s':'string','dt':'datetime64[ns]','cat':{'dtype':'category','categories':['b','a','unused'],'ordered':True}}
   self.table(cols,dtypes=d);got=self.inspect();self.assertEqual(got['head']['data']['i'],cols['i']);self.assertEqual(got['head']['data']['f'],cols['f']);self.assertEqual(got['head']['data']['s'],cols['s']);self.assertEqual(got['null_counts']['f'],1)
-  self.assertEqual(got['column_meta']['cat']['categories'],['b','a','unused']);self.assertTrue(got['column_meta']['cat']['ordered']);self.assertEqual(got['head']['data']['dt'][0],cols['dt'][0])
+  self.assertEqual(got['column_meta']['cat']['categories'],['b','a','unused']);self.assertTrue(got['column_meta']['cat']['ordered']);self.assertEqual(got['head']['data']['dt'],[cols['dt'][0],None,'2026-01-03T00:00:00']);self.assertEqual(got['head']['data']['b'],cols['b']);self.assertEqual(got['head']['data']['cat'],cols['cat'])
   self.call('frame_import',frame='t.npz',out='u.npz');self.assertEqual(self.inspect('u.npz')['head'],got['head'])
   import numpy as np
   with np.load(self.cwd/'t.npz',allow_pickle=False) as z:
@@ -47,7 +47,7 @@ class Frames(unittest.TestCase):
   self.table({'ts':dates,'v':[1,2,3,4]},dtypes={'ts':{'dtype':'datetime64[ns]','tz':'America/New_York'}})
   self.call('frame_resample',frame='t.npz',time='ts',rule='1h',aggs={'v':['sum']},out='r.npz')
   got=self.inspect('r.npz')['head']['data'];self.assertEqual(got['v__sum'],[1,2,3,4]);self.assertFalse(any('T02:' in x for x in got['ts']))
-  self.assertEqual(got['v__sum'],spring_hourly())
+  self.assertEqual(got['v__sum'],spring_hourly());self.assertEqual(got['ts'],['2026-03-08T00:00:00-05:00','2026-03-08T01:00:00-05:00','2026-03-08T03:00:00-04:00','2026-03-08T04:00:00-04:00'])
   for rule in ('pd.offsets','1D; import os','1D\\n','0D','999999999D'):
    self.call('frame_resample',rc=2,frame='t.npz',time='ts',rule=rule,aggs={'v':['sum']},out='bad.npz')
  def test_fall_dst_and_bad_dates(self):
@@ -125,7 +125,7 @@ class Frames(unittest.TestCase):
  def test_string_storage_budget_before_allocation(self):
   import resource
   # Input is only 132KiB, but fixed-width UTF-8 storage would require >256MiB.
-  (self.cwd/'wide.csv').write_text('s\n'+('x'*131072)+'\n'+('y\n'*2100))
+  (self.cwd/'wide.csv').write_text('s\n'+('x'*65536)+'\n'+('y\n'*4100))
   def cap():resource.setrlimit(resource.RLIMIT_AS,(400*1024*1024,400*1024*1024))
   r=subprocess.run([BIN,'frame_import','--input-json','{"csv":"wide.csv","out":"wide.npz"}'],cwd=self.cwd,capture_output=True,text=True,preexec_fn=cap)
   self.assertEqual(r.returncode,1,r.stdout);self.assertEqual(json.loads(r.stdout)['error']['data']['tool_code'],'OUTPUT_TOO_LARGE',r.stdout);self.assertFalse((self.cwd/'wide.npz').exists())
