@@ -8,6 +8,7 @@ RUN case "${TARGETARCH:-$(uname -m)}" in arm64|aarch64) lock=aarch64;; amd64|x86
  && python -m compileall -q -j2 --invalidation-mode unchecked-hash /usr/local/lib
 
 FROM ${BASE} AS builder
+LABEL org.lmctlhq.pycli.s0-builder=true
 RUN apt-get update && apt-get install -y --no-install-recommends cmake g++ ninja-build nlohmann-json3-dev \
  && rm -rf /var/lib/apt/lists/*
 COPY lmcpp /src/lmcpp
