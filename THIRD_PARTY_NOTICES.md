@@ -11,6 +11,8 @@ Scientific wheels: NumPy 2.3.3 and SciPy 1.16.2. Their licenses below retain
 OpenBLAS/LAPACK/libgfortran notices. libquadmath is LGPL-2.1-or-later, not covered
 by the GCC Runtime Library Exception; the amd64 wheels ship it, arm64 does not.
 Static libstdc++/libgcc use GCC licensing with the Runtime Library Exception.
+S1 adds no shipped component. Its ASan/UBSan test binaries statically link GCC's sanitizer
+runtimes (same Runtime Library Exception) and exist only in the test image, never in runtime.
 The runtime additionally retains exact builder package copyrights (including
 nlohmann's embedded third-party notices), GPL-3 text, compiler/package versions
 and downloaded .deb hashes at /usr/share/doc/pycli/build/.

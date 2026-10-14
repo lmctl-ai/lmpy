@@ -28,3 +28,13 @@ Normal pdf/cdf at zero, specified normal quantiles, symmetry and the df=1e300
 normal limit have separate tighter references. Tiny positive df is mathematically
 valid; no arbitrary floor is imposed. SciPy NaN from valid input is preserved
 with NumericalWarning, distinguishing it from deliberate NaN/missing input.
+
+## S1 decisions
+
+Import and inspect run entirely in C++ (no Python process), so they have no oracle in the
+sibling tools; their oracles are numpy and math.hypot. Cross-tool overlap: `la_lstsq` against
+rcli/lmstats regression design-matrix solutions is a future recipe; the NIST/rational tests
+are the certification for now. Dense LA statuses are domain results (exit 0) in read ops and
+`COMMAND_FAILED` with the status as `tool_code` in write ops, as for S0 `la_solve_to`.
+Missing (`null`/`NA`/empty CSV field) and NaN are distinguished at import only for counting;
+both are stored as NaN. No arithmetic is done on I64 beyond exact conversion (|v| <= 2^53).

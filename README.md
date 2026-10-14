@@ -1,25 +1,37 @@
 # pycli
 
-S0: an MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2.
+An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 (S0 skeleton, S1 arrays and dense linear algebra).
 Each call starts a fresh Python child. The fixed dispatch and validated inputs
 accept no caller code. The Docker container is the isolation boundary.
 
 | Operation | Access | Inputs | Result |
 |---|---|---|---|
-| py_info | read | none | versions, OpenBLAS pools/threads/core, PCG64 RNG kind, architecture, worker SHA256, hash/isolation flags |
-| la_solve | read | a, b, assume_a=gen/sym/pos | x, rcond estimate, residual norm, domain status |
-| la_solve_to | write | same plus exclusive out.safetensors | x descriptor; fails if no artifact is produced |
-| stats_dist | read | dist=norm/t, fn=pdf/cdf/ppf/sf, x vector, params | values and captured warnings |
+| `py_info` | read | none | versions, OpenBLAS pools/threads/core, PCG64 RNG kind, architecture, worker SHA256, hash/isolation flags |
+| `la_solve` | read | a, b, assume_a=gen/sym/pos | x, rcond estimate, residual norm, domain status |
+| `la_solve_to` | write | same plus exclusive out.safetensors | x descriptor; fails if no artifact is produced |
+| `stats_dist` | read | dist=norm/t, fn=pdf/cdf/ppf/sf, x vector, params | values and captured warnings |
+| `array_import` | write | format=json/csv/csv_file/npy/safetensors, data, key (default x), header, na=nan/error, exclusive out.safetensors | new F64 artifact descriptor, source dtype, finite/NaN/Inf counts, min, max, norm, na_count (pure C++, no Python) |
+| `array_inspect` | read | ref (inline, file.npy, file.safetensors#key, or bare file.safetensors), limit<=1000 | dtype, shape, size, counts, min, max, norm, preview; a bare safetensors path lists tensors from the validated header only |
+| `la_lstsq` | read | a (m by n), b, rcond, driver=gelsd/gelsy/gelss | x (<=1000 numbers), rank, singular_values, residues, residual_norm, status OK/RANK_DEFICIENT/NO_CONVERGENCE |
+| `la_lstsq_to` | write | same plus exclusive out.safetensors | x descriptor and the same fields; RANK_DEFICIENT still writes the minimum-norm x |
+| `la_props` | read | a, what (det, slogdet, rank, cond, norm, trace, inverse), norm_ord, cond_p, rank_tol | requested scalars; inverse (<=1000 numbers) with inverse_residual; status OK/SINGULAR/NO_CONVERGENCE |
+| `la_decomp` | write | a, kind=svd/qr/eig/eigh/cholesky/lu, full, pivoting, lower, exclusive out.safetensors | one descriptor per factor, small eigen/singular values inline, reconstruction_error, status |
 
 Arrays accept nested row-major JSON, `{shape:[r,c],data:[...]}`, or cwd-confined
-`file.npy` / `file.safetensors#key` refs. S0 supports little-endian float64 C-order
-.npy v1/v2 and F64 safetensors of rank 1 or 2. Mixed/ragged ranks, object arrays
-and .npz are rejected. Headers, shapes, offsets and lengths are validated before
-Python; safetensors reads only the selected bounded payload.
+`file.npy` / `file.safetensors#key` refs, rank 1 or 2. Little-endian C-order `.npy` v1/v2
+with dtype `<f8 <f4 <i8 <i4 |b1 |u1` and safetensors `F64 F32 I64 I32 U8 BOOL` are
+converted exactly to binary64 inside C++ (an integer beyond 2^53 is refused, never rounded;
+Fortran order, object arrays, complex, rank 0/3+ and .npz are rejected). Headers, shapes,
+offsets and lengths are validated before Python; safetensors reads only the selected bounded
+payload, and the selected tensor's rank and 200000-number cap are checked from the header
+before any allocation. The `.npy` header is parsed by a hand-written closed grammar (no regex).
+Artifacts written by pycli are always F64 (`I64` for the qr pivot vector `p`).
 
-Limits: 1000 numbers per inline array, 200000 per referenced array, 256 MiB per
-artifact, matrix order **447 by ref / 31 inline**. la_solve returns <=1000 solution
-numbers; larger solutions require la_solve_to. stats_dist returns <=1000 values.
+Limits: 1000 numbers per inline array, 200000 per referenced array/CSV file (inline CSV text
+1000), 256 MiB per artifact (32 MiB per CSV), at most 2,000,000 output numbers per call.
+
+Matrix order is **447 by ref / 31 inline** (square). la_solve returns <=1000 solution
+numbers; larger solutions require la_solve_to (likewise la_lstsq / la_lstsq_to). stats_dist returns <=1000 values.
 Solve requires finite data; sym/pos require exact symmetry. pos explicitly checks
 positive definiteness. Read solves return SINGULAR or NOT_POSITIVE_DEFINITE;
 write solves return COMMAND_FAILED with that tool_code and produce no artifact.
@@ -27,6 +39,46 @@ Outputs install with an anonymous inode and an atomic no-replace link. This
 requires a Linux filesystem supporting O_TMPFILE and /proc/self/fd linking.
 Cancellation during writing cannot leave a named partial file; a completed
 atomic installation cannot be undone by a later cancellation.
+
+### S1 arrays and dense linear algebra
+
+Missing values: `null`, `"NA"` and an empty CSV field are *missing*; `"NaN"`, `"Inf"`, `"-Inf"`
+(and CSV `NaN/Inf/-Inf`) are values. Both are stored as NaN in the artifact (`na_count`
+reports the missing ones; `na:"error"` refuses them). CSV is strict: comma separated, optional
+header, no quotes and no blank lines (a UTF-8 BOM is skipped); a single column gives rank 1,
+otherwise rank 2. Numbers use a fixed decimal grammar (`1e999` and underflow-to-zero are errors,
+denormals are exact). Inspect statistics: min/max ignore NaN but keep infinities
+(`"NA"` if every value is NaN); `norm` is the Frobenius norm computed with scaling so it
+neither overflows nor underflows, and is `NaN`/`Inf` when the data contain them.
+
+Statuses (exit 0 in read ops; write ops fail with COMMAND_FAILED, `tool_code` = status, and
+produce no artifact): `SINGULAR` (la_props withholds an inverse when numpy's default rank test
+says rank < n, conservative: `diag(1,1e-20)` counts), `RANK_DEFICIENT` (la_lstsq: x is the
+minimum-norm solution; la_lstsq_to still writes it), `NOT_POSITIVE_DEFINITE` (cholesky),
+`NO_CONVERGENCE` (LAPACK SVD/eigen failure; svd retries `gesvd` after `gesdd`),
+`NUMERICAL_FAILURE` (non-finite output, or a factorization whose `reconstruction_error`
+exceeds 1e-8). Non-finite inputs and non-exactly-symmetric inputs to eigh/cholesky are
+validation errors before Python starts. `la_lstsq` recomputes `residues` (per right-hand
+side) and `residual_norm` from `A x - b` for every driver; `rcond` is scipy's `cond`.
+`det` may be rounding noise for singular matrices (rank/cond are the tests of singularity);
+a determinant outside binary64 is `Inf`/`0` plus a `NumericalWarning` pointing at `slogdet`.
+
+`la_decomp` conventions (LAPACK via scipy.linalg; vectors keep LAPACK's signs, which are not
+portable across BLAS/CPU, so compare invariants, not signs; magnitudes and the products below
+are what the tests check against scipy called directly):
+
+| kind | tensors | convention |
+|---|---|---|
+| svd | `u`,`s`,`vt` | `A = u[:,:k] * s @ vt[:k]`, k=min(m,n), `s` descending and >=0; `full:true` gives square `u`,`vt`; gesdd, gesvd fallback (reported as `driver`) |
+| qr | `q`,`r` (+`p` int64) | economic by default, `full:true` for full Q; `pivoting:true`: `A[:,p] = q @ r`, `abs(diag r)` non-increasing |
+| eigh | `w`,`v` | symmetric input; `w` ascending, `v` orthonormal columns, `A v = v diag(w)` |
+| eig | `w_re`,`w_im`,`vr_re`,`vr_im` | complex output split into real/imaginary tensors; eigenvalues sorted by (real, imaginary) ascending, columns of the right eigenvectors permuted alike, unit 2-norm; `A vr = vr diag(w)` with `vr = vr_re + i vr_im` |
+| cholesky | `l` (or `u` with `lower:false`) | `A = l @ l.T`; `u = l.T` |
+| lu | `p`,`l`,`u` | `A = p @ l @ u`; `p` is an m by m permutation matrix, `l` unit lower m by k, `u` k by n |
+
+Writes use the same exclusive anonymous-inode install as `la_solve_to`; an existing target is
+CONFLICT (5), `PYCLI_READONLY` rejects writes (6), dry-run creates nothing. Import and inspect
+never start Python, so they work (and are tested) with the interpreter missing.
 
 Distribution params accept loc (default 0), scale (positive, default 1), and
 positive df for t. ppf rejects probabilities outside [0,1], including infinities;
@@ -41,7 +93,7 @@ is not claimed; BLAS/CPU/version differences remain relevant.
 
 ```sh
 ./scripts/build.sh test
-docker run --rm --pull=never --network=none pycli:test
+docker run --rm --pull=never --network=none pycli:test   # CTest: S0 + S1, including ASan/UBSan runs
 ./scripts/build.sh runtime
 python3 tests/review_shim.py bin/pycli
 python3 tests/container_review.py bin/pycli
@@ -52,6 +104,7 @@ pycli --input-json '{"op":"stats_dist","params":{"dist":"norm","fn":"ppf","x":[0
 lmscript --check examples/solve.lms
 lmscript --dry-run examples/solve.lms
 lmscript examples/solve.lms
+lmscript examples/lstsq-fit.lms     # polynomial fit with la_lstsq, residual and normal-equation checks
 ```
 
 The build uses the pinned local lmcpp revision through its installed CMake
@@ -89,9 +142,11 @@ The import guard/audit hook is **defence in depth, NOT a sandbox**. Trusted
 scientific imports run before it; removing sys.modules entries does not remove
 cached references. ctypes/native calls and os.exec remain reachable to trusted
 code. Caller code never runs; the container and fixed dispatch are the wall.
-Import rejections use ImportError, allowing library fallback paths. Extending
-audit gates for arbitrary file/process/native events is deferred before S1
-file-reading operations; Python audit hooks cannot safely sandbox native code.
+Import rejections use ImportError, allowing library fallback paths. S1 does
+not widen this: every caller-supplied file (npy, CSV, safetensors) is parsed and
+validated by C++, and Python only sees the C++-written float64 `.npy` copies in the
+private tmpfs. Extending audit gates for arbitrary file/process/native events stays
+deferred; Python audit hooks cannot safely sandbox native code.
 
 PYCLI_READONLY/PYCLI_DRYRUN and CLI policy flags reach lmcpp. Readonly rejects
 writes (exit 6); dryrun simulates without files. lmcpp short-circuits handlers
@@ -112,6 +167,10 @@ The copied expression parser and rcli corpus have no exposed S0 expression ops.
 | py_info through shim | 0.861 s | 0.951 s |
 | la_solve through shim | 1.348 s | 1.523 s |
 | stats_dist through shim | 1.927 s | 2.033 s |
+
+S1 (separate run, same method): `array_import` / `array_inspect` 0.35 s (no Python),
+`la_lstsq` / `la_props` / `la_decomp` on 100-200 row inputs 1.2-1.3 s p50; see
+[docs/timings.md](docs/timings.md). Runtime image unchanged: 446 MB, 97.43 MB content.
 
 Current image sizes: runtime 446 MB / test 667 MB on disk; runtime content
 metric 97.45 MB. Startup calibration: boot 17 ms, NumPy 200 ms, scipy.stats

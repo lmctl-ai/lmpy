@@ -58,3 +58,35 @@ host shim/API regression suite 5 tests exit 0; real-container suite 4 tests exit
 0; runtime layer/prune/license/provenance gates exit 0; schema comparison exit
 0; recipe check, dry-run and real execution exit 0. Red reproductions and the
 per-finding dispositions/deferred choices are in review-s0-fixes.md.
+
+## S1 operations — aarch64, 2026-10-14
+
+Same method as above (production shim, `--pull=never`, network off, 10 sequential calls,
+p95 = sorted[min(n-1, floor(0.95*n))], i.e. the maximum at this sample size), runtime image
+`sha256:83b3c9c0e1b5a180e6bddc927321a8642cdc4f171ae3ed5d5a6c671effd6e9ac`. Raw data:
+`measurement-s1-shim.json`, produced by `python3 scripts/measure-shim.py pycli:runtime`.
+
+| Operation (input) | p50 ms | p95 ms |
+|---|---:|---:|
+| py_info | 772 | 823 |
+| la_solve 3x3 | 1205 | 1288 |
+| stats_dist norm.ppf | 1705 | 1754 |
+| `array_import` inline 2x2 (no Python) | 349 | 368 |
+| `array_inspect` 100x100 .npy (no Python) | 344 | 361 |
+| `la_lstsq` 200x5 by ref | 1237 | 1439 |
+| `la_props` 100x100 (det, rank, cond, norm, trace) | 1236 | 1287 |
+| `la_decomp` svd 100x100 -> safetensors | 1273 | 1378 |
+| `la_decomp` eig 100x100 -> safetensors | 1208 | 1339 |
+
+* Array import/inspect cost only the Docker round trip (about 0.35 s); every Python-backed op is
+  about 0.4-0.5 s of NumPy/SciPy start-up plus a few ms of LAPACK at these sizes.
+  Inside the container a 447x447 (the largest square by ref) svd/eig/qr/lu/eigh/cholesky
+  call measured 0.3-0.6 s worker time (`meta.elapsed_ms` 311-593 ms).
+* The earlier rows were measured again in this run and are 10-12 % faster than the S0
+  review-fix table above (host load differs between runs); compare only within a run.
+* Runtime image: **446 MB on disk, 97,430,471 content bytes** (S0 review-fix: 446 MB /
+  97,450,776). No wheel, library or package was added; the 20 KB difference is the rebuilt
+  executable and worker. The *test* image grew from 667 MB to 763 MB because it now contains
+  the ASan/UBSan fuzz binaries; it is never shipped.
+* Test-suite cost: `ctest` takes about 160 s in the test image (s1_la ~80 s, s1_arrays_asan ~20 s,
+  safetensors_asan_fuzz ~27 s).
