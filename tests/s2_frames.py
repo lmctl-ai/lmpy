@@ -50,6 +50,42 @@ class Frames(unittest.TestCase):
   direct=pd.DataFrame({'ts':pd.to_datetime(dates,utc=True).tz_convert('America/New_York'),'v':[1,2,3,4]}).resample('1h',on='ts')['v'].sum();self.assertEqual(got['v__sum'],direct.tolist())
   for rule in ('pd.offsets','1D; import os','1D\\n','0D','999999999D'):
    self.call('frame_resample',rc=2,frame='t.npz',time='ts',rule=rule,aggs={'v':['sum']},out='bad.npz')
+ def test_fall_dst_and_bad_dates(self):
+  dates=['2026-11-01T01:15:00-04:00','2026-11-01T01:15:00-05:00',None]
+  self.table({'ts':dates,'v':[2,3,4]},dtypes={'ts':{'dtype':'datetime64[ns]','tz':'America/New_York'}})
+  self.assertEqual(self.inspect()['null_counts']['ts'],1)
+  self.call('frame_resample',rc=2,frame='t.npz',time='ts',rule='1h',aggs={'v':['sum']},out='bad.npz')
+  self.call('frame_select',frame='t.npz',where={'not':{'col':'ts','op':'isnull'}},out='clean.npz')
+  self.call('frame_resample',frame='clean.npz',time='ts',rule='1h',aggs={'v':['sum']},out='r.npz')
+  data=self.inspect('r.npz')['head']['data'];self.assertEqual(data['v__sum'],[2,3]);self.assertIn('-04:00',data['ts'][0]);self.assertIn('-05:00',data['ts'][1])
+  for value in ('2026-03-08T02:30:00','2026-11-01T01:30:00'):
+   self.call('frame_import',rc=2,columns={'ts':[value]},dtypes={'ts':{'dtype':'datetime64[ns]','tz':'America/New_York'}},out='bad.npz')
+  self.call('frame_import',rc=2,columns={'ts':['2026-01-01']},dtypes={'ts':{'dtype':'datetime64[ns]','tz':'../../etc/passwd'}},out='bad.npz')
+ def test_records_aggregations_and_csv_roundtrip(self):
+  import pandas as pd
+  self.call('frame_import',records=[{'k':'a','x':1},{'k':'a','x':3},{'k':'b','x':5}],out='t.npz')
+  fns=['sum','mean','min','max','count','std','var','median','nunique','first','last']
+  self.call('frame_groupby',frame='t.npz',keys=['k'],aggs={'x':fns},out='g.npz');d=self.inspect('g.npz')['head']['data']
+  self.assertEqual(d['x__var'][0],2.);self.assertAlmostEqual(d['x__std'][0],2**0.5);self.assertEqual(d['x__first'],[1,5]);self.assertEqual(d['x__last'],[3,5])
+  direct=pd.DataFrame({'k':['a','a','b'],'x':[1,3,5]}).groupby('k')['x'].agg(['sum','mean','min','max','count','median','nunique'])
+  for fn in direct:self.assertEqual(d['x__'+fn],direct[fn].tolist())
+  self.call('frame_export',frame='t.npz',format='csv',out='e.csv');self.call('frame_import',csv='e.csv',out='copy.npz');self.assertEqual(self.inspect('copy.npz')['head'],self.inspect()['head'])
+  self.call('frame_groupby',rc=2,frame='t.npz',keys=['k'],aggs={'x':['__class__']},out='bad.npz')
+  self.call('frame_import',rc=2,records=[{'a':1},{'b':2}],out='bad.npz')
+ def test_large_artifact_preview_and_prespawn(self):
+  import numpy as np
+  (self.cwd/'large.csv').write_text('x,y\n'+''.join(f'{i},{i*2}\n' for i in range(700)))
+  self.call('frame_import',csv='large.csv',out='t.npz');self.assertEqual(self.inspect()['shape'],[700,2])
+  self.call('frame_export',rc=1,frame='t.npz',format='json')
+  self.call('frame_select',frame='t.npz',out='selected.npz');self.assertEqual(self.inspect('selected.npz')['shape'],[700,2])
+  self.call('frame_inspect',rc=2,frame='t.npz',head=501)
+  self.call('frame_import',rc=2,csv='large.csv',max_rows=699,out='bad.npz')
+  # A missing interpreter is an oracle that invalid caps fail before any spawn.
+  env=dict(os.environ,PYCLI_PYTHON='/missing-python')
+  r=subprocess.run([BIN,'frame_inspect','--input-json',json.dumps({'frame':'t.npz','head':501})],cwd=self.cwd,env=env,capture_output=True);self.assertEqual(r.returncode,2,r.stdout)
+  with np.load(self.cwd/'t.npz',allow_pickle=False) as z:arrays={k:z[k] for k in z.files}
+  metadata=json.loads(arrays['__pycli_table__'].tobytes());metadata['n_rows']=2000001;arrays['__pycli_table__']=np.frombuffer(json.dumps(metadata).encode(),dtype='uint8');np.savez(self.cwd/'too_many.npz',**arrays)
+  r=subprocess.run([BIN,'frame_inspect','--input-json','{"frame":"too_many.npz"}'],cwd=self.cwd,env=env,capture_output=True);self.assertEqual(r.returncode,2,r.stdout)
  def test_export_policy_caps(self):
   self.table({'x':[1,None,3]});self.call('frame_export',frame='t.npz',format='json',out='e.json');self.assertEqual(json.loads((self.cwd/'e.json').read_text())['data']['x'],[1,None,3])
   self.call('frame_export',rc=5,frame='t.npz',format='json',out='e.json')
