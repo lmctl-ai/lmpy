@@ -14,6 +14,11 @@ class Review(unittest.TestCase):
   for name,text in [('cells','a,b,c\n'+'1,2,3\n'*166667),('rows','a\n'+'1\n'*200001),('width','a\n'+'x'*1000000+'\n'),('bytes','a\n'+('x'*100+'\n')*170000)]:
    with self.subTest(name=name):
     (self.cwd/'a.csv').write_text(text);self.call('frame_import',rc=2,env=env,csv='a.csv',out=name+'.npz')
+ def test_csv_string_width_exact_boundary(self):
+  (self.cwd/'a.csv').write_text('s\n"'+'x'*65536+'"\n');self.call('frame_import',csv='a.csv',out='t.npz')
+  for quoted in (False,True):
+   text='x'*65537; text='"'+text+'"' if quoted else text
+   (self.cwd/'a.csv').write_text('s\n'+text+'\n');self.call('frame_import',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),csv='a.csv',out='bad.npz')
  def test_category_linear_and_bounded_summary(self):
   (self.cwd/'a.csv').write_text('c\n'+''.join('v%06d\n'%i for i in range(60000)))
   r=self.call('frame_import',csv='a.csv',dtypes={'c':'category'},out='t.npz',timeout=15)
