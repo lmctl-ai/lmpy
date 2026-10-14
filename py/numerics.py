@@ -471,6 +471,8 @@ def opt_least_squares(p):
             except SolverStop:
                 jac = res.jac
         cov, cov_status = covariance(np, jac, cost, m, n, bool(p['absolute_sigma']))
+        if status != 'OK':
+            warnings.warn('standard errors come from a non-converged iterate (%s) and are unreliable' % status, NumericalWarning)
         result['std_err'] = std_errors(ctx, None if cov is None else np.sqrt(np.diag(cov)))
         result.update({'cost': cost, 'rss': float(np.dot(final, final)), 'cov_status': cov_status, 'nfev': int(res.nfev),
                        'optimality': float(res.optimality)})

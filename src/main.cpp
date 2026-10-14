@@ -303,14 +303,16 @@ constexpr size_t MAX_VARIABLES=64, MAX_COLUMNS=32, MAX_CONSTRAINTS=16;
 struct Vars{std::vector<std::pair<std::string,size_t>> layout;std::vector<double> x0;std::set<std::string> names;std::map<std::string,size_t> dims;};
 Vars read_vars(const Json& x0){
     Vars v;if(!x0.is_object()||x0.empty())bad_param("x0 must be a nonempty object of start values");
-    for(auto it=x0.begin();it!=x0.end();++it){  // nlohmann objects iterate in sorted key order: the flat layout is deterministic
-        check_variable_name(it.key());const Json& value=it.value();
-        if(value.is_number()){v.layout.emplace_back(it.key(),0);v.x0.push_back(value.get<double>());}
+    // lmcpp's Json keeps insertion order and JSON objects are unordered, so the flat layout is sorted by name explicitly.
+    std::vector<std::string> keys;for(auto it=x0.begin();it!=x0.end();++it)keys.push_back(it.key());std::sort(keys.begin(),keys.end());
+    for(const auto& key:keys){
+        check_variable_name(key);const Json& value=x0[key];
+        if(value.is_number()){v.layout.emplace_back(key,0);v.x0.push_back(value.get<double>());}
         else if(value.is_array()&&!value.empty()&&value.size()<=MAX_VARIABLES){
             for(const auto& item:value){if(!item.is_number())bad_param("vector start values must be numbers");v.x0.push_back(item.get<double>());}
-            v.layout.emplace_back(it.key(),value.size());v.dims[it.key()]=value.size();
+            v.layout.emplace_back(key,value.size());v.dims[key]=value.size();
         }else bad_param("x0 values must be numbers or nonempty number arrays of at most 64 entries");
-        v.names.insert(it.key());
+        v.names.insert(key);
         if(v.x0.size()>MAX_VARIABLES)bad_param("at most 64 scalar unknowns in total");
     }
     for(double d:v.x0)if(!std::isfinite(d))bad_param("x0 values must be finite");

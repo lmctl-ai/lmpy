@@ -234,6 +234,15 @@ class MinimizeValidation(Base):
                 r = rejected('opt_minimize', params, code)
                 self.assertFalse(r['success'])
 
+    def test_unknown_order_is_sorted_by_name_not_by_json_key_order(self):
+        # JSON objects are unordered: gradient expressions are matched to unknowns sorted by name, whatever the key order.
+        x0_variants = [{'y': 1.0, 'x': -1.2}, {'x': -1.2, 'y': 1.0}]
+        for x0 in x0_variants:
+            r = call('opt_minimize', {'objective': MinimizeOptima.ROSEN, 'x0': x0, 'method': 'BFGS', 'tol': 1e-8, 'gradient': ['-400*x*(y-x^2) - 2*(1-x)', '200*(y-x^2)']}, 0, os.environ)
+            self.assertEqual(r['status'], 'OK', (x0, r))
+            np.testing.assert_allclose(par_array(r, 'x', 'y'), [1, 1], atol=1e-6)
+            self.assertEqual([w for w in r['warnings'] if 'gradient' in w['message']], [])
+
     def test_x0_reported_in_sorted_name_order_with_vectors_flattened(self):
         r = call('opt_minimize', {'objective': '(b-1)^2+(a[0]-2)^2+(a[1]-3)^2+(c-4)^2', 'x0': {'c': 0.0, 'b': 0.0, 'a': [0.0, 0.0]}, 'method': 'BFGS'}, 0, os.environ)
         self.assertEqual(sorted(r['par']), ['a', 'b', 'c'])
@@ -343,6 +352,7 @@ class LeastSquares(Base):
     def test_budget_exhaustion_is_not_ok(self):
         r = call('opt_least_squares', {'model': 'b1*(1-exp(-b2*x))', 'response': 'y', 'data': {'x': s3.MISRA1A_X, 'y': s3.MISRA1A_Y}, 'x0': s3.MISRA1A_STARTS[0], 'max_nfev': 3}, 0, os.environ)
         self.assertEqual(r['status'], 'NO_CONVERGENCE')
+        self.assertTrue(any('non-converged' in w['message'] for w in r['warnings']), r['warnings'])
         r = call('opt_least_squares', {'model': 'b1*(1-exp(-b2*x))', 'response': 'y', 'data': {'x': s3.MISRA1A_X, 'y': s3.MISRA1A_Y}, 'x0': s3.MISRA1A_STARTS[0], 'max_evals': 4}, 0, os.environ)
         self.assertEqual(r['status'], 'EVAL_LIMIT')
         self.assertTrue(all(math.isfinite(v) for v in r['par'].values()))
