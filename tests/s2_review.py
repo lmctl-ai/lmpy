@@ -49,9 +49,11 @@ class Review(unittest.TestCase):
  def test_special_datetime_predicates(self):
   self.table({'ts':['2026-01-01']},dtypes={'ts':'datetime64[ns]'})
   for word in ('now','today','yesterday','tomorrow','NaT','20260101'):
-   with self.subTest(word=word):self.call('frame_select',rc=2,frame='t.npz',where={'col':'ts','op':'lt','value':word},out='bad.npz')
+   with self.subTest(word=word):self.call('frame_select',rc=2,frame='t.npz',where={'col':'ts','op':'lt','value':word},out=word+'.npz')
  def test_csv_nullable_integer_identifiers_and_blank_line(self):
   (self.cwd/'a.csv').write_text('x,id\n1,007\nNA,+5\n');self.call('frame_import',csv='a.csv',out='t.npz');r=self.call('frame_inspect',frame='t.npz');self.assertEqual(r['dtypes'],{'x':'int64','id':'string'});self.assertEqual(r['head']['data'],{'x':[1,None],'id':['007','+5']})
+ def test_csv_leading_zero_decimal_identifier(self):
+  (self.cwd/'a.csv').write_text('id\n001.5\n002.5\n');self.call('frame_import',csv='a.csv',out='t.npz');self.assertEqual(self.inspect()['id'],['001.5','002.5'])
  def test_csv_trailing_blank(self):
   (self.cwd/'a.csv').write_text('x,y\n1,2\n\n');self.call('frame_import',csv='a.csv',out='t.npz');self.assertEqual(self.inspect(),{'x':[1],'y':[2]})
  def test_npz_shadow_names_prespawn(self):
