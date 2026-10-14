@@ -20,7 +20,7 @@ BLOCKED_MODULES = {'pi' + 'ckle', '_pi' + 'ckle', 'socket', '_socket',
 class BlockedImports:
     def find_spec(self, fullname, path=None, target=None):
         if fullname.split('.')[0] in BLOCKED_MODULES:
-            raise RuntimeError('blocked module: ' + fullname)
+            raise ImportError('blocked module: ' + fullname)
         return None
 
 
@@ -29,9 +29,17 @@ def audit(event, args):
         top = args[0].split('.')[0]
         # Construct the serialization module name without a forbidden identifier.
         if top in BLOCKED_MODULES:
-            raise RuntimeError('blocked module: ' + top)
+            raise ImportError('blocked module: ' + top)
     if event.startswith(('socket.', 'subprocess.')) or event in ('os.system', 'os.posix_spawn', 'os.fork'):
         raise RuntimeError('blocked audit event: ' + event)
+
+
+class BadData(ValueError):
+    pass
+
+
+class OutputTooLarge(OverflowError):
+    pass
 
 
 def codec(value):
@@ -54,9 +62,18 @@ def codec(value):
         return json.dumps(value, ensure_ascii=True)
     if isinstance(value, (list, tuple)):
         return '[' + ','.join(codec(x) for x in value) + ']'
+    if isinstance(value, complex):
+        return codec({'re': value.real, 'im': value.imag})
     if isinstance(value, dict):
+        if any(not isinstance(key, str) for key in value):
+            raise TypeError('JSON object keys must be strings')
         return '{' + ','.join(json.dumps(k) + ':' + codec(v) for k, v in value.items()) + '}'
-    return codec(value.item())
+    import numpy as np
+    if isinstance(value, np.generic):
+        scalar = value.item()
+        if scalar is not value and not isinstance(scalar, np.generic):
+            return codec(scalar)
+    raise TypeError('unsupported response type: ' + type(value).__name__)
 
 
 def array(p, key):
@@ -93,7 +110,8 @@ def info(p):
     import scipy
     return {'python': platform.python_version(), 'numpy': np.__version__, 'scipy': scipy.__version__,
             'blas': blas_info(), 'threads': 1, 'rng': 'PCG64', 'arch': platform.machine(),
-            'hash_randomization': sys.flags.hash_randomization,
+            'hash_randomization': sys.flags.hash_randomization, 'hash_probe': hash('pycli'),
+            'safe_path': sys.flags.safe_path, 'user_site': bool(sys.flags.no_user_site == 0),
             'coretype_requested': os.environ.get('OPENBLAS_CORETYPE', 'automatic')}
 
 
@@ -102,9 +120,16 @@ def solve(p):
     from scipy.linalg import solve as dense_solve, LinAlgError
     a, b = array(p, 'a'), array(p, 'b')
     if a.ndim != 2 or a.shape[0] != a.shape[1] or b.ndim not in (1, 2) or b.shape[0] != a.shape[0]:
-        raise ValueError('incompatible solve shapes')
+        raise BadData('incompatible solve shapes')
     if not np.isfinite(a).all() or not np.isfinite(b).all():
-        raise ValueError('solve requires finite inputs')
+        raise BadData('solve requires finite inputs')
+    if p['assume_a'] in ('sym', 'pos') and not np.array_equal(a, a.T):
+        raise BadData('NOT_SYMMETRIC')
+    if p['assume_a'] == 'pos':
+        try:
+            np.linalg.cholesky(a)
+        except LinAlgError:
+            return {'status': 'NOT_POSITIVE_DEFINITE'}
     try:
         x = dense_solve(a, b, assume_a=p['assume_a'], check_finite=True)
     except LinAlgError:
@@ -118,7 +143,7 @@ def solve(p):
     elif x.size <= 1000:
         result['x'] = x.tolist()
     else:
-        raise OverflowError('use la_solve_to for more than 1000 output numbers')
+        raise OutputTooLarge('use la_solve_to for more than 1000 output numbers')
     return result
 
 
@@ -130,9 +155,16 @@ def distribution(p):
     frozen = family(**params)
     functions = {'pdf': frozen.pdf, 'cdf': frozen.cdf, 'ppf': frozen.ppf, 'sf': frozen.sf}
     values = functions[p['fn']](array(p, 'x')).tolist()
+    for i, (x, value) in enumerate(zip(array(p, 'x'), values)):
+        if not math.isnan(float(x)) and math.isnan(value):
+            warnings.warn('SciPy returned NaN for a finite/domain-valid distribution input', NumericalWarning)
     for i in p.get('missing', []):
         values[i] = 'NA'
     return {'values': values}
+
+
+class NumericalWarning(RuntimeWarning):
+    pass
 
 
 OPS = {'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution}
@@ -168,7 +200,7 @@ def main():
                           'import_ms': (imported-start)*1000, 'elapsed_ms': (time.monotonic()-start)*1000}
         response = {'ok': True, 'result': result}
     except Exception as exc:
-        code = 'OUTPUT_TOO_LARGE' if isinstance(exc, OverflowError) else 'BAD_DATA' if isinstance(exc, ValueError) else 'PY_ERROR'
+        code = 'OUTPUT_TOO_LARGE' if isinstance(exc, OutputTooLarge) else 'BAD_DATA' if isinstance(exc, BadData) else 'PY_ERROR'
         response = {'ok': False, 'tool_code': code, 'message': str(exc), 'exception': type(exc).__name__}
     grouped = {}
     for warning in captured:
@@ -178,8 +210,12 @@ def main():
     target = response['result'] if response['ok'] else response
     target['warnings'] = notes
     target['warnings_truncated'] = len(grouped) > 20
+    try:
+        encoded = codec(response)
+    except (TypeError, ValueError) as exc:
+        encoded = codec({'ok': False, 'tool_code': 'PY_ERROR', 'message': str(exc), 'exception': type(exc).__name__})
     with open(sys.argv[2], 'w', encoding='utf-8') as stream:
-        stream.write(codec(response))
+        stream.write(encoded)
 
 
 if __name__ == '__main__':

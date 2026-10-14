@@ -16,17 +16,21 @@ constexpr size_t MAX_NUMBERS=200000, MAX_BYTES=256*1024*1024;
 char active_dir[4096]={0};
 void cleanup_signal(int sig) {
     // All per-call filenames are fixed; signal cleanup uses POSIX-safe calls only.
+    if(!active_dir[0])_exit(128+sig);
     char path[4096];
     for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","x.npy","output.bin"}){
         size_t n=0;while(active_dir[n] && n<sizeof(path)-64){path[n]=active_dir[n];++n;}
         path[n++]='/';while(*file)path[n++]=*file++;path[n]=0;unlink(path);
     }
-    rmdir(active_dir);signal(sig,SIG_DFL);kill(getpid(),sig);
+    if(active_dir[0])rmdir(active_dir);
+    // _exit works even as namespace PID 1. lmcpp PR_SET_PDEATHSIG kills Python.
+    _exit(128+sig);
 }
 struct TempDir {
     std::string path;
-    TempDir(){const char* base=getenv("TMPDIR");std::string name=std::string(base?base:"/tmp")+"/pycli-XXXXXX";std::vector<char> b(name.begin(),name.end());b.push_back(0);if(!mkdtemp(b.data()))throw std::runtime_error("cannot create private temp directory");path=b.data();if(path.size()>=sizeof(active_dir)-64)throw std::runtime_error("temp path too long");std::strcpy(active_dir,path.c_str());signal(SIGTERM,cleanup_signal);signal(SIGINT,cleanup_signal);}
-    ~TempDir(){std::error_code ec;fs::remove_all(path,ec);active_dir[0]=0;}
+    struct sigaction previous_term{}, previous_int{};
+    TempDir(){const char* base=getenv("TMPDIR");std::string name=std::string(base?base:"/tmp")+"/pycli-XXXXXX";std::vector<char> b(name.begin(),name.end());b.push_back(0);if(!mkdtemp(b.data()))throw std::runtime_error("cannot create private temp directory");path=b.data();if(path.size()>=sizeof(active_dir)-64)throw std::runtime_error("temp path too long");std::strcpy(active_dir,path.c_str());struct sigaction action{};action.sa_handler=cleanup_signal;sigemptyset(&action.sa_mask);sigaction(SIGTERM,&action,&previous_term);sigaction(SIGINT,&action,&previous_int);}
+    ~TempDir(){sigaction(SIGTERM,&previous_term,nullptr);sigaction(SIGINT,&previous_int,nullptr);std::error_code ec;fs::remove_all(path,ec);active_dir[0]=0;}
     std::string file(const char* name){return path+"/"+name;}
 };
 [[noreturn]] void invalid(const std::string& message,const char* code="BAD_DATA") {throw Error{ErrorCode::ValidationError,message,{{"tool_code",code}}};}
@@ -45,7 +49,7 @@ void flatten(const Json& value,Array& a,size_t depth=0){
     if(depth>2)invalid("S0 arrays have rank <=2");
     if(value.is_array()){
         if(value.empty())invalid("empty arrays unsupported");
-        if(a.shape.size()<=depth)a.shape.push_back(value.size());else if(a.shape[depth]!=static_cast<int64_t>(value.size()))invalid("ragged array");
+        if(a.shape.size()<=depth){if(!a.data.empty())invalid("mixed array ranks");a.shape.push_back(value.size());}else if(a.shape[depth]!=static_cast<int64_t>(value.size()))invalid("ragged array");
         for(const auto& item:value)flatten(item,a,depth+1);
     }else{
         if(depth!=a.shape.size())invalid("mixed array ranks");
@@ -67,7 +71,7 @@ Array read_npy(const std::string& path){
     // Closed header grammar: little-endian float64, C-order, rank one or two.
     static const std::regex grammar(R"(^\{'descr': '<f8', 'fortran_order': False, 'shape': \(([0-9]+), ?(?:([0-9]+),? ?)?\),? ?\} *\n$)");
     std::smatch match;if(!std::regex_match(header,match,grammar))invalid("S0 npy requires C-order little-endian float64, rank <=2","BAD_NPY");
-    Array a;size_t n=1;for(int i=1;i<=2;++i)if(match[i].matched){uint64_t d=0;try{d=std::stoull(match[i]);}catch(...){invalid("npy shape overflow","BAD_NPY");}if(!d||d>MAX_NUMBERS||n>MAX_NUMBERS/d)invalid("npy exceeds 200000 numbers","INPUT_TOO_LARGE");n*=d;a.shape.push_back(d);}
+    Array a;size_t n=1;for(int i=1;i<=2;++i)if(match[i].matched){uint64_t d=0;try{d=std::stoull(match[i]);}catch(...){invalid("npy shape overflow","BAD_NPY");}if(!d)invalid("empty npy array","BAD_NPY");if(d>MAX_NUMBERS||n>MAX_NUMBERS/d)invalid("npy exceeds 200000 numbers","INPUT_TOO_LARGE");n*=d;a.shape.push_back(d);}
     if(fs::file_size(path)!=8+lenbytes+len+n*8)invalid("npy payload size mismatch","BAD_NPY");a.data.resize(n);f.read(reinterpret_cast<char*>(a.data.data()),n*8);if(!f)invalid("truncated npy payload","BAD_NPY");return a;
 }
 Array load(const Json& value){
@@ -88,21 +92,27 @@ Json call(const std::string& op,const Params& input){
     Params p=input;std::map<std::string,Array> arrays;
     if(op=="la_solve"||op=="la_solve_to"){
         arrays["a"]=load(p["a"]);arrays["b"]=load(p["b"]);auto& a=arrays["a"];auto& b=arrays["b"];
-        if(a.shape.size()!=2||a.shape[0]!=a.shape[1]||b.shape.empty()||b.shape[0]!=a.shape[0]||a.shape[0]>512)invalid("incompatible solve shapes or order >512");
+        if(a.shape.size()!=2||a.shape[0]!=a.shape[1]||b.shape.empty()||b.shape[0]!=a.shape[0]||a.shape[0]>447)invalid("incompatible solve shapes or order >447");
         for(const auto& entry:arrays)for(double v:entry.second.data)if(!std::isfinite(v))invalid("solve requires finite numbers");
+        if(p["assume_a"]!="gen")for(size_t i=0;i<static_cast<size_t>(a.shape[0]);++i)for(size_t j=0;j<i;++j)
+            if(a.data[i*a.shape[0]+j]!=a.data[j*a.shape[0]+i])invalid("sym/pos require an exactly symmetric matrix","NOT_SYMMETRIC");
         if(op=="la_solve"&&b.data.size()>1000)throw Error{ErrorCode::CommandFailed,"use la_solve_to",{{"tool_code","OUTPUT_TOO_LARGE"}}};
         if(op=="la_solve_to"){p["out"]=confined(p["out"],true);if(fs::path(p["out"].get<std::string>()).extension()!=".safetensors")invalid("out must end in .safetensors");}
     }else if(op=="stats_dist"){
         arrays["x"]=load(p["x"]);if(arrays["x"].shape.size()!=1||arrays["x"].data.size()>1000)invalid("stats_dist requires <=1000 vector values");
         auto params=p["params"];if(!params.is_object())invalid("params must be an object");for(auto it=params.begin();it!=params.end();++it){if(it.key()!="loc"&&it.key()!="scale"&&!(p["dist"]=="t"&&it.key()=="df"))invalid("unknown distribution parameter");if(!it.value().is_number()||!std::isfinite(it.value().get<double>()))invalid("distribution parameters must be finite");}
         if(params.contains("scale")&&params["scale"]<=0)invalid("scale must be positive");if(p["dist"]=="t"&&(!params.contains("df")||params["df"]<=0))invalid("t requires positive df");p["missing"]=arrays["x"].missing;
+        if(p["fn"]=="ppf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid("ppf probabilities must lie in [0,1]","BAD_PROBABILITY");
     }
     TempDir temp;
     for(const auto& entry:arrays){auto file=temp.file((entry.first+".npy").c_str());write_npy(entry.second,file);p.erase(entry.first);p[entry.first+"_file"]=file;}
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");
     {std::ofstream f(temp.file("req.json"));f<<Json{{"op",op},{"params",p}}.dump();if(!f)throw std::runtime_error("cannot write request");}
     {std::ofstream f(temp.file("worker.py"));f<<PYCLI_WORKER_SOURCE;if(!f)throw std::runtime_error("cannot write worker");}
-    const char* configured=getenv("PYCLI_PYTHON");std::string python=configured?configured:"python3";
+    std::string python="python3";
+#ifdef PYCLI_DEV_INTERPRETER
+    if(const char* configured=getenv("PYCLI_PYTHON"))python=configured;
+#endif
     std::map<std::string,std::string> env={{"PATH","/usr/local/bin:/usr/bin"},{"HOME",temp.path},{"TMPDIR",temp.path},{"LC_ALL","C.UTF-8"},{"TZ","UTC"},{"PYTHONHASHSEED","0"},{"PYTHONNOUSERSITE","1"},{"PYTHONDONTWRITEBYTECODE","1"},{"MPLBACKEND","Agg"},{"PYCLI_LIMIT_NUMBERS",std::to_string(MAX_NUMBERS)}};
     for(const char* name:{"OPENBLAS_NUM_THREADS","OMP_NUM_THREADS","MKL_NUM_THREADS","VECLIB_MAXIMUM_THREADS","NUMEXPR_MAX_THREADS"})env[name]="1";
     #if defined(__aarch64__)
@@ -112,7 +122,7 @@ Json call(const std::string& op,const Params& input){
 #endif
     if(const char* core=getenv("PYCLI_BLAS_CORETYPE")){std::string c=core;if(c!="ARMV8"&&c!="Haswell")invalid("unsupported BLAS coretype");env["OPENBLAS_CORETYPE"]=c;}
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
-    auto child=run_child({python,"-I","-B","-X","faulthandler",temp.file("worker.py"),temp.file("req.json"),temp.file("resp.json")},env,std::chrono::seconds(seconds),1024*1024);
+    auto child=run_child({python,"-P","-s","-B","-X","faulthandler",temp.file("worker.py"),temp.file("req.json"),temp.file("resp.json")},env,std::chrono::seconds(seconds),1024*1024);
     if(child.timed_out)throw Error{ErrorCode::Timeout,"Python worker timed out",{{"tool_code","TIMEOUT"}}};
     if(child.exec_failed)throw Error{ErrorCode::ServiceUnavailable,"Python interpreter unavailable",{{"tool_code","PYTHON_NOT_FOUND"}}};
     if(child.status_unknown||child.exit_code!=0)throw Error{ErrorCode::InternalError,"Python worker crashed",{{"tool_code","TOOL_CRASH"},{"signal",child.signal},{"stderr",child.err.substr(child.err.size()>4096?child.err.size()-4096:0)}}};
@@ -120,7 +130,8 @@ Json call(const std::string& op,const Params& input){
     if(!response.value("ok",false)){auto code=response.value("tool_code",std::string("PY_ERROR"));throw Error{code=="BAD_DATA"?ErrorCode::ValidationError:ErrorCode::CommandFailed,response.value("message",std::string("worker failure")),{{"tool_code",code},{"exception",response.value("exception",std::string())},{"warnings",response.value("warnings",Json::array())}}};}
     Json result=response["result"];
     if(op=="py_info")result["worker_sha256"]=PYCLI_WORKER_SHA256;
-    if(op=="la_solve_to"&&result.value("status",std::string())=="OK"){
+    if(op=="la_solve_to"&&result.value("status",std::string())!="OK")throw Error{ErrorCode::CommandFailed,"solve produced no artifact",{{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}}};
+    if(op=="la_solve_to"){
         pycli::TensorData tensor;tensor.dtype="F64";tensor.shape=result["shape"].get<std::vector<int64_t>>();size_t n=1;for(auto d:tensor.shape){if(d<=0||static_cast<uint64_t>(d)>MAX_NUMBERS||n>MAX_NUMBERS/d)throw std::runtime_error("worker output shape exceeds limit");n*=d;}
         auto output=temp.file("output.bin");if(fs::file_size(output)!=n*8)throw std::runtime_error("worker output size mismatch");tensor.bytes.resize(n*8);std::ifstream f(output,std::ios::binary);f.read(reinterpret_cast<char*>(tensor.bytes.data()),n*8);
         pycli::TensorBundle bundle;bundle.tensors["x"]=tensor;auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);result.erase("shape");result["x"]=pycli::descriptor({path,"x"},tensor);
@@ -129,8 +140,10 @@ Json call(const std::string& op,const Params& input){
 }
 }
 int main(int argc,char** argv){
+    struct sigaction action{};action.sa_handler=cleanup_signal;sigemptyset(&action.sa_mask);
+    sigaction(SIGTERM,&action,nullptr);sigaction(SIGINT,&action,nullptr);
     Operation info{"py_info",Access::Read,"Pinned Python scientific runtime, BLAS pools and determinism","object",{}};
-    auto solve=[](bool write){Operation op{write?"la_solve_to":"la_solve",write?Access::Write:Access::Read,"Dense real solve; inline <=1000 numbers or F64 artifact refs; singular returns SINGULAR","object",{Param{"a",Type::Json,true},Param{"b",Type::Json,true},Param{"assume_a",Type::String,false,"gen",{"gen","sym","pos"}}}};if(write)op.params.emplace_back("out",Type::String,true);return op;};
+    auto solve=[](bool write){Operation op{write?"la_solve_to":"la_solve",write?Access::Write:Access::Read,"Dense real solve; inline <=1000 numbers or F64 artifact refs; read solve reports SINGULAR/NOT_POSITIVE_DEFINITE; write solve fails if no artifact","object",{Param{"a",Type::Json,true},Param{"b",Type::Json,true},Param{"assume_a",Type::String,false,"gen",{"gen","sym","pos"}}}};if(write)op.params.emplace_back("out",Type::String,true);return op;};
     Operation dist{"stats_dist",Access::Read,"Normal or Student t pdf/cdf/ppf/sf; <=1000 inline values","object",{Param{"dist",Type::String,true,nullptr,{"norm","t"}},Param{"fn",Type::String,true,nullptr,{"pdf","cdf","ppf","sf"}},Param{"x",Type::Json,true},Param{"params",Type::Object,false,Json::object()}}};
     CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist}};
     for(auto& op:spec.operations){std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for S0 shapes and limits.";}

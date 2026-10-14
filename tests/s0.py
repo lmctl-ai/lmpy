@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory(dir='.') as tmp:
     env['PYCLI_PYTHON']=str(wrapper)
     call('py_info',env=env)
     observed=json.loads(capture.read_text())
-    assert observed['argv'][:4]==['-I','-B','-X','faulthandler']
+    assert observed['argv'][:5]==['-P','-s','-B','-X','faulthandler']
     assert observed['env']['OPENBLAS_NUM_THREADS']=='1' and 'SECRET_SENTINEL' not in observed['env']
     assert set(observed['env']) <= {'PATH','HOME','TMPDIR','LC_ALL','TZ','PYTHONHASHSEED','PYTHONNOUSERSITE','PYTHONDONTWRITEBYTECODE','OPENBLAS_NUM_THREADS','OMP_NUM_THREADS','MKL_NUM_THREADS','VECLIB_MAXIMUM_THREADS','NUMEXPR_MAX_THREADS','OPENBLAS_CORETYPE','MPLBACKEND','PYCLI_LIMIT_NUMBERS','LC_CTYPE'}
     assert not list(tmp.glob('pycli-*'))
@@ -80,10 +80,11 @@ with tempfile.TemporaryDirectory(dir='.') as tmp:
     np.save(tmp/'object.npy',np.array(['bad'],dtype=object))
     call('la_solve',{'a':str(tmp/'object.npy'),'b':[1]},rc=2)
     call('la_solve',{'a':'/etc/passwd','b':[1]},rc=2)
-print('S0 numerical, protocol, isolation, crash, timeout, cleanup and artifact contracts passed')
 
 warn=result('la_solve',{'a':[[1,0],[0,1e-20]],'b':[1,1]})
 assert warn['warnings'] and warn['warnings'][0]['category']=='LinAlgWarning'
 assert result('la_solve',{'a':[[1,1],[1,1]],'b':[1,2]})['status']=='SINGULAR'
 for bad in ({'dist':'t','fn':'cdf','x':[1]}, {'dist':'norm','fn':'pdf','x':[1],'params':{'df':3}}, {'dist':'norm','fn':'pdf','x':[1],'params':{'scale':0}}):
     call('stats_dist',bad,rc=2)
+
+print('S0 numerical, protocol, isolation, crash, timeout, cleanup and artifact contracts passed')

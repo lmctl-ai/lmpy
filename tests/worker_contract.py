@@ -13,7 +13,7 @@ assert all(struct.pack('d',x)==struct.pack('d',y) for x,y in zip(values,encoded)
 assert json.loads(w.codec([None,float('nan'),float('inf'),-float('inf')]))==['NA','NaN','Inf','-Inf']
 for name in ('pickle','socket','subprocess','urllib','http'):
     try: w.audit('import',(name,None,None,None,None))
-    except RuntimeError: pass
+    except ImportError: pass
     else: raise AssertionError('audit allowed '+name)
 # Exercise the installed hook, including a already-loaded module cleared after
 # the trusted scientific import phase, rather than only calling its function.
@@ -25,6 +25,6 @@ sys.meta_path.insert(0,w.BlockedImports())
 sys.addaudithook(w.audit)
 for name in ('pickle','socket','subprocess','urllib','http'):
     try: importlib.import_module(name)
-    except RuntimeError: pass
+    except ImportError: pass
     else: raise AssertionError('hook allowed import '+name)
 print('100000 binary64 values, nonfinite tokens and audit blocklist passed')

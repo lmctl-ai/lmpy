@@ -4,8 +4,8 @@ import numpy as np
 BIN=str(pathlib.Path(sys.argv.pop(1)).resolve())
 PROD=str(pathlib.Path(sys.argv.pop(1)).resolve()) if len(sys.argv)>1 and not sys.argv[1].startswith('-') else BIN
 
-def call(op,p={},expected=0,env=None):
-    proc=subprocess.run([BIN,'--input-json',json.dumps({'op':op,'params':p})],capture_output=True,text=True,env=env)
+def call(op,p={},expected=0,env=None,cwd=None):
+    proc=subprocess.run([BIN,'--input-json',json.dumps({'op':op,'params':p})],capture_output=True,text=True,env=env,cwd=cwd)
     assert proc.returncode==expected,(proc.returncode,proc.stdout,proc.stderr)
     return json.loads(proc.stdout)
 
@@ -32,7 +32,7 @@ class Review(unittest.TestCase):
             (directory/'sitecustomize.py').write_text('raise RuntimeError("workspace customization imported")')
             for _ in range(2):
                 env=dict(os.environ,PYTHONPATH=str(directory),PYTHONHOME=str(directory),PYTHONUSERBASE=str(directory))
-                r=call('py_info',env=env)
+                r=call('py_info',env=env,cwd=directory)
                 self.assertEqual(r['hash_randomization'],0)
                 self.assertTrue(r['safe_path'])
                 self.assertFalse(r['user_site'])

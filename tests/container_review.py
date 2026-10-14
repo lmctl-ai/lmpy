@@ -45,7 +45,7 @@ class Containers(unittest.TestCase):
             config=json.loads(docker('inspect',cid).stdout)[0]
             host=config['HostConfig'];self.assertEqual(host['NetworkMode'],'none');self.assertTrue(host['ReadonlyRootfs'])
             self.assertEqual(host['CapDrop'],['ALL']);self.assertEqual(host['PidsLimit'],128);self.assertEqual(host['Memory'],4*1024**3)
-            self.assertIn('no-new-privileges',host['SecurityOpt']);self.assertTrue(host['Init']);self.assertNotIn('seccomp=unconfined',host['SecurityOpt'])
+            self.assertIn('no-new-privileges',host['SecurityOpt']);self.assertTrue(host.get('Init',False));self.assertNotIn('seccomp=unconfined',host['SecurityOpt'])
             self.assertIn('/tmp',host['Tmpfs']);self.assertEqual(len(config['Mounts']),3) # cwd bind plus tmpfs
             for word in ('CapEff:\t0000000000000000','NoNewPrivs:\t1','Seccomp:\t2'):
                 status=docker('exec',cid,'cat','/proc/1/status',check=False).stdout
