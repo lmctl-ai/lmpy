@@ -1,6 +1,6 @@
 # pycli
 
-An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 (S0 skeleton, S1 arrays and dense linear algebra).
+An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 (S0–S2).
 Each call starts a fresh Python child. The fixed dispatch and validated inputs
 accept no caller code. The Docker container is the isolation boundary.
 
@@ -25,7 +25,7 @@ Fortran order, object arrays, complex, rank 0/3+ and .npz are rejected). Headers
 offsets and lengths are validated before Python; safetensors reads only the selected bounded
 payload, and the selected tensor's rank and 200000-number cap are checked from the header
 before any allocation. The `.npy` header is parsed by a hand-written closed grammar (no regex).
-Artifacts written by pycli are always F64 (`I64` for the qr pivot vector `p`).
+Array artifacts written by pycli are F64 (`I64` for the qr pivot vector `p`); table artifacts use the S2 dtype whitelist below.
 
 Limits: 1000 numbers per inline array, 200000 per referenced array/CSV file (inline CSV text
 1000), 256 MiB per artifact (32 MiB per CSV), at most 2,000,000 output numbers per call.
@@ -185,3 +185,59 @@ Current image sizes: runtime 446 MB / test 667 MB on disk; runtime content
 metric 97.45 MB. Startup calibration: boot 17 ms, NumPy 200 ms, scipy.stats
 1229 ms, Docker overhead 391 ms (p50, imports include boot). These timings are
 slower than historical S0 samples; see the timing document for limitations.
+
+S2 adds six narrow pandas operations:
+
+| Op | Access | Behavior |
+|---|---|---|
+| `frame_import` | write | Exactly one of inline `columns`, `records`, UTF-8 `csv` path, or table `frame`; explicit `dtypes`, reported inference; exclusive `.npz` `out` |
+| `frame_inspect` | read | Shape, dtype policy, null counts, head/tail and optional numeric describe |
+| `frame_export` | write | CSV or columnar JSON; optional exclusive file `out`, otherwise <=1000 cells inline |
+| `frame_select` | write | Structured literal predicates, stable `sort_by`, column selection, limit; required artifact `out` |
+| `frame_groupby` | write | `keys` and column -> aggregation-list `aggs`; sorted keys, observed categories, optional `dropna` |
+| `frame_resample` | write | Datetime `time` column, validated `rule`, aggregation lists, left/right `closed` and `label`; DST-aware bins |
+
+Tables allow 2M rows, 256 columns, 256MiB files, 1MiB CSV fields, and <=1000
+inline cells in inputs or combined previews. Larger tables remain in artifacts.
+A table artifact is a single **stored-only NPZ** (compressed archives are refused),
+with `__pycli_table__` UTF-8 JSON as a uint8 array, `cN` column arrays and `mN`
+boolean missing masks. NumPy reads always disable object deserialization. C++ checks
+ZIP bounds, sizes, overlaps, member counts and numeric/byte-array NPY headers before
+spawn; Python rechecks metadata, column types, masks and category codes. NPZ is
+supported only for tables; array ops retain the S1 formats. String columns use
+UTF-8 bytes arrays, never object arrays. Names are unique nonempty UTF-8, <=256 bytes.
+NUL characters in names and strings are refused.
+
+The dtype whitelist is `int64`, `float64`, `bool`, `string`, `datetime64[ns]`,
+`category`. Nullable ints/bools use masks; int64 is preserved exactly, including
+values outside ±2^53 (lmscript numbers cannot represent those exactly). JSON null
+means missing for every table dtype; numeric `NA` also means missing, while
+`NaN`, `Inf`, `-Inf` are numeric values. String `NA` remains a literal string.
+CSV empty fields and explicit `na_values` are missing; quoted empty fields also
+count as missing. CSV defaults use strict integer/float/bool/string inference,
+reported in `inferred`; dates require `parse_dates` or a dtype override. Explicit
+float overflow fails instead of becoming infinity. CSV exports use 17 significant
+digits and empty missing fields, so CSV cannot preserve all NA/NaN/type/category
+semantics; NPZ is the lossless handoff. JSON export is columnar, without hidden index.
+
+Dtype objects accept `dtype` plus `tz` for datetime, or `categories`/`ordered` for
+category. Closed timezones: UTC, America/New_York, America/Chicago,
+America/Los_Angeles, Europe/London, Europe/Berlin, Asia/Tokyo, Asia/Kolkata,
+Australia/Sydney. The pinned pytz/tzdata 2025.2 databases supply these names.
+Aware ISO input requires explicit timezone; mixed aware/naive input is refused.
+Naive local DST ambiguity/nonexistent times fail; offset-bearing input disambiguates.
+Resample rejects NaT in its time column. Rules are 1..10000 plus
+`min`, `h`, `D`, `W`, `MS`, `ME`, `QS`, or `YS`; default closure and labels are left,
+including weekly rules. Bins and group keys are materialized as ordinary columns.
+Aggregates use a closed function table: sum, mean, min, max, count, std, var,
+median, nunique, first, last. std/var use ddof=1; first/last skip missing values.
+Aggregate names are flattened as `column__function`; collisions fail.
+
+`where` uses `{and:[...]}`, `{or:[...]}`, `{not:...}`, or
+`{col:"name",op:"eq",value:"literal"}`. Leaf operators: eq/ne/lt/le/gt/ge,
+isin (list), isnull (no value), between (two inclusive bounds), startswith,
+contains (literal, no regex). Null comparisons are excluded; isnull selects them.
+Predicate depth <=32 and nodes <=256. Column names and values are data.
+Pandas is imported only by frame ops; other Python ops report `meta.pandas:"unloaded"`.
+The audit guard remains defence in depth; the container is the process boundary.
+All frame outputs use anonymous atomic no-replace installation and honor readonly/dryrun.

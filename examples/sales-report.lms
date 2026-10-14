@@ -1,0 +1,29 @@
+// access: write
+// Generate daily UTC sales CSV; preserve timezone through artifacts, aggregate and export.
+// Run from a writable cwd below HOME with pycli on PATH. All generated files are removed.
+import "../cli.schema.dev.json" as pycli;
+text = "ts,region,sales\n";
+for (i = 1; i < 15; i = i + 1) {
+  region = "East";
+  if (i % 2 == 0) { region = "West"; }
+  text = text + sprintf("2026-03-%02dT12:00:00+00:00,%s,%d\n", i, region, 10*i);
+}
+write_file("sales-s2.csv", text);
+loaded = pycli.frame_import({csv:"sales-s2.csv",dtypes:{ts:{dtype:"datetime64[ns]",tz:"UTC"}},out:"sales-s2.npz"});
+if (loaded.status == "simulated") { println("Sales report simulated."); exit(0); }
+if (loaded.status != "ok") { println(json_stringify(loaded)); exit(1); }
+selected = pycli.frame_select({frame:"sales-s2.npz",where:{col:"sales",op:"ge",value:50},sort_by:[{col:"ts"}],out:"sales-selected-s2.npz"});
+if (selected.status != "ok") { println(json_stringify(selected)); exit(1); }
+regions = pycli.frame_groupby({frame:"sales-selected-s2.npz",keys:["region"],aggs:{sales:["sum","mean","count"]},out:"sales-regions-s2.npz"});
+if (regions.status != "ok") { println(json_stringify(regions)); exit(1); }
+weekly = pycli.frame_resample({frame:"sales-selected-s2.npz",time:"ts",rule:"1W",aggs:{sales:["sum","count"]},out:"sales-weekly-s2.npz"});
+if (weekly.status != "ok") { println(json_stringify(weekly)); exit(1); }
+exported = pycli.frame_export({frame:"sales-weekly-s2.npz",format:"csv",out:"sales-report-s2.csv"});
+if (exported.status != "ok") { println(json_stringify(exported)); exit(1); }
+summary = pycli.frame_inspect({frame:"sales-regions-s2.npz",head:2});
+if (summary.status != "ok" || summary.result.head.data.sales__sum[0] != 450 || summary.result.head.data.sales__sum[1] != 500) {
+  println("Hand-computed region sums differ",json_stringify(summary)); exit(1);
+}
+println("Region totals:",json_stringify(summary.result.head.data));
+println("Weekly CSV:",read_file("sales-report-s2.csv"));
+for (path in ["sales-s2.csv","sales-s2.npz","sales-selected-s2.npz","sales-regions-s2.npz","sales-weekly-s2.npz","sales-report-s2.csv"]) { delete_file(path); }

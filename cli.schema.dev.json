@@ -406,6 +406,295 @@
           "description": "cholesky only: false returns the upper factor u."
         }
       ]
+    },
+    {
+      "name": "frame_import",
+      "access": "write",
+      "returns": "object",
+      "description": "Import typed tables; inference is returned explicitly",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline column map, <=1000 cells."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline records with identical keys, <=1000 cells.",
+          "items": "object"
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV path with header, <=256MiB and 2M rows."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Existing table ref to copy."
+        },
+        {
+          "name": "dtypes",
+          "type": "object",
+          "occurs": "?",
+          "default": {},
+          "description": "Column dtype overrides: int64,float64,bool,string,datetime64[ns],category; object specs may give tz/categories/ordered."
+        },
+        {
+          "name": "delimiter",
+          "type": "string",
+          "occurs": "?",
+          "default": ",",
+          "description": "Single-byte CSV delimiter."
+        },
+        {
+          "name": "na_values",
+          "type": "array",
+          "occurs": "?",
+          "default": [],
+          "description": "CSV missing tokens in addition to empty cells.",
+          "items": "string"
+        },
+        {
+          "name": "parse_dates",
+          "type": "array",
+          "occurs": "?",
+          "default": [],
+          "description": "ISO datetime columns; timezone requires a dtype object override.",
+          "items": "string"
+        },
+        {
+          "name": "max_rows",
+          "type": "number",
+          "occurs": "?",
+          "default": 2000000,
+          "description": "CSV maximum data rows, 0..2M."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact; CONFLICT if exists."
+        }
+      ]
+    },
+    {
+      "name": "frame_inspect",
+      "access": "read",
+      "returns": "object",
+      "description": "Shape, dtype policies, NA masks, bounded previews and statistics",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Stored-only .npz table ref inside cwd."
+        },
+        {
+          "name": "head",
+          "type": "number",
+          "occurs": "?",
+          "default": 10,
+          "description": "Head rows; total head+tail <=1000 cells."
+        },
+        {
+          "name": "tail",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Tail rows; total head+tail <=1000 cells."
+        },
+        {
+          "name": "describe",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Numeric describe statistics; combined inline cap 1000 cells."
+        }
+      ]
+    },
+    {
+      "name": "frame_export",
+      "access": "write",
+      "returns": "object",
+      "description": "Export a table inline or to an exclusive file",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Stored-only .npz table ref inside cwd."
+        },
+        {
+          "name": "format",
+          "type": "string",
+          "occurs": "?",
+          "default": "csv",
+          "enum": [
+            "csv",
+            "json"
+          ],
+          "description": "Export UTF-8 CSV or columnar JSON."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "?",
+          "description": "New output path; omit only for <=1000 cells inline. Atomic no-replace write."
+        }
+      ]
+    },
+    {
+      "name": "frame_select",
+      "access": "write",
+      "returns": "object",
+      "description": "Structured filtering, column selection and stable sorting",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Stored-only .npz table ref inside cwd."
+        },
+        {
+          "name": "columns",
+          "type": "array",
+          "occurs": "?",
+          "description": "Selected columns in requested order.",
+          "items": "string"
+        },
+        {
+          "name": "where",
+          "type": "object",
+          "occurs": "?",
+          "description": "Predicate tree: and/or/not; col/op/value leaves with eq/ne/lt/le/gt/ge/isin/isnull/between/startswith/contains literal."
+        },
+        {
+          "name": "sort_by",
+          "type": "array",
+          "occurs": "?",
+          "default": [],
+          "description": "Stable sort list of {col,desc?}.",
+          "items": "object"
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "occurs": "?",
+          "description": "Maximum selected rows, 0..2M."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact."
+        }
+      ]
+    },
+    {
+      "name": "frame_groupby",
+      "access": "write",
+      "returns": "object",
+      "description": "Closed-function grouped aggregates, sorted keys and observed categories",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Stored-only .npz table ref inside cwd."
+        },
+        {
+          "name": "keys",
+          "type": "array",
+          "occurs": "1",
+          "description": "Group key columns; output keys are ordinary columns.",
+          "items": "string"
+        },
+        {
+          "name": "dropna",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Drop groups whose keys are missing."
+        },
+        {
+          "name": "aggs",
+          "type": "object",
+          "occurs": "1",
+          "description": "Column -> list of sum,mean,min,max,count,std,var,median,nunique,first,last. Outputs named column__function; std/var ddof=1."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact."
+        }
+      ]
+    },
+    {
+      "name": "frame_resample",
+      "access": "write",
+      "returns": "object",
+      "description": "Timezone-aware bounded resampling",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Stored-only .npz table ref inside cwd."
+        },
+        {
+          "name": "time",
+          "type": "string",
+          "occurs": "1",
+          "description": "Datetime column materialized as output bins; NaT rejected."
+        },
+        {
+          "name": "rule",
+          "type": "string",
+          "occurs": "1",
+          "description": "1..10000 followed by min,h,D,W,MS,ME,QS,YS; no other offset syntax."
+        },
+        {
+          "name": "closed",
+          "type": "string",
+          "occurs": "?",
+          "default": "left",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "description": "Bin edge closure or label."
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "occurs": "?",
+          "default": "left",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "description": "Bin edge closure or label."
+        },
+        {
+          "name": "aggs",
+          "type": "object",
+          "occurs": "1",
+          "description": "Column -> list of sum,mean,min,max,count,std,var,median,nunique,first,last. Outputs named column__function; std/var ddof=1."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact."
+        }
+      ]
     }
   ]
 }

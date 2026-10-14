@@ -41,3 +41,15 @@ both are stored as NaN. No arithmetic is done on I64 beyond exact conversion (|v
 
 Missing files/tensor keys map to NOT_FOUND (4) following torchcli (protocol 6.1); rcli returns 2
 for a missing file. This is the one place where pycli is intentionally not rcli-compatible.
+
+## S2 overlap
+
+lmda already covers CSV selection/filter/sort/groupby/summary operations. S2 keeps
+only the typed table handoff, literal structured filtering, nullable/category
+semantics and timezone-aware resampling needed by pycli pipelines; merge/pivot/
+rolling stay out of scope. The requested `/home/ubuntu/repos/lmctl-ai/lmda` checkout
+is absent on this host, so no prebuilt binary at that location can be used and
+no lmda build was attempted. A future oracle recipe can export the four-row
+region/sales fixture, compare group sums E=40/W=60 against lmda's table_groupby,
+and compare CSV selection order; timezone/category identity remains a direct
+pandas + hand-fixture oracle. No cross-tool parity is claimed.
