@@ -1,3 +1,9 @@
-build*/
-*.lmctl
+build/
+build-*/
+.pycli-tmp/
 __pycache__/
+*.pyc
+core
+core.*
+
+*.lmctl

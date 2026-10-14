@@ -15,4 +15,15 @@ for name in ('pickle','socket','subprocess','urllib','http'):
     try: w.audit('import',(name,None,None,None,None))
     except RuntimeError: pass
     else: raise AssertionError('audit allowed '+name)
+# Exercise the installed hook, including a already-loaded module cleared after
+# the trusted scientific import phase, rather than only calling its function.
+import numpy, scipy.stats, importlib
+blocked={'pickle','_pickle','socket','_socket','subprocess','multiprocessing','urllib','http','ftplib'}
+for name in list(sys.modules):
+    if name.split('.')[0] in blocked: sys.modules.pop(name,None)
+sys.addaudithook(w.audit)
+for name in ('pickle','socket','subprocess','urllib','http'):
+    try: importlib.import_module(name)
+    except RuntimeError: pass
+    else: raise AssertionError('hook allowed import '+name)
 print('100000 binary64 values, nonfinite tokens and audit blocklist passed')
