@@ -19,7 +19,7 @@
       "name": "la_solve",
       "access": "read",
       "returns": "object",
-      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; singular returns SINGULAR",
+      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; read solve reports SINGULAR/NOT_POSITIVE_DEFINITE; write solve fails if no artifact",
       "params": [
         {
           "name": "a",
@@ -51,7 +51,7 @@
       "name": "la_solve_to",
       "access": "write",
       "returns": "object",
-      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; singular returns SINGULAR",
+      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; read solve reports SINGULAR/NOT_POSITIVE_DEFINITE; write solve fails if no artifact",
       "params": [
         {
           "name": "a",

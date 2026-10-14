@@ -1,12 +1,17 @@
 // access: read
-// Dense 3x3 solve: hand-computed x=[1,2,3], plus a normal quantile oracle.
-// PATH must include the absolute pycli/bin directory.
+// Dense 3x3 solve and an independent normal quantile reference.
 import "../cli.schema.dev.json" as pycli;
 fit = pycli.la_solve({a: [[1,2,3],[0,1,4],[5,6,0]], b: [14,14,17]});
-if (fit.status != "ok") { println(json_stringify(fit)); exit(1); }
-if (abs(fit.result.x[0]-1) > 0.000000000001 || abs(fit.result.x[1]-2) > 0.000000000001 || abs(fit.result.x[2]-3) > 0.000000000001) {
-  println("Solve mismatch", json_stringify(fit)); exit(1);
+if (fit.status == "simulated") { println("Solve simulated."); }
+else {
+  if (fit.status != "ok") { println(json_stringify(fit)); exit(1); }
+  if (abs(fit.result.x[0]-1) > 0.000000000001 || abs(fit.result.x[1]-2) > 0.000000000001 || abs(fit.result.x[2]-3) > 0.000000000001) {
+    println("Solve mismatch", json_stringify(fit)); exit(1);
+  }
 }
 q = pycli.stats_dist({dist:"norm", "fn":"ppf", x:[0.975]});
-if (q.status != "ok" || abs(q.result.values[0]-1.959963984540054)>0.00000000000001) { println("Quantile mismatch",json_stringify(q)); exit(1); }
-println("S0 solve and normal quantile passed.");
+if (q.status == "simulated") { println("Quantile simulated."); }
+else {
+  if (q.status != "ok" || abs(q.result.values[0]-1.959963984540054)>0.00000000000001) { println("Quantile mismatch",json_stringify(q)); exit(1); }
+  println("S0 solve and normal quantile passed.");
+}

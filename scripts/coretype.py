@@ -11,7 +11,7 @@ print(json.dumps({'blas':worker['blas_info'](),'solve400_ms':values}))
 '''
 results={}
 for core in ('automatic','ARMV8'):
-    args=['docker','run','--rm','--network=none','-e','OPENBLAS_NUM_THREADS=1','--mount','type=bind,src='+os.path.abspath('py')+',dst=/worker,readonly','--entrypoint','python3']
+    args=['docker','run','--rm','--pull=never','--network=none','-e','OPENBLAS_NUM_THREADS=1','--mount','type=bind,src='+os.path.abspath('py')+',dst=/worker,readonly','--entrypoint','python3']
     if core!='automatic': args+=['-e','OPENBLAS_CORETYPE='+core]
-    results[core]=json.loads(subprocess.check_output(args+['pycli:measure312','-I','-B','-c',code]))
+    results[core]=json.loads(subprocess.check_output(args+['pycli:runtime','-P','-s','-B','-c',code]))
 print(json.dumps(results,indent=2))
