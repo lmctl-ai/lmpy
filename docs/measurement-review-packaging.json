@@ -1,0 +1,8 @@
+{
+  "runtime_id": "sha256:4c09d743cfe3e057d516752974675ad4a4911ae40dcb7bf4b83fcd15ca45f260",
+  "test_id": "sha256:cdc571d040e459750f03f1a414e283d4028b540bfd5bae734ca84b343ffcf78d",
+  "old_content_bytes": 115730671,
+  "runtime_content_bytes": 97450776,
+  "unpruned_scientific_layer": "sha256:c533226df1a1b49408f74bf86586fb9f50d57fa0d67ecf2c86fad60ae2012f8b",
+  "excluded_from_runtime": true
+}

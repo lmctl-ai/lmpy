@@ -106,3 +106,14 @@ Measurements and image sizes after these fixes are in [docs/timings.md](docs/tim
 The checked-in S0 raw measurements remain historical. amd64 locks are resolved;
 execution/CI and Haswell verification remain pending, with no amd64 pass claimed.
 The copied expression parser and rcli corpus have no exposed S0 expression ops.
+
+| Review-fix runtime latency | p50 | p95 |
+|---|---:|---:|
+| py_info through shim | 0.861 s | 0.951 s |
+| la_solve through shim | 1.348 s | 1.523 s |
+| stats_dist through shim | 1.927 s | 2.033 s |
+
+Current image sizes: runtime 446 MB / test 667 MB on disk; runtime content
+metric 97.45 MB. Startup calibration: boot 17 ms, NumPy 200 ms, scipy.stats
+1229 ms, Docker overhead 391 ms (p50, imports include boot). These timings are
+slower than historical S0 samples; see the timing document for limitations.
