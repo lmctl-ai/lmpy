@@ -12,7 +12,8 @@ class Review(unittest.TestCase):
  def test_csv_prespawn_budgets(self):
   env=dict(os.environ,PYCLI_PYTHON='/missing-python')
   for name,text in [('cells','a,b,c\n'+'1,2,3\n'*166667),('rows','a\n'+'1\n'*200001),('width','a\n'+'x'*1000000+'\n'),('bytes','a\n'+('x'*100+'\n')*170000)]:
-   (self.cwd/'a.csv').write_text(text);self.call('frame_import',rc=2,env=env,csv='a.csv',out=name+'.npz')
+   with self.subTest(name=name):
+    (self.cwd/'a.csv').write_text(text);self.call('frame_import',rc=2,env=env,csv='a.csv',out=name+'.npz')
  def test_category_linear_and_bounded_summary(self):
   (self.cwd/'a.csv').write_text('c\n'+''.join('v%06d\n'%i for i in range(60000)))
   r=self.call('frame_import',csv='a.csv',dtypes={'c':'category'},out='t.npz',timeout=15)
@@ -45,6 +46,14 @@ class Review(unittest.TestCase):
   for word in ('now','today','yesterday','tomorrow','NaT','20260101','Jan 1 2026'):
    self.call('frame_import',rc=2,columns={'ts':[word]},dtypes={'ts':'datetime64[ns]'},out='bad.npz')
    self.call('frame_select',rc=2,frame='t.npz',where={'col':'ts','op':'lt','value':word},out='bad.npz')
+ def test_special_datetime_predicates(self):
+  self.table({'ts':['2026-01-01']},dtypes={'ts':'datetime64[ns]'})
+  for word in ('now','today','yesterday','tomorrow','NaT','20260101'):
+   with self.subTest(word=word):self.call('frame_select',rc=2,frame='t.npz',where={'col':'ts','op':'lt','value':word},out='bad.npz')
+ def test_csv_nullable_integer_identifiers_and_blank_line(self):
+  (self.cwd/'a.csv').write_text('x,id\n1,007\nNA,+5\n');self.call('frame_import',csv='a.csv',out='t.npz');r=self.call('frame_inspect',frame='t.npz');self.assertEqual(r['dtypes'],{'x':'int64','id':'string'});self.assertEqual(r['head']['data'],{'x':[1,None],'id':['007','+5']})
+ def test_csv_trailing_blank(self):
+  (self.cwd/'a.csv').write_text('x,y\n1,2\n\n');self.call('frame_import',csv='a.csv',out='t.npz');self.assertEqual(self.inspect(),{'x':[1],'y':[2]})
  def test_npz_shadow_names_prespawn(self):
   self.table({'x':[1,2,3]});raw=(self.cwd/'t.npz').read_bytes()
   # zipfile truncates NUL on writing too: mutate equal-length raw names afterwards.
