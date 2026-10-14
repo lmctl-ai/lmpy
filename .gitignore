@@ -1,6 +1,6 @@
 build/
 build-*/
-.pycli-tmp/
+.pycli-tmp*/
 __pycache__/
 *.pyc
 core

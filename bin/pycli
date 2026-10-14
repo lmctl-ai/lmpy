@@ -12,8 +12,7 @@ case "$cwd" in
 esac
 out=$(mktemp)
 err=$(mktemp)
-tmpdir="$cwd/.pycli-tmp"
-mkdir -p "$tmpdir"
+tmpdir=$(mktemp -d "$cwd/.pycli-tmp.XXXXXX")
 cleanup() {
   [ -z "${out:-}" ] || rm -f "$out"
   [ -z "${err:-}" ] || rm -f "$err"

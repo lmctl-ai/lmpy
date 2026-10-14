@@ -42,9 +42,9 @@ esac
     assert argv[argv.index("--mount") + 1] == f"type=bind,src={colon},dst={colon}", argv
     assert "--network=none" in argv and "--cpus=2" in argv and "--memory=4g" in argv
     assert all(flag in argv for flag in ("--read-only", "--cap-drop=ALL", "--pids-limit=128", "--security-opt=no-new-privileges"))
-    assert "-v" not in argv and "TMPDIR=" + str(colon / ".pycli-tmp") in argv
+    assert "-v" not in argv and any(arg.startswith("TMPDIR="+str(colon / ".pycli-tmp.")) for arg in argv)
     assert "PYCLI_TIMEOUT_S" in argv and "PYCLI_SECRET" not in argv and "SECRET_SHIM_TEST" not in argv
-    assert not (colon / ".pycli-tmp").exists()
+    assert not list(colon.glob(".pycli-tmp.*"))
 
     env["FAKE_DOCKER_CASE"] = "block"
     blocked = subprocess.Popen([str(shim), "--schema"], cwd=colon, env=env,
@@ -59,7 +59,24 @@ esac
     blocked.communicate(timeout=3)
     assert blocked.returncode == 143, blocked.returncode
     assert not list(host_tmp.iterdir()), "signal trap leaked host capture files"
-    assert not (colon / ".pycli-tmp").exists(), "signal trap leaked container temp directory"
+    assert not list(colon.glob(".pycli-tmp.*")), "signal trap leaked container temp directory"
+
+    # Concurrent containers must never share a directory that another trap removes.
+    peers=[]
+    for index in range(2):
+        peer_env=dict(env, ARGS_FILE=str(root/('args-'+str(index))),BLOCK_FILE=str(root/('started-'+str(index))))
+        peer=subprocess.Popen([str(shim),'--schema'],cwd=colon,env=peer_env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
+        peers.append(peer)
+    deadline=time.monotonic()+5
+    while not all((root/('started-'+str(i))).exists() for i in range(2)) and time.monotonic()<deadline: time.sleep(.02)
+    dirs=[]
+    for i in range(2):
+        args=(root/('args-'+str(i))).read_text().splitlines()
+        dirs.append(next(arg for arg in args if arg.startswith('TMPDIR=')))
+    assert dirs[0]!=dirs[1], 'concurrent calls share a removable temp directory'
+    for peer in peers:
+        os.killpg(peer.pid,signal.SIGTERM);peer.communicate(timeout=3)
+    assert not list(colon.glob('.pycli-tmp.*'))
 
     for case, rc, code in (("crash", 1, "INTERNAL_ERROR"), ("partial", 1, "INTERNAL_ERROR"), ("daemon", 8, "SERVICE_UNAVAILABLE")):
         env["FAKE_DOCKER_CASE"] = case
