@@ -90,3 +90,44 @@ p95 = sorted[min(n-1, floor(0.95*n))], i.e. the maximum at this sample size), ru
   the ASan/UBSan fuzz binaries; it is never shipped.
 * Test-suite cost: `ctest` takes about 160 s in the test image (s1_la ~80 s, s1_arrays_asan ~20 s,
   safetensors_asan_fuzz ~27 s).
+
+## S2 frames — aarch64, 2026-10-14
+
+Runtime: **509 MB** reported by `docker image ls`, **110,691,742 content bytes**
+from image inspect. Test: **973 MB**, **208,038,870 content bytes** (inspect refreshed
+in measurement-s2-packaging.json if the content metric differs). Pandas and minimal
+dependencies add about 63 MB to the prior 446 MB runtime. The unpruned scientific
+install layer is absent from the runtime ancestry; pandas tests and optional
+pyarrow/numexpr/bottleneck/openpyxl are absent.
+
+| Operation | p50 ms | p95 ms |
+|---|---:|---:|
+| `frame_import` | 1429 | 1522 |
+| `frame_inspect` | 1462 | 1625 |
+| `frame_export` | 1506 | 3306 |
+| `frame_select` | 1421 | 1813 |
+| `frame_groupby` | 1459 | 1832 |
+| `frame_resample` | 1347 | 1599 |
+| `la_solve` | 1410 | 1563 |
+| `docker_overhead` | 412 | 461 |
+
+Ten sequential production-shim calls per operation, seven rows / three columns
+(UTC timestamps, region, sales); import is inline, inspect requests five rows and
+describe, select filters sales>=30, groupby computes region sum/mean, resample uses
+1W, export writes CSV. la_solve uses a 1x1 identity. p95 is the maximum of ten
+samples, following earlier slices. Docker overhead is a network-disabled /bin/true
+container. Warm-filesystem shared-host measurements, performed after acceptance
+and builds; no causal speed comparison with historical S0/S1 is implied.
+
+Frame worker import medians are 636–661 ms (NumPy + pandas together, excluding
+interpreter boot). The frame_export p95 includes one 3306 ms sample; it is retained,
+not smoothed away. Numerical la_solve still reports pandas unloaded.
+
+Runtime image: `sha256:9eb2c9df8a93a29589404cf10e8b020d73a3f56fb2005b7d8fc7c0e59c824ad3`. Raw samples: measurement-s2-shim.json and
+measurement-s2-packaging.json. Reproduce with `python3 scripts/measure-frames.py`.
+
+Final acceptance commands were unpiped: ./scripts/build.sh test (0),
+docker run --rm --network=none pycli:test (16/16, 268.04 s, exit 0),
+./scripts/build.sh runtime (0), all three recipes via bin/pycli (0), their
+--check and --dry-run modes (0), real-container review 4/4 (0), shim/API review
+5/5 (0), S2 shim readonly (6) and dryrun (0), both with no artifact.

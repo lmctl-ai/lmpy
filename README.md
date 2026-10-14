@@ -241,3 +241,26 @@ Predicate depth <=32 and nodes <=256. Column names and values are data.
 Pandas is imported only by frame ops; other Python ops report `meta.pandas:"unloaded"`.
 The audit guard remains defence in depth; the container is the process boundary.
 All frame outputs use anonymous atomic no-replace installation and honor readonly/dryrun.
+
+S2 measurements (aarch64, ten calls each; p95=max sample): runtime **509 MB**
+/ **110,691,742 content bytes**, test **973 MB**.
+
+| Operation | p50 ms | p95 ms |
+|---|---:|---:|
+| `frame_import` | 1429 | 1522 |
+| `frame_inspect` | 1462 | 1625 |
+| `frame_export` | 1506 | 3306 |
+| `frame_select` | 1421 | 1813 |
+| `frame_groupby` | 1459 | 1832 |
+| `frame_resample` | 1347 | 1599 |
+| `la_solve` | 1410 | 1563 |
+| `docker_overhead` | 412 | 461 |
+
+See docs/timings.md and its raw samples for workload and import details. Final
+CTest passes 16/16 (268 s), including 17 S2 test groups and ASan/UBSan parser fuzz.
+All three recipes pass real execution, --check and --dry-run.
+
+Explicit int64 JSON columns accept integer tokens or decimal strings, not
+floating tokens: lmcpp can promote an out-of-range JSON integer to a rounded
+float. This prevents a value below INT64_MIN from silently becoming INT64_MIN.
+Conversion of already typed float artifacts remains explicit and range-checked.
