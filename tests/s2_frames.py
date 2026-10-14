@@ -1,5 +1,6 @@
 """Independent table oracles: pandas directly plus hand-computed tables."""
 import json, pathlib, subprocess, sys, tempfile, unittest, zipfile, struct, os
+from oracle.frames import grouped_sales, spring_hourly
 BIN=sys.argv.pop(1)
 class Frames(unittest.TestCase):
  def setUp(self):
@@ -15,8 +16,7 @@ class Frames(unittest.TestCase):
   self.table({'region':['E','W','E','W'],'sales':[10,20,30,40]})
   r=self.call('frame_groupby',frame='t.npz',keys=['region'],aggs={'sales':['sum','mean','count']},out='g.npz')
   got=self.inspect('g.npz')['head']['data'];self.assertEqual(got,{'region':['E','W'],'sales__sum':[40,60],'sales__mean':[20.,30.],'sales__count':[2,2]})
-  ref=pd.DataFrame({'region':['E','W','E','W'],'sales':[10,20,30,40]}).groupby('region')['sales'].sum()
-  self.assertEqual(got['sales__sum'],ref.tolist())
+  self.assertEqual(got['sales__sum'],grouped_sales())
  def test_dtype_identity(self):
   cols={'i':[9223372036854775807,None,-9223372036854775808],'f':['NaN','Inf',None],'b':[True,None,False],'s':['NA','雪😀',None],'dt':['2026-01-01T00:00:00.000000001',None,'2026-01-03'],'cat':['b','a',None]}
   d={'i':'int64','f':'float64','b':'bool','s':'string','dt':'datetime64[ns]','cat':{'dtype':'category','categories':['b','a','unused'],'ordered':True}}
@@ -47,7 +47,7 @@ class Frames(unittest.TestCase):
   self.table({'ts':dates,'v':[1,2,3,4]},dtypes={'ts':{'dtype':'datetime64[ns]','tz':'America/New_York'}})
   self.call('frame_resample',frame='t.npz',time='ts',rule='1h',aggs={'v':['sum']},out='r.npz')
   got=self.inspect('r.npz')['head']['data'];self.assertEqual(got['v__sum'],[1,2,3,4]);self.assertFalse(any('T02:' in x for x in got['ts']))
-  direct=pd.DataFrame({'ts':pd.to_datetime(dates,utc=True).tz_convert('America/New_York'),'v':[1,2,3,4]}).resample('1h',on='ts')['v'].sum();self.assertEqual(got['v__sum'],direct.tolist())
+  self.assertEqual(got['v__sum'],spring_hourly())
   for rule in ('pd.offsets','1D; import os','1D\\n','0D','999999999D'):
    self.call('frame_resample',rc=2,frame='t.npz',time='ts',rule=rule,aggs={'v':['sum']},out='bad.npz')
  def test_fall_dst_and_bad_dates(self):
@@ -95,6 +95,13 @@ class Frames(unittest.TestCase):
   self.call('frame_import',rc=2,columns={'x':list(range(1001))},out='big.npz')
   self.call('frame_import',rc=2,columns={'a':[[1]]},out='bad.npz')
   self.call('frame_inspect',rc=2,frame='t.npz',head=1001)
+ def test_string_storage_budget_before_allocation(self):
+  import resource
+  # Input is only 132KiB, but fixed-width UTF-8 storage would require >256MiB.
+  (self.cwd/'wide.csv').write_text('s\n'+('x'*131072)+'\n'+('y\n'*2100))
+  def cap():resource.setrlimit(resource.RLIMIT_AS,(400*1024*1024,400*1024*1024))
+  r=subprocess.run([BIN,'frame_import','--input-json','{"csv":"wide.csv","out":"wide.npz"}'],cwd=self.cwd,capture_output=True,text=True,preexec_fn=cap)
+  self.assertEqual(r.returncode,1,r.stdout);self.assertEqual(json.loads(r.stdout)['error']['data']['tool_code'],'OUTPUT_TOO_LARGE',r.stdout);self.assertFalse((self.cwd/'wide.npz').exists())
  def test_npz_attacks(self):
   import numpy as np
   np.savez(self.cwd/'object.npz',x=np.array([{'evil':1}],dtype=object));self.call('frame_inspect',rc=2,frame='object.npz')
