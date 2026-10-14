@@ -1,20 +1,30 @@
 # Third-party notices — S0
 
 pycli is MIT, Copyright (c) 2026 Lattice Systems LLC.
+The full pycli/lmcpp MIT notices and nlohmann JSON 3.11.2 MIT notice appear below.
 The safetensors reader/writer and expression parser are adapted from torchcli
-and rcli (MIT, Lattice Systems LLC). lmcpp is MIT, pinned to
-f6c6f51797912a369d6b27cf9e96f148a9a0e4d1; nlohmann JSON is MIT.
-CPython is PSF-2.0. The pinned Debian bookworm base retains Debian copyright
-files for its unmodified libraries and utilities (including glibc LGPL).
+and rcli (MIT, Lattice Systems LLC). lmcpp is pinned to
+f6c6f51797912a369d6b27cf9e96f148a9a0e4d1. CPython 3.12.15 is PSF-licensed.
+The pinned Debian base retains Debian copyright files for unmodified components.
 
-S0 installs only NumPy 2.3.3 and SciPy 1.16.2 as scientific wheel distributions.
-Their full wheel notices below cover BSD-3-Clause NumPy/SciPy/OpenBLAS,
-modified-BSD LAPACK, BSD pocketfft/ARPACK/SuperLU/PROPACK, MIT HiGHS,
-BSL Boost.Math, Qhull, and GCC libraries with the Runtime Library Exception.
-All installed dist-info license files are also preserved in the runtime image.
-The C++ executable does not link the scientific libraries.
+Scientific wheels: NumPy 2.3.3 and SciPy 1.16.2. Their licenses below retain
+OpenBLAS/LAPACK/libgfortran notices. libquadmath is LGPL-2.1-or-later, not covered
+by the GCC Runtime Library Exception; the amd64 wheels ship it, arm64 does not.
+Static libstdc++/libgcc use GCC licensing with the Runtime Library Exception.
+The runtime additionally retains exact builder package copyrights (including
+nlohmann's embedded third-party notices), GPL-3 text, compiler/package versions
+and downloaded .deb hashes at /usr/share/doc/pycli/build/.
 
-## numpy 2.3.3 — original wheel license
+The matching source inventories and notices supplement wheel metadata, including
+SuperLU, ARPACK, Qhull, xsf, HiGHS, Boost.Math, UNU.RAN, Biasedurn, pybind11,
+array-api-compat, prima, and embedded-license headers. Original license-bearing
+source files are retained as .notice.txt where the source inventory specifies a
+header rather than a separate license. These are documentation, never executed.
+The source archive URLs/hashes and per-file hashes are in licenses/manifest.json.
+Some source notices also cover build-only/test code; inclusion does not assert
+that every such source component is linked into the runtime executable.
+
+## numpy 2.3.3 — full wheel notice
 
 ```text
 Copyright (c) 2005-2025, NumPy Developers.
@@ -990,7 +1000,7 @@ License: LGPL-2.1-or-later
     https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 ```
 
-## scipy 1.16.2 — original wheel license
+## scipy 1.16.2 — full wheel notice
 
 ```text
 Copyright (c) 2001-2002 Enthought, Inc. 2003, SciPy Developers.
@@ -1929,7 +1939,17042 @@ License: LGPL-2.1-or-later
     https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 ```
 
-## Qhull — original notice
+## lmcpp-LICENSE
+
+```text
+MIT License
+
+Copyright (c) 2026 Lattice Systems LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## nlohmann/LICENSE.MIT
+
+```text
+MIT License 
+
+Copyright (c) 2013-2022 Niels Lohmann
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## numpy/.spin/LICENSE
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2021--2022, Scientific Python project
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/LICENSE.txt
+
+```text
+Copyright (c) 2005-2025, NumPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+
+    * Neither the name of the NumPy Developers nor the names of any
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/LICENSES_bundled.txt
+
+```text
+The NumPy repository and source distributions bundle several libraries that are
+compatibly licensed.  We list these here.
+
+Name: lapack-lite
+Files: numpy/linalg/lapack_lite/*
+License: BSD-3-Clause
+  For details, see numpy/linalg/lapack_lite/LICENSE.txt
+
+Name: dragon4
+Files: numpy/_core/src/multiarray/dragon4.c
+License: MIT
+  For license text, see numpy/_core/src/multiarray/dragon4.c
+
+Name: libdivide
+Files: numpy/_core/include/numpy/libdivide/*
+License: Zlib
+  For license text, see numpy/_core/include/numpy/libdivide/LICENSE.txt
+
+
+Note that the following files are vendored in the repository and sdist but not
+installed in built numpy packages:
+
+Name: Meson
+Files: vendored-meson/meson/*
+License: Apache 2.0
+  For license text, see vendored-meson/meson/COPYING
+
+Name: spin
+Files: .spin/cmds.py
+License: BSD-3
+  For license text, see .spin/LICENSE
+
+Name: tempita
+Files: numpy/_build_utils/tempita/*
+License: MIT
+  For details, see numpy/_build_utils/tempita/LICENCE.txt
+```
+
+## numpy/doc/source/_static/scipy-mathjax/LICENSE
+
+```text
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+```
+
+## numpy/doc/source/license.rst
+
+```text
+*************
+NumPy license
+*************
+
+.. include:: ../../LICENSE.txt
+   :literal:
+```
+
+## numpy/numpy/_build_utils/tempita/LICENSE.txt
+
+```text
+Copyright (c) 2008 Ian Bicking and Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## numpy/numpy/_core/include/numpy/libdivide/LICENSE.txt
+
+```text
+  zlib License
+  ------------
+
+  Copyright (C) 2010 - 2019 ridiculous_fish, <libdivide@ridiculousfish.com>
+  Copyright (C) 2016 - 2019 Kim Walisch, <kim.walisch@gmail.com>
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+```
+
+## numpy/numpy/_core/src/common/pythoncapi-compat/COPYING
+
+```text
+BSD Zero Clause License
+
+Copyright Contributors to the pythoncapi_compat project.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+```
+
+## numpy/numpy/_core/src/highway/LICENSE
+
+```text
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+```
+
+## numpy/numpy/_core/src/highway/LICENSE-BSD3
+
+```text
+Copyright (c) The Highway Project Authors. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1.  Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+
+2.  Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+3.  Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2022, Intel. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/numpy/_core/src/umath/svml/LICENSE
+
+```text
+Copyright (c) 2005-2021, NumPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+
+    * Neither the name of the NumPy Developers nor the names of any
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/numpy/fft/pocketfft/LICENSE.md
+
+```text
+Copyright (C) 2010-2018 Max-Planck-Society
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+* Neither the name of the copyright holder nor the names of its contributors may
+  be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/numpy/linalg/lapack_lite/LICENSE.txt
+
+```text
+Copyright (c) 1992-2013 The University of Tennessee and The University
+                        of Tennessee Research Foundation.  All rights
+                        reserved.
+Copyright (c) 2000-2013 The University of California Berkeley. All
+                        rights reserved.
+Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                        reserved.
+
+$COPYRIGHT$
+
+Additional copyrights may follow
+
+$HEADER$
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer listed
+  in this license in the documentation and/or other materials
+  provided with the distribution.
+
+- Neither the name of the copyright holders nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+The copyright holders provide no reassurances that the source code
+provided does not infringe any patent, copyright, or any other
+intellectual property rights of third parties.  The copyright holders
+disclaim any liability to any recipient for claims brought against
+recipient by any third party for infringement of that parties
+intellectual property rights.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/numpy/ma/LICENSE
+
+```text
+* Copyright (c) 2006, University of Georgia and Pierre G.F. Gerard-Marchant
+* All rights reserved.
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the University of Georgia nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/numpy/random/LICENSE.md
+
+```text
+**This software is dual-licensed under the The University of Illinois/NCSA
+Open Source License (NCSA) and The 3-Clause BSD License**
+
+# NCSA Open Source License
+**Copyright (c) 2019 Kevin Sheppard. All rights reserved.**
+
+Developed by: Kevin Sheppard (<kevin.sheppard@economics.ox.ac.uk>,
+<kevin.k.sheppard@gmail.com>)
+[http://www.kevinsheppard.com](http://www.kevinsheppard.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal with
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimers.
+
+Redistributions in binary form must reproduce the above copyright notice, this
+list of conditions and the following disclaimers in the documentation and/or
+other materials provided with the distribution.
+
+Neither the names of Kevin Sheppard, nor the names of any contributors may be
+used to endorse or promote products derived from this Software without specific
+prior written permission.
+
+**THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH
+THE SOFTWARE.**
+
+
+# 3-Clause BSD License
+**Copyright (c) 2019 Kevin Sheppard. All rights reserved.**
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+**THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.**
+
+# Components
+
+Many parts of this module have been derived from original sources, 
+often the algorithm's designer. Component licenses are located with 
+the component code.
+```
+
+## numpy/numpy/random/src/distributions/LICENSE.md
+
+```text
+## NumPy
+
+Copyright (c) 2005-2017, NumPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following
+   disclaimer in the documentation and/or other materials provided
+   with the distribution.
+
+* Neither the name of the NumPy Developers nor the names of any
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+## Julia
+
+The ziggurat methods were derived from Julia.
+
+Copyright (c) 2009-2019: Jeff Bezanson, Stefan Karpinski, Viral B. Shah,
+and other contributors:
+
+https://github.com/JuliaLang/julia/contributors
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## numpy/numpy/random/src/mt19937/LICENSE.md
+
+```text
+# MT19937
+
+Copyright (c) 2003-2005, Jean-Sebastien Roy (js@jeannot.org)
+
+The rk_random and rk_seed functions algorithms and the original design of
+the Mersenne Twister RNG:
+
+  Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. The names of its contributors may not be used to endorse or promote
+  products derived from this software without specific prior written
+  permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Original algorithm for the implementation of rk_interval function from
+Richard J. Wagner's implementation of the Mersenne Twister RNG, optimised by
+Magnus Jonsson.
+
+Constants used in the rk_double implementation by Isaku Wada.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## numpy/numpy/random/src/pcg64/LICENSE.md
+
+```text
+# PCG64
+
+## The MIT License
+
+PCG Random Number Generation for C.
+
+Copyright 2014 Melissa O'Neill <oneill@pcg-random.org>
+
+Permission is hereby granted, free of charge, to any person obtaining 
+a copy of this software and associated documentation files (the "Software"), 
+to deal in the Software without restriction, including without limitation 
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in 
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS 
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## numpy/numpy/random/src/philox/LICENSE.md
+
+```text
+# PHILOX
+
+Copyright 2010-2012, D. E. Shaw Research.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions, and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions, and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+* Neither the name of D. E. Shaw Research nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## numpy/numpy/random/src/sfc64/LICENSE.md
+
+```text
+# SFC64
+
+## The MIT License
+
+Adapted from a C++ implementation of Chris Doty-Humphrey's SFC PRNG.
+
+https://gist.github.com/imneme/f1f7821f07cf76504a97f6537c818083
+
+Copyright (c) 2018 Melissa E. O'Neill
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+```
+
+## numpy/numpy/random/src/splitmix64/LICENSE.md
+
+```text
+# SPLITMIX64
+
+Written in 2015 by Sebastiano Vigna (vigna@acm.org)
+
+To the extent possible under law, the author has dedicated all copyright
+and related and neighboring rights to this software to the public domain
+worldwide. This software is distributed without any warranty.
+
+See <http://creativecommons.org/publicdomain/zero/1.0/>.
+```
+
+## numpy/tools/wheels/LICENSE_linux.txt
+
+```text
+
+----
+
+This binary distribution of NumPy also bundles the following software:
+
+
+Name: OpenBLAS
+Files: numpy.libs/libscipy_openblas*.so
+Description: bundled as a dynamically linked library
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause
+  Copyright (c) 2011-2014, The OpenBLAS Project
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in
+        the documentation and/or other materials provided with the
+        distribution.
+     3. Neither the name of the OpenBLAS project nor the names of
+        its contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: LAPACK
+Files: numpy.libs/libscipy_openblas*.so
+Description: bundled in OpenBLAS
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause-Open-MPI
+  Copyright (c) 1992-2013 The University of Tennessee and The University
+                          of Tennessee Research Foundation.  All rights
+                          reserved.
+  Copyright (c) 2000-2013 The University of California Berkeley. All
+                          rights reserved.
+  Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                          reserved.
+
+  $COPYRIGHT$
+
+  Additional copyrights may follow
+
+  $HEADER$
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer listed
+    in this license in the documentation and/or other materials
+    provided with the distribution.
+
+  - Neither the name of the copyright holders nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+  The copyright holders provide no reassurances that the source code
+  provided does not infringe any patent, copyright, or any other
+  intellectual property rights of third parties.  The copyright holders
+  disclaim any liability to any recipient for claims brought against
+  recipient by any third party for infringement of that parties
+  intellectual property rights.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: GCC runtime library
+Files: numpy.libs/libgfortran*.so
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran
+License: GPL-3.0-or-later WITH GCC-exception-3.1
+  Copyright (C) 2002-2017 Free Software Foundation, Inc.
+
+  Libgfortran is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+
+  Libgfortran is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  Under Section 7 of GPL version 3, you are granted additional
+  permissions described in the GCC Runtime Library Exception, version
+  3.1, as published by the Free Software Foundation.
+
+  You should have received a copy of the GNU General Public License and
+  a copy of the GCC Runtime Library Exception along with this program;
+  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+----
+
+Full text of license texts referred to above follows (that they are
+listed below does not necessarily imply the conditions apply to the
+present binary release):
+
+----
+
+GCC RUNTIME LIBRARY EXCEPTION
+
+Version 3.1, 31 March 2009
+
+Copyright (C) 2009 Free Software Foundation, Inc. <https://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+This GCC Runtime Library Exception ("Exception") is an additional
+permission under section 7 of the GNU General Public License, version
+3 ("GPLv3"). It applies to a given file (the "Runtime Library") that
+bears a notice placed by the copyright holder of the file stating that
+the file is governed by GPLv3 along with this Exception.
+
+When you use GCC to compile a program, GCC may combine portions of
+certain GCC header files and runtime libraries with the compiled
+program. The purpose of this Exception is to allow compilation of
+non-GPL (including proprietary) programs to use, in this way, the
+header files and runtime libraries covered by this Exception.
+
+0. Definitions.
+
+A file is an "Independent Module" if it either requires the Runtime
+Library for execution after a Compilation Process, or makes use of an
+interface provided by the Runtime Library, but is not otherwise based
+on the Runtime Library.
+
+"GCC" means a version of the GNU Compiler Collection, with or without
+modifications, governed by version 3 (or a specified later version) of
+the GNU General Public License (GPL) with the option of using any
+subsequent versions published by the FSF.
+
+"GPL-compatible Software" is software whose conditions of propagation,
+modification and use would permit combination with GCC in accord with
+the license of GCC.
+
+"Target Code" refers to output from any compiler for a real or virtual
+target processor architecture, in executable form or suitable for
+input to an assembler, loader, linker and/or execution
+phase. Notwithstanding that, Target Code does not include data in any
+format that is used as a compiler intermediate representation, or used
+for producing a compiler intermediate representation.
+
+The "Compilation Process" transforms code entirely represented in
+non-intermediate languages designed for human-written code, and/or in
+Java Virtual Machine byte code, into Target Code. Thus, for example,
+use of source code generators and preprocessors need not be considered
+part of the Compilation Process, since the Compilation Process can be
+understood as starting with the output of the generators or
+preprocessors.
+
+A Compilation Process is "Eligible" if it is done using GCC, alone or
+with other GPL-compatible software, or if it is done without using any
+work based on GCC. For example, using non-GPL-compatible Software to
+optimize any GCC intermediate representations would not qualify as an
+Eligible Compilation Process.
+
+1. Grant of Additional Permission.
+
+You have permission to propagate a work of Target Code formed by
+combining the Runtime Library with Independent Modules, even if such
+propagation would otherwise violate the terms of GPLv3, provided that
+all Target Code was generated by Eligible Compilation Processes. You
+may then convey such a combination under terms of your choice,
+consistent with the licensing of the Independent Modules.
+
+2. No Weakening of GCC Copyleft.
+
+The availability of this Exception does not imply any general
+presumption that third-party software is unaffected by the copyleft
+requirements of the license of GCC.
+
+----
+
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Use with the GNU Affero General Public License.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    <program>  Copyright (C) <year>  <name of author>
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your program's commands
+might be different; for a GUI interface, you would use an "about box".
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU GPL, see
+<https://www.gnu.org/licenses/>.
+
+  The GNU General Public License does not permit incorporating your program
+into proprietary programs.  If your program is a subroutine library, you
+may consider it more useful to permit linking proprietary applications with
+the library.  If this is what you want to do, use the GNU Lesser General
+Public License instead of this License.  But first, please read
+<https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+Name: libquadmath
+Files: numpy.libs/libquadmath*.so
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libquadmath
+License: LGPL-2.1-or-later
+
+    GCC Quad-Precision Math Library
+    Copyright (C) 2010-2019 Free Software Foundation, Inc.
+    Written by Francois-Xavier Coudert  <fxcoudert@gcc.gnu.org>
+
+    This file is part of the libquadmath library.
+    Libquadmath is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Libquadmath is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+```
+
+## numpy/tools/wheels/LICENSE_osx.txt
+
+```text
+
+----
+
+This binary distribution of NumPy also bundles the following software:
+
+
+Name: OpenBLAS
+Files: numpy/.dylibs/libscipy_openblas*.so
+Description: bundled as a dynamically linked library
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause
+  Copyright (c) 2011-2014, The OpenBLAS Project
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in
+        the documentation and/or other materials provided with the
+        distribution.
+     3. Neither the name of the OpenBLAS project nor the names of
+        its contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: LAPACK
+Files: numpy/.dylibs/libscipy_openblas*.so
+Description: bundled in OpenBLAS
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause-Open-MPI
+  Copyright (c) 1992-2013 The University of Tennessee and The University
+                          of Tennessee Research Foundation.  All rights
+                          reserved.
+  Copyright (c) 2000-2013 The University of California Berkeley. All
+                          rights reserved.
+  Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                          reserved.
+
+  $COPYRIGHT$
+
+  Additional copyrights may follow
+
+  $HEADER$
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer listed
+    in this license in the documentation and/or other materials
+    provided with the distribution.
+
+  - Neither the name of the copyright holders nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+  The copyright holders provide no reassurances that the source code
+  provided does not infringe any patent, copyright, or any other
+  intellectual property rights of third parties.  The copyright holders
+  disclaim any liability to any recipient for claims brought against
+  recipient by any third party for infringement of that parties
+  intellectual property rights.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: GCC runtime library
+Files: numpy/.dylibs/libgfortran*, numpy/.dylibs/libgcc*
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran
+License: GPL-3.0-or-later WITH GCC-exception-3.1
+  Copyright (C) 2002-2017 Free Software Foundation, Inc.
+
+  Libgfortran is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+
+  Libgfortran is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  Under Section 7 of GPL version 3, you are granted additional
+  permissions described in the GCC Runtime Library Exception, version
+  3.1, as published by the Free Software Foundation.
+
+  You should have received a copy of the GNU General Public License and
+  a copy of the GCC Runtime Library Exception along with this program;
+  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+----
+
+Full text of license texts referred to above follows (that they are
+listed below does not necessarily imply the conditions apply to the
+present binary release):
+
+----
+
+GCC RUNTIME LIBRARY EXCEPTION
+
+Version 3.1, 31 March 2009
+
+Copyright (C) 2009 Free Software Foundation, Inc. <https://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+This GCC Runtime Library Exception ("Exception") is an additional
+permission under section 7 of the GNU General Public License, version
+3 ("GPLv3"). It applies to a given file (the "Runtime Library") that
+bears a notice placed by the copyright holder of the file stating that
+the file is governed by GPLv3 along with this Exception.
+
+When you use GCC to compile a program, GCC may combine portions of
+certain GCC header files and runtime libraries with the compiled
+program. The purpose of this Exception is to allow compilation of
+non-GPL (including proprietary) programs to use, in this way, the
+header files and runtime libraries covered by this Exception.
+
+0. Definitions.
+
+A file is an "Independent Module" if it either requires the Runtime
+Library for execution after a Compilation Process, or makes use of an
+interface provided by the Runtime Library, but is not otherwise based
+on the Runtime Library.
+
+"GCC" means a version of the GNU Compiler Collection, with or without
+modifications, governed by version 3 (or a specified later version) of
+the GNU General Public License (GPL) with the option of using any
+subsequent versions published by the FSF.
+
+"GPL-compatible Software" is software whose conditions of propagation,
+modification and use would permit combination with GCC in accord with
+the license of GCC.
+
+"Target Code" refers to output from any compiler for a real or virtual
+target processor architecture, in executable form or suitable for
+input to an assembler, loader, linker and/or execution
+phase. Notwithstanding that, Target Code does not include data in any
+format that is used as a compiler intermediate representation, or used
+for producing a compiler intermediate representation.
+
+The "Compilation Process" transforms code entirely represented in
+non-intermediate languages designed for human-written code, and/or in
+Java Virtual Machine byte code, into Target Code. Thus, for example,
+use of source code generators and preprocessors need not be considered
+part of the Compilation Process, since the Compilation Process can be
+understood as starting with the output of the generators or
+preprocessors.
+
+A Compilation Process is "Eligible" if it is done using GCC, alone or
+with other GPL-compatible software, or if it is done without using any
+work based on GCC. For example, using non-GPL-compatible Software to
+optimize any GCC intermediate representations would not qualify as an
+Eligible Compilation Process.
+
+1. Grant of Additional Permission.
+
+You have permission to propagate a work of Target Code formed by
+combining the Runtime Library with Independent Modules, even if such
+propagation would otherwise violate the terms of GPLv3, provided that
+all Target Code was generated by Eligible Compilation Processes. You
+may then convey such a combination under terms of your choice,
+consistent with the licensing of the Independent Modules.
+
+2. No Weakening of GCC Copyleft.
+
+The availability of this Exception does not imply any general
+presumption that third-party software is unaffected by the copyleft
+requirements of the license of GCC.
+
+----
+
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Use with the GNU Affero General Public License.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    <program>  Copyright (C) <year>  <name of author>
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your program's commands
+might be different; for a GUI interface, you would use an "about box".
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU GPL, see
+<https://www.gnu.org/licenses/>.
+
+  The GNU General Public License does not permit incorporating your program
+into proprietary programs.  If your program is a subroutine library, you
+may consider it more useful to permit linking proprietary applications with
+the library.  If this is what you want to do, use the GNU Lesser General
+Public License instead of this License.  But first, please read
+<https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+Name: libquadmath
+Files: numpy/.dylibs/libquadmath*.so
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libquadmath
+License: LGPL-2.1-or-later
+
+    GCC Quad-Precision Math Library
+    Copyright (C) 2010-2019 Free Software Foundation, Inc.
+    Written by Francois-Xavier Coudert  <fxcoudert@gcc.gnu.org>
+
+    This file is part of the libquadmath library.
+    Libquadmath is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Libquadmath is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+```
+
+## numpy/tools/wheels/LICENSE_win32.txt
+
+```text
+
+----
+
+This binary distribution of NumPy also bundles the following software:
+
+
+Name: OpenBLAS
+Files: numpy.libs\libscipy_openblas*.dll
+Description: bundled as a dynamically linked library
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause
+  Copyright (c) 2011-2014, The OpenBLAS Project
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in
+        the documentation and/or other materials provided with the
+        distribution.
+     3. Neither the name of the OpenBLAS project nor the names of
+        its contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: LAPACK
+Files: numpy.libs\libscipy_openblas*.dll
+Description: bundled in OpenBLAS
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause-Open-MPI
+  Copyright (c) 1992-2013 The University of Tennessee and The University
+                          of Tennessee Research Foundation.  All rights
+                          reserved.
+  Copyright (c) 2000-2013 The University of California Berkeley. All
+                          rights reserved.
+  Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                          reserved.
+
+  $COPYRIGHT$
+
+  Additional copyrights may follow
+
+  $HEADER$
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer listed
+    in this license in the documentation and/or other materials
+    provided with the distribution.
+
+  - Neither the name of the copyright holders nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+  The copyright holders provide no reassurances that the source code
+  provided does not infringe any patent, copyright, or any other
+  intellectual property rights of third parties.  The copyright holders
+  disclaim any liability to any recipient for claims brought against
+  recipient by any third party for infringement of that parties
+  intellectual property rights.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: GCC runtime library
+Files: numpy.libs\libscipy_openblas*.dll
+Description: statically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran
+License: GPL-3.0-or-later WITH GCC-exception-3.1
+  Copyright (C) 2002-2017 Free Software Foundation, Inc.
+
+  Libgfortran is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+
+  Libgfortran is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  Under Section 7 of GPL version 3, you are granted additional
+  permissions described in the GCC Runtime Library Exception, version
+  3.1, as published by the Free Software Foundation.
+
+  You should have received a copy of the GNU General Public License and
+  a copy of the GCC Runtime Library Exception along with this program;
+  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+----
+
+Full text of license texts referred to above follows (that they are
+listed below does not necessarily imply the conditions apply to the
+present binary release):
+
+----
+
+GCC RUNTIME LIBRARY EXCEPTION
+
+Version 3.1, 31 March 2009
+
+Copyright (C) 2009 Free Software Foundation, Inc. <https://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+This GCC Runtime Library Exception ("Exception") is an additional
+permission under section 7 of the GNU General Public License, version
+3 ("GPLv3"). It applies to a given file (the "Runtime Library") that
+bears a notice placed by the copyright holder of the file stating that
+the file is governed by GPLv3 along with this Exception.
+
+When you use GCC to compile a program, GCC may combine portions of
+certain GCC header files and runtime libraries with the compiled
+program. The purpose of this Exception is to allow compilation of
+non-GPL (including proprietary) programs to use, in this way, the
+header files and runtime libraries covered by this Exception.
+
+0. Definitions.
+
+A file is an "Independent Module" if it either requires the Runtime
+Library for execution after a Compilation Process, or makes use of an
+interface provided by the Runtime Library, but is not otherwise based
+on the Runtime Library.
+
+"GCC" means a version of the GNU Compiler Collection, with or without
+modifications, governed by version 3 (or a specified later version) of
+the GNU General Public License (GPL) with the option of using any
+subsequent versions published by the FSF.
+
+"GPL-compatible Software" is software whose conditions of propagation,
+modification and use would permit combination with GCC in accord with
+the license of GCC.
+
+"Target Code" refers to output from any compiler for a real or virtual
+target processor architecture, in executable form or suitable for
+input to an assembler, loader, linker and/or execution
+phase. Notwithstanding that, Target Code does not include data in any
+format that is used as a compiler intermediate representation, or used
+for producing a compiler intermediate representation.
+
+The "Compilation Process" transforms code entirely represented in
+non-intermediate languages designed for human-written code, and/or in
+Java Virtual Machine byte code, into Target Code. Thus, for example,
+use of source code generators and preprocessors need not be considered
+part of the Compilation Process, since the Compilation Process can be
+understood as starting with the output of the generators or
+preprocessors.
+
+A Compilation Process is "Eligible" if it is done using GCC, alone or
+with other GPL-compatible software, or if it is done without using any
+work based on GCC. For example, using non-GPL-compatible Software to
+optimize any GCC intermediate representations would not qualify as an
+Eligible Compilation Process.
+
+1. Grant of Additional Permission.
+
+You have permission to propagate a work of Target Code formed by
+combining the Runtime Library with Independent Modules, even if such
+propagation would otherwise violate the terms of GPLv3, provided that
+all Target Code was generated by Eligible Compilation Processes. You
+may then convey such a combination under terms of your choice,
+consistent with the licensing of the Independent Modules.
+
+2. No Weakening of GCC Copyleft.
+
+The availability of this Exception does not imply any general
+presumption that third-party software is unaffected by the copyleft
+requirements of the license of GCC.
+
+----
+
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Use with the GNU Affero General Public License.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    <program>  Copyright (C) <year>  <name of author>
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your program's commands
+might be different; for a GUI interface, you would use an "about box".
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU GPL, see
+<https://www.gnu.org/licenses/>.
+
+  The GNU General Public License does not permit incorporating your program
+into proprietary programs.  If your program is a subroutine library, you
+may consider it more useful to permit linking proprietary applications with
+the library.  If this is what you want to do, use the GNU Lesser General
+Public License instead of this License.  But first, please read
+<https://www.gnu.org/licenses/why-not-lgpl.html>.
+```
+
+## numpy/vendored-meson/meson/COPYING
+
+```text
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+```
+
+## numpy/vendored-meson/meson/docs/theme/extra/templates/license.html
+
+```text
+@require(license, logo_path)
+
+<hr/>
+
+<div class="license-description">
+    Website licensing information are available on the <a href=legal.html>Legal</a> page.
+</div>
+```
+
+## numpy/vendored-meson/meson/packaging/License.rtf
+
+```text
+{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fswiss\fprq2\fcharset0 Arial;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\qc\lang1033\b\f0\fs18 Apache License\par
+Version 2.0, January 2004\par
+{\field{\*\fldinst{HYPERLINK "http://www.apache.org/licenses/"}}{\fldrslt{\ul\cf1 http://www.apache.org/licenses/}}}\f0\fs18\par
+\b0\par
+\pard TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\par
+\par
+\pard\fi-180\li180 1. Definitions.\par
+\par
+\pard\li180 "License" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.\par
+\par
+"Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.\par
+\par
+"Legal Entity" shall mean the union of the acting entity and all other entities that control, are controlled by, or are under common control with that entity. For the purposes of this definition, "control" means (i) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the outstanding shares, or (iii) beneficial ownership of such entity.\par
+\par
+"You" (or "Your") shall mean an individual or Legal Entity exercising permissions granted by this License.\par
+\par
+"Source" form shall mean the preferred form for making modifications, including but not limited to software source code, documentation source, and configuration files.\par
+\par
+"Object" form shall mean any form resulting from mechanical transformation or translation of a Source form, including but not limited to compiled object code, generated documentation, and conversions to other media types.\par
+\par
+"Work" shall mean the work of authorship, whether in Source or Object form, made available under the License, as indicated by a copyright notice that is included in or attached to the work (an example is provided in the Appendix below).\par
+\par
+"Derivative Works" shall mean any work, whether in Source or Object form, that is based on (or derived from) the Work and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship. For the purposes of this License, Derivative Works shall not include works that remain separable from, or merely link (or bind by name) to the interfaces of, the Work and Derivative Works thereof.\par
+\par
+"Contribution" shall mean any work of authorship, including the original version of the Work and any modifications or additions to that Work or Derivative Works thereof, that is intentionally submitted to Licensor for inclusion in the Work by the copyright owner or by an individual or Legal Entity authorized to submit on behalf of the copyright owner. For the purposes of this definition, "submitted" means any form of electronic, verbal, or written communication sent to the Licensor or its representatives, including but not limited to communication on electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, the Licensor for the purpose of discussing and improving the Work, but excluding communication that is conspicuously marked or otherwise designated in writing by the copyright owner as "Not a Contribution."\par
+\par
+"Contributor" shall mean Licensor and any individual or Legal Entity on behalf of whom a Contribution has been received by Licensor and subsequently incorporated within the Work.\par
+\pard\par
+\pard\fi-180\li180 2. Grant of Copyright License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute the Work and such Derivative Works in Source or Object form.\par
+\par
+3. Grant of Patent License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this section) patent license to make, have made, use, offer to sell, sell, import, and otherwise transfer the Work, where such license applies only to those patent claims licensable by such Contributor that are necessarily infringed by their Contribution(s) alone or by combination of their Contribution(s) with the Work to which such Contribution(s) was submitted. If You institute patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Work or a Contribution incorporated within the Work constitutes direct or contributory patent infringement, then any patent licenses granted to You under this License for that Work shall terminate as of the date such litigation is filed.\par
+\par
+4. Redistribution. You may reproduce and distribute copies of the Work or Derivative Works thereof in any medium, with or without modifications, and in Source or Object form, provided that You meet the following conditions:\par
+\pard\par
+\pard\fi-270\li450 (a) You must give any other recipients of the Work or Derivative Works a copy of this License; and\par
+\par
+(b) You must cause any modified files to carry prominent notices stating that You changed the files; and\par
+\par
+(c) You must retain, in the Source form of any Derivative Works that You distribute, all copyright, patent, trademark, and attribution notices from the Source form of the Work, excluding those notices that do not pertain to any part of the Derivative Works; and\par
+\par
+(d) If the Work includes a "NOTICE" text file as part of its distribution, then any Derivative Works that You distribute must include a readable copy of the attribution notices contained within such NOTICE file, excluding those notices that do not pertain to any part of the Derivative Works, in at least one of the following places: within a NOTICE text file distributed as part of the Derivative Works; within the Source form or documentation, if provided along with the Derivative Works; or, within a display generated by the Derivative Works, if and wherever such third-party notices normally appear. The contents of the NOTICE file are for informational purposes only and do not modify the License. You may add Your own attribution notices within Derivative Works that You distribute, alongside or as an addendum to the NOTICE text from the Work, provided that such additional attribution notices cannot be construed as modifying the License.\par
+\pard\par
+\pard\li180 You may add Your own copyright statement to Your modifications and may provide additional or different license terms and conditions for use, reproduction, or distribution of Your modifications, or  for any such Derivative Works as a whole, provided Your use, reproduction, and distribution of the Work otherwise complies with the conditions stated in this License.\par
+\pard\par
+\pard\fi-180\li180 5. Submission of Contributions. Unless You explicitly state otherwise,  any Contribution intentionally submitted for inclusion in the Work by You to the Licensor shall be under the terms and conditions of this License, without any additional terms or conditions. Notwithstanding the above, nothing herein shall supersede or modify the terms of any separate license agreement you may have executed with Licensor regarding such Contributions.\par
+\par
+6. Trademarks. This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work and reproducing the content of the NOTICE file.\par
+\par
+7. Disclaimer of Warranty. Unless required by applicable law or agreed to in writing, Licensor provides the Work (and each Contributor provides its Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated with Your exercise of permissions under this License.\par
+\par
+8. Limitation of Liability. In no event and under no legal theory, whether in tort (including negligence), contract, or otherwise, unless required by applicable law (such as deliberate and grossly negligent acts) or agreed to in writing, shall any Contributor be liable to You for damages, including any direct, indirect, special, incidental, or consequential damages of any character arising as a result of this License or out of the use or inability to use the Work (including but not limited to damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses), even if such Contributor has been advised of the possibility of such damages.\par
+\par
+9. Accepting Warranty or Additional Liability. While redistributing the Work or Derivative Works thereof, You may choose to offer, and charge a fee for, acceptance of support, warranty, indemnity, or other liability obligations and/or rights consistent with this License. However, in accepting such obligations, You may act only on Your own behalf and on Your sole responsibility, not on behalf of any other Contributor, and only if You agree to indemnify, defend, and hold each Contributor harmless for any liability incurred by, or claims asserted against, such Contributor by reason of your accepting any such warranty or additional liability.\par
+\pard\par
+END OF TERMS AND CONDITIONS\par
+\par
+APPENDIX: How to apply the Apache License to your work.\par
+\par
+To apply the Apache License to your work, attach the following boilerplate notice, with the fields enclosed by brackets "[]" replaced with your own identifying information. (Don't include the brackets!)  The text should be enclosed in the appropriate comment syntax for the file format. We also recommend that a file or class name and description of purpose be included on the same "printed page" as the copyright notice for easier identification within third-party archives.\par
+\par
+\pard\li180 Copyright [yyyy] [name of copyright owner]\par
+\par
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at\par
+\par
+\pard\li360{\field{\*\fldinst{HYPERLINK "http://www.apache.org/licenses/LICENSE-2.0"}}{\fldrslt{\ul\cf1 http://www.apache.org/licenses/LICENSE-2.0}}}\f0\fs18\par
+\pard\li180\par
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.\par
+\pard\par
+\par
+}
+ 
+```
+
+## numpy/vendored-meson/meson/packaging/macpages/English.lproj/license.html
+
+```text
+<html>
+  <head>
+  </head>
+  <body>
+    <pre>
+                              Apache License
+                        Version 2.0, January 2004
+                     http://www.apache.org/licenses/
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+1. Definitions.
+
+   "License" shall mean the terms and conditions for use, reproduction,
+   and distribution as defined by Sections 1 through 9 of this document.
+
+   "Licensor" shall mean the copyright owner or entity authorized by
+   the copyright owner that is granting the License.
+
+   "Legal Entity" shall mean the union of the acting entity and all
+   other entities that control, are controlled by, or are under common
+   control with that entity. For the purposes of this definition,
+   "control" means (i) the power, direct or indirect, to cause the
+   direction or management of such entity, whether by contract or
+   otherwise, or (ii) ownership of fifty percent (50%) or more of the
+   outstanding shares, or (iii) beneficial ownership of such entity.
+
+   "You" (or "Your") shall mean an individual or Legal Entity
+   exercising permissions granted by this License.
+
+   "Source" form shall mean the preferred form for making modifications,
+   including but not limited to software source code, documentation
+   source, and configuration files.
+
+   "Object" form shall mean any form resulting from mechanical
+   transformation or translation of a Source form, including but
+   not limited to compiled object code, generated documentation,
+   and conversions to other media types.
+
+   "Work" shall mean the work of authorship, whether in Source or
+   Object form, made available under the License, as indicated by a
+   copyright notice that is included in or attached to the work
+   (an example is provided in the Appendix below).
+
+   "Derivative Works" shall mean any work, whether in Source or Object
+   form, that is based on (or derived from) the Work and for which the
+   editorial revisions, annotations, elaborations, or other modifications
+   represent, as a whole, an original work of authorship. For the purposes
+   of this License, Derivative Works shall not include works that remain
+   separable from, or merely link (or bind by name) to the interfaces of,
+   the Work and Derivative Works thereof.
+
+   "Contribution" shall mean any work of authorship, including
+   the original version of the Work and any modifications or additions
+   to that Work or Derivative Works thereof, that is intentionally
+   submitted to Licensor for inclusion in the Work by the copyright owner
+   or by an individual or Legal Entity authorized to submit on behalf of
+   the copyright owner. For the purposes of this definition, "submitted"
+   means any form of electronic, verbal, or written communication sent
+   to the Licensor or its representatives, including but not limited to
+   communication on electronic mailing lists, source code control systems,
+   and issue tracking systems that are managed by, or on behalf of, the
+   Licensor for the purpose of discussing and improving the Work, but
+   excluding communication that is conspicuously marked or otherwise
+   designated in writing by the copyright owner as "Not a Contribution."
+
+   "Contributor" shall mean Licensor and any individual or Legal Entity
+   on behalf of whom a Contribution has been received by Licensor and
+   subsequently incorporated within the Work.
+
+2. Grant of Copyright License. Subject to the terms and conditions of
+   this License, each Contributor hereby grants to You a perpetual,
+   worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+   copyright license to reproduce, prepare Derivative Works of,
+   publicly display, publicly perform, sublicense, and distribute the
+   Work and such Derivative Works in Source or Object form.
+
+3. Grant of Patent License. Subject to the terms and conditions of
+   this License, each Contributor hereby grants to You a perpetual,
+   worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+   (except as stated in this section) patent license to make, have made,
+   use, offer to sell, sell, import, and otherwise transfer the Work,
+   where such license applies only to those patent claims licensable
+   by such Contributor that are necessarily infringed by their
+   Contribution(s) alone or by combination of their Contribution(s)
+   with the Work to which such Contribution(s) was submitted. If You
+   institute patent litigation against any entity (including a
+   cross-claim or counterclaim in a lawsuit) alleging that the Work
+   or a Contribution incorporated within the Work constitutes direct
+   or contributory patent infringement, then any patent licenses
+   granted to You under this License for that Work shall terminate
+   as of the date such litigation is filed.
+
+4. Redistribution. You may reproduce and distribute copies of the
+   Work or Derivative Works thereof in any medium, with or without
+   modifications, and in Source or Object form, provided that You
+   meet the following conditions:
+
+   (a) You must give any other recipients of the Work or
+       Derivative Works a copy of this License; and
+
+   (b) You must cause any modified files to carry prominent notices
+       stating that You changed the files; and
+
+   (c) You must retain, in the Source form of any Derivative Works
+       that You distribute, all copyright, patent, trademark, and
+       attribution notices from the Source form of the Work,
+       excluding those notices that do not pertain to any part of
+       the Derivative Works; and
+
+   (d) If the Work includes a "NOTICE" text file as part of its
+       distribution, then any Derivative Works that You distribute must
+       include a readable copy of the attribution notices contained
+       within such NOTICE file, excluding those notices that do not
+       pertain to any part of the Derivative Works, in at least one
+       of the following places: within a NOTICE text file distributed
+       as part of the Derivative Works; within the Source form or
+       documentation, if provided along with the Derivative Works; or,
+       within a display generated by the Derivative Works, if and
+       wherever such third-party notices normally appear. The contents
+       of the NOTICE file are for informational purposes only and
+       do not modify the License. You may add Your own attribution
+       notices within Derivative Works that You distribute, alongside
+       or as an addendum to the NOTICE text from the Work, provided
+       that such additional attribution notices cannot be construed
+       as modifying the License.
+
+   You may add Your own copyright statement to Your modifications and
+   may provide additional or different license terms and conditions
+   for use, reproduction, or distribution of Your modifications, or
+   for any such Derivative Works as a whole, provided Your use,
+   reproduction, and distribution of the Work otherwise complies with
+   the conditions stated in this License.
+
+5. Submission of Contributions. Unless You explicitly state otherwise,
+   any Contribution intentionally submitted for inclusion in the Work
+   by You to the Licensor shall be under the terms and conditions of
+   this License, without any additional terms or conditions.
+   Notwithstanding the above, nothing herein shall supersede or modify
+   the terms of any separate license agreement you may have executed
+   with Licensor regarding such Contributions.
+
+6. Trademarks. This License does not grant permission to use the trade
+   names, trademarks, service marks, or product names of the Licensor,
+   except as required for reasonable and customary use in describing the
+   origin of the Work and reproducing the content of the NOTICE file.
+
+7. Disclaimer of Warranty. Unless required by applicable law or
+   agreed to in writing, Licensor provides the Work (and each
+   Contributor provides its Contributions) on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+   implied, including, without limitation, any warranties or conditions
+   of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+   PARTICULAR PURPOSE. You are solely responsible for determining the
+   appropriateness of using or redistributing the Work and assume any
+   risks associated with Your exercise of permissions under this License.
+
+8. Limitation of Liability. In no event and under no legal theory,
+   whether in tort (including negligence), contract, or otherwise,
+   unless required by applicable law (such as deliberate and grossly
+   negligent acts) or agreed to in writing, shall any Contributor be
+   liable to You for damages, including any direct, indirect, special,
+   incidental, or consequential damages of any character arising as a
+   result of this License or out of the use or inability to use the
+   Work (including but not limited to damages for loss of goodwill,
+   work stoppage, computer failure or malfunction, or any and all
+   other commercial damages or losses), even if such Contributor
+   has been advised of the possibility of such damages.
+
+9. Accepting Warranty or Additional Liability. While redistributing
+   the Work or Derivative Works thereof, You may choose to offer,
+   and charge a fee for, acceptance of support, warranty, indemnity,
+   or other liability obligations and/or rights consistent with this
+   License. However, in accepting such obligations, You may act only
+   on Your own behalf and on Your sole responsibility, not on behalf
+   of any other Contributor, and only if You agree to indemnify,
+   defend, and hold each Contributor harmless for any liability
+   incurred by, or claims asserted against, such Contributor by reason
+   of your accepting any such warranty or additional liability.
+
+END OF TERMS AND CONDITIONS
+
+APPENDIX: How to apply the Apache License to your work.
+
+   To apply the Apache License to your work, attach the following
+   boilerplate notice, with the fields enclosed by brackets "[]"
+   replaced with your own identifying information. (Don't include
+   the brackets!)  The text should be enclosed in the appropriate
+   comment syntax for the file format. We also recommend that a
+   file or class name and description of purpose be included on the
+   same "printed page" as the copyright notice for easier
+   identification within third-party archives.
+
+Copyright [yyyy] [name of copyright owner]
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+  <pre>
+  </body>
+</html>
+```
+
+## pycli-LICENSE
+
+```text
+MIT License
+
+Copyright (c) 2026 Lattice Systems LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## python/LICENSE
+
+```text
+A. HISTORY OF THE SOFTWARE
+==========================
+
+Python was created in the early 1990s by Guido van Rossum at Stichting
+Mathematisch Centrum (CWI, see https://www.cwi.nl) in the Netherlands
+as a successor of a language called ABC.  Guido remains Python's
+principal author, although it includes many contributions from others.
+
+In 1995, Guido continued his work on Python at the Corporation for
+National Research Initiatives (CNRI, see https://www.cnri.reston.va.us)
+in Reston, Virginia where he released several versions of the
+software.
+
+In May 2000, Guido and the Python core development team moved to
+BeOpen.com to form the BeOpen PythonLabs team.  In October of the same
+year, the PythonLabs team moved to Digital Creations, which became
+Zope Corporation.  In 2001, the Python Software Foundation (PSF, see
+https://www.python.org/psf/) was formed, a non-profit organization
+created specifically to own Python-related Intellectual Property.
+Zope Corporation was a sponsoring member of the PSF.
+
+All Python releases are Open Source (see https://opensource.org for
+the Open Source Definition).  Historically, most, but not all, Python
+releases have also been GPL-compatible; the table below summarizes
+the various releases.
+
+    Release         Derived     Year        Owner       GPL-
+                    from                                compatible? (1)
+
+    0.9.0 thru 1.2              1991-1995   CWI         yes
+    1.3 thru 1.5.2  1.2         1995-1999   CNRI        yes
+    1.6             1.5.2       2000        CNRI        no
+    2.0             1.6         2000        BeOpen.com  no
+    1.6.1           1.6         2001        CNRI        yes (2)
+    2.1             2.0+1.6.1   2001        PSF         no
+    2.0.1           2.0+1.6.1   2001        PSF         yes
+    2.1.1           2.1+2.0.1   2001        PSF         yes
+    2.1.2           2.1.1       2002        PSF         yes
+    2.1.3           2.1.2       2002        PSF         yes
+    2.2 and above   2.1.1       2001-now    PSF         yes
+
+Footnotes:
+
+(1) GPL-compatible doesn't mean that we're distributing Python under
+    the GPL.  All Python licenses, unlike the GPL, let you distribute
+    a modified version without making your changes open source.  The
+    GPL-compatible licenses make it possible to combine Python with
+    other software that is released under the GPL; the others don't.
+
+(2) According to Richard Stallman, 1.6.1 is not GPL-compatible,
+    because its license has a choice of law clause.  According to
+    CNRI, however, Stallman's lawyer has told CNRI's lawyer that 1.6.1
+    is "not incompatible" with the GPL.
+
+Thanks to the many outside volunteers who have worked under Guido's
+direction to make these releases possible.
+
+
+B. TERMS AND CONDITIONS FOR ACCESSING OR OTHERWISE USING PYTHON
+===============================================================
+
+Python software and documentation are licensed under the
+Python Software Foundation License Version 2.
+
+Starting with Python 3.8.6, examples, recipes, and other code in
+the documentation are dual licensed under the PSF License Version 2
+and the Zero-Clause BSD license.
+
+Some software incorporated into Python is under different licenses.
+The licenses are listed with code falling under that license.
+
+
+PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2
+--------------------------------------------
+
+1. This LICENSE AGREEMENT is between the Python Software Foundation
+("PSF"), and the Individual or Organization ("Licensee") accessing and
+otherwise using this software ("Python") in source or binary form and
+its associated documentation.
+
+2. Subject to the terms and conditions of this License Agreement, PSF hereby
+grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
+analyze, test, perform and/or display publicly, prepare derivative works,
+distribute, and otherwise use Python alone or in any derivative version,
+provided, however, that PSF's License Agreement and PSF's notice of copyright,
+i.e., "Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023 Python Software Foundation;
+All Rights Reserved" are retained in Python alone or in any derivative version
+prepared by Licensee.
+
+3. In the event Licensee prepares a derivative work that is based on
+or incorporates Python or any part thereof, and wants to make
+the derivative work available to others as provided herein, then
+Licensee hereby agrees to include in any such work a brief summary of
+the changes made to Python.
+
+4. PSF is making Python available to Licensee on an "AS IS"
+basis.  PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
+IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND
+DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
+FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON WILL NOT
+INFRINGE ANY THIRD PARTY RIGHTS.
+
+5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
+FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS
+A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON,
+OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+
+6. This License Agreement will automatically terminate upon a material
+breach of its terms and conditions.
+
+7. Nothing in this License Agreement shall be deemed to create any
+relationship of agency, partnership, or joint venture between PSF and
+Licensee.  This License Agreement does not grant permission to use PSF
+trademarks or trade name in a trademark sense to endorse or promote
+products or services of Licensee, or any third party.
+
+8. By copying, installing or otherwise using Python, Licensee
+agrees to be bound by the terms and conditions of this License
+Agreement.
+
+
+BEOPEN.COM LICENSE AGREEMENT FOR PYTHON 2.0
+-------------------------------------------
+
+BEOPEN PYTHON OPEN SOURCE LICENSE AGREEMENT VERSION 1
+
+1. This LICENSE AGREEMENT is between BeOpen.com ("BeOpen"), having an
+office at 160 Saratoga Avenue, Santa Clara, CA 95051, and the
+Individual or Organization ("Licensee") accessing and otherwise using
+this software in source or binary form and its associated
+documentation ("the Software").
+
+2. Subject to the terms and conditions of this BeOpen Python License
+Agreement, BeOpen hereby grants Licensee a non-exclusive,
+royalty-free, world-wide license to reproduce, analyze, test, perform
+and/or display publicly, prepare derivative works, distribute, and
+otherwise use the Software alone or in any derivative version,
+provided, however, that the BeOpen Python License is retained in the
+Software, alone or in any derivative version prepared by Licensee.
+
+3. BeOpen is making the Software available to Licensee on an "AS IS"
+basis.  BEOPEN MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
+IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, BEOPEN MAKES NO AND
+DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
+FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE WILL NOT
+INFRINGE ANY THIRD PARTY RIGHTS.
+
+4. BEOPEN SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF THE
+SOFTWARE FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS
+AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THE SOFTWARE, OR ANY
+DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+
+5. This License Agreement will automatically terminate upon a material
+breach of its terms and conditions.
+
+6. This License Agreement shall be governed by and interpreted in all
+respects by the law of the State of California, excluding conflict of
+law provisions.  Nothing in this License Agreement shall be deemed to
+create any relationship of agency, partnership, or joint venture
+between BeOpen and Licensee.  This License Agreement does not grant
+permission to use BeOpen trademarks or trade names in a trademark
+sense to endorse or promote products or services of Licensee, or any
+third party.  As an exception, the "BeOpen Python" logos available at
+http://www.pythonlabs.com/logos.html may be used according to the
+permissions granted on that web page.
+
+7. By copying, installing or otherwise using the software, Licensee
+agrees to be bound by the terms and conditions of this License
+Agreement.
+
+
+CNRI LICENSE AGREEMENT FOR PYTHON 1.6.1
+---------------------------------------
+
+1. This LICENSE AGREEMENT is between the Corporation for National
+Research Initiatives, having an office at 1895 Preston White Drive,
+Reston, VA 20191 ("CNRI"), and the Individual or Organization
+("Licensee") accessing and otherwise using Python 1.6.1 software in
+source or binary form and its associated documentation.
+
+2. Subject to the terms and conditions of this License Agreement, CNRI
+hereby grants Licensee a nonexclusive, royalty-free, world-wide
+license to reproduce, analyze, test, perform and/or display publicly,
+prepare derivative works, distribute, and otherwise use Python 1.6.1
+alone or in any derivative version, provided, however, that CNRI's
+License Agreement and CNRI's notice of copyright, i.e., "Copyright (c)
+1995-2001 Corporation for National Research Initiatives; All Rights
+Reserved" are retained in Python 1.6.1 alone or in any derivative
+version prepared by Licensee.  Alternately, in lieu of CNRI's License
+Agreement, Licensee may substitute the following text (omitting the
+quotes): "Python 1.6.1 is made available subject to the terms and
+conditions in CNRI's License Agreement.  This Agreement together with
+Python 1.6.1 may be located on the internet using the following
+unique, persistent identifier (known as a handle): 1895.22/1013.  This
+Agreement may also be obtained from a proxy server on the internet
+using the following URL: http://hdl.handle.net/1895.22/1013".
+
+3. In the event Licensee prepares a derivative work that is based on
+or incorporates Python 1.6.1 or any part thereof, and wants to make
+the derivative work available to others as provided herein, then
+Licensee hereby agrees to include in any such work a brief summary of
+the changes made to Python 1.6.1.
+
+4. CNRI is making Python 1.6.1 available to Licensee on an "AS IS"
+basis.  CNRI MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
+IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, CNRI MAKES NO AND
+DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
+FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON 1.6.1 WILL NOT
+INFRINGE ANY THIRD PARTY RIGHTS.
+
+5. CNRI SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
+1.6.1 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS
+A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 1.6.1,
+OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+
+6. This License Agreement will automatically terminate upon a material
+breach of its terms and conditions.
+
+7. This License Agreement shall be governed by the federal
+intellectual property law of the United States, including without
+limitation the federal copyright law, and, to the extent such
+U.S. federal law does not apply, by the law of the Commonwealth of
+Virginia, excluding Virginia's conflict of law provisions.
+Notwithstanding the foregoing, with regard to derivative works based
+on Python 1.6.1 that incorporate non-separable material that was
+previously distributed under the GNU General Public License (GPL), the
+law of the Commonwealth of Virginia shall govern this License
+Agreement only as to issues arising under or with respect to
+Paragraphs 4, 5, and 7 of this License Agreement.  Nothing in this
+License Agreement shall be deemed to create any relationship of
+agency, partnership, or joint venture between CNRI and Licensee.  This
+License Agreement does not grant permission to use CNRI trademarks or
+trade name in a trademark sense to endorse or promote products or
+services of Licensee, or any third party.
+
+8. By clicking on the "ACCEPT" button where indicated, or by copying,
+installing or otherwise using Python 1.6.1, Licensee agrees to be
+bound by the terms and conditions of this License Agreement.
+
+        ACCEPT
+
+
+CWI LICENSE AGREEMENT FOR PYTHON 0.9.0 THROUGH 1.2
+--------------------------------------------------
+
+Copyright (c) 1991 - 1995, Stichting Mathematisch Centrum Amsterdam,
+The Netherlands.  All rights reserved.
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice appear in all copies and that
+both that copyright notice and this permission notice appear in
+supporting documentation, and that the name of Stichting Mathematisch
+Centrum or CWI not be used in advertising or publicity pertaining to
+distribution of the software without specific, written prior
+permission.
+
+STICHTING MATHEMATISCH CENTRUM DISCLAIMS ALL WARRANTIES WITH REGARD TO
+THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS, IN NO EVENT SHALL STICHTING MATHEMATISCH CENTRUM BE LIABLE
+FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+ZERO-CLAUSE BSD LICENSE FOR CODE IN THE PYTHON DOCUMENTATION
+----------------------------------------------------------------------
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+```
+
+## scipy/LICENSE.txt
+
+```text
+Copyright (c) 2001-2002 Enthought, Inc. 2003, SciPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following
+   disclaimer in the documentation and/or other materials provided
+   with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/LICENSES_bundled.txt
+
+```text
+
+----
+
+The SciPy repository and source distributions bundle a number of libraries that
+are compatibly licensed.  We list these here.
+
+
+Name: Decorator
+Files: scipy/_lib/decorator.py
+License: 2-clause BSD
+  For details, see the header inside scipy/_lib/decorator.py
+
+Name: fast_matrix_market
+Files: scipy/io/_fast_matrix_market/*
+License: BSD-2-Clause
+  For details, see scipy/io/_fast_matrix_market/LICENSE.txt
+
+Name: pystreambuf
+Files: scipy/io/_fast_matrix_market/src/pystreambuf.h
+License: BSD-3-Clause
+  For details, see the header inside scipy/io/_fast_matrix_market/src/pystreambuf.h
+
+Name: fast_float
+Files: scipy/io/_fast_matrix_market/fast_matrix_market/dependencies/fast_float/*
+License: MIT
+  For details, see scipy/io/_fast_matrix_market/fast_matrix_market/dependencies/fast_float/LICENSE-MIT
+
+Name: ryu
+Files: scipy/io/_fast_matrix_market/fast_matrix_market/dependencies/ryu/*
+License: BSL-1.0
+  For details, see scipy/io/_fast_matrix_market/fast_matrix_market/dependencies/ryu/LICENSE-Boost
+
+Name: L-BFGS-B
+Files: scipy/optimize/lbfgsb/[__lbfgsb.h,__lbfgsb.c]
+License: BSD-3-Clause
+  For details, see scipy/optimize/__lbfgsb.c
+
+Name: LAPJVsp
+Files: scipy/sparse/csgraph/_matching.pyx
+License: BSD-3-Clause
+Copyright 1987-, A. Volgenant/Amsterdam School of Economics,
+                 University of Amsterdam
+
+  Distributed under 3-clause BSD license with permission from
+  University of Amsterdam.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its contributors
+     may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: SuperLU
+Files: scipy/sparse/linalg/_dsolve/SuperLU/*
+License: BSD-3-Clause
+  For details, see scipy/sparse/linalg/_dsolve/SuperLU/License.txt
+
+Name: ARPACK
+Files: scipy/sparse/linalg/_eigen/arpack/ARPACK/*
+License: BSD-3-Clause
+  For details, see scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING
+
+Name: Qhull
+Files: subprojects/qhull_r/libqhull_r/*
+License: Qhull
+  For details, see subprojects/qhull_r/libqhull_r/COPYING.txt
+
+Name: xsf
+Files: subprojects/xsf/*
+License: BSD-3-Clause AND MIT AND BSD-3-Clause-LBNL AND Apache-2.0 WITH LLVM-exception
+  For details, see subprojects/xsf/LICENSE and
+  subprojects/xsf/LICENSES_bundled.txt
+
+Name: pypocketfft
+Files: scipy/fft/_pocketfft/pypocketfft.cxx
+License: BSD-3-Clause
+  For details, see scipy/fft/_pocketfft/LICENSE.md
+
+Name: uarray
+Files: scipy/_lib/_uarray/*
+License: BSD-3-Clause
+  For details, see scipy/_lib/_uarray/LICENSE
+
+Name: ampgo
+Files: benchmarks/benchmarks/go_benchmark_functions/*.py
+License: MIT
+  Functions for testing global optimizers, forked from the AMPGO project,
+  https://code.google.com/archive/p/ampgo
+
+Name: pybind11
+Files: no source files are included, however pybind11 binary artifacts are
+  included with every binary build of SciPy.
+License: BSD-3-Clause
+  Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its contributors
+     may be used to endorse or promote products derived from this software
+     without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Name: HiGHS
+Files: subprojects/highs/*
+License: MIT
+  For details, see subprojects/highs/LICENSE.txt
+
+Name: Boost
+Files: subprojects/boost_math/math/*
+License: BSL-1.0
+  For details, see subprojects/boost_math/math/LICENSE
+
+Name: Biasedurn
+Files: scipy/stats/biasedurn/*
+License: BSD-3-Clause
+  For details, see scipy/stats/biasedurn/license.txt
+
+Name: UNU.RAN
+Files: scipy/_lib/unuran/*
+License: BSD-3-Clause
+  For details, see scipy/_lib/unuran/license.txt
+
+Name: NumPy
+Files: scipy/stats/libnpyrandom/[logfactorial.h,logfactorial.c]
+License: BSD-3-Clause
+  For details, see header inside scipy/stats/libnpyrandom/logfactorial.h
+  and scipy/stats/libnpyrandom/logfactorial.c
+
+Name: array-api-compat
+Files: scipy/_lib/array_api_compat/*
+License: MIT
+  For details, see scipy/_lib/array_api_compat/LICENSE
+
+Name: Tempita
+Files: scipy/_build_utils/tempita/*
+License: MIT
+  For details, see scipy/_build_utils/tempita/LICENSE.txt
+
+Name: Chebfun
+Files: scipy/interpolate/[_bary_rational.py, tests/test_bary_rational.py]
+License: BSD-3-Clause
+  For details, see scipy/interpolate/_bary_rational.py
+
+Name: getLebedevSphere
+Files: scipy/integrate/_lebedev.py
+License: BSD-2-Clause
+  For details, see scipy/integrate/_lebedev.py
+
+Name: prima
+Files: scipy/_lib/pyprima
+License: BSD-3-Clause
+  For details, see scipy/_lib/pyprima/LICENCE.txt
+```
+
+## scipy/doc/source/_static/scipy-mathjax/LICENSE
+
+```text
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+```
+
+## scipy/scipy/_build_utils/tempita/LICENSE.txt
+
+```text
+Copyright (c) 2008 Ian Bicking and Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## scipy/scipy/_lib/_uarray/LICENSE
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2018, Quansight-Labs
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/_lib/array_api_compat/LICENSE
+
+```text
+MIT License
+
+Copyright (c) 2022 Consortium for Python Data API Standards
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## scipy/scipy/_lib/array_api_extra/LICENSE
+
+```text
+MIT License
+
+Copyright (c) 2024 Consortium for Python Data API Standards
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## scipy/scipy/_lib/cobyqa/.github/workflows/license.yml
+
+```text
+# Update copyright years in license file
+
+name: license
+
+on:
+  schedule:
+    - cron: '0 0 1 1 *'
+  workflow_dispatch:
+
+jobs:
+  update_license:
+    name: Update license year
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update license year
+        uses: FantasticFiasco/action-update-license-year@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+## scipy/scipy/_lib/cobyqa/LICENSE
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2021-2024, Tom M. Ragonneau and Zaikun Zhang
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/_lib/cobyqa/doc/source/license.rst
+
+```text
+COBYQA license
+==============
+
+.. include:: ../../LICENSE
+    :literal:
+```
+
+## scipy/scipy/_lib/decorator.py.notice.txt
+
+```text
+# #########################     LICENSE     ############################ #
+
+# Copyright (c) 2005-2015, Michele Simionato
+# All rights reserved.
+
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+
+#   Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#   Redistributions in bytecode form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in
+#   the documentation and/or other materials provided with the
+#   distribution.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+# OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+# TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+
+"""
+Decorator module, see https://pypi.python.org/pypi/decorator
+for the documentation.
+"""
+import re
+import sys
+import inspect
+import operator
+import itertools
+import collections
+
+from inspect import getfullargspec
+
+__version__ = '4.0.5'
+
+
+def get_init(cls):
+    return cls.__init__
+
+
+# getargspec has been deprecated in Python 3.5
+ArgSpec = collections.namedtuple(
+    'ArgSpec', 'args varargs varkw defaults')
+
+
+def getargspec(f):
+    """A replacement for inspect.getargspec"""
+    spec = getfullargspec(f)
+    return ArgSpec(spec.args, spec.varargs, spec.varkw, spec.defaults)
+
+
+DEF = re.compile(r'\s*def\s*([_\w][_\w\d]*)\s*\(')
+
+
+# basic functionality
+class FunctionMaker:
+    """
+    An object with the ability to create functions with a given signature.
+    It has attributes name, doc, module, signature, defaults, dict, and
+    methods update and make.
+    """
+
+    # Atomic get-and-increment provided by the GIL
+    _compile_count = itertools.count()
+
+    def __init__(self, func=None, name=None, signature=None,
+                 defaults=None, doc=None, module=None, funcdict=None):
+        self.shortsignature = signature
+        if func:
+            # func can be a class or a callable, but not an instance method
+            self.name = func.__name__
+            if self.name == '<lambda>':  # small hack for lambda functions
+                self.name = '_lambda_'
+            self.doc = func.__doc__
+            self.module = func.__module__
+            if inspect.isfunction(func):
+                argspec = getfullargspec(func)
+                self.annotations = getattr(func, '__annotations__', {})
+                for a in ('args', 'varargs', 'varkw', 'defaults', 'kwonlyargs',
+                          'kwonlydefaults'):
+                    setattr(self, a, getattr(argspec, a))
+                for i, arg in enumerate(self.args):
+                    setattr(self, f'arg{i}', arg)
+                allargs = list(self.args)
+                allshortargs = list(self.args)
+                if self.varargs:
+                    allargs.append('*' + self.varargs)
+                    allshortargs.append('*' + self.varargs)
+                elif self.kwonlyargs:
+                    allargs.append('*')  # single star syntax
+                for a in self.kwonlyargs:
+                    allargs.append(f'{a}=None')
+                    allshortargs.append(f'{a}={a}')
+                if self.varkw:
+                    allargs.append('**' + self.varkw)
+                    allshortargs.append('**' + self.varkw)
+                self.signature = ', '.join(allargs)
+                self.shortsignature = ', '.join(allshortargs)
+                self.dict = func.__dict__.copy()
+        # func=None happens when decorating a caller
+        if name:
+            self.name = name
+        if signature is not None:
+            self.signature = signature
+        if defaults:
+            self.defaults = defaults
+        if doc:
+            self.doc = doc
+        if module:
+            self.module = module
+        if funcdict:
+            self.dict = funcdict
+        # check existence required attributes
+        assert hasattr(self, 'name')
+        if not hasattr(self, 'signature'):
+            raise TypeError(f'You are decorating a non-function: {func}')
+
+    def update(self, func, **kw):
+        "Update the signature of func with the data in self"
+        func.__name__ = self.name
+        func.__doc__ = getattr(self, 'doc', None)
+        func.__dict__ = getattr(self, 'dict', {})
+        func.__defaults__ = getattr(self, 'defaults', ())
+        func.__kwdefaults__ = getattr(self, 'kwonlydefaults', None)
+        func.__annotations__ = getattr(self, 'annotations', None)
+        try:
+            frame = sys._getframe(3)
+        except AttributeError:  # for IronPython and similar implementations
+            callermodule = '?'
+        else:
+            callermodule = frame.f_globals.get('__name__', '?')
+        func.__module__ = getattr(self, 'module', callermodule)
+        func.__dict__.update(kw)
+
+    def make(self, src_templ, evaldict=None, addsource=False, **attrs):
+        "Make a new function from a given template and update the signature"
+        src = src_templ % vars(self)  # expand name and signature
+        evaldict = evaldict or {}
+        mo = DEF.match(src)
+        if mo is None:
+            raise SyntaxError(f'not a valid function template\n{src}')
+        name = mo.group(1)  # extract the function name
+        names = set([name] + [arg.strip(' *') for arg in
+                              self.shortsignature.split(',')])
+        for n in names:
+            if n in ('_func_', '_call_'):
+                raise NameError(f'{n} is overridden in\n{src}')
+        if not src.endswith('\n'):  # add a newline just for safety
+            src += '\n'  # this is needed in old versions of Python
+
+        # Ensure each generated function has a unique filename for profilers
+        # (such as cProfile) that depend on the tuple of (<filename>,
+        # <definition line>, <function name>) being unique.
+        filename = f'<decorator-gen-{next(self._compile_count)}>'
+        try:
+            code = compile(src, filename, 'single')
+            exec(code, evaldict)
+        except:  # noqa: E722
+            print('Error in generated code:', file=sys.stderr)
+            print(src, file=sys.stderr)
+            raise
+        func = evaldict[name]
+        if addsource:
+            attrs['__source__'] = src
+        self.update(func, **attrs)
+        return func
+
+    @classmethod
+    def create(cls, obj, body, evaldict, defaults=None,
+               doc=None, module=None, addsource=True, **attrs):
+        """
+        Create a function from the strings name, signature, and body.
+        evaldict is the evaluation dictionary. If addsource is true, an
+        attribute __source__ is added to the result. The attributes attrs
+        are added, if any.
+        """
+        if isinstance(obj, str):  # "name(signature)"
+            name, rest = obj.strip().split('(', 1)
+            signature = rest[:-1]  # strip a right parens
+            func = None
+        else:  # a function
+            name = None
+            signature = None
+            func = obj
+        self = cls(func, name, signature, defaults, doc, module)
+        ibody = '\n'.join('    ' + line for line in body.splitlines())
+        return self.make('def %(name)s(%(signature)s):\n' + ibody,
+                         evaldict, addsource, **attrs)
+
+
+def decorate(func, caller):
+    """
+    decorate(func, caller) decorates a function using a caller.
+    """
+    evaldict = func.__globals__.copy()
+    evaldict['_call_'] = caller
+    evaldict['_func_'] = func
+    fun = FunctionMaker.create(
+        func, "return _call_(_func_, %(shortsignature)s)",
+        evaldict, __wrapped__=func)
+    if hasattr(func, '__qualname__'):
+        fun.__qualname__ = func.__qualname__
+    return fun
+
+
+def decorator(caller, _func=None):
+    """decorator(caller) converts a caller function into a decorator"""
+    if _func is not None:  # return a decorated function
+        # this is obsolete behavior; you should use decorate instead
+        return decorate(_func, caller)
+    # else return a decorator function
+    if inspect.isclass(caller):
+        name = caller.__name__.lower()
+        callerfunc = get_init(caller)
+        doc = (f'decorator({caller.__name__}) converts functions/generators into ' 
+               f'factories of {caller.__name__} objects')
+    elif inspect.isfunction(caller):
+        if caller.__name__ == '<lambda>':
+            name = '_lambda_'
+        else:
+            name = caller.__name__
+        callerfunc = caller
+        doc = caller.__doc__
+    else:  # assume caller is an object with a __call__ method
+        name = caller.__class__.__name__.lower()
+        callerfunc = caller.__call__.__func__
+        doc = caller.__call__.__doc__
+    evaldict = callerfunc.__globals__.copy()
+    evaldict['_call_'] = caller
+    evaldict['_decorate_'] = decorate
+    return FunctionMaker.create(
+        f'{name}(func)', 'return _decorate_(func, _call_)',
+        evaldict, doc=doc, module=caller.__module__,
+        __wrapped__=caller)
+
+
+# ####################### contextmanager ####################### #
+
+try:  # Python >= 3.2
+    from contextlib import _GeneratorContextManager
+except ImportError:  # Python >= 2.5
+    from contextlib import GeneratorContextManager as _GeneratorContextManager
+
+
+class ContextManager(_GeneratorContextManager):
+    def __call__(self, func):
+        """Context manager decorator"""
+        return FunctionMaker.create(
+            func, "with _self_: return _func_(%(shortsignature)s)",
+            dict(_self_=self, _func_=func), __wrapped__=func)
+
+
+init = getfullargspec(_GeneratorContextManager.__init__)
+n_args = len(init.args)
+if n_args == 2 and not init.varargs:  # (self, genobj) Python 2.7
+    def __init__(self, g, *a, **k):
+        return _GeneratorContextManager.__init__(self, g(*a, **k))
+    ContextManager.__init__ = __init__
+elif n_args == 2 and init.varargs:  # (self, gen, *a, **k) Python 3.4
+    pass
+elif n_args == 4:  # (self, gen, args, kwds) Python 3.5
+    def __init__(self, g, *a, **k):
+        return _GeneratorContextManager.__init__(self, g, a, k)
+    ContextManager.__init__ = __init__
+
+contextmanager = decorator(ContextManager)
+
+
+# ############################ dispatch_on ############################ #
+
+def append(a, vancestors):
+    """
+    Append ``a`` to the list of the virtual ancestors, unless it is already
+    included.
+    """
+    add = True
+    for j, va in enumerate(vancestors):
+        if issubclass(va, a):
+            add = False
+            break
+        if issubclass(a, va):
+            vancestors[j] = a
+            add = False
+    if add:
+        vancestors.append(a)
+
+
+# inspired from simplegeneric by P.J. Eby and functools.singledispatch
+def dispatch_on(*dispatch_args):
+    """
+    Factory of decorators turning a function into a generic function
+    dispatching on the given arguments.
+    """
+    assert dispatch_args, 'No dispatch args passed'
+    dispatch_str = f"({', '.join(dispatch_args)},)"
+
+    def check(arguments, wrong=operator.ne, msg=''):
+        """Make sure one passes the expected number of arguments"""
+        if wrong(len(arguments), len(dispatch_args)):
+            raise TypeError(f'Expected {len(dispatch_args)} arguments, '
+                            'got {len(arguments)}{msg}')
+
+    def gen_func_dec(func):
+        """Decorator turning a function into a generic function"""
+
+        # first check the dispatch arguments
+        argset = set(getfullargspec(func).args)
+        if not set(dispatch_args) <= argset:
+            raise NameError(f'Unknown dispatch arguments {dispatch_str}')
+
+        typemap = {}
+
+        def vancestors(*types):
+            """
+            Get a list of sets of virtual ancestors for the given types
+            """
+            check(types)
+            ras = [[] for _ in range(len(dispatch_args))]
+            for types_ in typemap:
+                for t, type_, ra in zip(types, types_, ras):
+                    if issubclass(t, type_) and type_ not in t.__mro__:
+                        append(type_, ra)
+            return [set(ra) for ra in ras]
+
+        def ancestors(*types):
+            """
+            Get a list of virtual MROs, one for each type
+            """
+            check(types)
+            lists = []
+            for t, vas in zip(types, vancestors(*types)):
+                n_vas = len(vas)
+                if n_vas > 1:
+                    raise RuntimeError(
+                        f'Ambiguous dispatch for {t}: {vas}')
+                elif n_vas == 1:
+                    va, = vas
+                    mro = type('t', (t, va), {}).__mro__[1:]
+                else:
+                    mro = t.__mro__
+                lists.append(mro[:-1])  # discard t and object
+            return lists
+
+        def register(*types):
+            """
+            Decorator to register an implementation for the given types
+            """
+            check(types)
+
+            def dec(f):
+                check(getfullargspec(f).args, operator.lt, ' in ' + f.__name__)
+                typemap[types] = f
+                return f
+            return dec
+
+        def dispatch_info(*types):
+            """
+            An utility to introspect the dispatch algorithm
+            """
+            check(types)
+            lst = [tuple(a.__name__ for a in anc)
+                   for anc in itertools.product(*ancestors(*types))]
+            return lst
+
+        def _dispatch(dispatch_args, *args, **kw):
+            types = tuple(type(arg) for arg in dispatch_args)
+            try:  # fast path
+                f = typemap[types]
+            except KeyError:
+                pass
+            else:
+                return f(*args, **kw)
+            combinations = itertools.product(*ancestors(*types))
+            next(combinations)  # the first one has been already tried
+            for types_ in combinations:
+                f = typemap.get(types_)
+                if f is not None:
+                    return f(*args, **kw)
+
+            # else call the default implementation
+            return func(*args, **kw)
+
+        return FunctionMaker.create(
+            func, f'return _f_({dispatch_str}, %%(shortsignature)s)',
+            dict(_f_=_dispatch), register=register, default=func,
+            typemap=typemap, vancestors=vancestors, ancestors=ancestors,
+            dispatch_info=dispatch_info, __wrapped__=func)
+
+    gen_func_dec.__name__ = 'dispatch_on' + dispatch_str
+    return gen_func_dec
+```
+
+## scipy/scipy/_lib/pocketfft/LICENSE.md
+
+```text
+Copyright (C) 2010-2018 Max-Planck-Society
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+* Neither the name of the copyright holder nor the names of its contributors may
+  be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/_lib/pyprima/LICENCE.txt
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2020--2025, Zaikun ZHANG ( https://www.zhangzk.net )
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/_lib/unuran/license.txt
+
+```text
+Permission was granted on 23 March 2021 by Josef Leydold (josef.leydold@wu.ac.at) and Wolfgang Hoermann (hormannw@bound.edu.tr)
+to use the UNU.RAN code excluding the uniform random number generator in src/uniform/mrg31k3p.c (copyright by Renee Touzin)
+under the BSD licence. The following files have been removed from the original library:
+
+    unuran-1.8.1/COPYING
+    unuran-1.8.1/INSTALL
+    unuran-1.8.1/Makefile.am
+    unuran-1.8.1/Makefile.in
+    unuran-1.8.1/NEWS
+    unuran-1.8.1/UPGRADE
+    unuran-1.8.1/acinclude.m4
+    unuran-1.8.1/aclocal.m4
+    unuran-1.8.1/autoconf/config.guess
+    unuran-1.8.1/autoconf/config.sub
+    unuran-1.8.1/autoconf/depcomp
+    unuran-1.8.1/autoconf/install-sh
+    unuran-1.8.1/autoconf/ltmain.sh
+    unuran-1.8.1/autoconf/mdate-sh
+    unuran-1.8.1/autoconf/missing
+    unuran-1.8.1/autogen.sh
+    unuran-1.8.1/configure
+    unuran-1.8.1/doc/Makefile.am
+    unuran-1.8.1/doc/Makefile.in
+    unuran-1.8.1/doc/figures/Makefile.am
+    unuran-1.8.1/doc/figures/Makefile.in
+    unuran-1.8.1/doc/figures/discrete_inversion.eps
+    unuran-1.8.1/doc/figures/discrete_inversion.pdf
+    unuran-1.8.1/doc/figures/discrete_inversion.png
+    unuran-1.8.1/doc/figures/discrete_inversion.txt
+    unuran-1.8.1/doc/figures/inversion.eps
+    unuran-1.8.1/doc/figures/inversion.pdf
+    unuran-1.8.1/doc/figures/inversion.png
+    unuran-1.8.1/doc/figures/inversion.txt
+    unuran-1.8.1/doc/figures/rejection_from_constant_hat.eps
+    unuran-1.8.1/doc/figures/rejection_from_constant_hat.pdf
+    unuran-1.8.1/doc/figures/rejection_from_constant_hat.png
+    unuran-1.8.1/doc/figures/rejection_from_constant_hat.txt
+    unuran-1.8.1/doc/figures/rou-cauchy.eps
+    unuran-1.8.1/doc/figures/rou-cauchy.pdf
+    unuran-1.8.1/doc/figures/rou-cauchy.png
+    unuran-1.8.1/doc/figures/rou-cauchy.txt
+    unuran-1.8.1/doc/figures/texpict2img.pl
+    unuran-1.8.1/doc/src/Makefile.am
+    unuran-1.8.1/doc/src/Makefile.in
+    unuran-1.8.1/doc/src/README
+    unuran-1.8.1/doc/src/arvag.dh
+    unuran-1.8.1/doc/src/error_debug.dh
+    unuran-1.8.1/doc/src/examples.dh
+    unuran-1.8.1/doc/src/glossary.dh
+    unuran-1.8.1/doc/src/index.dh
+    unuran-1.8.1/doc/src/installation.dh
+    unuran-1.8.1/doc/src/intro.dh
+    unuran-1.8.1/doc/src/make_texi.pl
+    unuran-1.8.1/doc/src/methods.dh
+    unuran-1.8.1/doc/src/methods_cemp.texi
+    unuran-1.8.1/doc/src/methods_cont.texi
+    unuran-1.8.1/doc/src/methods_cvec.texi
+    unuran-1.8.1/doc/src/methods_cvemp.texi
+    unuran-1.8.1/doc/src/methods_discr.texi
+    unuran-1.8.1/doc/src/methods_matr.texi
+    unuran-1.8.1/doc/src/methods_mcmc.texi
+    unuran-1.8.1/doc/src/misc.dh
+    unuran-1.8.1/doc/src/ref_example0.texi
+    unuran-1.8.1/doc/src/ref_example0_str.texi
+    unuran-1.8.1/doc/src/ref_example1.texi
+    unuran-1.8.1/doc/src/ref_example1_str.texi
+    unuran-1.8.1/doc/src/ref_example2.texi
+    unuran-1.8.1/doc/src/ref_example2_str.texi
+    unuran-1.8.1/doc/src/ref_example3.texi
+    unuran-1.8.1/doc/src/ref_example3_str.texi
+    unuran-1.8.1/doc/src/ref_example_FuncStr.texi
+    unuran-1.8.1/doc/src/ref_example_anti.texi
+    unuran-1.8.1/doc/src/ref_example_anti_str.texi
+    unuran-1.8.1/doc/src/ref_example_cext.texi
+    unuran-1.8.1/doc/src/ref_example_cont.texi
+    unuran-1.8.1/doc/src/ref_example_cont_str.texi
+    unuran-1.8.1/doc/src/ref_example_dext.texi
+    unuran-1.8.1/doc/src/ref_example_discr.texi
+    unuran-1.8.1/doc/src/ref_example_discr_str.texi
+    unuran-1.8.1/doc/src/ref_example_emp.texi
+    unuran-1.8.1/doc/src/ref_example_emp_str.texi
+    unuran-1.8.1/doc/src/ref_example_gsl.texi
+    unuran-1.8.1/doc/src/ref_example_mixt.texi
+    unuran-1.8.1/doc/src/ref_example_mixt_inv.texi
+    unuran-1.8.1/doc/src/ref_example_rngstreams.texi
+    unuran-1.8.1/doc/src/ref_example_vemp.texi
+    unuran-1.8.1/doc/src/ref_example_win32_1.texi
+    unuran-1.8.1/doc/src/ref_example_win32_2.texi
+    unuran-1.8.1/doc/src/references.dh
+    unuran-1.8.1/doc/src/stddist.dh
+    unuran-1.8.1/doc/src/texinfo.tex
+    unuran-1.8.1/doc/src/top.dh
+    unuran-1.8.1/doc/src/unuran_src.texi
+    unuran-1.8.1/doc/stamp-1
+    unuran-1.8.1/doc/stamp-vti
+    unuran-1.8.1/doc/unuran.html
+    unuran-1.8.1/doc/unuran.info
+    unuran-1.8.1/doc/unuran.pdf
+    unuran-1.8.1/doc/unuran.texi
+    unuran-1.8.1/doc/unuran.txt
+    unuran-1.8.1/doc/unuran_win32.html
+    unuran-1.8.1/doc/unuran_win32.info
+    unuran-1.8.1/doc/unuran_win32.pdf
+    unuran-1.8.1/doc/unuran_win32.texi
+    unuran-1.8.1/doc/unuran_win32_libname.texi
+    unuran-1.8.1/doc/version.texi
+    unuran-1.8.1/doc/version_win32.texi
+    unuran-1.8.1/examples/Makefile.am
+    unuran-1.8.1/examples/Makefile.in
+    unuran-1.8.1/examples/example0.c
+    unuran-1.8.1/examples/example0_str.c
+    unuran-1.8.1/examples/example1.c
+    unuran-1.8.1/examples/example1_str.c
+    unuran-1.8.1/examples/example2.c
+    unuran-1.8.1/examples/example2_str.c
+    unuran-1.8.1/examples/example3.c
+    unuran-1.8.1/examples/example3_str.c
+    unuran-1.8.1/examples/example_FuncStr.c
+    unuran-1.8.1/examples/example_anti.c
+    unuran-1.8.1/examples/example_anti_str.c
+    unuran-1.8.1/examples/example_cext.c
+    unuran-1.8.1/examples/example_cont.c
+    unuran-1.8.1/examples/example_cont_str.c
+    unuran-1.8.1/examples/example_cpp.cpp
+    unuran-1.8.1/examples/example_dext.c
+    unuran-1.8.1/examples/example_discr.c
+    unuran-1.8.1/examples/example_discr_str.c
+    unuran-1.8.1/examples/example_emp.c
+    unuran-1.8.1/examples/example_emp_str.c
+    unuran-1.8.1/examples/example_errorhandler.c
+    unuran-1.8.1/examples/example_gsl.c
+    unuran-1.8.1/examples/example_mcorr.c
+    unuran-1.8.1/examples/example_mixt.c
+    unuran-1.8.1/examples/example_mixt_inv.c
+    unuran-1.8.1/examples/example_prng.c
+    unuran-1.8.1/examples/example_prng_str.c
+    unuran-1.8.1/examples/example_rngstreams.c
+    unuran-1.8.1/examples/example_vemp.c
+    unuran-1.8.1/experiments/Makefile.am
+    unuran-1.8.1/experiments/Makefile.in
+    unuran-1.8.1/experiments/make_timing_table.c
+    unuran-1.8.1/experiments/timings_chap_10.conf
+    unuran-1.8.1/experiments/timings_chap_8.conf
+    unuran-1.8.1/scripts/Makefile.am
+    unuran-1.8.1/scripts/Makefile.in
+    unuran-1.8.1/scripts/compute_machine_constants.c
+    unuran-1.8.1/scripts/make_urng_header.pl
+    unuran-1.8.1/scripts/merge_h.pl
+    unuran-1.8.1/scripts/read_PDF.pl
+    unuran-1.8.1/scripts/remove_comments.pl
+    unuran-1.8.1/scripts/run_valgrind.sh
+    unuran-1.8.1/scripts/win32/Makefile.win32
+    unuran-1.8.1/scripts/win32/build.sh
+    unuran-1.8.1/scripts/win32/example1.c
+    unuran-1.8.1/scripts/win32/example2.c
+    unuran-1.8.1/scripts/win32/make_dll_def.pl
+    unuran-1.8.1/src/Makefile.am
+    unuran-1.8.1/src/Makefile.in
+    unuran-1.8.1/src/README
+    unuran-1.8.1/src/distr/Makefile.am
+    unuran-1.8.1/src/distr/Makefile.in
+    unuran-1.8.1/src/distributions/Makefile.am
+    unuran-1.8.1/src/distributions/Makefile.in
+    unuran-1.8.1/src/distributions/README
+    unuran-1.8.1/src/methods/Makefile.am
+    unuran-1.8.1/src/methods/Makefile.in
+    unuran-1.8.1/src/parser/Makefile.am
+    unuran-1.8.1/src/parser/Makefile.in
+    unuran-1.8.1/src/parser/functparser_doc.dh
+    unuran-1.8.1/src/parser/make_stringparser.pl
+    unuran-1.8.1/src/parser/stringparser_doc.dh
+    unuran-1.8.1/src/specfunct/Makefile.am
+    unuran-1.8.1/src/specfunct/Makefile.in
+    unuran-1.8.1/src/tests/Makefile.am
+    unuran-1.8.1/src/tests/Makefile.in
+    unuran-1.8.1/src/uniform/Makefile.am
+    unuran-1.8.1/src/uniform/Makefile.in
+    unuran-1.8.1/src/uniform/fish.c
+    unuran-1.8.1/src/uniform/mrg31k3p.c
+    unuran-1.8.1/src/uniform/mstd.c
+    unuran-1.8.1/src/uniform/unuran_urng_gsl.h
+    unuran-1.8.1/src/uniform/unuran_urng_prng.h
+    unuran-1.8.1/src/uniform/unuran_urng_rngstreams.h
+    unuran-1.8.1/src/uniform/urng_builtin.c
+    unuran-1.8.1/src/uniform/urng_builtin.h
+    unuran-1.8.1/src/uniform/urng_fvoid.c
+    unuran-1.8.1/src/uniform/urng_fvoid.h
+    unuran-1.8.1/src/uniform/urng_gsl.c
+    unuran-1.8.1/src/uniform/urng_gsl.h
+    unuran-1.8.1/src/uniform/urng_gslqrng.c
+    unuran-1.8.1/src/uniform/urng_gslqrng.h
+    unuran-1.8.1/src/uniform/urng_prng.c
+    unuran-1.8.1/src/uniform/urng_prng.h
+    unuran-1.8.1/src/uniform/urng_randomshift.c
+    unuran-1.8.1/src/uniform/urng_randomshift.h
+    unuran-1.8.1/src/uniform/urng_rngstreams.c
+    unuran-1.8.1/src/uniform/urng_rngstreams.h
+    unuran-1.8.1/src/unuran.h.in
+    unuran-1.8.1/src/urng/Makefile.am
+    unuran-1.8.1/src/urng/Makefile.in
+    unuran-1.8.1/src/utils/Makefile.am
+    unuran-1.8.1/src/utils/Makefile.in
+    unuran-1.8.1/tests/Makefile.am
+    unuran-1.8.1/tests/Makefile.in
+    unuran-1.8.1/tests/README.conf
+    unuran-1.8.1/tests/make_test_files.pl
+    unuran-1.8.1/tests/t_arou.c
+    unuran-1.8.1/tests/t_arou.conf
+    unuran-1.8.1/tests/t_ars.c
+    unuran-1.8.1/tests/t_ars.conf
+    unuran-1.8.1/tests/t_auto.c
+    unuran-1.8.1/tests/t_auto.conf
+    unuran-1.8.1/tests/t_cext.c
+    unuran-1.8.1/tests/t_cext.conf
+    unuran-1.8.1/tests/t_cstd.c
+    unuran-1.8.1/tests/t_cstd.conf
+    unuran-1.8.1/tests/t_dari.c
+    unuran-1.8.1/tests/t_dari.conf
+    unuran-1.8.1/tests/t_dau.c
+    unuran-1.8.1/tests/t_dau.conf
+    unuran-1.8.1/tests/t_deprecated_tdrgw.c
+    unuran-1.8.1/tests/t_deprecated_vmt.c
+    unuran-1.8.1/tests/t_deprecated_vmt.conf
+    unuran-1.8.1/tests/t_dext.c
+    unuran-1.8.1/tests/t_dext.conf
+    unuran-1.8.1/tests/t_dgt.c
+    unuran-1.8.1/tests/t_dgt.conf
+    unuran-1.8.1/tests/t_distr.c
+    unuran-1.8.1/tests/t_distr.conf
+    unuran-1.8.1/tests/t_distr_cemp.c
+    unuran-1.8.1/tests/t_distr_cemp.conf
+    unuran-1.8.1/tests/t_distr_condi.c
+    unuran-1.8.1/tests/t_distr_condi.conf
+    unuran-1.8.1/tests/t_distr_cont.c
+    unuran-1.8.1/tests/t_distr_cont.conf
+    unuran-1.8.1/tests/t_distr_corder.c
+    unuran-1.8.1/tests/t_distr_corder.conf
+    unuran-1.8.1/tests/t_distr_cvec.c
+    unuran-1.8.1/tests/t_distr_cvec.conf
+    unuran-1.8.1/tests/t_distr_cvemp.c
+    unuran-1.8.1/tests/t_distr_cvemp.conf
+    unuran-1.8.1/tests/t_distr_cxtrans.c
+    unuran-1.8.1/tests/t_distr_cxtrans.conf
+    unuran-1.8.1/tests/t_distr_discr.c
+    unuran-1.8.1/tests/t_distr_discr.conf
+    unuran-1.8.1/tests/t_distr_matr.c
+    unuran-1.8.1/tests/t_distr_matr.conf
+    unuran-1.8.1/tests/t_dsrou.c
+    unuran-1.8.1/tests/t_dsrou.conf
+    unuran-1.8.1/tests/t_dss.c
+    unuran-1.8.1/tests/t_dss.conf
+    unuran-1.8.1/tests/t_dstd.c
+    unuran-1.8.1/tests/t_dstd.conf
+    unuran-1.8.1/tests/t_empk.c
+    unuran-1.8.1/tests/t_empk.conf
+    unuran-1.8.1/tests/t_empl.c
+    unuran-1.8.1/tests/t_empl.conf
+    unuran-1.8.1/tests/t_gibbs.c
+    unuran-1.8.1/tests/t_gibbs.conf
+    unuran-1.8.1/tests/t_hinv.c
+    unuran-1.8.1/tests/t_hinv.conf
+    unuran-1.8.1/tests/t_hist.c
+    unuran-1.8.1/tests/t_hist.conf
+    unuran-1.8.1/tests/t_hitro.c
+    unuran-1.8.1/tests/t_hrb.c
+    unuran-1.8.1/tests/t_hrb.conf
+    unuran-1.8.1/tests/t_hrd.c
+    unuran-1.8.1/tests/t_hrd.conf
+    unuran-1.8.1/tests/t_hri.c
+    unuran-1.8.1/tests/t_hri.conf
+    unuran-1.8.1/tests/t_info.c
+    unuran-1.8.1/tests/t_info.conf
+    unuran-1.8.1/tests/t_itdr.c
+    unuran-1.8.1/tests/t_itdr.conf
+    unuran-1.8.1/tests/t_mcorr.c
+    unuran-1.8.1/tests/t_mcorr.conf
+    unuran-1.8.1/tests/t_mixt.c
+    unuran-1.8.1/tests/t_mvstd.c
+    unuran-1.8.1/tests/t_mvstd.conf
+    unuran-1.8.1/tests/t_mvtdr.c
+    unuran-1.8.1/tests/t_ninv.c
+    unuran-1.8.1/tests/t_ninv.conf
+    unuran-1.8.1/tests/t_norta.c
+    unuran-1.8.1/tests/t_norta.conf
+    unuran-1.8.1/tests/t_nrou.c
+    unuran-1.8.1/tests/t_nrou.conf
+    unuran-1.8.1/tests/t_pinv
+    unuran-1.8.1/tests/t_pinv.c
+    unuran-1.8.1/tests/t_srou.c
+    unuran-1.8.1/tests/t_srou.conf
+    unuran-1.8.1/tests/t_ssr.c
+    unuran-1.8.1/tests/t_ssr.conf
+    unuran-1.8.1/tests/t_stringparser.c
+    unuran-1.8.1/tests/t_stringparser.conf
+    unuran-1.8.1/tests/t_tabl.c
+    unuran-1.8.1/tests/t_tabl.conf
+    unuran-1.8.1/tests/t_tdr.c
+    unuran-1.8.1/tests/t_tdr.conf
+    unuran-1.8.1/tests/t_tdr_gw.c
+    unuran-1.8.1/tests/t_tdr_gw.conf
+    unuran-1.8.1/tests/t_tdr_ia.c
+    unuran-1.8.1/tests/t_tdr_ia.conf
+    unuran-1.8.1/tests/t_tdr_ps.c
+    unuran-1.8.1/tests/t_tdr_ps.conf
+    unuran-1.8.1/tests/t_unif.c
+    unuran-1.8.1/tests/t_unif.conf
+    unuran-1.8.1/tests/t_unur_error.c
+    unuran-1.8.1/tests/t_unur_error.conf
+    unuran-1.8.1/tests/t_unur_tests.c
+    unuran-1.8.1/tests/t_unur_tests.conf
+    unuran-1.8.1/tests/t_urng.c
+    unuran-1.8.1/tests/t_urng.conf
+    unuran-1.8.1/tests/t_utdr.c
+    unuran-1.8.1/tests/t_utdr.conf
+    unuran-1.8.1/tests/t_util_matrix.c
+    unuran-1.8.1/tests/t_util_matrix.conf
+    unuran-1.8.1/tests/t_vempk.c
+    unuran-1.8.1/tests/t_vempk.conf
+    unuran-1.8.1/tests/t_vnrou.c
+    unuran-1.8.1/tests/t_vnrou.conf
+    unuran-1.8.1/tests/t_x_gen.c
+    unuran-1.8.1/tests/t_x_gen.conf
+    unuran-1.8.1/tests/test_StdDistr.c
+    unuran-1.8.1/tests/test_StdDistr.m
+    unuran-1.8.1/tests/test_functionparser.c
+    unuran-1.8.1/tests/test_functionparser.m
+    unuran-1.8.1/tests/testcounter.c
+    unuran-1.8.1/tests/testdistributions/Makefile.am
+    unuran-1.8.1/tests/testdistributions/Makefile.in
+    unuran-1.8.1/tests/testdistributions/c_sawtooth_contpdf.c
+    unuran-1.8.1/tests/testdistributions/c_sawtooth_discpdf.c
+    unuran-1.8.1/tests/testdistributions/c_w_pdf_from_logpdf.c
+    unuran-1.8.1/tests/testdistributions/c_with_multiple_of_pdf.c
+    unuran-1.8.1/tests/testdistributions/c_wo_logpdf.c
+    unuran-1.8.1/tests/testdistributions/testdistributions.h
+    unuran-1.8.1/tests/testdistributions/vc_cauchy_RoU_ball.c
+    unuran-1.8.1/tests/testdistributions/vc_special_correlations_ar1.c
+    unuran-1.8.1/tests/testdistributions/vc_special_correlations_constantrho.c
+    unuran-1.8.1/tests/testdistributions/vc_w_marginals.c
+    unuran-1.8.1/tests/testdistributions/vc_wo_logpdf.c
+    unuran-1.8.1/tests/testroutines.c
+    unuran-1.8.1/tests/testunuran.h
+    unuran-1.8.1/src/distr/deprecated_distr.c
+    unuran-1.8.1/src/distr/deprecated_distr.h
+    unuran-1.8.1/src/methods/deprecated_methods.c
+    unuran-1.8.1/src/methods/deprecated_methods.h
+    unuran-1.8.1/src/methods/deprecated_tdrgw.h
+    unuran-1.8.1/src/methods/deprecated_vmt.c
+    unuran-1.8.1/src/methods/deprecated_vmt.h
+    unuran-1.8.1/src/methods/deprecated_vmt_struct.h
+    unuran-1.8.1/src/parser/stringparser_lists.ch.in
+
+UNU.RAN relies on a modified version of the library Cephes, see ./src/src/specfunct/cephes_source.h
+```
+
+## scipy/scipy/fft/_pocketfft/LICENSE.md
+
+```text
+Copyright (C) 2010-2019 Max-Planck-Society
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+* Neither the name of the copyright holder nor the names of its contributors may
+  be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/integrate/_lebedev.py.notice.txt
+
+```text
+# getLebedevSphere
+# Copyright (c) 2010, Robert Parrish
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the distribution
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Brainlessly translated to Python
+
+import numpy as np
+from numpy import pi, zeros, sqrt
+
+
+__all__ = ['lebedev_rule']
+
+
+def get_lebedev_sphere(degree):
+    # getLebedevSphere
+    # @author Rob Parrish, The Sherrill Group, CCMST Georgia Tech
+    # @email robparrish@gmail.com
+    # @date 03/24/2010
+    #
+    # @description - function to compute normalized points and weights
+    # for Lebedev quadratures on the surface of the unit sphere at double precision.
+    # **********Relative error is generally expected to be ~2.0E-14 [1]********
+    # Lebedev quadratures are superbly accurate and efficient quadrature rules for
+    # approximating integrals of the form $v = \iint_{4\pi}  f(\Omega) \ \ud
+    # \Omega$, where $\Omega is the solid angle on the surface of the unit
+    # sphere. Lebedev quadratures integrate all spherical harmonics up to $l =
+    # order$, where $degree \approx order(order+1)/3$. These grids may be easily
+    # combined with radial quadratures to provide robust cubature formulae. For
+    # example, see 'A. Becke, 1988c, J. Chem. Phys., 88(4), pp. 2547' (The first
+    # paper on tractable molecular Density Functional Theory methods, of which
+    # Lebedev grids and numerical cubature are an intrinsic part).
+    #
+    # @param degree - positive integer specifying number of points in the
+    # requested quadrature. Allowed values are (degree -> order):
+    # degree: { 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302,
+    #   350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074,
+    #   3470, 3890, 4334, 4802, 5294, 5810 }
+    # order: {3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,35,41,47,53,59,65,71,77,
+    #   83,89,95,101,107,113,119,125,131}
+    #
+    #
+    # @return leb_tmp - struct containing fields:
+    #   x - x values of quadrature, constrained to unit sphere
+    #   y - y values of quadrature, constrained to unit sphere
+    #   z - z values of quadrature, constrained to unit sphere
+    #   w - quadrature weights, normalized to $4\pi$.
+    #
+    # @example: $\int_S x^2+y^2-z^2 \ud \Omega = 4.188790204786399$
+    #   f = @(x,y,z) x.^2+y.^2-z.^2
+    #   leb = getLebedevSphere(590)
+    #   v = f(leb.x,leb.y,leb.z)
+    #   int = sum(v.*leb.w)
+    #
+    # @citation - Translated from a Fortran code kindly provided by Christoph van
+    # Wuellen (Ruhr-Universitaet, Bochum, Germany), which in turn came from the
+    # original C routines coded by Dmitri Laikov (Moscow State University,
+    # Moscow, Russia). The MATLAB implementation of this code is designed for
+    # benchmarking of new DFT integration techniques to be implemented in the
+    # open source Psi4 ab initio quantum chemistry program.
+    #
+    # As per Professor Wuellen's request, any papers published using this code
+    # or its derivatives are requested to include the following citation:
+    #
+    # [1] V.I. Lebedev, and D.N. Laikov
+    #    "A quadrature formula for the sphere of the 131st
+    #     algebraic order of accuracy"
+    #    Doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
+
+    class Leb:
+        x, y, z, w = None, None, None, None
+
+    leb_tmp = Leb()
+
+    leb_tmp.x = zeros(degree)
+    leb_tmp.y = zeros(degree)
+    leb_tmp.z = zeros(degree)
+    leb_tmp.w = zeros(degree)
+
+    start = 0
+    a = 0.0
+    b = 0.0
+
+    match degree:
+
+        case 6:
+
+            v = 0.1666666666666667E+0
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+
+        case 14:
+
+            v = 0.6666666666666667E-1
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.7500000000000000E-1
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+
+        case 26:
+
+            v = 0.4761904761904762E-1
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.3809523809523810E-1
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.3214285714285714E-1
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+
+        case 38:
+
+            v = 0.9523809523809524E-2
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.3214285714285714E-1
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.4597008433809831E+0
+            v = 0.2857142857142857E-1
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+
+        case 50:
+
+            v = 0.1269841269841270E-1
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.2257495590828924E-1
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.2109375000000000E-1
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.3015113445777636E+0
+            v = 0.2017333553791887E-1
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+
+        case 74:
+
+            v = 0.5130671797338464E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.1660406956574204E-1
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = -0.2958603896103896E-1
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.4803844614152614E+0
+            v = 0.2657620708215946E-1
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3207726489807764E+0
+            v = 0.1652217099371571E-1
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+
+        case 86:
+
+            v = 0.1154401154401154E-1
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.1194390908585628E-1
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.3696028464541502E+0
+            v = 0.1111055571060340E-1
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6943540066026664E+0
+            v = 0.1187650129453714E-1
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3742430390903412E+0
+            v = 0.1181230374690448E-1
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+
+        case 110:
+
+            v = 0.3828270494937162E-2
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.9793737512487512E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.1851156353447362E+0
+            v = 0.8211737283191111E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6904210483822922E+0
+            v = 0.9942814891178103E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3956894730559419E+0
+            v = 0.9595471336070963E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4783690288121502E+0
+            v = 0.9694996361663028E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+
+        case 146:
+
+            v = 0.5996313688621381E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.7372999718620756E-2
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.7210515360144488E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.6764410400114264E+0
+            v = 0.7116355493117555E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4174961227965453E+0
+            v = 0.6753829486314477E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1574676672039082E+0
+            v = 0.7574394159054034E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1403553811713183E+0
+            b = 0.4493328323269557E+0
+            v = 0.6991087353303262E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 170:
+
+            v = 0.5544842902037365E-2
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.6071332770670752E-2
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.6383674773515093E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.2551252621114134E+0
+            v = 0.5183387587747790E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6743601460362766E+0
+            v = 0.6317929009813725E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4318910696719410E+0
+            v = 0.6201670006589077E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2613931360335988E+0
+            v = 0.5477143385137348E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4990453161796037E+0
+            b = 0.1446630744325115E+0
+            v = 0.5968383987681156E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 194:
+
+            v = 0.1782340447244611E-2
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.5716905949977102E-2
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.5573383178848738E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.6712973442695226E+0
+            v = 0.5608704082587997E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2892465627575439E+0
+            v = 0.5158237711805383E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4446933178717437E+0
+            v = 0.5518771467273614E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1299335447650067E+0
+            v = 0.4106777028169394E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3457702197611283E+0
+            v = 0.5051846064614808E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1590417105383530E+0
+            b = 0.8360360154824589E+0
+            v = 0.5530248916233094E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 230:
+
+            v = -0.5522639919727325E-1
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.4450274607445226E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.4492044687397611E+0
+            v = 0.4496841067921404E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2520419490210201E+0
+            v = 0.5049153450478750E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6981906658447242E+0
+            v = 0.3976408018051883E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6587405243460960E+0
+            v = 0.4401400650381014E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4038544050097660E-1
+            v = 0.1724544350544401E-1
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5823842309715585E+0
+            v = 0.4231083095357343E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3545877390518688E+0
+            v = 0.5198069864064399E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2272181808998187E+0
+            b = 0.4864661535886647E+0
+            v = 0.4695720972568883E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 266:
+
+            v = -0.1313769127326952E-2
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = -0.2522728704859336E-2
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.4186853881700583E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.7039373391585475E+0
+            v = 0.5315167977810885E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1012526248572414E+0
+            v = 0.4047142377086219E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4647448726420539E+0
+            v = 0.4112482394406990E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3277420654971629E+0
+            v = 0.3595584899758782E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6620338663699974E+0
+            v = 0.4256131351428158E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.8506508083520399E+0
+            v = 0.4229582700647240E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3233484542692899E+0
+            b = 0.1153112011009701E+0
+            v = 0.4080914225780505E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2314790158712601E+0
+            b = 0.5244939240922365E+0
+            v = 0.4071467593830964E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 302:
+
+            v = 0.8545911725128148E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.3599119285025571E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.3515640345570105E+0
+            v = 0.3449788424305883E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6566329410219612E+0
+            v = 0.3604822601419882E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4729054132581005E+0
+            v = 0.3576729661743367E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.9618308522614784E-1
+            v = 0.2352101413689164E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2219645236294178E+0
+            v = 0.3108953122413675E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7011766416089545E+0
+            v = 0.3650045807677255E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2644152887060663E+0
+            v = 0.2982344963171804E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5718955891878961E+0
+            v = 0.3600820932216460E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2510034751770465E+0
+            b = 0.8000727494073952E+0
+            v = 0.3571540554273387E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1233548532583327E+0
+            b = 0.4127724083168531E+0
+            v = 0.3392312205006170E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 350:
+
+            v = 0.3006796749453936E-2
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.3050627745650771E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.7068965463912316E+0
+            v = 0.1621104600288991E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4794682625712025E+0
+            v = 0.3005701484901752E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1927533154878019E+0
+            v = 0.2990992529653774E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6930357961327123E+0
+            v = 0.2982170644107595E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3608302115520091E+0
+            v = 0.2721564237310992E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6498486161496169E+0
+            v = 0.3033513795811141E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1932945013230339E+0
+            v = 0.3007949555218533E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3800494919899303E+0
+            v = 0.2881964603055307E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2899558825499574E+0
+            b = 0.7934537856582316E+0
+            v = 0.2958357626535696E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.9684121455103957E-1
+            b = 0.8280801506686862E+0
+            v = 0.3036020026407088E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1833434647041659E+0
+            b = 0.9074658265305127E+0
+            v = 0.2832187403926303E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 434:
+
+            v = 0.5265897968224436E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.2548219972002607E-2
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.2512317418927307E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.6909346307509111E+0
+            v = 0.2530403801186355E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1774836054609158E+0
+            v = 0.2014279020918528E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4914342637784746E+0
+            v = 0.2501725168402936E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6456664707424256E+0
+            v = 0.2513267174597564E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2861289010307638E+0
+            v = 0.2302694782227416E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7568084367178018E-1
+            v = 0.1462495621594614E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3927259763368002E+0
+            v = 0.2445373437312980E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.8818132877794288E+0
+            v = 0.2417442375638981E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.9776428111182649E+0
+            v = 0.1910951282179532E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2054823696403044E+0
+            b = 0.8689460322872412E+0
+            v = 0.2416930044324775E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5905157048925271E+0
+            b = 0.7999278543857286E+0
+            v = 0.2512236854563495E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5550152361076807E+0
+            b = 0.7717462626915901E+0
+            v = 0.2496644054553086E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.9371809858553722E+0
+            b = 0.3344363145343455E+0
+            v = 0.2236607760437849E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 590:
+
+            v = 0.3095121295306187E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.1852379698597489E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.7040954938227469E+0
+            v = 0.1871790639277744E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6807744066455243E+0
+            v = 0.1858812585438317E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6372546939258752E+0
+            v = 0.1852028828296213E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5044419707800358E+0
+            v = 0.1846715956151242E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4215761784010967E+0
+            v = 0.1818471778162769E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3317920736472123E+0
+            v = 0.1749564657281154E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2384736701421887E+0
+            v = 0.1617210647254411E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1459036449157763E+0
+            v = 0.1384737234851692E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6095034115507196E-1
+            v = 0.9764331165051050E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6116843442009876E+0
+            v = 0.1857161196774078E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3964755348199858E+0
+            v = 0.1705153996395864E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1724782009907724E+0
+            v = 0.1300321685886048E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5610263808622060E+0
+            b = 0.3518280927733519E+0
+            v = 0.1842866472905286E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4742392842551980E+0
+            b = 0.2634716655937950E+0
+            v = 0.1802658934377451E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5984126497885380E+0
+            b = 0.1816640840360209E+0
+            v = 0.1849830560443660E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3791035407695563E+0
+            b = 0.1720795225656878E+0
+            v = 0.1713904507106709E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2778673190586244E+0
+            b = 0.8213021581932511E-1
+            v = 0.1555213603396808E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5033564271075117E+0
+            b = 0.8999205842074875E-1
+            v = 0.1802239128008525E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 770:
+
+            v = 0.2192942088181184E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.1436433617319080E-2
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.1421940344335877E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.5087204410502360E-1
+            v = 0.6798123511050502E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1228198790178831E+0
+            v = 0.9913184235294912E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2026890814408786E+0
+            v = 0.1180207833238949E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2847745156464294E+0
+            v = 0.1296599602080921E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3656719078978026E+0
+            v = 0.1365871427428316E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4428264886713469E+0
+            v = 0.1402988604775325E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5140619627249735E+0
+            v = 0.1418645563595609E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6306401219166803E+0
+            v = 0.1421376741851662E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6716883332022612E+0
+            v = 0.1423996475490962E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6979792685336881E+0
+            v = 0.1431554042178567E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1446865674195309E+0
+            v = 0.9254401499865368E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3390263475411216E+0
+            v = 0.1250239995053509E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5335804651263506E+0
+            v = 0.1394365843329230E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6944024393349413E-1
+            b = 0.2355187894242326E+0
+            v = 0.1127089094671749E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2269004109529460E+0
+            b = 0.4102182474045730E+0
+            v = 0.1345753760910670E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8025574607775339E-1
+            b = 0.6214302417481605E+0
+            v = 0.1424957283316783E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1467999527896572E+0
+            b = 0.3245284345717394E+0
+            v = 0.1261523341237750E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1571507769824727E+0
+            b = 0.5224482189696630E+0
+            v = 0.1392547106052696E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2365702993157246E+0
+            b = 0.6017546634089558E+0
+            v = 0.1418761677877656E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.7714815866765732E-1
+            b = 0.4346575516141163E+0
+            v = 0.1338366684479554E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3062936666210730E+0
+            b = 0.4908826589037616E+0
+            v = 0.1393700862676131E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3822477379524787E+0
+            b = 0.5648768149099500E+0
+            v = 0.1415914757466932E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 974:
+
+            v = 0.1438294190527431E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.1125772288287004E-2
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.4292963545341347E-1
+            v = 0.4948029341949241E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1051426854086404E+0
+            v = 0.7357990109125470E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1750024867623087E+0
+            v = 0.8889132771304384E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2477653379650257E+0
+            v = 0.9888347838921435E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3206567123955957E+0
+            v = 0.1053299681709471E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3916520749849983E+0
+            v = 0.1092778807014578E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4590825874187624E+0
+            v = 0.1114389394063227E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5214563888415861E+0
+            v = 0.1123724788051555E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6253170244654199E+0
+            v = 0.1125239325243814E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6637926744523170E+0
+            v = 0.1126153271815905E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6910410398498301E+0
+            v = 0.1130286931123841E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7052907007457760E+0
+            v = 0.1134986534363955E-2
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1236686762657990E+0
+            v = 0.6823367927109931E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2940777114468387E+0
+            v = 0.9454158160447096E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4697753849207649E+0
+            v = 0.1074429975385679E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6334563241139567E+0
+            v = 0.1129300086569132E-2
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5974048614181342E-1
+            b = 0.2029128752777523E+0
+            v = 0.8436884500901954E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1375760408473636E+0
+            b = 0.4602621942484054E+0
+            v = 0.1075255720448885E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3391016526336286E+0
+            b = 0.5030673999662036E+0
+            v = 0.1108577236864462E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1271675191439820E+0
+            b = 0.2817606422442134E+0
+            v = 0.9566475323783357E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2693120740413512E+0
+            b = 0.4331561291720157E+0
+            v = 0.1080663250717391E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1419786452601918E+0
+            b = 0.6256167358580814E+0
+            v = 0.1126797131196295E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6709284600738255E-1
+            b = 0.3798395216859157E+0
+            v = 0.1022568715358061E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.7057738183256172E-1
+            b = 0.5517505421423520E+0
+            v = 0.1108960267713108E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2783888477882155E+0
+            b = 0.6029619156159187E+0
+            v = 0.1122790653435766E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1979578938917407E+0
+            b = 0.3589606329589096E+0
+            v = 0.1032401847117460E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2087307061103274E+0
+            b = 0.5348666438135476E+0
+            v = 0.1107249382283854E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4055122137872836E+0
+            b = 0.5674997546074373E+0
+            v = 0.1121780048519972E-2
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 1202:
+
+            v = 0.1105189233267572E-3
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.9205232738090741E-3
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.9133159786443561E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.3712636449657089E-1
+            v = 0.3690421898017899E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.9140060412262223E-1
+            v = 0.5603990928680660E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1531077852469906E+0
+            v = 0.6865297629282609E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2180928891660612E+0
+            v = 0.7720338551145630E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2839874532200175E+0
+            v = 0.8301545958894795E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3491177600963764E+0
+            v = 0.8686692550179628E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4121431461444309E+0
+            v = 0.8927076285846890E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4718993627149127E+0
+            v = 0.9060820238568219E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5273145452842337E+0
+            v = 0.9119777254940867E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6209475332444019E+0
+            v = 0.9128720138604181E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6569722711857291E+0
+            v = 0.9130714935691735E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6841788309070143E+0
+            v = 0.9152873784554116E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7012604330123631E+0
+            v = 0.9187436274321654E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1072382215478166E+0
+            v = 0.5176977312965694E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2582068959496968E+0
+            v = 0.7331143682101417E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4172752955306717E+0
+            v = 0.8463232836379928E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5700366911792503E+0
+            v = 0.9031122694253992E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.9827986018263947E+0
+            b = 0.1771774022615325E+0
+            v = 0.6485778453163257E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.9624249230326228E+0
+            b = 0.2475716463426288E+0
+            v = 0.7435030910982369E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.9402007994128811E+0
+            b = 0.3354616289066489E+0
+            v = 0.7998527891839054E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.9320822040143202E+0
+            b = 0.3173615246611977E+0
+            v = 0.8101731497468018E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.9043674199393299E+0
+            b = 0.4090268427085357E+0
+            v = 0.8483389574594331E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8912407560074747E+0
+            b = 0.3854291150669224E+0
+            v = 0.8556299257311812E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8676435628462708E+0
+            b = 0.4932221184851285E+0
+            v = 0.8803208679738260E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8581979986041619E+0
+            b = 0.4785320675922435E+0
+            v = 0.8811048182425720E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8396753624049856E+0
+            b = 0.4507422593157064E+0
+            v = 0.8850282341265444E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8165288564022188E+0
+            b = 0.5632123020762100E+0
+            v = 0.9021342299040653E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8015469370783529E+0
+            b = 0.5434303569693900E+0
+            v = 0.9010091677105086E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.7773563069070351E+0
+            b = 0.5123518486419871E+0
+            v = 0.9022692938426915E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.7661621213900394E+0
+            b = 0.6394279634749102E+0
+            v = 0.9158016174693465E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.7553584143533510E+0
+            b = 0.6269805509024392E+0
+            v = 0.9131578003189435E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.7344305757559503E+0
+            b = 0.6031161693096310E+0
+            v = 0.9107813579482705E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.7043837184021765E+0
+            b = 0.5693702498468441E+0
+            v = 0.9105760258970126E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 1454:
+
+            v = 0.7777160743261247E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.7557646413004701E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.3229290663413854E-1
+            v = 0.2841633806090617E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.8036733271462222E-1
+            v = 0.4374419127053555E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1354289960531653E+0
+            v = 0.5417174740872172E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1938963861114426E+0
+            v = 0.6148000891358593E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2537343715011275E+0
+            v = 0.6664394485800705E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3135251434752570E+0
+            v = 0.7025039356923220E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3721558339375338E+0
+            v = 0.7268511789249627E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4286809575195696E+0
+            v = 0.7422637534208629E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4822510128282994E+0
+            v = 0.7509545035841214E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5320679333566263E+0
+            v = 0.7548535057718401E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6172998195394274E+0
+            v = 0.7554088969774001E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6510679849127481E+0
+            v = 0.7553147174442808E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6777315251687360E+0
+            v = 0.7564767653292297E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6963109410648741E+0
+            v = 0.7587991808518730E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7058935009831749E+0
+            v = 0.7608261832033027E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.9955546194091857E+0
+            v = 0.4021680447874916E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.9734115901794209E+0
+            v = 0.5804871793945964E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.9275693732388626E+0
+            v = 0.6792151955945159E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.8568022422795103E+0
+            v = 0.7336741211286294E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.7623495553719372E+0
+            v = 0.7581866300989608E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5707522908892223E+0
+            b = 0.4387028039889501E+0
+            v = 0.7538257859800743E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5196463388403083E+0
+            b = 0.3858908414762617E+0
+            v = 0.7483517247053123E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4646337531215351E+0
+            b = 0.3301937372343854E+0
+            v = 0.7371763661112059E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4063901697557691E+0
+            b = 0.2725423573563777E+0
+            v = 0.7183448895756934E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3456329466643087E+0
+            b = 0.2139510237495250E+0
+            v = 0.6895815529822191E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2831395121050332E+0
+            b = 0.1555922309786647E+0
+            v = 0.6480105801792886E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2197682022925330E+0
+            b = 0.9892878979686097E-1
+            v = 0.5897558896594636E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1564696098650355E+0
+            b = 0.4598642910675510E-1
+            v = 0.5095708849247346E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6027356673721295E+0
+            b = 0.3376625140173426E+0
+            v = 0.7536906428909755E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5496032320255096E+0
+            b = 0.2822301309727988E+0
+            v = 0.7472505965575118E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4921707755234567E+0
+            b = 0.2248632342592540E+0
+            v = 0.7343017132279698E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4309422998598483E+0
+            b = 0.1666224723456479E+0
+            v = 0.7130871582177445E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3664108182313672E+0
+            b = 0.1086964901822169E+0
+            v = 0.6817022032112776E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2990189057758436E+0
+            b = 0.5251989784120085E-1
+            v = 0.6380941145604121E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6268724013144998E+0
+            b = 0.2297523657550023E+0
+            v = 0.7550381377920310E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5707324144834607E+0
+            b = 0.1723080607093800E+0
+            v = 0.7478646640144802E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5096360901960365E+0
+            b = 0.1140238465390513E+0
+            v = 0.7335918720601220E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4438729938312456E+0
+            b = 0.5611522095882537E-1
+            v = 0.7110120527658118E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6419978471082389E+0
+            b = 0.1164174423140873E+0
+            v = 0.7571363978689501E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5817218061802611E+0
+            b = 0.5797589531445219E-1
+            v = 0.7489908329079234E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 1730:
+
+            v = 0.6309049437420976E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.6398287705571748E-3
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.6357185073530720E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.2860923126194662E-1
+            v = 0.2221207162188168E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7142556767711522E-1
+            v = 0.3475784022286848E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1209199540995559E+0
+            v = 0.4350742443589804E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1738673106594379E+0
+            v = 0.4978569136522127E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2284645438467734E+0
+            v = 0.5435036221998053E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2834807671701512E+0
+            v = 0.5765913388219542E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3379680145467339E+0
+            v = 0.6001200359226003E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3911355454819537E+0
+            v = 0.6162178172717512E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4422860353001403E+0
+            v = 0.6265218152438485E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4907781568726057E+0
+            v = 0.6323987160974212E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5360006153211468E+0
+            v = 0.6350767851540569E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6142105973596603E+0
+            v = 0.6354362775297107E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6459300387977504E+0
+            v = 0.6352302462706235E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6718056125089225E+0
+            v = 0.6358117881417972E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6910888533186254E+0
+            v = 0.6373101590310117E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7030467416823252E+0
+            v = 0.6390428961368665E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.8354951166354646E-1
+            v = 0.3186913449946576E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2050143009099486E+0
+            v = 0.4678028558591711E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3370208290706637E+0
+            v = 0.5538829697598626E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4689051484233963E+0
+            v = 0.6044475907190476E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5939400424557334E+0
+            v = 0.6313575103509012E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1394983311832261E+0
+            b = 0.4097581162050343E-1
+            v = 0.4078626431855630E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1967999180485014E+0
+            b = 0.8851987391293348E-1
+            v = 0.4759933057812725E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2546183732548967E+0
+            b = 0.1397680182969819E+0
+            v = 0.5268151186413440E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3121281074713875E+0
+            b = 0.1929452542226526E+0
+            v = 0.5643048560507316E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3685981078502492E+0
+            b = 0.2467898337061562E+0
+            v = 0.5914501076613073E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4233760321547856E+0
+            b = 0.3003104124785409E+0
+            v = 0.6104561257874195E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4758671236059246E+0
+            b = 0.3526684328175033E+0
+            v = 0.6230252860707806E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5255178579796463E+0
+            b = 0.4031134861145713E+0
+            v = 0.6305618761760796E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5718025633734589E+0
+            b = 0.4509426448342351E+0
+            v = 0.6343092767597889E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2686927772723415E+0
+            b = 0.4711322502423248E-1
+            v = 0.5176268945737826E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3306006819904809E+0
+            b = 0.9784487303942695E-1
+            v = 0.5564840313313692E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3904906850594983E+0
+            b = 0.1505395810025273E+0
+            v = 0.5856426671038980E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4479957951904390E+0
+            b = 0.2039728156296050E+0
+            v = 0.6066386925777091E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5027076848919780E+0
+            b = 0.2571529941121107E+0
+            v = 0.6208824962234458E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5542087392260217E+0
+            b = 0.3092191375815670E+0
+            v = 0.6296314297822907E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6020850887375187E+0
+            b = 0.3593807506130276E+0
+            v = 0.6340423756791859E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4019851409179594E+0
+            b = 0.5063389934378671E-1
+            v = 0.5829627677107342E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4635614567449800E+0
+            b = 0.1032422269160612E+0
+            v = 0.6048693376081110E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5215860931591575E+0
+            b = 0.1566322094006254E+0
+            v = 0.6202362317732461E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5758202499099271E+0
+            b = 0.2098082827491099E+0
+            v = 0.6299005328403779E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6259893683876795E+0
+            b = 0.2618824114553391E+0
+            v = 0.6347722390609353E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5313795124811891E+0
+            b = 0.5263245019338556E-1
+            v = 0.6203778981238834E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5893317955931995E+0
+            b = 0.1061059730982005E+0
+            v = 0.6308414671239979E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6426246321215801E+0
+            b = 0.1594171564034221E+0
+            v = 0.6362706466959498E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6511904367376113E+0
+            b = 0.5354789536565540E-1
+            v = 0.6375414170333233E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 2030:
+
+            v = 0.4656031899197431E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.5421549195295507E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.2540835336814348E-1
+            v = 0.1778522133346553E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6399322800504915E-1
+            v = 0.2811325405682796E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1088269469804125E+0
+            v = 0.3548896312631459E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1570670798818287E+0
+            v = 0.4090310897173364E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2071163932282514E+0
+            v = 0.4493286134169965E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2578914044450844E+0
+            v = 0.4793728447962723E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3085687558169623E+0
+            v = 0.5015415319164265E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3584719706267024E+0
+            v = 0.5175127372677937E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4070135594428709E+0
+            v = 0.5285522262081019E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4536618626222638E+0
+            v = 0.5356832703713962E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4979195686463577E+0
+            v = 0.5397914736175170E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5393075111126999E+0
+            v = 0.5416899441599930E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6115617676843916E+0
+            v = 0.5419308476889938E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6414308435160159E+0
+            v = 0.5416936902030596E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6664099412721607E+0
+            v = 0.5419544338703164E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6859161771214913E+0
+            v = 0.5428983656630975E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6993625593503890E+0
+            v = 0.5442286500098193E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7062393387719380E+0
+            v = 0.5452250345057301E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7479028168349763E-1
+            v = 0.2568002497728530E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1848951153969366E+0
+            v = 0.3827211700292145E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3059529066581305E+0
+            v = 0.4579491561917824E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4285556101021362E+0
+            v = 0.5042003969083574E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5468758653496526E+0
+            v = 0.5312708889976025E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6565821978343439E+0
+            v = 0.5438401790747117E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1253901572367117E+0
+            b = 0.3681917226439641E-1
+            v = 0.3316041873197344E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1775721510383941E+0
+            b = 0.7982487607213301E-1
+            v = 0.3899113567153771E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2305693358216114E+0
+            b = 0.1264640966592335E+0
+            v = 0.4343343327201309E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2836502845992063E+0
+            b = 0.1751585683418957E+0
+            v = 0.4679415262318919E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3361794746232590E+0
+            b = 0.2247995907632670E+0
+            v = 0.4930847981631031E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3875979172264824E+0
+            b = 0.2745299257422246E+0
+            v = 0.5115031867540091E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4374019316999074E+0
+            b = 0.3236373482441118E+0
+            v = 0.5245217148457367E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4851275843340022E+0
+            b = 0.3714967859436741E+0
+            v = 0.5332041499895321E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5303391803806868E+0
+            b = 0.4175353646321745E+0
+            v = 0.5384583126021542E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5726197380596287E+0
+            b = 0.4612084406355461E+0
+            v = 0.5411067210798852E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2431520732564863E+0
+            b = 0.4258040133043952E-1
+            v = 0.4259797391468714E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3002096800895869E+0
+            b = 0.8869424306722721E-1
+            v = 0.4604931368460021E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3558554457457432E+0
+            b = 0.1368811706510655E+0
+            v = 0.4871814878255202E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4097782537048887E+0
+            b = 0.1860739985015033E+0
+            v = 0.5072242910074885E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4616337666067458E+0
+            b = 0.2354235077395853E+0
+            v = 0.5217069845235350E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5110707008417874E+0
+            b = 0.2842074921347011E+0
+            v = 0.5315785966280310E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5577415286163795E+0
+            b = 0.3317784414984102E+0
+            v = 0.5376833708758905E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6013060431366950E+0
+            b = 0.3775299002040700E+0
+            v = 0.5408032092069521E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3661596767261781E+0
+            b = 0.4599367887164592E-1
+            v = 0.4842744917904866E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4237633153506581E+0
+            b = 0.9404893773654421E-1
+            v = 0.5048926076188130E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4786328454658452E+0
+            b = 0.1431377109091971E+0
+            v = 0.5202607980478373E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5305702076789774E+0
+            b = 0.1924186388843570E+0
+            v = 0.5309932388325743E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5793436224231788E+0
+            b = 0.2411590944775190E+0
+            v = 0.5377419770895208E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6247069017094747E+0
+            b = 0.2886871491583605E+0
+            v = 0.5411696331677717E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4874315552535204E+0
+            b = 0.4804978774953206E-1
+            v = 0.5197996293282420E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5427337322059053E+0
+            b = 0.9716857199366665E-1
+            v = 0.5311120836622945E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5943493747246700E+0
+            b = 0.1465205839795055E+0
+            v = 0.5384309319956951E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6421314033564943E+0
+            b = 0.1953579449803574E+0
+            v = 0.5421859504051886E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6020628374713980E+0
+            b = 0.4916375015738108E-1
+            v = 0.5390948355046314E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6529222529856881E+0
+            b = 0.9861621540127005E-1
+            v = 0.5433312705027845E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 2354:
+
+            v = 0.3922616270665292E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.4703831750854424E-3
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.4678202801282136E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.2290024646530589E-1
+            v = 0.1437832228979900E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5779086652271284E-1
+            v = 0.2303572493577644E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.9863103576375984E-1
+            v = 0.2933110752447454E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1428155792982185E+0
+            v = 0.3402905998359838E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1888978116601463E+0
+            v = 0.3759138466870372E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2359091682970210E+0
+            v = 0.4030638447899798E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2831228833706171E+0
+            v = 0.4236591432242211E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3299495857966693E+0
+            v = 0.4390522656946746E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3758840802660796E+0
+            v = 0.4502523466626247E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4204751831009480E+0
+            v = 0.4580577727783541E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4633068518751051E+0
+            v = 0.4631391616615899E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5039849474507313E+0
+            v = 0.4660928953698676E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5421265793440747E+0
+            v = 0.4674751807936953E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6092660230557310E+0
+            v = 0.4676414903932920E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6374654204984869E+0
+            v = 0.4674086492347870E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6615136472609892E+0
+            v = 0.4674928539483207E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6809487285958127E+0
+            v = 0.4680748979686447E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6952980021665196E+0
+            v = 0.4690449806389040E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7041245497695400E+0
+            v = 0.4699877075860818E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6744033088306065E-1
+            v = 0.2099942281069176E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1678684485334166E+0
+            v = 0.3172269150712804E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2793559049539613E+0
+            v = 0.3832051358546523E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3935264218057639E+0
+            v = 0.4252193818146985E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5052629268232558E+0
+            v = 0.4513807963755000E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6107905315437531E+0
+            v = 0.4657797469114178E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1135081039843524E+0
+            b = 0.3331954884662588E-1
+            v = 0.2733362800522836E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1612866626099378E+0
+            b = 0.7247167465436538E-1
+            v = 0.3235485368463559E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2100786550168205E+0
+            b = 0.1151539110849745E+0
+            v = 0.3624908726013453E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2592282009459942E+0
+            b = 0.1599491097143677E+0
+            v = 0.3925540070712828E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3081740561320203E+0
+            b = 0.2058699956028027E+0
+            v = 0.4156129781116235E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3564289781578164E+0
+            b = 0.2521624953502911E+0
+            v = 0.4330644984623263E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4035587288240703E+0
+            b = 0.2982090785797674E+0
+            v = 0.4459677725921312E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4491671196373903E+0
+            b = 0.3434762087235733E+0
+            v = 0.4551593004456795E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4928854782917489E+0
+            b = 0.3874831357203437E+0
+            v = 0.4613341462749918E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5343646791958988E+0
+            b = 0.4297814821746926E+0
+            v = 0.4651019618269806E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5732683216530990E+0
+            b = 0.4699402260943537E+0
+            v = 0.4670249536100625E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2214131583218986E+0
+            b = 0.3873602040643895E-1
+            v = 0.3549555576441708E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2741796504750071E+0
+            b = 0.8089496256902013E-1
+            v = 0.3856108245249010E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3259797439149485E+0
+            b = 0.1251732177620872E+0
+            v = 0.4098622845756882E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3765441148826891E+0
+            b = 0.1706260286403185E+0
+            v = 0.4286328604268950E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4255773574530558E+0
+            b = 0.2165115147300408E+0
+            v = 0.4427802198993945E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4727795117058430E+0
+            b = 0.2622089812225259E+0
+            v = 0.4530473511488561E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5178546895819012E+0
+            b = 0.3071721431296201E+0
+            v = 0.4600805475703138E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5605141192097460E+0
+            b = 0.3508998998801138E+0
+            v = 0.4644599059958017E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6004763319352512E+0
+            b = 0.3929160876166931E+0
+            v = 0.4667274455712508E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3352842634946949E+0
+            b = 0.4202563457288019E-1
+            v = 0.4069360518020356E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3891971629814670E+0
+            b = 0.8614309758870850E-1
+            v = 0.4260442819919195E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4409875565542281E+0
+            b = 0.1314500879380001E+0
+            v = 0.4408678508029063E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4904893058592484E+0
+            b = 0.1772189657383859E+0
+            v = 0.4518748115548597E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5375056138769549E+0
+            b = 0.2228277110050294E+0
+            v = 0.4595564875375116E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5818255708669969E+0
+            b = 0.2677179935014386E+0
+            v = 0.4643988774315846E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6232334858144959E+0
+            b = 0.3113675035544165E+0
+            v = 0.4668827491646946E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4489485354492058E+0
+            b = 0.4409162378368174E-1
+            v = 0.4400541823741973E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5015136875933150E+0
+            b = 0.8939009917748489E-1
+            v = 0.4514512890193797E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5511300550512623E+0
+            b = 0.1351806029383365E+0
+            v = 0.4596198627347549E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5976720409858000E+0
+            b = 0.1808370355053196E+0
+            v = 0.4648659016801781E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6409956378989354E+0
+            b = 0.2257852192301602E+0
+            v = 0.4675502017157673E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5581222330827514E+0
+            b = 0.4532173421637160E-1
+            v = 0.4598494476455523E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6074705984161695E+0
+            b = 0.9117488031840314E-1
+            v = 0.4654916955152048E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6532272537379033E+0
+            b = 0.1369294213140155E+0
+            v = 0.4684709779505137E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6594761494500487E+0
+            b = 0.4589901487275583E-1
+            v = 0.4691445539106986E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 2702:
+
+            v = 0.2998675149888161E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.4077860529495355E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.2065562538818703E-1
+            v = 0.1185349192520667E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5250918173022379E-1
+            v = 0.1913408643425751E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.8993480082038376E-1
+            v = 0.2452886577209897E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1306023924436019E+0
+            v = 0.2862408183288702E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1732060388531418E+0
+            v = 0.3178032258257357E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2168727084820249E+0
+            v = 0.3422945667633690E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2609528309173586E+0
+            v = 0.3612790520235922E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3049252927938952E+0
+            v = 0.3758638229818521E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3483484138084404E+0
+            v = 0.3868711798859953E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3908321549106406E+0
+            v = 0.3949429933189938E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4320210071894814E+0
+            v = 0.4006068107541156E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4715824795890053E+0
+            v = 0.4043192149672723E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5091984794078453E+0
+            v = 0.4064947495808078E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5445580145650803E+0
+            v = 0.4075245619813152E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6072575796841768E+0
+            v = 0.4076423540893566E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6339484505755803E+0
+            v = 0.4074280862251555E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6570718257486958E+0
+            v = 0.4074163756012244E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6762557330090709E+0
+            v = 0.4077647795071246E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6911161696923790E+0
+            v = 0.4084517552782530E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7012841911659961E+0
+            v = 0.4092468459224052E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7064559272410020E+0
+            v = 0.4097872687240906E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6123554989894765E-1
+            v = 0.1738986811745028E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1533070348312393E+0
+            v = 0.2659616045280191E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2563902605244206E+0
+            v = 0.3240596008171533E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3629346991663361E+0
+            v = 0.3621195964432943E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4683949968987538E+0
+            v = 0.3868838330760539E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5694479240657952E+0
+            v = 0.4018911532693111E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6634465430993955E+0
+            v = 0.4089929432983252E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1033958573552305E+0
+            b = 0.3034544009063584E-1
+            v = 0.2279907527706409E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1473521412414395E+0
+            b = 0.6618803044247135E-1
+            v = 0.2715205490578897E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1924552158705967E+0
+            b = 0.1054431128987715E+0
+            v = 0.3057917896703976E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2381094362890328E+0
+            b = 0.1468263551238858E+0
+            v = 0.3326913052452555E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2838121707936760E+0
+            b = 0.1894486108187886E+0
+            v = 0.3537334711890037E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3291323133373415E+0
+            b = 0.2326374238761579E+0
+            v = 0.3700567500783129E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3736896978741460E+0
+            b = 0.2758485808485768E+0
+            v = 0.3825245372589122E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4171406040760013E+0
+            b = 0.3186179331996921E+0
+            v = 0.3918125171518296E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4591677985256915E+0
+            b = 0.3605329796303794E+0
+            v = 0.3984720419937579E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4994733831718418E+0
+            b = 0.4012147253586509E+0
+            v = 0.4029746003338211E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5377731830445096E+0
+            b = 0.4403050025570692E+0
+            v = 0.4057428632156627E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5737917830001331E+0
+            b = 0.4774565904277483E+0
+            v = 0.4071719274114857E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2027323586271389E+0
+            b = 0.3544122504976147E-1
+            v = 0.2990236950664119E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2516942375187273E+0
+            b = 0.7418304388646328E-1
+            v = 0.3262951734212878E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3000227995257181E+0
+            b = 0.1150502745727186E+0
+            v = 0.3482634608242413E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3474806691046342E+0
+            b = 0.1571963371209364E+0
+            v = 0.3656596681700892E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3938103180359209E+0
+            b = 0.1999631877247100E+0
+            v = 0.3791740467794218E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4387519590455703E+0
+            b = 0.2428073457846535E+0
+            v = 0.3894034450156905E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4820503960077787E+0
+            b = 0.2852575132906155E+0
+            v = 0.3968600245508371E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5234573778475101E+0
+            b = 0.3268884208674639E+0
+            v = 0.4019931351420050E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5627318647235282E+0
+            b = 0.3673033321675939E+0
+            v = 0.4052108801278599E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5996390607156954E+0
+            b = 0.4061211551830290E+0
+            v = 0.4068978613940934E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3084780753791947E+0
+            b = 0.3860125523100059E-1
+            v = 0.3454275351319704E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3589988275920223E+0
+            b = 0.7928938987104867E-1
+            v = 0.3629963537007920E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4078628415881973E+0
+            b = 0.1212614643030087E+0
+            v = 0.3770187233889873E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4549287258889735E+0
+            b = 0.1638770827382693E+0
+            v = 0.3878608613694378E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5000278512957279E+0
+            b = 0.2065965798260176E+0
+            v = 0.3959065270221274E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5429785044928199E+0
+            b = 0.2489436378852235E+0
+            v = 0.4015286975463570E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5835939850491711E+0
+            b = 0.2904811368946891E+0
+            v = 0.4050866785614717E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6216870353444856E+0
+            b = 0.3307941957666609E+0
+            v = 0.4069320185051913E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4151104662709091E+0
+            b = 0.4064829146052554E-1
+            v = 0.3760120964062763E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4649804275009218E+0
+            b = 0.8258424547294755E-1
+            v = 0.3870969564418064E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5124695757009662E+0
+            b = 0.1251841962027289E+0
+            v = 0.3955287790534055E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5574711100606224E+0
+            b = 0.1679107505976331E+0
+            v = 0.4015361911302668E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5998597333287227E+0
+            b = 0.2102805057358715E+0
+            v = 0.4053836986719548E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6395007148516600E+0
+            b = 0.2518418087774107E+0
+            v = 0.4073578673299117E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5188456224746252E+0
+            b = 0.4194321676077518E-1
+            v = 0.3954628379231406E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5664190707942778E+0
+            b = 0.8457661551921499E-1
+            v = 0.4017645508847530E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6110464353283153E+0
+            b = 0.1273652932519396E+0
+            v = 0.4059030348651293E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6526430302051563E+0
+            b = 0.1698173239076354E+0
+            v = 0.4080565809484880E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6167551880377548E+0
+            b = 0.4266398851548864E-1
+            v = 0.4063018753664651E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6607195418355383E+0
+            b = 0.8551925814238349E-1
+            v = 0.4087191292799671E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 3074:
+
+            v = 0.2599095953754734E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.3603134089687541E-3
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.3586067974412447E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.1886108518723392E-1
+            v = 0.9831528474385880E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4800217244625303E-1
+            v = 0.1605023107954450E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.8244922058397242E-1
+            v = 0.2072200131464099E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1200408362484023E+0
+            v = 0.2431297618814187E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1595773530809965E+0
+            v = 0.2711819064496707E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2002635973434064E+0
+            v = 0.2932762038321116E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2415127590139982E+0
+            v = 0.3107032514197368E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2828584158458477E+0
+            v = 0.3243808058921213E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3239091015338138E+0
+            v = 0.3349899091374030E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3643225097962194E+0
+            v = 0.3430580688505218E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4037897083691802E+0
+            v = 0.3490124109290343E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4420247515194127E+0
+            v = 0.3532148948561955E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4787572538464938E+0
+            v = 0.3559862669062833E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5137265251275234E+0
+            v = 0.3576224317551411E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5466764056654611E+0
+            v = 0.3584050533086076E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6054859420813535E+0
+            v = 0.3584903581373224E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6308106701764562E+0
+            v = 0.3582991879040586E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6530369230179584E+0
+            v = 0.3582371187963125E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6718609524611158E+0
+            v = 0.3584353631122350E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6869676499894013E+0
+            v = 0.3589120166517785E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6980467077240748E+0
+            v = 0.3595445704531601E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7048241721250522E+0
+            v = 0.3600943557111074E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5591105222058232E-1
+            v = 0.1456447096742039E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1407384078513916E+0
+            v = 0.2252370188283782E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2364035438976309E+0
+            v = 0.2766135443474897E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3360602737818170E+0
+            v = 0.3110729491500851E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4356292630054665E+0
+            v = 0.3342506712303391E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5321569415256174E+0
+            v = 0.3491981834026860E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6232956305040554E+0
+            v = 0.3576003604348932E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.9469870086838469E-1
+            b = 0.2778748387309470E-1
+            v = 0.1921921305788564E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1353170300568141E+0
+            b = 0.6076569878628364E-1
+            v = 0.2301458216495632E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1771679481726077E+0
+            b = 0.9703072762711040E-1
+            v = 0.2604248549522893E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2197066664231751E+0
+            b = 0.1354112458524762E+0
+            v = 0.2845275425870697E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2624783557374927E+0
+            b = 0.1750996479744100E+0
+            v = 0.3036870897974840E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3050969521214442E+0
+            b = 0.2154896907449802E+0
+            v = 0.3188414832298066E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3472252637196021E+0
+            b = 0.2560954625740152E+0
+            v = 0.3307046414722089E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3885610219026360E+0
+            b = 0.2965070050624096E+0
+            v = 0.3398330969031360E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4288273776062765E+0
+            b = 0.3363641488734497E+0
+            v = 0.3466757899705373E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4677662471302948E+0
+            b = 0.3753400029836788E+0
+            v = 0.3516095923230054E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5051333589553359E+0
+            b = 0.4131297522144286E+0
+            v = 0.3549645184048486E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5406942145810492E+0
+            b = 0.4494423776081795E+0
+            v = 0.3570415969441392E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5742204122576457E+0
+            b = 0.4839938958841502E+0
+            v = 0.3581251798496118E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1865407027225188E+0
+            b = 0.3259144851070796E-1
+            v = 0.2543491329913348E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2321186453689432E+0
+            b = 0.6835679505297343E-1
+            v = 0.2786711051330776E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2773159142523882E+0
+            b = 0.1062284864451989E+0
+            v = 0.2985552361083679E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3219200192237254E+0
+            b = 0.1454404409323047E+0
+            v = 0.3145867929154039E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3657032593944029E+0
+            b = 0.1854018282582510E+0
+            v = 0.3273290662067609E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4084376778363622E+0
+            b = 0.2256297412014750E+0
+            v = 0.3372705511943501E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4499004945751427E+0
+            b = 0.2657104425000896E+0
+            v = 0.3448274437851510E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4898758141326335E+0
+            b = 0.3052755487631557E+0
+            v = 0.3503592783048583E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5281547442266309E+0
+            b = 0.3439863920645423E+0
+            v = 0.3541854792663162E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5645346989813992E+0
+            b = 0.3815229456121914E+0
+            v = 0.3565995517909428E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5988181252159848E+0
+            b = 0.4175752420966734E+0
+            v = 0.3578802078302898E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2850425424471603E+0
+            b = 0.3562149509862536E-1
+            v = 0.2958644592860982E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3324619433027876E+0
+            b = 0.7330318886871096E-1
+            v = 0.3119548129116835E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3785848333076282E+0
+            b = 0.1123226296008472E+0
+            v = 0.3250745225005984E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4232891028562115E+0
+            b = 0.1521084193337708E+0
+            v = 0.3355153415935208E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4664287050829722E+0
+            b = 0.1921844459223610E+0
+            v = 0.3435847568549328E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5078458493735726E+0
+            b = 0.2321360989678303E+0
+            v = 0.3495786831622488E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5473779816204180E+0
+            b = 0.2715886486360520E+0
+            v = 0.3537767805534621E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5848617133811376E+0
+            b = 0.3101924707571355E+0
+            v = 0.3564459815421428E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6201348281584888E+0
+            b = 0.3476121052890973E+0
+            v = 0.3578464061225468E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3852191185387871E+0
+            b = 0.3763224880035108E-1
+            v = 0.3239748762836212E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4325025061073423E+0
+            b = 0.7659581935637135E-1
+            v = 0.3345491784174287E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4778486229734490E+0
+            b = 0.1163381306083900E+0
+            v = 0.3429126177301782E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5211663693009000E+0
+            b = 0.1563890598752899E+0
+            v = 0.3492420343097421E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5623469504853703E+0
+            b = 0.1963320810149200E+0
+            v = 0.3537399050235257E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6012718188659246E+0
+            b = 0.2357847407258738E+0
+            v = 0.3566209152659172E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6378179206390117E+0
+            b = 0.2743846121244060E+0
+            v = 0.3581084321919782E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4836936460214534E+0
+            b = 0.3895902610739024E-1
+            v = 0.3426522117591512E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5293792562683797E+0
+            b = 0.7871246819312640E-1
+            v = 0.3491848770121379E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5726281253100033E+0
+            b = 0.1187963808202981E+0
+            v = 0.3539318235231476E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6133658776169068E+0
+            b = 0.1587914708061787E+0
+            v = 0.3570231438458694E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6515085491865307E+0
+            b = 0.1983058575227646E+0
+            v = 0.3586207335051714E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5778692716064976E+0
+            b = 0.3977209689791542E-1
+            v = 0.3541196205164025E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6207904288086192E+0
+            b = 0.7990157592981152E-1
+            v = 0.3574296911573953E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6608688171046802E+0
+            b = 0.1199671308754309E+0
+            v = 0.3591993279818963E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6656263089489130E+0
+            b = 0.4015955957805969E-1
+            v = 0.3595855034661997E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 3470:
+
+            v = 0.2040382730826330E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.3178149703889544E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.1721420832906233E-1
+            v = 0.8288115128076110E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4408875374981770E-1
+            v = 0.1360883192522954E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7594680813878681E-1
+            v = 0.1766854454542662E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1108335359204799E+0
+            v = 0.2083153161230153E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1476517054388567E+0
+            v = 0.2333279544657158E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1856731870860615E+0
+            v = 0.2532809539930247E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2243634099428821E+0
+            v = 0.2692472184211158E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2633006881662727E+0
+            v = 0.2819949946811885E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3021340904916283E+0
+            v = 0.2920953593973030E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3405594048030089E+0
+            v = 0.2999889782948352E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3783044434007372E+0
+            v = 0.3060292120496902E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4151194767407910E+0
+            v = 0.3105109167522192E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4507705766443257E+0
+            v = 0.3136902387550312E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4850346056573187E+0
+            v = 0.3157984652454632E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5176950817792470E+0
+            v = 0.3170516518425422E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5485384240820989E+0
+            v = 0.3176568425633755E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6039117238943308E+0
+            v = 0.3177198411207062E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6279956655573113E+0
+            v = 0.3175519492394733E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6493636169568952E+0
+            v = 0.3174654952634756E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6677644117704504E+0
+            v = 0.3175676415467654E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6829368572115624E+0
+            v = 0.3178923417835410E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6946195818184121E+0
+            v = 0.3183788287531909E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7025711542057026E+0
+            v = 0.3188755151918807E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7066004767140119E+0
+            v = 0.3191916889313849E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5132537689946062E-1
+            v = 0.1231779611744508E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1297994661331225E+0
+            v = 0.1924661373839880E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2188852049401307E+0
+            v = 0.2380881867403424E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3123174824903457E+0
+            v = 0.2693100663037885E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4064037620738195E+0
+            v = 0.2908673382834366E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4984958396944782E+0
+            v = 0.3053914619381535E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5864975046021365E+0
+            v = 0.3143916684147777E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6686711634580175E+0
+            v = 0.3187042244055363E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.8715738780835950E-1
+            b = 0.2557175233367578E-1
+            v = 0.1635219535869790E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1248383123134007E+0
+            b = 0.5604823383376681E-1
+            v = 0.1968109917696070E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1638062693383378E+0
+            b = 0.8968568601900765E-1
+            v = 0.2236754342249974E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2035586203373176E+0
+            b = 0.1254086651976279E+0
+            v = 0.2453186687017181E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2436798975293774E+0
+            b = 0.1624780150162012E+0
+            v = 0.2627551791580541E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2838207507773806E+0
+            b = 0.2003422342683208E+0
+            v = 0.2767654860152220E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3236787502217692E+0
+            b = 0.2385628026255263E+0
+            v = 0.2879467027765895E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3629849554840691E+0
+            b = 0.2767731148783578E+0
+            v = 0.2967639918918702E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4014948081992087E+0
+            b = 0.3146542308245309E+0
+            v = 0.3035900684660351E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4389818379260225E+0
+            b = 0.3519196415895088E+0
+            v = 0.3087338237298308E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4752331143674377E+0
+            b = 0.3883050984023654E+0
+            v = 0.3124608838860167E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5100457318374018E+0
+            b = 0.4235613423908649E+0
+            v = 0.3150084294226743E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5432238388954868E+0
+            b = 0.4574484717196220E+0
+            v = 0.3165958398598402E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5745758685072442E+0
+            b = 0.4897311639255524E+0
+            v = 0.3174320440957372E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1723981437592809E+0
+            b = 0.3010630597881105E-1
+            v = 0.2182188909812599E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2149553257844597E+0
+            b = 0.6326031554204694E-1
+            v = 0.2399727933921445E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2573256081247422E+0
+            b = 0.9848566980258631E-1
+            v = 0.2579796133514652E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2993163751238106E+0
+            b = 0.1350835952384266E+0
+            v = 0.2727114052623535E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3407238005148000E+0
+            b = 0.1725184055442181E+0
+            v = 0.2846327656281355E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3813454978483264E+0
+            b = 0.2103559279730725E+0
+            v = 0.2941491102051334E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4209848104423343E+0
+            b = 0.2482278774554860E+0
+            v = 0.3016049492136107E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4594519699996300E+0
+            b = 0.2858099509982883E+0
+            v = 0.3072949726175648E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4965640166185930E+0
+            b = 0.3228075659915428E+0
+            v = 0.3114768142886460E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5321441655571562E+0
+            b = 0.3589459907204151E+0
+            v = 0.3143823673666223E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5660208438582166E+0
+            b = 0.3939630088864310E+0
+            v = 0.3162269764661535E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5980264315964364E+0
+            b = 0.4276029922949089E+0
+            v = 0.3172164663759821E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2644215852350733E+0
+            b = 0.3300939429072552E-1
+            v = 0.2554575398967435E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3090113743443063E+0
+            b = 0.6803887650078501E-1
+            v = 0.2701704069135677E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3525871079197808E+0
+            b = 0.1044326136206709E+0
+            v = 0.2823693413468940E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3950418005354029E+0
+            b = 0.1416751597517679E+0
+            v = 0.2922898463214289E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4362475663430163E+0
+            b = 0.1793408610504821E+0
+            v = 0.3001829062162428E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4760661812145854E+0
+            b = 0.2170630750175722E+0
+            v = 0.3062890864542953E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5143551042512103E+0
+            b = 0.2545145157815807E+0
+            v = 0.3108328279264746E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5509709026935597E+0
+            b = 0.2913940101706601E+0
+            v = 0.3140243146201245E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5857711030329428E+0
+            b = 0.3274169910910705E+0
+            v = 0.3160638030977130E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6186149917404392E+0
+            b = 0.3623081329317265E+0
+            v = 0.3171462882206275E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3586894569557064E+0
+            b = 0.3497354386450040E-1
+            v = 0.2812388416031796E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4035266610019441E+0
+            b = 0.7129736739757095E-1
+            v = 0.2912137500288045E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4467775312332510E+0
+            b = 0.1084758620193165E+0
+            v = 0.2993241256502206E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4883638346608543E+0
+            b = 0.1460915689241772E+0
+            v = 0.3057101738983822E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5281908348434601E+0
+            b = 0.1837790832369980E+0
+            v = 0.3105319326251432E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5661542687149311E+0
+            b = 0.2212075390874021E+0
+            v = 0.3139565514428167E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6021450102031452E+0
+            b = 0.2580682841160985E+0
+            v = 0.3161543006806366E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6360520783610050E+0
+            b = 0.2940656362094121E+0
+            v = 0.3172985960613294E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4521611065087196E+0
+            b = 0.3631055365867002E-1
+            v = 0.2989400336901431E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4959365651560963E+0
+            b = 0.7348318468484350E-1
+            v = 0.3054555883947677E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5376815804038283E+0
+            b = 0.1111087643812648E+0
+            v = 0.3104764960807702E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5773314480243768E+0
+            b = 0.1488226085145408E+0
+            v = 0.3141015825977616E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6148113245575056E+0
+            b = 0.1862892274135151E+0
+            v = 0.3164520621159896E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6500407462842380E+0
+            b = 0.2231909701714456E+0
+            v = 0.3176652305912204E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5425151448707213E+0
+            b = 0.3718201306118944E-1
+            v = 0.3105097161023939E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5841860556907931E+0
+            b = 0.7483616335067346E-1
+            v = 0.3143014117890550E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6234632186851500E+0
+            b = 0.1125990834266120E+0
+            v = 0.3168172866287200E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6602934551848843E+0
+            b = 0.1501303813157619E+0
+            v = 0.3181401865570968E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6278573968375105E+0
+            b = 0.3767559930245720E-1
+            v = 0.3170663659156037E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6665611711264577E+0
+            b = 0.7548443301360158E-1
+            v = 0.3185447944625510E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 3890:
+
+            v = 0.1807395252196920E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.2848008782238827E-3
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.2836065837530581E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.1587876419858352E-1
+            v = 0.7013149266673816E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4069193593751206E-1
+            v = 0.1162798021956766E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7025888115257997E-1
+            v = 0.1518728583972105E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1027495450028704E+0
+            v = 0.1798796108216934E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1371457730893426E+0
+            v = 0.2022593385972785E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1727758532671953E+0
+            v = 0.2203093105575464E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2091492038929037E+0
+            v = 0.2349294234299855E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2458813281751915E+0
+            v = 0.2467682058747003E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2826545859450066E+0
+            v = 0.2563092683572224E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3191957291799622E+0
+            v = 0.2639253896763318E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3552621469299578E+0
+            v = 0.2699137479265108E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3906329503406230E+0
+            v = 0.2745196420166739E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4251028614093031E+0
+            v = 0.2779529197397593E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4584777520111870E+0
+            v = 0.2803996086684265E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4905711358710193E+0
+            v = 0.2820302356715842E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5212011669847385E+0
+            v = 0.2830056747491068E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5501878488737995E+0
+            v = 0.2834808950776839E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6025037877479342E+0
+            v = 0.2835282339078929E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6254572689549016E+0
+            v = 0.2833819267065800E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6460107179528248E+0
+            v = 0.2832858336906784E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6639541138154251E+0
+            v = 0.2833268235451244E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6790688515667495E+0
+            v = 0.2835432677029253E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6911338580371512E+0
+            v = 0.2839091722743049E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6999385956126490E+0
+            v = 0.2843308178875841E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7053037748656896E+0
+            v = 0.2846703550533846E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4732224387180115E-1
+            v = 0.1051193406971900E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1202100529326803E+0
+            v = 0.1657871838796974E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2034304820664855E+0
+            v = 0.2064648113714232E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2912285643573002E+0
+            v = 0.2347942745819741E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3802361792726768E+0
+            v = 0.2547775326597726E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4680598511056146E+0
+            v = 0.2686876684847025E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5528151052155599E+0
+            v = 0.2778665755515867E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6329386307803041E+0
+            v = 0.2830996616782929E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.8056516651369069E-1
+            b = 0.2363454684003124E-1
+            v = 0.1403063340168372E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1156476077139389E+0
+            b = 0.5191291632545936E-1
+            v = 0.1696504125939477E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1520473382760421E+0
+            b = 0.8322715736994519E-1
+            v = 0.1935787242745390E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1892986699745931E+0
+            b = 0.1165855667993712E+0
+            v = 0.2130614510521968E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2270194446777792E+0
+            b = 0.1513077167409504E+0
+            v = 0.2289381265931048E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2648908185093273E+0
+            b = 0.1868882025807859E+0
+            v = 0.2418630292816186E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3026389259574136E+0
+            b = 0.2229277629776224E+0
+            v = 0.2523400495631193E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3400220296151384E+0
+            b = 0.2590951840746235E+0
+            v = 0.2607623973449605E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3768217953335510E+0
+            b = 0.2951047291750847E+0
+            v = 0.2674441032689209E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4128372900921884E+0
+            b = 0.3307019714169930E+0
+            v = 0.2726432360343356E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4478807131815630E+0
+            b = 0.3656544101087634E+0
+            v = 0.2765787685924545E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4817742034089257E+0
+            b = 0.3997448951939695E+0
+            v = 0.2794428690642224E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5143472814653344E+0
+            b = 0.4327667110812024E+0
+            v = 0.2814099002062895E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5454346213905650E+0
+            b = 0.4645196123532293E+0
+            v = 0.2826429531578994E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5748739313170252E+0
+            b = 0.4948063555703345E+0
+            v = 0.2832983542550884E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1599598738286342E+0
+            b = 0.2792357590048985E-1
+            v = 0.1886695565284976E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1998097412500951E+0
+            b = 0.5877141038139065E-1
+            v = 0.2081867882748234E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2396228952566202E+0
+            b = 0.9164573914691377E-1
+            v = 0.2245148680600796E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2792228341097746E+0
+            b = 0.1259049641962687E+0
+            v = 0.2380370491511872E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3184251107546741E+0
+            b = 0.1610594823400863E+0
+            v = 0.2491398041852455E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3570481164426244E+0
+            b = 0.1967151653460898E+0
+            v = 0.2581632405881230E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3949164710492144E+0
+            b = 0.2325404606175168E+0
+            v = 0.2653965506227417E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4318617293970503E+0
+            b = 0.2682461141151439E+0
+            v = 0.2710857216747087E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4677221009931678E+0
+            b = 0.3035720116011973E+0
+            v = 0.2754434093903659E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5023417939270955E+0
+            b = 0.3382781859197439E+0
+            v = 0.2786579932519380E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5355701836636128E+0
+            b = 0.3721383065625942E+0
+            v = 0.2809011080679474E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5672608451328771E+0
+            b = 0.4049346360466055E+0
+            v = 0.2823336184560987E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5972704202540162E+0
+            b = 0.4364538098633802E+0
+            v = 0.2831101175806309E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2461687022333596E+0
+            b = 0.3070423166833368E-1
+            v = 0.2221679970354546E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2881774566286831E+0
+            b = 0.6338034669281885E-1
+            v = 0.2356185734270703E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3293963604116978E+0
+            b = 0.9742862487067941E-1
+            v = 0.2469228344805590E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3697303822241377E+0
+            b = 0.1323799532282290E+0
+            v = 0.2562726348642046E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4090663023135127E+0
+            b = 0.1678497018129336E+0
+            v = 0.2638756726753028E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4472819355411712E+0
+            b = 0.2035095105326114E+0
+            v = 0.2699311157390862E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4842513377231437E+0
+            b = 0.2390692566672091E+0
+            v = 0.2746233268403837E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5198477629962928E+0
+            b = 0.2742649818076149E+0
+            v = 0.2781225674454771E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5539453011883145E+0
+            b = 0.3088503806580094E+0
+            v = 0.2805881254045684E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5864196762401251E+0
+            b = 0.3425904245906614E+0
+            v = 0.2821719877004913E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6171484466668390E+0
+            b = 0.3752562294789468E+0
+            v = 0.2830222502333124E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3350337830565727E+0
+            b = 0.3261589934634747E-1
+            v = 0.2457995956744870E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3775773224758284E+0
+            b = 0.6658438928081572E-1
+            v = 0.2551474407503706E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4188155229848973E+0
+            b = 0.1014565797157954E+0
+            v = 0.2629065335195311E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4586805892009344E+0
+            b = 0.1368573320843822E+0
+            v = 0.2691900449925075E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4970895714224235E+0
+            b = 0.1724614851951608E+0
+            v = 0.2741275485754276E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5339505133960747E+0
+            b = 0.2079779381416412E+0
+            v = 0.2778530970122595E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5691665792531440E+0
+            b = 0.2431385788322288E+0
+            v = 0.2805010567646741E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6026387682680377E+0
+            b = 0.2776901883049853E+0
+            v = 0.2822055834031040E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6342676150163307E+0
+            b = 0.3113881356386632E+0
+            v = 0.2831016901243473E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4237951119537067E+0
+            b = 0.3394877848664351E-1
+            v = 0.2624474901131803E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4656918683234929E+0
+            b = 0.6880219556291447E-1
+            v = 0.2688034163039377E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5058857069185980E+0
+            b = 0.1041946859721635E+0
+            v = 0.2738932751287636E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5443204666713996E+0
+            b = 0.1398039738736393E+0
+            v = 0.2777944791242523E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5809298813759742E+0
+            b = 0.1753373381196155E+0
+            v = 0.2806011661660987E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6156416039447128E+0
+            b = 0.2105215793514010E+0
+            v = 0.2824181456597460E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6483801351066604E+0
+            b = 0.2450953312157051E+0
+            v = 0.2833585216577828E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5103616577251688E+0
+            b = 0.3485560643800719E-1
+            v = 0.2738165236962878E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5506738792580681E+0
+            b = 0.7026308631512033E-1
+            v = 0.2778365208203180E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5889573040995292E+0
+            b = 0.1059035061296403E+0
+            v = 0.2807852940418966E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6251641589516930E+0
+            b = 0.1414823925236026E+0
+            v = 0.2827245949674705E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6592414921570178E+0
+            b = 0.1767207908214530E+0
+            v = 0.2837342344829828E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5930314017533384E+0
+            b = 0.3542189339561672E-1
+            v = 0.2809233907610981E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6309812253390175E+0
+            b = 0.7109574040369549E-1
+            v = 0.2829930809742694E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6666296011353230E+0
+            b = 0.1067259792282730E+0
+            v = 0.2841097874111479E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6703715271049922E+0
+            b = 0.3569455268820809E-1
+            v = 0.2843455206008783E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 4334:
+
+            v = 0.1449063022537883E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.2546377329828424E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.1462896151831013E-1
+            v = 0.6018432961087496E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3769840812493139E-1
+            v = 0.1002286583263673E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6524701904096891E-1
+            v = 0.1315222931028093E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.9560543416134648E-1
+            v = 0.1564213746876724E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1278335898929198E+0
+            v = 0.1765118841507736E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1613096104466031E+0
+            v = 0.1928737099311080E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1955806225745371E+0
+            v = 0.2062658534263270E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2302935218498028E+0
+            v = 0.2172395445953787E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2651584344113027E+0
+            v = 0.2262076188876047E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2999276825183209E+0
+            v = 0.2334885699462397E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3343828669718798E+0
+            v = 0.2393355273179203E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3683265013750518E+0
+            v = 0.2439559200468863E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4015763206518108E+0
+            v = 0.2475251866060002E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4339612026399770E+0
+            v = 0.2501965558158773E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4653180651114582E+0
+            v = 0.2521081407925925E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4954893331080803E+0
+            v = 0.2533881002388081E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5243207068924930E+0
+            v = 0.2541582900848261E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5516590479041704E+0
+            v = 0.2545365737525860E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6012371927804176E+0
+            v = 0.2545726993066799E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6231574466449819E+0
+            v = 0.2544456197465555E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6429416514181271E+0
+            v = 0.2543481596881064E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6604124272943595E+0
+            v = 0.2543506451429194E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6753851470408250E+0
+            v = 0.2544905675493763E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6876717970626160E+0
+            v = 0.2547611407344429E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6970895061319234E+0
+            v = 0.2551060375448869E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7034746912553310E+0
+            v = 0.2554291933816039E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7067017217542295E+0
+            v = 0.2556255710686343E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4382223501131123E-1
+            v = 0.9041339695118195E-4
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1117474077400006E+0
+            v = 0.1438426330079022E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1897153252911440E+0
+            v = 0.1802523089820518E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2724023009910331E+0
+            v = 0.2060052290565496E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3567163308709902E+0
+            v = 0.2245002248967466E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4404784483028087E+0
+            v = 0.2377059847731150E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5219833154161411E+0
+            v = 0.2468118955882525E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5998179868977553E+0
+            v = 0.2525410872966528E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6727803154548222E+0
+            v = 0.2553101409933397E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.7476563943166086E-1
+            b = 0.2193168509461185E-1
+            v = 0.1212879733668632E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1075341482001416E+0
+            b = 0.4826419281533887E-1
+            v = 0.1472872881270931E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1416344885203259E+0
+            b = 0.7751191883575742E-1
+            v = 0.1686846601010828E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1766325315388586E+0
+            b = 0.1087558139247680E+0
+            v = 0.1862698414660208E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2121744174481514E+0
+            b = 0.1413661374253096E+0
+            v = 0.2007430956991861E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2479669443408145E+0
+            b = 0.1748768214258880E+0
+            v = 0.2126568125394796E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2837600452294113E+0
+            b = 0.2089216406612073E+0
+            v = 0.2224394603372113E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3193344933193984E+0
+            b = 0.2431987685545972E+0
+            v = 0.2304264522673135E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3544935442438745E+0
+            b = 0.2774497054377770E+0
+            v = 0.2368854288424087E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3890571932288154E+0
+            b = 0.3114460356156915E+0
+            v = 0.2420352089461772E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4228581214259090E+0
+            b = 0.3449806851913012E+0
+            v = 0.2460597113081295E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4557387211304052E+0
+            b = 0.3778618641248256E+0
+            v = 0.2491181912257687E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4875487950541643E+0
+            b = 0.4099086391698978E+0
+            v = 0.2513528194205857E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5181436529962997E+0
+            b = 0.4409474925853973E+0
+            v = 0.2528943096693220E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5473824095600661E+0
+            b = 0.4708094517711291E+0
+            v = 0.2538660368488136E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5751263398976174E+0
+            b = 0.4993275140354637E+0
+            v = 0.2543868648299022E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1489515746840028E+0
+            b = 0.2599381993267017E-1
+            v = 0.1642595537825183E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1863656444351767E+0
+            b = 0.5479286532462190E-1
+            v = 0.1818246659849308E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2238602880356348E+0
+            b = 0.8556763251425254E-1
+            v = 0.1966565649492420E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2612723375728160E+0
+            b = 0.1177257802267011E+0
+            v = 0.2090677905657991E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2984332990206190E+0
+            b = 0.1508168456192700E+0
+            v = 0.2193820409510504E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3351786584663333E+0
+            b = 0.1844801892177727E+0
+            v = 0.2278870827661928E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3713505522209120E+0
+            b = 0.2184145236087598E+0
+            v = 0.2348283192282090E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4067981098954663E+0
+            b = 0.2523590641486229E+0
+            v = 0.2404139755581477E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4413769993687534E+0
+            b = 0.2860812976901373E+0
+            v = 0.2448227407760734E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4749487182516394E+0
+            b = 0.3193686757808996E+0
+            v = 0.2482110455592573E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5073798105075426E+0
+            b = 0.3520226949547602E+0
+            v = 0.2507192397774103E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5385410448878654E+0
+            b = 0.3838544395667890E+0
+            v = 0.2524765968534880E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5683065353670530E+0
+            b = 0.4146810037640963E+0
+            v = 0.2536052388539425E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5965527620663510E+0
+            b = 0.4443224094681121E+0
+            v = 0.2542230588033068E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2299227700856157E+0
+            b = 0.2865757664057584E-1
+            v = 0.1944817013047896E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2695752998553267E+0
+            b = 0.5923421684485993E-1
+            v = 0.2067862362746635E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3086178716611389E+0
+            b = 0.9117817776057715E-1
+            v = 0.2172440734649114E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3469649871659077E+0
+            b = 0.1240593814082605E+0
+            v = 0.2260125991723423E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3845153566319655E+0
+            b = 0.1575272058259175E+0
+            v = 0.2332655008689523E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4211600033403215E+0
+            b = 0.1912845163525413E+0
+            v = 0.2391699681532458E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4567867834329882E+0
+            b = 0.2250710177858171E+0
+            v = 0.2438801528273928E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4912829319232061E+0
+            b = 0.2586521303440910E+0
+            v = 0.2475370504260665E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5245364793303812E+0
+            b = 0.2918112242865407E+0
+            v = 0.2502707235640574E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5564369788915756E+0
+            b = 0.3243439239067890E+0
+            v = 0.2522031701054241E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5868757697775287E+0
+            b = 0.3560536787835351E+0
+            v = 0.2534511269978784E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6157458853519617E+0
+            b = 0.3867480821242581E+0
+            v = 0.2541284914955151E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3138461110672113E+0
+            b = 0.3051374637507278E-1
+            v = 0.2161509250688394E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3542495872050569E+0
+            b = 0.6237111233730755E-1
+            v = 0.2248778513437852E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3935751553120181E+0
+            b = 0.9516223952401907E-1
+            v = 0.2322388803404617E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4317634668111147E+0
+            b = 0.1285467341508517E+0
+            v = 0.2383265471001355E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4687413842250821E+0
+            b = 0.1622318931656033E+0
+            v = 0.2432476675019525E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5044274237060283E+0
+            b = 0.1959581153836453E+0
+            v = 0.2471122223750674E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5387354077925727E+0
+            b = 0.2294888081183837E+0
+            v = 0.2500291752486870E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5715768898356105E+0
+            b = 0.2626031152713945E+0
+            v = 0.2521055942764682E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6028627200136111E+0
+            b = 0.2950904075286713E+0
+            v = 0.2534472785575503E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6325039812653463E+0
+            b = 0.3267458451113286E+0
+            v = 0.2541599713080121E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3981986708423407E+0
+            b = 0.3183291458749821E-1
+            v = 0.2317380975862936E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4382791182133300E+0
+            b = 0.6459548193880908E-1
+            v = 0.2378550733719775E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4769233057218166E+0
+            b = 0.9795757037087952E-1
+            v = 0.2428884456739118E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5140823911194238E+0
+            b = 0.1316307235126655E+0
+            v = 0.2469002655757292E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5496977833862983E+0
+            b = 0.1653556486358704E+0
+            v = 0.2499657574265851E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5837047306512727E+0
+            b = 0.1988931724126510E+0
+            v = 0.2521676168486082E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6160349566926879E+0
+            b = 0.2320174581438950E+0
+            v = 0.2535935662645334E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6466185353209440E+0
+            b = 0.2645106562168662E+0
+            v = 0.2543356743363214E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4810835158795404E+0
+            b = 0.3275917807743992E-1
+            v = 0.2427353285201535E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5199925041324341E+0
+            b = 0.6612546183967181E-1
+            v = 0.2468258039744386E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5571717692207494E+0
+            b = 0.9981498331474143E-1
+            v = 0.2500060956440310E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5925789250836378E+0
+            b = 0.1335687001410374E+0
+            v = 0.2523238365420979E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6261658523859670E+0
+            b = 0.1671444402896463E+0
+            v = 0.2538399260252846E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6578811126669331E+0
+            b = 0.2003106382156076E+0
+            v = 0.2546255927268069E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5609624612998100E+0
+            b = 0.3337500940231335E-1
+            v = 0.2500583360048449E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5979959659984670E+0
+            b = 0.6708750335901803E-1
+            v = 0.2524777638260203E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6330523711054002E+0
+            b = 0.1008792126424850E+0
+            v = 0.2540951193860656E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6660960998103972E+0
+            b = 0.1345050343171794E+0
+            v = 0.2549524085027472E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6365384364585819E+0
+            b = 0.3372799460737052E-1
+            v = 0.2542569507009158E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6710994302899275E+0
+            b = 0.6755249309678028E-1
+            v = 0.2552114127580376E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 4802:
+
+            v = 0.9687521879420705E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.2307897895367918E-3
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.2297310852498558E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.2335728608887064E-1
+            v = 0.7386265944001919E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4352987836550653E-1
+            v = 0.8257977698542210E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6439200521088801E-1
+            v = 0.9706044762057630E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.9003943631993181E-1
+            v = 0.1302393847117003E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1196706615548473E+0
+            v = 0.1541957004600968E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1511715412838134E+0
+            v = 0.1704459770092199E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1835982828503801E+0
+            v = 0.1827374890942906E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2165081259155405E+0
+            v = 0.1926360817436107E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2496208720417563E+0
+            v = 0.2008010239494833E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2827200673567900E+0
+            v = 0.2075635983209175E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3156190823994346E+0
+            v = 0.2131306638690909E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3481476793749115E+0
+            v = 0.2176562329937335E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3801466086947226E+0
+            v = 0.2212682262991018E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4114652119634011E+0
+            v = 0.2240799515668565E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4419598786519751E+0
+            v = 0.2261959816187525E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4714925949329543E+0
+            v = 0.2277156368808855E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4999293972879466E+0
+            v = 0.2287351772128336E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5271387221431248E+0
+            v = 0.2293490814084085E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5529896780837761E+0
+            v = 0.2296505312376273E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6000856099481712E+0
+            v = 0.2296793832318756E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6210562192785175E+0
+            v = 0.2295785443842974E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6401165879934240E+0
+            v = 0.2295017931529102E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6571144029244334E+0
+            v = 0.2295059638184868E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6718910821718863E+0
+            v = 0.2296232343237362E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6842845591099010E+0
+            v = 0.2298530178740771E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6941353476269816E+0
+            v = 0.2301579790280501E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7012965242212991E+0
+            v = 0.2304690404996513E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7056471428242644E+0
+            v = 0.2307027995907102E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4595557643585895E-1
+            v = 0.9312274696671092E-4
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1049316742435023E+0
+            v = 0.1199919385876926E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1773548879549274E+0
+            v = 0.1598039138877690E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2559071411236127E+0
+            v = 0.1822253763574900E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3358156837985898E+0
+            v = 0.1988579593655040E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4155835743763893E+0
+            v = 0.2112620102533307E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4937894296167472E+0
+            v = 0.2201594887699007E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5691569694793316E+0
+            v = 0.2261622590895036E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6405840854894251E+0
+            v = 0.2296458453435705E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.7345133894143348E-1
+            b = 0.2177844081486067E-1
+            v = 0.1006006990267000E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1009859834044931E+0
+            b = 0.4590362185775188E-1
+            v = 0.1227676689635876E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1324289619748758E+0
+            b = 0.7255063095690877E-1
+            v = 0.1467864280270117E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1654272109607127E+0
+            b = 0.1017825451960684E+0
+            v = 0.1644178912101232E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1990767186776461E+0
+            b = 0.1325652320980364E+0
+            v = 0.1777664890718961E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2330125945523278E+0
+            b = 0.1642765374496765E+0
+            v = 0.1884825664516690E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2670080611108287E+0
+            b = 0.1965360374337889E+0
+            v = 0.1973269246453848E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3008753376294316E+0
+            b = 0.2290726770542238E+0
+            v = 0.2046767775855328E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3344475596167860E+0
+            b = 0.2616645495370823E+0
+            v = 0.2107600125918040E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3675709724070786E+0
+            b = 0.2941150728843141E+0
+            v = 0.2157416362266829E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4001000887587812E+0
+            b = 0.3262440400919066E+0
+            v = 0.2197557816920721E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4318956350436028E+0
+            b = 0.3578835350611916E+0
+            v = 0.2229192611835437E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4628239056795531E+0
+            b = 0.3888751854043678E+0
+            v = 0.2253385110212775E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4927563229773636E+0
+            b = 0.4190678003222840E+0
+            v = 0.2271137107548774E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5215687136707969E+0
+            b = 0.4483151836883852E+0
+            v = 0.2283414092917525E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5491402346984905E+0
+            b = 0.4764740676087880E+0
+            v = 0.2291161673130077E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5753520160126075E+0
+            b = 0.5034021310998277E+0
+            v = 0.2295313908576598E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1388326356417754E+0
+            b = 0.2435436510372806E-1
+            v = 0.1438204721359031E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1743686900537244E+0
+            b = 0.5118897057342652E-1
+            v = 0.1607738025495257E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2099737037950268E+0
+            b = 0.8014695048539634E-1
+            v = 0.1741483853528379E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2454492590908548E+0
+            b = 0.1105117874155699E+0
+            v = 0.1851918467519151E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2807219257864278E+0
+            b = 0.1417950531570966E+0
+            v = 0.1944628638070613E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3156842271975842E+0
+            b = 0.1736604945719597E+0
+            v = 0.2022495446275152E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3502090945177752E+0
+            b = 0.2058466324693981E+0
+            v = 0.2087462382438514E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3841684849519686E+0
+            b = 0.2381284261195919E+0
+            v = 0.2141074754818308E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4174372367906016E+0
+            b = 0.2703031270422569E+0
+            v = 0.2184640913748162E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4498926465011892E+0
+            b = 0.3021845683091309E+0
+            v = 0.2219309165220329E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4814146229807701E+0
+            b = 0.3335993355165720E+0
+            v = 0.2246123118340624E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5118863625734701E+0
+            b = 0.3643833735518232E+0
+            v = 0.2266062766915125E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5411947455119144E+0
+            b = 0.3943789541958179E+0
+            v = 0.2280072952230796E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5692301500357246E+0
+            b = 0.4234320144403542E+0
+            v = 0.2289082025202583E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5958857204139576E+0
+            b = 0.4513897947419260E+0
+            v = 0.2294012695120025E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2156270284785766E+0
+            b = 0.2681225755444491E-1
+            v = 0.1722434488736947E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2532385054909710E+0
+            b = 0.5557495747805614E-1
+            v = 0.1830237421455091E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2902564617771537E+0
+            b = 0.8569368062950249E-1
+            v = 0.1923855349997633E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3266979823143256E+0
+            b = 0.1167367450324135E+0
+            v = 0.2004067861936271E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3625039627493614E+0
+            b = 0.1483861994003304E+0
+            v = 0.2071817297354263E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3975838937548699E+0
+            b = 0.1803821503011405E+0
+            v = 0.2128250834102103E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4318396099009774E+0
+            b = 0.2124962965666424E+0
+            v = 0.2174513719440102E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4651706555732742E+0
+            b = 0.2445221837805913E+0
+            v = 0.2211661839150214E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4974752649620969E+0
+            b = 0.2762701224322987E+0
+            v = 0.2240665257813102E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5286517579627517E+0
+            b = 0.3075627775211328E+0
+            v = 0.2262439516632620E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5586001195731895E+0
+            b = 0.3382311089826877E+0
+            v = 0.2277874557231869E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5872229902021319E+0
+            b = 0.3681108834741399E+0
+            v = 0.2287854314454994E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6144258616235123E+0
+            b = 0.3970397446872839E+0
+            v = 0.2293268499615575E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2951676508064861E+0
+            b = 0.2867499538750441E-1
+            v = 0.1912628201529828E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3335085485472725E+0
+            b = 0.5867879341903510E-1
+            v = 0.1992499672238701E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3709561760636381E+0
+            b = 0.8961099205022284E-1
+            v = 0.2061275533454027E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4074722861667498E+0
+            b = 0.1211627927626297E+0
+            v = 0.2119318215968572E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4429923648839117E+0
+            b = 0.1530748903554898E+0
+            v = 0.2167416581882652E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4774428052721736E+0
+            b = 0.1851176436721877E+0
+            v = 0.2206430730516600E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5107446539535904E+0
+            b = 0.2170829107658179E+0
+            v = 0.2237186938699523E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5428151370542935E+0
+            b = 0.2487786689026271E+0
+            v = 0.2260480075032884E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5735699292556964E+0
+            b = 0.2800239952795016E+0
+            v = 0.2277098884558542E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6029253794562866E+0
+            b = 0.3106445702878119E+0
+            v = 0.2287845715109671E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6307998987073145E+0
+            b = 0.3404689500841194E+0
+            v = 0.2293547268236294E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3752652273692719E+0
+            b = 0.2997145098184479E-1
+            v = 0.2056073839852528E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4135383879344028E+0
+            b = 0.6086725898678011E-1
+            v = 0.2114235865831876E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4506113885153907E+0
+            b = 0.9238849548435643E-1
+            v = 0.2163175629770551E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4864401554606072E+0
+            b = 0.1242786603851851E+0
+            v = 0.2203392158111650E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5209708076611709E+0
+            b = 0.1563086731483386E+0
+            v = 0.2235473176847839E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5541422135830122E+0
+            b = 0.1882696509388506E+0
+            v = 0.2260024141501235E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5858880915113817E+0
+            b = 0.2199672979126059E+0
+            v = 0.2277675929329182E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6161399390603444E+0
+            b = 0.2512165482924867E+0
+            v = 0.2289102112284834E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6448296482255090E+0
+            b = 0.2818368701871888E+0
+            v = 0.2295027954625118E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4544796274917948E+0
+            b = 0.3088970405060312E-1
+            v = 0.2161281589879992E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4919389072146628E+0
+            b = 0.6240947677636835E-1
+            v = 0.2201980477395102E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5279313026985183E+0
+            b = 0.9430706144280313E-1
+            v = 0.2234952066593166E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5624169925571135E+0
+            b = 0.1263547818770374E+0
+            v = 0.2260540098520838E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5953484627093287E+0
+            b = 0.1583430788822594E+0
+            v = 0.2279157981899988E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6266730715339185E+0
+            b = 0.1900748462555988E+0
+            v = 0.2291296918565571E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6563363204278871E+0
+            b = 0.2213599519592567E+0
+            v = 0.2297533752536649E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5314574716585696E+0
+            b = 0.3152508811515374E-1
+            v = 0.2234927356465995E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5674614932298185E+0
+            b = 0.6343865291465561E-1
+            v = 0.2261288012985219E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6017706004970264E+0
+            b = 0.9551503504223951E-1
+            v = 0.2280818160923688E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6343471270264178E+0
+            b = 0.1275440099801196E+0
+            v = 0.2293773295180159E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6651494599127802E+0
+            b = 0.1593252037671960E+0
+            v = 0.2300528767338634E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6050184986005704E+0
+            b = 0.3192538338496105E-1
+            v = 0.2281893855065666E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6390163550880400E+0
+            b = 0.6402824353962306E-1
+            v = 0.2295720444840727E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6711199107088448E+0
+            b = 0.9609805077002909E-1
+            v = 0.2303227649026753E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6741354429572275E+0
+            b = 0.3211853196273233E-1
+            v = 0.2304831913227114E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 5294:
+
+            v = 0.9080510764308163E-4
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.2084824361987793E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.2303261686261450E-1
+            v = 0.5011105657239616E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3757208620162394E-1
+            v = 0.5942520409683854E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5821912033821852E-1
+            v = 0.9564394826109721E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.8403127529194872E-1
+            v = 0.1185530657126338E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1122927798060578E+0
+            v = 0.1364510114230331E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1420125319192987E+0
+            v = 0.1505828825605415E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1726396437341978E+0
+            v = 0.1619298749867023E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2038170058115696E+0
+            v = 0.1712450504267789E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2352849892876508E+0
+            v = 0.1789891098164999E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2668363354312461E+0
+            v = 0.1854474955629795E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2982941279900452E+0
+            v = 0.1908148636673661E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3295002922087076E+0
+            v = 0.1952377405281833E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3603094918363593E+0
+            v = 0.1988349254282232E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3905857895173920E+0
+            v = 0.2017079807160050E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4202005758160837E+0
+            v = 0.2039473082709094E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4490310061597227E+0
+            v = 0.2056360279288953E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4769586160311491E+0
+            v = 0.2068525823066865E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5038679887049750E+0
+            v = 0.2076724877534488E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5296454286519961E+0
+            v = 0.2081694278237885E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5541776207164850E+0
+            v = 0.2084157631219326E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5990467321921213E+0
+            v = 0.2084381531128593E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6191467096294587E+0
+            v = 0.2083476277129307E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6375251212901849E+0
+            v = 0.2082686194459732E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6540514381131168E+0
+            v = 0.2082475686112415E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6685899064391510E+0
+            v = 0.2083139860289915E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6810013009681648E+0
+            v = 0.2084745561831237E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6911469578730340E+0
+            v = 0.2087091313375890E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6988956915141736E+0
+            v = 0.2089718413297697E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7041335794868720E+0
+            v = 0.2092003303479793E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7067754398018567E+0
+            v = 0.2093336148263241E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3840368707853623E-1
+            v = 0.7591708117365267E-4
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.9835485954117399E-1
+            v = 0.1083383968169186E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1665774947612998E+0
+            v = 0.1403019395292510E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2405702335362910E+0
+            v = 0.1615970179286436E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3165270770189046E+0
+            v = 0.1771144187504911E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3927386145645443E+0
+            v = 0.1887760022988168E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4678825918374656E+0
+            v = 0.1973474670768214E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5408022024266935E+0
+            v = 0.2033787661234659E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6104967445752438E+0
+            v = 0.2072343626517331E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6760910702685738E+0
+            v = 0.2091177834226918E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6655644120217392E-1
+            b = 0.1936508874588424E-1
+            v = 0.9316684484675566E-4
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.9446246161270182E-1
+            b = 0.4252442002115869E-1
+            v = 0.1116193688682976E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1242651925452509E+0
+            b = 0.6806529315354374E-1
+            v = 0.1298623551559414E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1553438064846751E+0
+            b = 0.9560957491205369E-1
+            v = 0.1450236832456426E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1871137110542670E+0
+            b = 0.1245931657452888E+0
+            v = 0.1572719958149914E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2192612628836257E+0
+            b = 0.1545385828778978E+0
+            v = 0.1673234785867195E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2515682807206955E+0
+            b = 0.1851004249723368E+0
+            v = 0.1756860118725188E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2838535866287290E+0
+            b = 0.2160182608272384E+0
+            v = 0.1826776290439367E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3159578817528521E+0
+            b = 0.2470799012277111E+0
+            v = 0.1885116347992865E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3477370882791392E+0
+            b = 0.2781014208986402E+0
+            v = 0.1933457860170574E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3790576960890540E+0
+            b = 0.3089172523515731E+0
+            v = 0.1973060671902064E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4097938317810200E+0
+            b = 0.3393750055472244E+0
+            v = 0.2004987099616311E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4398256572859637E+0
+            b = 0.3693322470987730E+0
+            v = 0.2030170909281499E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4690384114718480E+0
+            b = 0.3986541005609877E+0
+            v = 0.2049461460119080E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4973216048301053E+0
+            b = 0.4272112491408562E+0
+            v = 0.2063653565200186E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5245681526132446E+0
+            b = 0.4548781735309936E+0
+            v = 0.2073507927381027E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5506733911803888E+0
+            b = 0.4815315355023251E+0
+            v = 0.2079764593256122E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5755339829522475E+0
+            b = 0.5070486445801855E+0
+            v = 0.2083150534968778E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1305472386056362E+0
+            b = 0.2284970375722366E-1
+            v = 0.1262715121590664E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1637327908216477E+0
+            b = 0.4812254338288384E-1
+            v = 0.1414386128545972E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1972734634149637E+0
+            b = 0.7531734457511935E-1
+            v = 0.1538740401313898E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2308694653110130E+0
+            b = 0.1039043639882017E+0
+            v = 0.1642434942331432E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2643899218338160E+0
+            b = 0.1334526587117626E+0
+            v = 0.1729790609237496E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2977171599622171E+0
+            b = 0.1636414868936382E+0
+            v = 0.1803505190260828E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3307293903032310E+0
+            b = 0.1942195406166568E+0
+            v = 0.1865475350079657E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3633069198219073E+0
+            b = 0.2249752879943753E+0
+            v = 0.1917182669679069E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3953346955922727E+0
+            b = 0.2557218821820032E+0
+            v = 0.1959851709034382E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4267018394184914E+0
+            b = 0.2862897925213193E+0
+            v = 0.1994529548117882E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4573009622571704E+0
+            b = 0.3165224536636518E+0
+            v = 0.2022138911146548E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4870279559856109E+0
+            b = 0.3462730221636496E+0
+            v = 0.2043518024208592E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5157819581450322E+0
+            b = 0.3754016870282835E+0
+            v = 0.2059450313018110E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5434651666465393E+0
+            b = 0.4037733784993613E+0
+            v = 0.2070685715318472E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5699823887764627E+0
+            b = 0.4312557784139123E+0
+            v = 0.2077955310694373E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5952403350947741E+0
+            b = 0.4577175367122110E+0
+            v = 0.2081980387824712E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2025152599210369E+0
+            b = 0.2520253617719557E-1
+            v = 0.1521318610377956E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2381066653274425E+0
+            b = 0.5223254506119000E-1
+            v = 0.1622772720185755E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2732823383651612E+0
+            b = 0.8060669688588620E-1
+            v = 0.1710498139420709E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3080137692611118E+0
+            b = 0.1099335754081255E+0
+            v = 0.1785911149448736E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3422405614587601E+0
+            b = 0.1399120955959857E+0
+            v = 0.1850125313687736E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3758808773890420E+0
+            b = 0.1702977801651705E+0
+            v = 0.1904229703933298E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4088458383438932E+0
+            b = 0.2008799256601680E+0
+            v = 0.1949259956121987E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4410450550841152E+0
+            b = 0.2314703052180836E+0
+            v = 0.1986161545363960E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4723879420561312E+0
+            b = 0.2618972111375892E+0
+            v = 0.2015790585641370E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5027843561874343E+0
+            b = 0.2920013195600270E+0
+            v = 0.2038934198707418E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5321453674452458E+0
+            b = 0.3216322555190551E+0
+            v = 0.2056334060538251E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5603839113834030E+0
+            b = 0.3506456615934198E+0
+            v = 0.2068705959462289E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5874150706875146E+0
+            b = 0.3789007181306267E+0
+            v = 0.2076753906106002E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6131559381660038E+0
+            b = 0.4062580170572782E+0
+            v = 0.2081179391734803E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2778497016394506E+0
+            b = 0.2696271276876226E-1
+            v = 0.1700345216228943E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3143733562261912E+0
+            b = 0.5523469316960465E-1
+            v = 0.1774906779990410E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3501485810261827E+0
+            b = 0.8445193201626464E-1
+            v = 0.1839659377002642E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3851430322303653E+0
+            b = 0.1143263119336083E+0
+            v = 0.1894987462975169E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4193013979470415E+0
+            b = 0.1446177898344475E+0
+            v = 0.1941548809452595E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4525585960458567E+0
+            b = 0.1751165438438091E+0
+            v = 0.1980078427252384E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4848447779622947E+0
+            b = 0.2056338306745660E+0
+            v = 0.2011296284744488E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5160871208276894E+0
+            b = 0.2359965487229226E+0
+            v = 0.2035888456966776E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5462112185696926E+0
+            b = 0.2660430223139146E+0
+            v = 0.2054516325352142E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5751425068101757E+0
+            b = 0.2956193664498032E+0
+            v = 0.2067831033092635E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6028073872853596E+0
+            b = 0.3245763905312779E+0
+            v = 0.2076485320284876E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6291338275278409E+0
+            b = 0.3527670026206972E+0
+            v = 0.2081141439525255E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3541797528439391E+0
+            b = 0.2823853479435550E-1
+            v = 0.1834383015469222E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3908234972074657E+0
+            b = 0.5741296374713106E-1
+            v = 0.1889540591777677E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4264408450107590E+0
+            b = 0.8724646633650199E-1
+            v = 0.1936677023597375E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4609949666553286E+0
+            b = 0.1175034422915616E+0
+            v = 0.1976176495066504E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4944389496536006E+0
+            b = 0.1479755652628428E+0
+            v = 0.2008536004560983E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5267194884346086E+0
+            b = 0.1784740659484352E+0
+            v = 0.2034280351712291E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5577787810220990E+0
+            b = 0.2088245700431244E+0
+            v = 0.2053944466027758E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5875563763536670E+0
+            b = 0.2388628136570763E+0
+            v = 0.2068077642882360E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6159910016391269E+0
+            b = 0.2684308928769185E+0
+            v = 0.2077250949661599E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6430219602956268E+0
+            b = 0.2973740761960252E+0
+            v = 0.2082062440705320E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4300647036213646E+0
+            b = 0.2916399920493977E-1
+            v = 0.1934374486546626E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4661486308935531E+0
+            b = 0.5898803024755659E-1
+            v = 0.1974107010484300E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5009658555287261E+0
+            b = 0.8924162698525409E-1
+            v = 0.2007129290388658E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5344824270447704E+0
+            b = 0.1197185199637321E+0
+            v = 0.2033736947471293E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5666575997416371E+0
+            b = 0.1502300756161382E+0
+            v = 0.2054287125902493E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5974457471404752E+0
+            b = 0.1806004191913564E+0
+            v = 0.2069184936818894E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6267984444116886E+0
+            b = 0.2106621764786252E+0
+            v = 0.2078883689808782E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6546664713575417E+0
+            b = 0.2402526932671914E+0
+            v = 0.2083886366116359E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5042711004437253E+0
+            b = 0.2982529203607657E-1
+            v = 0.2006593275470817E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5392127456774380E+0
+            b = 0.6008728062339922E-1
+            v = 0.2033728426135397E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5726819437668618E+0
+            b = 0.9058227674571398E-1
+            v = 0.2055008781377608E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6046469254207278E+0
+            b = 0.1211219235803400E+0
+            v = 0.2070651783518502E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6350716157434952E+0
+            b = 0.1515286404791580E+0
+            v = 0.2080953335094320E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6639177679185454E+0
+            b = 0.1816314681255552E+0
+            v = 0.2086284998988521E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5757276040972253E+0
+            b = 0.3026991752575440E-1
+            v = 0.2055549387644668E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6090265823139755E+0
+            b = 0.6078402297870770E-1
+            v = 0.2071871850267654E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6406735344387661E+0
+            b = 0.9135459984176636E-1
+            v = 0.2082856600431965E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6706397927793709E+0
+            b = 0.1218024155966590E+0
+            v = 0.2088705858819358E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6435019674426665E+0
+            b = 0.3052608357660639E-1
+            v = 0.2083995867536322E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6747218676375681E+0
+            b = 0.6112185773983089E-1
+            v = 0.2090509712889637E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case 5810:
+
+            v = 0.9735347946175486E-5
+            leb_tmp, start = get_lebedev_recurrence_points(1, start, a, b, v, leb_tmp)
+            v = 0.1907581241803167E-3
+            leb_tmp, start = get_lebedev_recurrence_points(2, start, a, b, v, leb_tmp)
+            v = 0.1901059546737578E-3
+            leb_tmp, start = get_lebedev_recurrence_points(3, start, a, b, v, leb_tmp)
+            a = 0.1182361662400277E-1
+            v = 0.3926424538919212E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3062145009138958E-1
+            v = 0.6667905467294382E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5329794036834243E-1
+            v = 0.8868891315019135E-4
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7848165532862220E-1
+            v = 0.1066306000958872E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1054038157636201E+0
+            v = 0.1214506743336128E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1335577797766211E+0
+            v = 0.1338054681640871E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1625769955502252E+0
+            v = 0.1441677023628504E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.1921787193412792E+0
+            v = 0.1528880200826557E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2221340534690548E+0
+            v = 0.1602330623773609E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2522504912791132E+0
+            v = 0.1664102653445244E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.2823610860679697E+0
+            v = 0.1715845854011323E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3123173966267560E+0
+            v = 0.1758901000133069E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3419847036953789E+0
+            v = 0.1794382485256736E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3712386456999758E+0
+            v = 0.1823238106757407E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3999627649876828E+0
+            v = 0.1846293252959976E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4280466458648093E+0
+            v = 0.1864284079323098E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4553844360185711E+0
+            v = 0.1877882694626914E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.4818736094437834E+0
+            v = 0.1887716321852025E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5074138709260629E+0
+            v = 0.1894381638175673E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5319061304570707E+0
+            v = 0.1898454899533629E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5552514978677286E+0
+            v = 0.1900497929577815E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.5981009025246183E+0
+            v = 0.1900671501924092E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6173990192228116E+0
+            v = 0.1899837555533510E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6351365239411131E+0
+            v = 0.1899014113156229E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6512010228227200E+0
+            v = 0.1898581257705106E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6654758363948120E+0
+            v = 0.1898804756095753E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6778410414853370E+0
+            v = 0.1899793610426402E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6881760887484110E+0
+            v = 0.1901464554844117E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.6963645267094598E+0
+            v = 0.1903533246259542E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7023010617153579E+0
+            v = 0.1905556158463228E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.7059004636628753E+0
+            v = 0.1907037155663528E-3
+            leb_tmp, start = get_lebedev_recurrence_points(4, start, a, b, v, leb_tmp)
+            a = 0.3552470312472575E-1
+            v = 0.5992997844249967E-4
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.9151176620841283E-1
+            v = 0.9749059382456978E-4
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.1566197930068980E+0
+            v = 0.1241680804599158E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2265467599271907E+0
+            v = 0.1437626154299360E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.2988242318581361E+0
+            v = 0.1584200054793902E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.3717482419703886E+0
+            v = 0.1694436550982744E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.4440094491758889E+0
+            v = 0.1776617014018108E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5145337096756642E+0
+            v = 0.1836132434440077E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.5824053672860230E+0
+            v = 0.1876494727075983E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6468283961043370E+0
+            v = 0.1899906535336482E-3
+            leb_tmp, start = get_lebedev_recurrence_points(5, start, a, b, v, leb_tmp)
+            a = 0.6095964259104373E-1
+            b = 0.1787828275342931E-1
+            v = 0.8143252820767350E-4
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.8811962270959388E-1
+            b = 0.3953888740792096E-1
+            v = 0.9998859890887728E-4
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1165936722428831E+0
+            b = 0.6378121797722990E-1
+            v = 0.1156199403068359E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1460232857031785E+0
+            b = 0.8985890813745037E-1
+            v = 0.1287632092635513E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1761197110181755E+0
+            b = 0.1172606510576162E+0
+            v = 0.1398378643365139E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2066471190463718E+0
+            b = 0.1456102876970995E+0
+            v = 0.1491876468417391E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2374076026328152E+0
+            b = 0.1746153823011775E+0
+            v = 0.1570855679175456E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2682305474337051E+0
+            b = 0.2040383070295584E+0
+            v = 0.1637483948103775E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2989653312142369E+0
+            b = 0.2336788634003698E+0
+            v = 0.1693500566632843E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3294762752772209E+0
+            b = 0.2633632752654219E+0
+            v = 0.1740322769393633E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3596390887276086E+0
+            b = 0.2929369098051601E+0
+            v = 0.1779126637278296E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3893383046398812E+0
+            b = 0.3222592785275512E+0
+            v = 0.1810908108835412E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4184653789358347E+0
+            b = 0.3512004791195743E+0
+            v = 0.1836529132600190E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4469172319076166E+0
+            b = 0.3796385677684537E+0
+            v = 0.1856752841777379E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4745950813276976E+0
+            b = 0.4074575378263879E+0
+            v = 0.1872270566606832E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5014034601410262E+0
+            b = 0.4345456906027828E+0
+            v = 0.1883722645591307E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5272493404551239E+0
+            b = 0.4607942515205134E+0
+            v = 0.1891714324525297E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5520413051846366E+0
+            b = 0.4860961284181720E+0
+            v = 0.1896827480450146E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5756887237503077E+0
+            b = 0.5103447395342790E+0
+            v = 0.1899628417059528E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1225039430588352E+0
+            b = 0.2136455922655793E-1
+            v = 0.1123301829001669E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1539113217321372E+0
+            b = 0.4520926166137188E-1
+            v = 0.1253698826711277E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1856213098637712E+0
+            b = 0.7086468177864818E-1
+            v = 0.1366266117678531E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2174998728035131E+0
+            b = 0.9785239488772918E-1
+            v = 0.1462736856106918E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2494128336938330E+0
+            b = 0.1258106396267210E+0
+            v = 0.1545076466685412E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2812321562143480E+0
+            b = 0.1544529125047001E+0
+            v = 0.1615096280814007E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3128372276456111E+0
+            b = 0.1835433512202753E+0
+            v = 0.1674366639741759E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3441145160177973E+0
+            b = 0.2128813258619585E+0
+            v = 0.1724225002437900E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3749567714853510E+0
+            b = 0.2422913734880829E+0
+            v = 0.1765810822987288E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4052621732015610E+0
+            b = 0.2716163748391453E+0
+            v = 0.1800104126010751E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4349335453522385E+0
+            b = 0.3007127671240280E+0
+            v = 0.1827960437331284E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4638776641524965E+0
+            b = 0.3294470677216479E+0
+            v = 0.1850140300716308E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4920046410462687E+0
+            b = 0.3576932543699155E+0
+            v = 0.1867333507394938E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5192273554861704E+0
+            b = 0.3853307059757764E+0
+            v = 0.1880178688638289E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5454609081136522E+0
+            b = 0.4122425044452694E+0
+            v = 0.1889278925654758E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5706220661424140E+0
+            b = 0.4383139587781027E+0
+            v = 0.1895213832507346E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5946286755181518E+0
+            b = 0.4634312536300553E+0
+            v = 0.1898548277397420E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.1905370790924295E+0
+            b = 0.2371311537781979E-1
+            v = 0.1349105935937341E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2242518717748009E+0
+            b = 0.4917878059254806E-1
+            v = 0.1444060068369326E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2577190808025936E+0
+            b = 0.7595498960495142E-1
+            v = 0.1526797390930008E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2908724534927187E+0
+            b = 0.1036991083191100E+0
+            v = 0.1598208771406474E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3236354020056219E+0
+            b = 0.1321348584450234E+0
+            v = 0.1659354368615331E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3559267359304543E+0
+            b = 0.1610316571314789E+0
+            v = 0.1711279910946440E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3876637123676956E+0
+            b = 0.1901912080395707E+0
+            v = 0.1754952725601440E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4187636705218842E+0
+            b = 0.2194384950137950E+0
+            v = 0.1791247850802529E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4491449019883107E+0
+            b = 0.2486155334763858E+0
+            v = 0.1820954300877716E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4787270932425445E+0
+            b = 0.2775768931812335E+0
+            v = 0.1844788524548449E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5074315153055574E+0
+            b = 0.3061863786591120E+0
+            v = 0.1863409481706220E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5351810507738336E+0
+            b = 0.3343144718152556E+0
+            v = 0.1877433008795068E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5619001025975381E+0
+            b = 0.3618362729028427E+0
+            v = 0.1887444543705232E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5875144035268046E+0
+            b = 0.3886297583620408E+0
+            v = 0.1894009829375006E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6119507308734495E+0
+            b = 0.4145742277792031E+0
+            v = 0.1897683345035198E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2619733870119463E+0
+            b = 0.2540047186389353E-1
+            v = 0.1517327037467653E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.2968149743237949E+0
+            b = 0.5208107018543989E-1
+            v = 0.1587740557483543E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3310451504860488E+0
+            b = 0.7971828470885599E-1
+            v = 0.1649093382274097E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3646215567376676E+0
+            b = 0.1080465999177927E+0
+            v = 0.1701915216193265E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3974916785279360E+0
+            b = 0.1368413849366629E+0
+            v = 0.1746847753144065E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4295967403772029E+0
+            b = 0.1659073184763559E+0
+            v = 0.1784555512007570E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4608742854473447E+0
+            b = 0.1950703730454614E+0
+            v = 0.1815687562112174E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4912598858949903E+0
+            b = 0.2241721144376724E+0
+            v = 0.1840864370663302E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5206882758945558E+0
+            b = 0.2530655255406489E+0
+            v = 0.1860676785390006E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5490940914019819E+0
+            b = 0.2816118409731066E+0
+            v = 0.1875690583743703E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5764123302025542E+0
+            b = 0.3096780504593238E+0
+            v = 0.1886453236347225E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6025786004213506E+0
+            b = 0.3371348366394987E+0
+            v = 0.1893501123329645E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6275291964794956E+0
+            b = 0.3638547827694396E+0
+            v = 0.1897366184519868E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3348189479861771E+0
+            b = 0.2664841935537443E-1
+            v = 0.1643908815152736E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.3699515545855295E+0
+            b = 0.5424000066843495E-1
+            v = 0.1696300350907768E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4042003071474669E+0
+            b = 0.8251992715430854E-1
+            v = 0.1741553103844483E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4375320100182624E+0
+            b = 0.1112695182483710E+0
+            v = 0.1780015282386092E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4699054490335947E+0
+            b = 0.1402964116467816E+0
+            v = 0.1812116787077125E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5012739879431952E+0
+            b = 0.1694275117584291E+0
+            v = 0.1838323158085421E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5315874883754966E+0
+            b = 0.1985038235312689E+0
+            v = 0.1859113119837737E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5607937109622117E+0
+            b = 0.2273765660020893E+0
+            v = 0.1874969220221698E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5888393223495521E+0
+            b = 0.2559041492849764E+0
+            v = 0.1886375612681076E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6156705979160163E+0
+            b = 0.2839497251976899E+0
+            v = 0.1893819575809276E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6412338809078123E+0
+            b = 0.3113791060500690E+0
+            v = 0.1897794748256767E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4076051259257167E+0
+            b = 0.2757792290858463E-1
+            v = 0.1738963926584846E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4423788125791520E+0
+            b = 0.5584136834984293E-1
+            v = 0.1777442359873466E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4760480917328258E+0
+            b = 0.8457772087727143E-1
+            v = 0.1810010815068719E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5085838725946297E+0
+            b = 0.1135975846359248E+0
+            v = 0.1836920318248129E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5399513637391218E+0
+            b = 0.1427286904765053E+0
+            v = 0.1858489473214328E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5701118433636380E+0
+            b = 0.1718112740057635E+0
+            v = 0.1875079342496592E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5990240530606021E+0
+            b = 0.2006944855985351E+0
+            v = 0.1887080239102310E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6266452685139695E+0
+            b = 0.2292335090598907E+0
+            v = 0.1894905752176822E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6529320971415942E+0
+            b = 0.2572871512353714E+0
+            v = 0.1898991061200695E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.4791583834610126E+0
+            b = 0.2826094197735932E-1
+            v = 0.1809065016458791E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5130373952796940E+0
+            b = 0.5699871359683649E-1
+            v = 0.1836297121596799E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5456252429628476E+0
+            b = 0.8602712528554394E-1
+            v = 0.1858426916241869E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5768956329682385E+0
+            b = 0.1151748137221281E+0
+            v = 0.1875654101134641E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6068186944699046E+0
+            b = 0.1442811654136362E+0
+            v = 0.1888240751833503E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6353622248024907E+0
+            b = 0.1731930321657680E+0
+            v = 0.1896497383866979E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6624927035731797E+0
+            b = 0.2017619958756061E+0
+            v = 0.1900775530219121E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5484933508028488E+0
+            b = 0.2874219755907391E-1
+            v = 0.1858525041478814E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.5810207682142106E+0
+            b = 0.5778312123713695E-1
+            v = 0.1876248690077947E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6120955197181352E+0
+            b = 0.8695262371439526E-1
+            v = 0.1889404439064607E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6416944284294319E+0
+            b = 0.1160893767057166E+0
+            v = 0.1898168539265290E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6697926391731260E+0
+            b = 0.1450378826743251E+0
+            v = 0.1902779940661772E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6147594390585488E+0
+            b = 0.2904957622341456E-1
+            v = 0.1890125641731815E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6455390026356783E+0
+            b = 0.5823809152617197E-1
+            v = 0.1899434637795751E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6747258588365477E+0
+            b = 0.8740384899884715E-1
+            v = 0.1904520856831751E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+            a = 0.6772135750395347E+0
+            b = 0.2919946135808105E-1
+            v = 0.1905534498734563E-3
+            leb_tmp, start = get_lebedev_recurrence_points(6, start, a, b, v, leb_tmp)
+
+        case _:
+            raise Exception('Angular grid unrecognized, choices are 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810')  # noqa: E501
+
+    leb_tmp.n = degree
+    return leb_tmp
+
+
+def get_lebedev_recurrence_points(type_, start, a, b, v, leb):
+    c = 0.0
+
+    match type_:
+
+        case 1:
+            a = 1.0
+
+            leb.x[start] = a
+            leb.y[start] = 0.0
+            leb.z[start] = 0.0
+            leb.w[start] = 4.0 * pi * v
+
+            leb.x[start + 1] = -a
+            leb.y[start + 1] = 0.0
+            leb.z[start + 1] = 0.0
+            leb.w[start + 1] = 4.0 * pi * v
+
+            leb.x[start + 2] = 0.0
+            leb.y[start + 2] = a
+            leb.z[start + 2] = 0.0
+            leb.w[start + 2] = 4.0 * pi * v
+
+            leb.x[start + 3] = 0.0
+            leb.y[start + 3] = -a
+            leb.z[start + 3] = 0.0
+            leb.w[start + 3] = 4.0 * pi * v
+
+            leb.x[start + 4] = 0.0
+            leb.y[start + 4] = 0.0
+            leb.z[start + 4] = a
+            leb.w[start + 4] = 4.0 * pi * v
+
+            leb.x[start + 5] = 0.0
+            leb.y[start + 5] = 0.0
+            leb.z[start + 5] = -a
+            leb.w[start + 5] = 4.0 * pi * v
+            start = start + 6
+
+        case 2:
+            a = sqrt(0.5)
+            leb.x[start] = 0.0
+            leb.y[start] = a
+            leb.z[start] = a
+            leb.w[start] = 4.0 * pi * v
+
+            leb.x[start + 1] = 0.0
+            leb.y[start + 1] = -a
+            leb.z[start + 1] = a
+            leb.w[start + 1] = 4.0 * pi * v
+
+            leb.x[start + 2] = 0.0
+            leb.y[start + 2] = a
+            leb.z[start + 2] = -a
+            leb.w[start + 2] = 4.0 * pi * v
+
+            leb.x[start + 3] = 0.0
+            leb.y[start + 3] = -a
+            leb.z[start + 3] = -a
+            leb.w[start + 3] = 4.0 * pi * v
+
+            leb.x[start + 4] = a
+            leb.y[start + 4] = 0.0
+            leb.z[start + 4] = a
+            leb.w[start + 4] = 4.0 * pi * v
+
+            leb.x[start + 5] = a
+            leb.y[start + 5] = 0.0
+            leb.z[start + 5] = -a
+            leb.w[start + 5] = 4.0 * pi * v
+
+            leb.x[start + 6] = -a
+            leb.y[start + 6] = 0.0
+            leb.z[start + 6] = a
+            leb.w[start + 6] = 4.0 * pi * v
+
+            leb.x[start + 7] = -a
+            leb.y[start + 7] = 0.0
+            leb.z[start + 7] = -a
+            leb.w[start + 7] = 4.0 * pi * v
+
+            leb.x[start + 8] = a
+            leb.y[start + 8] = a
+            leb.z[start + 8] = 0.0
+            leb.w[start + 8] = 4.0 * pi * v
+
+            leb.x[start + 9] = -a
+            leb.y[start + 9] = a
+            leb.z[start + 9] = 0.0
+            leb.w[start + 9] = 4.0 * pi * v
+
+            leb.x[start + 10] = a
+            leb.y[start + 10] = -a
+            leb.z[start + 10] = 0.0
+            leb.w[start + 10] = 4.0 * pi * v
+
+            leb.x[start + 11] = -a
+            leb.y[start + 11] = -a
+            leb.z[start + 11] = 0.0
+            leb.w[start + 11] = 4.0 * pi * v
+            start = start + 12
+
+        case 3:
+            a = sqrt(1.0 / 3.0)
+            leb.x[start] = a
+            leb.y[start] = a
+            leb.z[start] = a
+            leb.w[start] = 4.0 * pi * v
+
+            leb.x[start + 1] = -a
+            leb.y[start + 1] = a
+            leb.z[start + 1] = a
+            leb.w[start + 1] = 4.0 * pi * v
+
+            leb.x[start + 2] = a
+            leb.y[start + 2] = -a
+            leb.z[start + 2] = a
+            leb.w[start + 2] = 4.0 * pi * v
+
+            leb.x[start + 3] = a
+            leb.y[start + 3] = a
+            leb.z[start + 3] = -a
+            leb.w[start + 3] = 4.0 * pi * v
+
+            leb.x[start + 4] = -a
+            leb.y[start + 4] = -a
+            leb.z[start + 4] = a
+            leb.w[start + 4] = 4.0 * pi * v
+
+            leb.x[start + 5] = a
+            leb.y[start + 5] = -a
+            leb.z[start + 5] = -a
+            leb.w[start + 5] = 4.0 * pi * v
+
+            leb.x[start + 6] = -a
+            leb.y[start + 6] = a
+            leb.z[start + 6] = -a
+            leb.w[start + 6] = 4.0 * pi * v
+
+            leb.x[start + 7] = -a
+            leb.y[start + 7] = -a
+            leb.z[start + 7] = -a
+            leb.w[start + 7] = 4.0 * pi * v
+            start = start + 8
+
+        case 4:
+            # /* In this case A is inputed */
+            b = sqrt(1.0 - 2.0 * a * a)
+            leb.x[start] = a
+            leb.y[start] = a
+            leb.z[start] = b
+            leb.w[start] = 4.0 * pi * v
+
+            leb.x[start + 1] = -a
+            leb.y[start + 1] = a
+            leb.z[start + 1] = b
+            leb.w[start + 1] = 4.0 * pi * v
+
+            leb.x[start + 2] = a
+            leb.y[start + 2] = -a
+            leb.z[start + 2] = b
+            leb.w[start + 2] = 4.0 * pi * v
+
+            leb.x[start + 3] = a
+            leb.y[start + 3] = a
+            leb.z[start + 3] = -b
+            leb.w[start + 3] = 4.0 * pi * v
+
+            leb.x[start + 4] = -a
+            leb.y[start + 4] = -a
+            leb.z[start + 4] = b
+            leb.w[start + 4] = 4.0 * pi * v
+
+            leb.x[start + 5] = -a
+            leb.y[start + 5] = a
+            leb.z[start + 5] = -b
+            leb.w[start + 5] = 4.0 * pi * v
+
+            leb.x[start + 6] = a
+            leb.y[start + 6] = -a
+            leb.z[start + 6] = -b
+            leb.w[start + 6] = 4.0 * pi * v
+
+            leb.x[start + 7] = -a
+            leb.y[start + 7] = -a
+            leb.z[start + 7] = -b
+            leb.w[start + 7] = 4.0 * pi * v
+
+            leb.x[start + 8] = -a
+            leb.y[start + 8] = b
+            leb.z[start + 8] = a
+            leb.w[start + 8] = 4.0 * pi * v
+
+            leb.x[start + 9] = a
+            leb.y[start + 9] = -b
+            leb.z[start + 9] = a
+            leb.w[start + 9] = 4.0 * pi * v
+
+            leb.x[start + 10] = a
+            leb.y[start + 10] = b
+            leb.z[start + 10] = -a
+            leb.w[start + 10] = 4.0 * pi * v
+
+            leb.x[start + 11] = -a
+            leb.y[start + 11] = -b
+            leb.z[start + 11] = a
+            leb.w[start + 11] = 4.0 * pi * v
+
+            leb.x[start + 12] = -a
+            leb.y[start + 12] = b
+            leb.z[start + 12] = -a
+            leb.w[start + 12] = 4.0 * pi * v
+
+            leb.x[start + 13] = a
+            leb.y[start + 13] = -b
+            leb.z[start + 13] = -a
+            leb.w[start + 13] = 4.0 * pi * v
+
+            leb.x[start + 14] = -a
+            leb.y[start + 14] = -b
+            leb.z[start + 14] = -a
+            leb.w[start + 14] = 4.0 * pi * v
+
+            leb.x[start + 15] = a
+            leb.y[start + 15] = b
+            leb.z[start + 15] = a
+            leb.w[start + 15] = 4.0 * pi * v
+
+            leb.x[start + 16] = b
+            leb.y[start + 16] = a
+            leb.z[start + 16] = a
+            leb.w[start + 16] = 4.0 * pi * v
+
+            leb.x[start + 17] = -b
+            leb.y[start + 17] = a
+            leb.z[start + 17] = a
+            leb.w[start + 17] = 4.0 * pi * v
+
+            leb.x[start + 18] = b
+            leb.y[start + 18] = -a
+            leb.z[start + 18] = a
+            leb.w[start + 18] = 4.0 * pi * v
+
+            leb.x[start + 19] = b
+            leb.y[start + 19] = a
+            leb.z[start + 19] = -a
+            leb.w[start + 19] = 4.0 * pi * v
+
+            leb.x[start + 20] = -b
+            leb.y[start + 20] = -a
+            leb.z[start + 20] = a
+            leb.w[start + 20] = 4.0 * pi * v
+
+            leb.x[start + 21] = -b
+            leb.y[start + 21] = a
+            leb.z[start + 21] = -a
+            leb.w[start + 21] = 4.0 * pi * v
+
+            leb.x[start + 22] = b
+            leb.y[start + 22] = -a
+            leb.z[start + 22] = -a
+            leb.w[start + 22] = 4.0 * pi * v
+
+            leb.x[start + 23] = -b
+            leb.y[start + 23] = -a
+            leb.z[start + 23] = -a
+            leb.w[start + 23] = 4.0 * pi * v
+            start = start + 24
+
+        case 5:
+            # /* A is inputed in this case as well*/
+            b = sqrt(1 - a * a)
+            leb.x[start] = a
+            leb.y[start] = b
+            leb.z[start] = 0.0
+            leb.w[start] = 4.0 * pi * v
+
+            leb.x[start + 1] = -a
+            leb.y[start + 1] = b
+            leb.z[start + 1] = 0.0
+            leb.w[start + 1] = 4.0 * pi * v
+
+            leb.x[start + 2] = a
+            leb.y[start + 2] = -b
+            leb.z[start + 2] = 0.0
+            leb.w[start + 2] = 4.0 * pi * v
+
+            leb.x[start + 3] = -a
+            leb.y[start + 3] = -b
+            leb.z[start + 3] = 0.0
+            leb.w[start + 3] = 4.0 * pi * v
+
+            leb.x[start + 4] = b
+            leb.y[start + 4] = a
+            leb.z[start + 4] = 0.0
+            leb.w[start + 4] = 4.0 * pi * v
+
+            leb.x[start + 5] = -b
+            leb.y[start + 5] = a
+            leb.z[start + 5] = 0.0
+            leb.w[start + 5] = 4.0 * pi * v
+
+            leb.x[start + 6] = b
+            leb.y[start + 6] = -a
+            leb.z[start + 6] = 0.0
+            leb.w[start + 6] = 4.0 * pi * v
+
+            leb.x[start + 7] = -b
+            leb.y[start + 7] = -a
+            leb.z[start + 7] = 0.0
+            leb.w[start + 7] = 4.0 * pi * v
+
+            leb.x[start + 8] = a
+            leb.y[start + 8] = 0.0
+            leb.z[start + 8] = b
+            leb.w[start + 8] = 4.0 * pi * v
+
+            leb.x[start + 9] = -a
+            leb.y[start + 9] = 0.0
+            leb.z[start + 9] = b
+            leb.w[start + 9] = 4.0 * pi * v
+
+            leb.x[start + 10] = a
+            leb.y[start + 10] = 0.0
+            leb.z[start + 10] = -b
+            leb.w[start + 10] = 4.0 * pi * v
+
+            leb.x[start + 11] = -a
+            leb.y[start + 11] = 0.0
+            leb.z[start + 11] = -b
+            leb.w[start + 11] = 4.0 * pi * v
+
+            leb.x[start + 12] = b
+            leb.y[start + 12] = 0.0
+            leb.z[start + 12] = a
+            leb.w[start + 12] = 4.0 * pi * v
+
+            leb.x[start + 13] = -b
+            leb.y[start + 13] = 0.0
+            leb.z[start + 13] = a
+            leb.w[start + 13] = 4.0 * pi * v
+
+            leb.x[start + 14] = b
+            leb.y[start + 14] = 0.0
+            leb.z[start + 14] = -a
+            leb.w[start + 14] = 4.0 * pi * v
+
+            leb.x[start + 15] = -b
+            leb.y[start + 15] = 0.0
+            leb.z[start + 15] = -a
+            leb.w[start + 15] = 4.0 * pi * v
+
+            leb.x[start + 16] = 0.0
+            leb.y[start + 16] = a
+            leb.z[start + 16] = b
+            leb.w[start + 16] = 4.0 * pi * v
+
+            leb.x[start + 17] = 0.0
+            leb.y[start + 17] = -a
+            leb.z[start + 17] = b
+            leb.w[start + 17] = 4.0 * pi * v
+
+            leb.x[start + 18] = 0.0
+            leb.y[start + 18] = a
+            leb.z[start + 18] = -b
+            leb.w[start + 18] = 4.0 * pi * v
+
+            leb.x[start + 19] = 0.0
+            leb.y[start + 19] = -a
+            leb.z[start + 19] = -b
+            leb.w[start + 19] = 4.0 * pi * v
+
+            leb.x[start + 20] = 0.0
+            leb.y[start + 20] = b
+            leb.z[start + 20] = a
+            leb.w[start + 20] = 4.0 * pi * v
+
+            leb.x[start + 21] = 0.0
+            leb.y[start + 21] = -b
+            leb.z[start + 21] = a
+            leb.w[start + 21] = 4.0 * pi * v
+
+            leb.x[start + 22] = 0.0
+            leb.y[start + 22] = b
+            leb.z[start + 22] = -a
+            leb.w[start + 22] = 4.0 * pi * v
+
+            leb.x[start + 23] = 0.0
+            leb.y[start + 23] = -b
+            leb.z[start + 23] = -a
+            leb.w[start + 23] = 4.0 * pi * v
+            start = start + 24
+
+        case 6:
+            # /* both A and B are inputed in this case */
+            c = sqrt(1.0 - a * a - b * b)
+            leb.x[start] = a
+            leb.y[start] = b
+            leb.z[start] = c
+            leb.w[start] = 4.0 * pi * v
+
+            leb.x[start + 1] = -a
+            leb.y[start + 1] = b
+            leb.z[start + 1] = c
+            leb.w[start + 1] = 4.0 * pi * v
+
+            leb.x[start + 2] = a
+            leb.y[start + 2] = -b
+            leb.z[start + 2] = c
+            leb.w[start + 2] = 4.0 * pi * v
+
+            leb.x[start + 3] = a
+            leb.y[start + 3] = b
+            leb.z[start + 3] = -c
+            leb.w[start + 3] = 4.0 * pi * v
+
+            leb.x[start + 4] = -a
+            leb.y[start + 4] = -b
+            leb.z[start + 4] = c
+            leb.w[start + 4] = 4.0 * pi * v
+
+            leb.x[start + 5] = a
+            leb.y[start + 5] = -b
+            leb.z[start + 5] = -c
+            leb.w[start + 5] = 4.0 * pi * v
+
+            leb.x[start + 6] = -a
+            leb.y[start + 6] = b
+            leb.z[start + 6] = -c
+            leb.w[start + 6] = 4.0 * pi * v
+
+            leb.x[start + 7] = -a
+            leb.y[start + 7] = -b
+            leb.z[start + 7] = -c
+            leb.w[start + 7] = 4.0 * pi * v
+
+            leb.x[start + 8] = b
+            leb.y[start + 8] = a
+            leb.z[start + 8] = c
+            leb.w[start + 8] = 4.0 * pi * v
+
+            leb.x[start + 9] = -b
+            leb.y[start + 9] = a
+            leb.z[start + 9] = c
+            leb.w[start + 9] = 4.0 * pi * v
+
+            leb.x[start + 10] = b
+            leb.y[start + 10] = -a
+            leb.z[start + 10] = c
+            leb.w[start + 10] = 4.0 * pi * v
+
+            leb.x[start + 11] = b
+            leb.y[start + 11] = a
+            leb.z[start + 11] = -c
+            leb.w[start + 11] = 4.0 * pi * v
+
+            leb.x[start + 12] = -b
+            leb.y[start + 12] = -a
+            leb.z[start + 12] = c
+            leb.w[start + 12] = 4.0 * pi * v
+
+            leb.x[start + 13] = b
+            leb.y[start + 13] = -a
+            leb.z[start + 13] = -c
+            leb.w[start + 13] = 4.0 * pi * v
+
+            leb.x[start + 14] = -b
+            leb.y[start + 14] = a
+            leb.z[start + 14] = -c
+            leb.w[start + 14] = 4.0 * pi * v
+
+            leb.x[start + 15] = -b
+            leb.y[start + 15] = -a
+            leb.z[start + 15] = -c
+            leb.w[start + 15] = 4.0 * pi * v
+
+            leb.x[start + 16] = c
+            leb.y[start + 16] = a
+            leb.z[start + 16] = b
+            leb.w[start + 16] = 4.0 * pi * v
+
+            leb.x[start + 17] = -c
+            leb.y[start + 17] = a
+            leb.z[start + 17] = b
+            leb.w[start + 17] = 4.0 * pi * v
+
+            leb.x[start + 18] = c
+            leb.y[start + 18] = -a
+            leb.z[start + 18] = b
+            leb.w[start + 18] = 4.0 * pi * v
+
+            leb.x[start + 19] = c
+            leb.y[start + 19] = a
+            leb.z[start + 19] = -b
+            leb.w[start + 19] = 4.0 * pi * v
+
+            leb.x[start + 20] = -c
+            leb.y[start + 20] = -a
+            leb.z[start + 20] = b
+            leb.w[start + 20] = 4.0 * pi * v
+
+            leb.x[start + 21] = c
+            leb.y[start + 21] = -a
+            leb.z[start + 21] = -b
+            leb.w[start + 21] = 4.0 * pi * v
+
+            leb.x[start + 22] = -c
+            leb.y[start + 22] = a
+            leb.z[start + 22] = -b
+            leb.w[start + 22] = 4.0 * pi * v
+
+            leb.x[start + 23] = -c
+            leb.y[start + 23] = -a
+            leb.z[start + 23] = -b
+            leb.w[start + 23] = 4.0 * pi * v
+
+            leb.x[start + 24] = c
+            leb.y[start + 24] = b
+            leb.z[start + 24] = a
+            leb.w[start + 24] = 4.0 * pi * v
+
+            leb.x[start + 25] = -c
+            leb.y[start + 25] = b
+            leb.z[start + 25] = a
+            leb.w[start + 25] = 4.0 * pi * v
+
+            leb.x[start + 26] = c
+            leb.y[start + 26] = -b
+            leb.z[start + 26] = a
+            leb.w[start + 26] = 4.0 * pi * v
+
+            leb.x[start + 27] = c
+            leb.y[start + 27] = b
+            leb.z[start + 27] = -a
+            leb.w[start + 27] = 4.0 * pi * v
+
+            leb.x[start + 28] = -c
+            leb.y[start + 28] = -b
+            leb.z[start + 28] = a
+            leb.w[start + 28] = 4.0 * pi * v
+
+            leb.x[start + 29] = c
+            leb.y[start + 29] = -b
+            leb.z[start + 29] = -a
+            leb.w[start + 29] = 4.0 * pi * v
+
+            leb.x[start + 30] = -c
+            leb.y[start + 30] = b
+            leb.z[start + 30] = -a
+            leb.w[start + 30] = 4.0 * pi * v
+
+            leb.x[start + 31] = -c
+            leb.y[start + 31] = -b
+            leb.z[start + 31] = -a
+            leb.w[start + 31] = 4.0 * pi * v
+
+            leb.x[start + 32] = a
+            leb.y[start + 32] = c
+            leb.z[start + 32] = b
+            leb.w[start + 32] = 4.0 * pi * v
+
+            leb.x[start + 33] = -a
+            leb.y[start + 33] = c
+            leb.z[start + 33] = b
+            leb.w[start + 33] = 4.0 * pi * v
+
+            leb.x[start + 34] = a
+            leb.y[start + 34] = -c
+            leb.z[start + 34] = b
+            leb.w[start + 34] = 4.0 * pi * v
+
+            leb.x[start + 35] = a
+            leb.y[start + 35] = c
+            leb.z[start + 35] = -b
+            leb.w[start + 35] = 4.0 * pi * v
+
+            leb.x[start + 36] = -a
+            leb.y[start + 36] = -c
+            leb.z[start + 36] = b
+            leb.w[start + 36] = 4.0 * pi * v
+
+            leb.x[start + 37] = a
+            leb.y[start + 37] = -c
+            leb.z[start + 37] = -b
+            leb.w[start + 37] = 4.0 * pi * v
+
+            leb.x[start + 38] = -a
+            leb.y[start + 38] = c
+            leb.z[start + 38] = -b
+            leb.w[start + 38] = 4.0 * pi * v
+
+            leb.x[start + 39] = -a
+            leb.y[start + 39] = -c
+            leb.z[start + 39] = -b
+            leb.w[start + 39] = 4.0 * pi * v
+
+            leb.x[start + 40] = b
+            leb.y[start + 40] = c
+            leb.z[start + 40] = a
+            leb.w[start + 40] = 4.0 * pi * v
+
+            leb.x[start + 41] = -b
+            leb.y[start + 41] = c
+            leb.z[start + 41] = a
+            leb.w[start + 41] = 4.0 * pi * v
+
+            leb.x[start + 42] = b
+            leb.y[start + 42] = -c
+            leb.z[start + 42] = a
+            leb.w[start + 42] = 4.0 * pi * v
+
+            leb.x[start + 43] = b
+            leb.y[start + 43] = c
+            leb.z[start + 43] = -a
+            leb.w[start + 43] = 4.0 * pi * v
+
+            leb.x[start + 44] = -b
+            leb.y[start + 44] = -c
+            leb.z[start + 44] = a
+            leb.w[start + 44] = 4.0 * pi * v
+
+            leb.x[start + 45] = b
+            leb.y[start + 45] = -c
+            leb.z[start + 45] = -a
+            leb.w[start + 45] = 4.0 * pi * v
+
+            leb.x[start + 46] = -b
+            leb.y[start + 46] = c
+            leb.z[start + 46] = -a
+            leb.w[start + 46] = 4.0 * pi * v
+
+            leb.x[start + 47] = -b
+            leb.y[start + 47] = -c
+            leb.z[start + 47] = -a
+            leb.w[start + 47] = 4.0 * pi * v
+            start = start + 48
+
+        case _:
+            raise Exception('Bad grid order')
+
+    return leb, start
+
+
+def lebedev_rule(n):
+    r"""Lebedev quadrature.
+
+    Compute the sample points and weights for Lebedev quadrature [1]_
+    for integration of a function over the surface of a unit sphere.
+
+    Parameters
+    ----------
+    n : int
+        Quadrature order. See Notes for supported values.
+
+    Returns
+    -------
+    x : ndarray of shape ``(3, m)``
+        Sample points on the unit sphere in Cartesian coordinates.
+        ``m`` is the "degree" corresponding with the specified order; see Notes.
+    w : ndarray of shape ``(m,)``
+        Weights
+
+    Notes
+    -----
+    Implemented by translating the Matlab code of [2]_ to Python.
+
+    The available orders (argument `n`) are::
+
+        3, 5, 7, 9, 11, 13, 15, 17,
+        19, 21, 23, 25, 27, 29, 31, 35,
+        41, 47, 53, 59, 65, 71, 77, 83,
+        89, 95, 101, 107, 113, 119, 125, 131
+
+    The corresponding degrees ``m`` are::
+
+        6, 14, 26, 38, 50, 74, 86, 110,
+        146, 170, 194, 230, 266, 302, 350, 434,
+        590, 770, 974, 1202, 1454, 1730, 2030, 2354,
+        2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810
+
+    References
+    ----------
+    .. [1] V.I. Lebedev, and D.N. Laikov. "A quadrature formula for the sphere of
+           the 131st algebraic order of accuracy". Doklady Mathematics, Vol. 59,
+           No. 3, 1999, pp. 477-481.
+    .. [2] R. Parrish. ``getLebedevSphere``. Matlab Central File Exchange.
+           https://www.mathworks.com/matlabcentral/fileexchange/27097-getlebedevsphere.
+    .. [3] Bellet, Jean-Baptiste, Matthieu Brachet, and Jean-Pierre Croisille.
+           "Quadrature and symmetry on the Cubed Sphere." Journal of Computational and
+           Applied Mathematics 409 (2022): 114142. :doi:`10.1016/j.cam.2022.114142`.
+
+    Examples
+    --------
+    An example given in [3]_ is integration of :math:`f(x, y, z) = \exp(x)` over a
+    sphere of radius :math:`1`; the reference there is ``14.7680137457653``.
+    Show the convergence to the expected result as the order increases:
+
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+    >>> from scipy.integrate import lebedev_rule
+    >>>
+    >>> def f(x):
+    ...     return np.exp(x[0])
+    >>>
+    >>> res = []
+    >>> orders = np.arange(3, 20, 2)
+    >>> for n in orders:
+    ...     x, w = lebedev_rule(n)
+    ...     res.append(w @ f(x))
+    >>>
+    >>> ref = np.full_like(res, 14.7680137457653)
+    >>> err = abs(res - ref)/abs(ref)
+    >>> plt.semilogy(orders, err)
+    >>> plt.xlabel('order $n$')
+    >>> plt.ylabel('relative error')
+    >>> plt.title(r'Convergence for $f(x, y, z) = \exp(x)$')
+    >>> plt.show()
+
+    """
+    degree = [6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350,
+              434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3470,
+              3890, 4334, 4802, 5294, 5810]
+    order = [3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 35, 41, 47,
+             53, 59, 65, 71, 77, 83, 89, 95, 101, 107, 113, 119, 125, 131]
+    order_degree_map = dict(zip(order, degree))
+
+    if n not in order_degree_map:
+        message = f"Order {n=} not available. Available orders are {order}."
+        raise NotImplementedError(message)
+
+    degree = order_degree_map[n]
+    res = get_lebedev_sphere(degree)
+    x = np.stack((res.x, res.y, res.z))
+    w = res.w
+
+    return x, w
+```
+
+## scipy/scipy/interpolate/_bary_rational.py.notice.txt
+
+```text
+# Copyright (c) 2017, The Chancellor, Masters and Scholars of the University
+# of Oxford, and the Chebfun Developers. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the University of Oxford nor the names of its
+#       contributors may be used to endorse or promote products derived from
+#       this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import warnings
+import operator
+
+import numpy as np
+import scipy
+
+
+__all__ = ["AAA", "FloaterHormannInterpolator"]
+
+
+class _BarycentricRational:
+    """Base class for barycentric representation of a rational function."""
+    def __init__(self, x, y, **kwargs):
+        # input validation
+        z = np.asarray(x)
+        f = np.asarray(y)
+
+        self._input_validation(z, f, **kwargs)
+
+        # Remove infinite or NaN function values and repeated entries
+        to_keep = np.logical_and.reduce(
+            ((np.isfinite(f)) & (~np.isnan(f))).reshape(f.shape[0], -1),
+            axis=-1
+        )
+        f = f[to_keep, ...]
+        z = z[to_keep]
+        z, uni = np.unique(z, return_index=True)
+        f = f[uni, ...]
+
+        self._shape = f.shape[1:]
+        self._support_points, self._support_values, self.weights = (
+            self._compute_weights(z, f, **kwargs)
+        )
+
+        # only compute once
+        self._poles = None
+        self._residues = None
+        self._roots = None
+
+    def _input_validation(self, x, y, **kwargs):
+        if x.ndim != 1:
+            raise ValueError("`x` must be 1-D.")
+
+        if not y.ndim >= 1:
+            raise ValueError("`y` must be at least 1-D.")
+
+        if x.size != y.shape[0]:
+            raise ValueError("`x` be the same size as the first dimension of `y`.")
+
+        if not np.all(np.isfinite(x)):
+            raise ValueError("`x` must be finite.")
+
+    def _compute_weights(z, f, **kwargs):
+        raise NotImplementedError
+
+    def __call__(self, z):
+        """Evaluate the rational approximation at given values.
+
+        Parameters
+        ----------
+        z : array_like
+            Input values.
+        """
+        # evaluate rational function in barycentric form.
+        z = np.asarray(z)
+        zv = np.ravel(z)
+
+        support_values = self._support_values.reshape(
+            (self._support_values.shape[0], -1)
+        )
+        weights = self.weights[..., np.newaxis]
+
+        # Cauchy matrix
+        # Ignore errors due to inf/inf at support points, these will be fixed later
+        with np.errstate(invalid="ignore", divide="ignore"):
+            CC = 1 / np.subtract.outer(zv, self._support_points)
+            # Vector of values
+            r = CC @ (weights * support_values) / (CC @ weights)
+
+        # Deal with input inf: `r(inf) = lim r(z) = sum(w*f) / sum(w)`
+        if np.any(np.isinf(zv)):
+            r[np.isinf(zv)] = (np.sum(weights * support_values)
+                               / np.sum(weights))
+
+        # Deal with NaN
+        ii = np.nonzero(np.isnan(r))[0]
+        for jj in ii:
+            if np.isnan(zv[jj]) or not np.any(zv[jj] == self._support_points):
+                # r(NaN) = NaN is fine.
+                # The second case may happen if `r(zv[ii]) = 0/0` at some point.
+                pass
+            else:
+                # Clean up values `NaN = inf/inf` at support points.
+                # Find the corresponding node and set entry to correct value:
+                r[jj] = support_values[zv[jj] == self._support_points].squeeze()
+
+        return np.reshape(r, z.shape + self._shape)
+
+    def poles(self):
+        """Compute the poles of the rational approximation.
+
+        Returns
+        -------
+        poles : array
+            Poles of the AAA approximation, repeated according to their multiplicity
+            but not in any specific order.
+        """
+        if self._poles is None:
+            # Compute poles via generalized eigenvalue problem
+            m = self.weights.size
+            B = np.eye(m + 1, dtype=self.weights.dtype)
+            B[0, 0] = 0
+
+            E = np.zeros_like(B, dtype=np.result_type(self.weights,
+                                                      self._support_points))
+            E[0, 1:] = self.weights
+            E[1:, 0] = 1
+            np.fill_diagonal(E[1:, 1:], self._support_points)
+
+            pol = scipy.linalg.eigvals(E, B)
+            self._poles = pol[np.isfinite(pol)]
+        return self._poles
+
+    def residues(self):
+        """Compute the residues of the poles of the approximation.
+
+        Returns
+        -------
+        residues : array
+            Residues associated with the `poles` of the approximation
+        """
+        if self._residues is None:
+            # Compute residues via formula for res of quotient of analytic functions
+            with np.errstate(divide="ignore", invalid="ignore"):
+                N = (1/(np.subtract.outer(self.poles(), self._support_points))) @ (
+                    self._support_values * self.weights
+                )
+                Ddiff = (
+                    -((1/np.subtract.outer(self.poles(), self._support_points))**2)
+                    @ self.weights
+                )
+                self._residues = N / Ddiff
+        return self._residues
+
+    def roots(self):
+        """Compute the zeros of the rational approximation.
+
+        Returns
+        -------
+        zeros : array
+            Zeros of the AAA approximation, repeated according to their multiplicity
+            but not in any specific order.
+        """
+        if self._roots is None:
+            # Compute zeros via generalized eigenvalue problem
+            m = self.weights.size
+            B = np.eye(m + 1, dtype=self.weights.dtype)
+            B[0, 0] = 0
+            E = np.zeros_like(B, dtype=np.result_type(self.weights,
+                                                      self._support_values,
+                                                      self._support_points))
+            E[0, 1:] = self.weights * self._support_values
+            E[1:, 0] = 1
+            np.fill_diagonal(E[1:, 1:], self._support_points)
+
+            zer = scipy.linalg.eigvals(E, B)
+            self._roots = zer[np.isfinite(zer)]
+        return self._roots
+
+
+class AAA(_BarycentricRational):
+    r"""
+    AAA real or complex rational approximation.
+
+    As described in [1]_, the AAA algorithm is a greedy algorithm for approximation by
+    rational functions on a real or complex set of points. The rational approximation is
+    represented in a barycentric form from which the roots (zeros), poles, and residues
+    can be computed.
+
+    Parameters
+    ----------
+    x : 1D array_like, shape (n,)
+        1-D array containing values of the independent variable. Values may be real or
+        complex but must be finite.
+    y : 1D array_like, shape (n,)
+        Function values ``f(x)``. Infinite and NaN values of `values` and
+        corresponding values of `points` will be discarded.
+    rtol : float, optional
+        Relative tolerance, defaults to ``eps**0.75``. If a small subset of the entries
+        in `values` are much larger than the rest the default tolerance may be too
+        loose. If the tolerance is too tight then the approximation may contain
+        Froissart doublets or the algorithm may fail to converge entirely.
+    max_terms : int, optional
+        Maximum number of terms in the barycentric representation, defaults to ``100``.
+        Must be greater than or equal to one.
+    clean_up : bool, optional
+        Automatic removal of Froissart doublets, defaults to ``True``. See notes for
+        more details.
+    clean_up_tol : float, optional
+        Poles with residues less than this number times the geometric mean
+        of `values` times the minimum distance to `points` are deemed spurious by the
+        cleanup procedure, defaults to 1e-13. See notes for more details.
+
+    Attributes
+    ----------
+    support_points : array
+        Support points of the approximation. These are a subset of the provided `x` at
+        which the approximation strictly interpolates `y`.
+        See notes for more details.
+    support_values : array
+        Value of the approximation at the `support_points`.
+    weights : array
+        Weights of the barycentric approximation.
+    errors : array
+        Error :math:`|f(z) - r(z)|_\infty` over `points` in the successive iterations
+        of AAA.
+
+    Warns
+    -----
+    RuntimeWarning
+        If `rtol` is not achieved in `max_terms` iterations.
+
+    See Also
+    --------
+    FloaterHormannInterpolator : Floater-Hormann barycentric rational interpolation.
+    pade : Padé approximation.
+
+    Notes
+    -----
+    At iteration :math:`m` (at which point there are :math:`m` terms in the both the
+    numerator and denominator of the approximation), the
+    rational approximation in the AAA algorithm takes the barycentric form
+
+    .. math::
+
+        r(z) = n(z)/d(z) =
+        \frac{\sum_{j=1}^m\ w_j f_j / (z - z_j)}{\sum_{j=1}^m w_j / (z - z_j)},
+
+    where :math:`z_1,\dots,z_m` are real or complex support points selected from
+    `x`, :math:`f_1,\dots,f_m` are the corresponding real or complex data values
+    from `y`, and :math:`w_1,\dots,w_m` are real or complex weights.
+
+    Each iteration of the algorithm has two parts: the greedy selection the next support
+    point and the computation of the weights. The first part of each iteration is to
+    select the next support point to be added :math:`z_{m+1}` from the remaining
+    unselected `x`, such that the nonlinear residual
+    :math:`|f(z_{m+1}) - n(z_{m+1})/d(z_{m+1})|` is maximised. The algorithm terminates
+    when this maximum is less than ``rtol * np.linalg.norm(f, ord=np.inf)``. This means
+    the interpolation property is only satisfied up to a tolerance, except at the
+    support points where approximation exactly interpolates the supplied data.
+
+    In the second part of each iteration, the weights :math:`w_j` are selected to solve
+    the least-squares problem
+
+    .. math::
+
+        \text{minimise}_{w_j}|fd - n| \quad \text{subject to} \quad
+        \sum_{j=1}^{m+1} w_j = 1,
+
+    over the unselected elements of `x`.
+
+    One of the challenges with working with rational approximations is the presence of
+    Froissart doublets, which are either poles with vanishingly small residues or
+    pole-zero pairs that are close enough together to nearly cancel, see [2]_. The
+    greedy nature of the AAA algorithm means Froissart doublets are rare. However, if
+    `rtol` is set too tight then the approximation will stagnate and many Froissart
+    doublets will appear. Froissart doublets can usually be removed by removing support
+    points and then resolving the least squares problem. The support point :math:`z_j`,
+    which is the closest support point to the pole :math:`a` with residue
+    :math:`\alpha`, is removed if the following is satisfied
+
+    .. math::
+
+        |\alpha| / |z_j - a| < \verb|clean_up_tol| \cdot \tilde{f},
+
+    where :math:`\tilde{f}` is the geometric mean of `support_values`.
+
+
+    References
+    ----------
+    .. [1] Y. Nakatsukasa, O. Sete, and L. N. Trefethen, "The AAA algorithm for
+            rational approximation", SIAM J. Sci. Comp. 40 (2018), A1494-A1522.
+            :doi:`10.1137/16M1106122`
+    .. [2] J. Gilewicz and M. Pindor, Pade approximants and noise: rational functions,
+           J. Comp. Appl. Math. 105 (1999), pp. 285-297.
+           :doi:`10.1016/S0377-0427(02)00674-X`
+
+    Examples
+    --------
+
+    Here we reproduce a number of the numerical examples from [1]_ as a demonstration
+    of the functionality offered by this method.
+
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> from scipy.interpolate import AAA
+    >>> import warnings
+
+    For the first example we approximate the gamma function on ``[-3.5, 4.5]`` by
+    extrapolating from 100 samples in ``[-1.5, 1.5]``.
+
+    >>> from scipy.special import gamma
+    >>> sample_points = np.linspace(-1.5, 1.5, num=100)
+    >>> r = AAA(sample_points, gamma(sample_points))
+    >>> z = np.linspace(-3.5, 4.5, num=1000)
+    >>> fig, ax = plt.subplots()
+    >>> ax.plot(z, gamma(z), label="Gamma")
+    >>> ax.plot(sample_points, gamma(sample_points), label="Sample points")
+    >>> ax.plot(z, r(z).real, '--', label="AAA approximation")
+    >>> ax.set(xlabel="z", ylabel="r(z)", ylim=[-8, 8], xlim=[-3.5, 4.5])
+    >>> ax.legend()
+    >>> plt.show()
+
+    We can also view the poles of the rational approximation and their residues:
+
+    >>> order = np.argsort(r.poles())
+    >>> r.poles()[order]
+    array([-3.81591039e+00+0.j        , -3.00269049e+00+0.j        ,
+           -1.99999988e+00+0.j        , -1.00000000e+00+0.j        ,
+            5.85842812e-17+0.j        ,  4.77485458e+00-3.06919376j,
+            4.77485458e+00+3.06919376j,  5.29095868e+00-0.97373072j,
+            5.29095868e+00+0.97373072j])
+    >>> r.residues()[order]
+    array([ 0.03658074 +0.j        , -0.16915426 -0.j        ,
+            0.49999915 +0.j        , -1.         +0.j        ,
+            1.         +0.j        , -0.81132013 -2.30193429j,
+           -0.81132013 +2.30193429j,  0.87326839+10.70148546j,
+            0.87326839-10.70148546j])
+
+    For the second example, we call `AAA` with a spiral of 1000 points that wind 7.5
+    times around the origin in the complex plane.
+
+    >>> z = np.exp(np.linspace(-0.5, 0.5 + 15j*np.pi, 1000))
+    >>> r = AAA(z, np.tan(np.pi*z/2), rtol=1e-13)
+
+    We see that AAA takes 12 steps to converge with the following errors:
+
+    >>> r.errors.size
+    12
+    >>> r.errors
+    array([2.49261500e+01, 4.28045609e+01, 1.71346935e+01, 8.65055336e-02,
+           1.27106444e-02, 9.90889874e-04, 5.86910543e-05, 1.28735561e-06,
+           3.57007424e-08, 6.37007837e-10, 1.67103357e-11, 1.17112299e-13])
+
+    We can also plot the computed poles:
+
+    >>> fig, ax = plt.subplots()
+    >>> ax.plot(z.real, z.imag, '.', markersize=2, label="Sample points")
+    >>> ax.plot(r.poles().real, r.poles().imag, '.', markersize=5,
+    ...         label="Computed poles")
+    >>> ax.set(xlim=[-3.5, 3.5], ylim=[-3.5, 3.5], aspect="equal")
+    >>> ax.legend()
+    >>> plt.show()
+
+    We now demonstrate the removal of Froissart doublets using the `clean_up` method
+    using an example from [1]_. Here we approximate the function
+    :math:`f(z)=\log(2 + z^4)/(1 + 16z^4)` by sampling it at 1000 roots of unity. The
+    algorithm is run with ``rtol=0`` and ``clean_up=False`` to deliberately cause
+    Froissart doublets to appear.
+
+    >>> z = np.exp(1j*2*np.pi*np.linspace(0,1, num=1000))
+    >>> def f(z):
+    ...     return np.log(2 + z**4)/(1 - 16*z**4)
+    >>> with warnings.catch_warnings():  # filter convergence warning due to rtol=0
+    ...     warnings.simplefilter('ignore', RuntimeWarning)
+    ...     r = AAA(z, f(z), rtol=0, max_terms=50, clean_up=False)
+    >>> mask = np.abs(r.residues()) < 1e-13
+    >>> fig, axs = plt.subplots(ncols=2)
+    >>> axs[0].plot(r.poles().real[~mask], r.poles().imag[~mask], '.')
+    >>> axs[0].plot(r.poles().real[mask], r.poles().imag[mask], 'r.')
+
+    Now we call the `clean_up` method to remove Froissart doublets.
+
+    >>> with warnings.catch_warnings():
+    ...     warnings.simplefilter('ignore', RuntimeWarning)
+    ...     r.clean_up()
+    4  # may vary
+    >>> mask = np.abs(r.residues()) < 1e-13
+    >>> axs[1].plot(r.poles().real[~mask], r.poles().imag[~mask], '.')
+    >>> axs[1].plot(r.poles().real[mask], r.poles().imag[mask], 'r.')
+    >>> plt.show()
+
+    The left image shows the poles prior of the approximation ``clean_up=False`` with
+    poles with residue less than ``10^-13`` in absolute value shown in red. The right
+    image then shows the poles after the `clean_up` method has been called.
+    """
+    def __init__(self, x, y, *, rtol=None, max_terms=100, clean_up=True,
+                 clean_up_tol=1e-13):
+        super().__init__(x, y, rtol=rtol, max_terms=max_terms)
+
+        if clean_up:
+            self.clean_up(clean_up_tol)
+
+    def _input_validation(self, x, y, rtol=None, max_terms=100, clean_up=True,
+                          clean_up_tol=1e-13):
+        max_terms = operator.index(max_terms)
+        if max_terms < 1:
+            raise ValueError("`max_terms` must be an integer value greater than or "
+                             "equal to one.")
+
+        if y.ndim != 1:
+            raise ValueError("`y` must be 1-D.")
+
+        super()._input_validation(x, y)
+
+    @property
+    def support_points(self):
+        return self._support_points
+
+    @property
+    def support_values(self):
+        return self._support_values
+
+    def _compute_weights(self, z, f, rtol, max_terms):
+        # Initialization for AAA iteration
+        M = np.size(z)
+        mask = np.ones(M, dtype=np.bool_)
+        dtype = np.result_type(z, f, 1.0)
+        rtol = np.finfo(dtype).eps**0.75 if rtol is None else rtol
+        atol = rtol * np.linalg.norm(f, ord=np.inf)
+        zj = np.empty(max_terms, dtype=dtype)
+        fj = np.empty(max_terms, dtype=dtype)
+        # Cauchy matrix
+        C = np.empty((M, max_terms), dtype=dtype)
+        # Loewner matrix
+        A = np.empty((M, max_terms), dtype=dtype)
+        errors = np.empty(max_terms, dtype=A.real.dtype)
+        R = np.repeat(np.mean(f), M)
+
+        # AAA iteration
+        for m in range(max_terms):
+            # Introduce next support point
+            # Select next support point
+            jj = np.argmax(np.abs(f[mask] - R[mask]))
+            # Update support points
+            zj[m] = z[mask][jj]
+            # Update data values
+            fj[m] = f[mask][jj]
+            # Next column of Cauchy matrix
+            # Ignore errors as we manually interpolate at support points
+            with np.errstate(divide="ignore", invalid="ignore"):
+                C[:, m] = 1 / (z - z[mask][jj])
+            # Update mask
+            mask[np.nonzero(mask)[0][jj]] = False
+            # Update Loewner matrix
+            # Ignore errors as inf values will be masked out in SVD call
+            with np.errstate(invalid="ignore"):
+                A[:, m] = (f - fj[m]) * C[:, m]
+
+            # Compute weights
+            rows = mask.sum()
+            if rows >= m + 1:
+                # The usual tall-skinny case
+                _, s, V = scipy.linalg.svd(
+                    A[mask, : m + 1], full_matrices=False, check_finite=False,
+                )
+                # Treat case of multiple min singular values
+                mm = s == np.min(s)
+                # Aim for non-sparse weight vector
+                wj = (V.conj()[mm, :].sum(axis=0) / np.sqrt(mm.sum())).astype(dtype)
+            else:
+                # Fewer rows than columns
+                V = scipy.linalg.null_space(A[mask, : m + 1], check_finite=False)
+                nm = V.shape[-1]
+                # Aim for non-sparse wt vector
+                wj = V.sum(axis=-1) / np.sqrt(nm)
+
+            # Compute rational approximant
+            # Omit columns with `wj == 0`
+            i0 = wj != 0
+            # Ignore errors as we manually interpolate at support points
+            with np.errstate(invalid="ignore"):
+                # Numerator
+                N = C[:, : m + 1][:, i0] @ (wj[i0] * fj[: m + 1][i0])
+                # Denominator
+                D = C[:, : m + 1][:, i0] @ wj[i0]
+            # Interpolate at support points with `wj !=0`
+            D_inf = np.isinf(D) | np.isnan(D)
+            D[D_inf] = 1
+            N[D_inf] = f[D_inf]
+            R = N / D
+
+            # Check if converged
+            max_error = np.linalg.norm(f - R, ord=np.inf)
+            errors[m] = max_error
+            if max_error <= atol:
+                break
+
+        if m == max_terms - 1:
+            warnings.warn(f"AAA failed to converge within {max_terms} iterations.",
+                          RuntimeWarning, stacklevel=2)
+
+        # Trim off unused array allocation
+        zj = zj[: m + 1]
+        fj = fj[: m + 1]
+
+        # Remove support points with zero weight
+        i_non_zero = wj != 0
+        self.errors = errors[: m + 1]
+        self._points = z
+        self._values = f
+        return zj[i_non_zero], fj[i_non_zero], wj[i_non_zero]
+
+    def clean_up(self, cleanup_tol=1e-13):
+        """Automatic removal of Froissart doublets.
+
+        Parameters
+        ----------
+        cleanup_tol : float, optional
+            Poles with residues less than this number times the geometric mean
+            of `values` times the minimum distance to `points` are deemed spurious by
+            the cleanup procedure, defaults to 1e-13.
+
+        Returns
+        -------
+        int
+            Number of Froissart doublets detected
+        """
+        # Find negligible residues
+        geom_mean_abs_f = scipy.stats.gmean(np.abs(self._values))
+
+        Z_distances = np.min(
+            np.abs(np.subtract.outer(self.poles(), self._points)), axis=1
+        )
+
+        with np.errstate(divide="ignore", invalid="ignore"):
+            ii = np.nonzero(
+                np.abs(self.residues()) / Z_distances < cleanup_tol * geom_mean_abs_f
+            )
+
+        ni = ii[0].size
+        if ni == 0:
+            return ni
+
+        warnings.warn(f"{ni} Froissart doublets detected.", RuntimeWarning,
+                        stacklevel=2)
+
+        # For each spurious pole find and remove closest support point
+        closest_spt_point = np.argmin(
+            np.abs(np.subtract.outer(self._support_points, self.poles()[ii])), axis=0
+        )
+        self._support_points = np.delete(self._support_points, closest_spt_point)
+        self._support_values = np.delete(self._support_values, closest_spt_point)
+
+        # Remove support points z from sample set
+        mask = np.logical_and.reduce(
+            np.not_equal.outer(self._points, self._support_points), axis=1
+        )
+        f = self._values[mask]
+        z = self._points[mask]
+
+        # recompute weights, we resolve the least squares problem for the remaining
+        # support points
+
+        m = self._support_points.size
+
+        # Cauchy matrix
+        C = 1 / np.subtract.outer(z, self._support_points)
+        # Loewner matrix
+        A = f[:, np.newaxis] * C - C * self._support_values
+
+        # Solve least-squares problem to obtain weights
+        _, _, V = scipy.linalg.svd(A, check_finite=False)
+        self.weights = np.conj(V[m - 1,:])
+
+        # reset roots, poles, residues as cached values will be wrong with new weights
+        self._poles = None
+        self._residues = None
+        self._roots = None
+
+        return ni
+
+
+class FloaterHormannInterpolator(_BarycentricRational):
+    r"""Floater-Hormann barycentric rational interpolator (C∞ smooth on real axis).
+
+    As described in [1]_, the method of Floater and Hormann computes weights for a
+    barycentric rational interpolant with no poles on the real axis.
+
+    Parameters
+    ----------
+    x : 1D array_like, shape (n,)
+        1-D array containing values of the independent variable. Values may be real or
+        complex but must be finite.
+    y : array_like, shape (n, ...)
+        Array containing values of the dependent variable. Infinite and NaN values
+        of `y` and corresponding values of `x` will be discarded.
+    d : int, default: 3
+        Integer satisfying ``0 <= d < n``. Floater-Hormann interpolation blends
+        ``n - d`` polynomials of degree `d` together; for ``d = n - 1``, this is
+        equivalent to polynomial interpolation.
+
+    Attributes
+    ----------
+    weights : array
+        Weights of the barycentric approximation.
+
+    See Also
+    --------
+    AAA : Barycentric rational approximation of real and complex functions.
+    pade : Padé approximation.
+
+    Notes
+    -----
+    The Floater-Hormann interpolant is a rational function that interpolates the data
+    with approximation order :math:`O(h^{d+1})`. The rational function blends ``n - d``
+    polynomials of degree `d` together to produce a rational interpolant that contains
+    no poles on the real axis, unlike `AAA`. The interpolant is given
+    by
+
+    .. math::
+
+        r(x) = \frac{\sum_{i=0}^{n-d} \lambda_i(x) p_i(x)}
+        {\sum_{i=0}^{n-d} \lambda_i(x)},
+
+    where :math:`p_i(x)` is an interpolating polynomial of at most degree `d` through
+    the points :math:`(x_i,y_i),\dots,(x_{i+d},y_{i+d})`, and :math:`\lambda_i(z)` are
+    blending functions defined by
+
+    .. math::
+
+        \lambda_i(x) = \frac{(-1)^i}{(x - x_i)\cdots(x - x_{i+d})}.
+
+    When ``d = n - 1`` this reduces to polynomial interpolation.
+
+    Due to its stability, the following barycentric representation of the above equation
+    is used for computation
+
+    .. math::
+
+        r(z) = \frac{\sum_{k=1}^m\ w_k f_k / (x - x_k)}{\sum_{k=1}^m w_k / (x - x_k)},
+
+    where the weights :math:`w_j` are computed as
+
+    .. math::
+
+        w_k &= (-1)^{k - d} \sum_{i \in J_k} \prod_{j = i, j \neq k}^{i + d}
+        1/|x_k - x_j|, \\
+        J_k &= \{ i \in I: k - d \leq i \leq k\},\\
+        I &= \{0, 1, \dots, n - d\}.
+
+    References
+    ----------
+    .. [1] M.S. Floater and K. Hormann, "Barycentric rational interpolation with no
+           poles and high rates of approximation", Numer. Math. 107, 315 (2007).
+           :doi:`10.1007/s00211-007-0093-y`
+
+    Examples
+    --------
+
+    Here we compare the method against polynomial interpolation for an example where
+    the polynomial interpolation fails due to Runge's phenomenon.
+
+    >>> import numpy as np
+    >>> from scipy.interpolate import (FloaterHormannInterpolator,
+    ...                                BarycentricInterpolator)
+    >>> def f(x):
+    ...     return 1/(1 + x**2)
+    >>> x = np.linspace(-5, 5, num=15)
+    >>> r = FloaterHormannInterpolator(x, f(x))
+    >>> p = BarycentricInterpolator(x, f(x))
+    >>> xx = np.linspace(-5, 5, num=1000)
+    >>> import matplotlib.pyplot as plt
+    >>> fig, ax = plt.subplots()
+    >>> ax.plot(xx, f(xx), label="f(x)")
+    >>> ax.plot(xx, r(xx), "--", label="Floater-Hormann")
+    >>> ax.plot(xx, p(xx), "--", label="Polynomial")
+    >>> ax.legend()
+    >>> plt.show()
+    """
+    def __init__(self, points, values, *, d=3):
+        super().__init__(points, values, d=d)
+
+    def _input_validation(self, x, y, d):
+        d = operator.index(d)
+        if not (0 <= d < len(x)):
+            raise ValueError("`d` must satisfy 0 <= d < n")
+
+        super()._input_validation(x, y)
+
+    def _compute_weights(self, z, f, d):
+        # Floater and Hormann 2007 Eqn. (18) 3 equations later
+        w = np.zeros_like(z, dtype=np.result_type(z, 1.0))
+        n = w.size
+        for k in range(n):
+            for i in range(max(k-d, 0), min(k+1, n-d)):
+                w[k] += 1/np.prod(np.abs(np.delete(z[k] - z[i : i + d + 1], k - i)))
+        w *= (-1.)**(np.arange(n) - d)
+
+        return z, f, w
+```
+
+## scipy/scipy/io/_fast_matrix_market/LICENSE.txt
+
+```text
+Copyright (C) 2020-2023 Adam Lugowski
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/io/_fast_matrix_market/fast_matrix_market/dependencies/fast_float/LICENSE-MIT
+
+```text
+MIT License
+
+Copyright (c) 2021 The fast_float authors
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+```
+
+## scipy/scipy/io/_fast_matrix_market/fast_matrix_market/dependencies/ryu/LICENSE-Boost
+
+```text
+Boost Software License - Version 1.0 - August 17th, 2003
+
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of the software and accompanying documentation covered by
+this license (the "Software") to use, reproduce, display, distribute,
+execute, and transmit the Software, and to prepare derivative works of the
+Software, and to permit third-parties to whom the Software is furnished to
+do so, all subject to the following:
+
+The copyright notices in the Software and this entire statement, including
+the above license grant, this restriction and the following disclaimer,
+must be included in all copies of the Software, in whole or in part, and
+all derivative works of the Software, unless such copies or derivative
+works are solely in the form of machine-executable object code generated by
+a source language processor.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+```
+
+## scipy/scipy/io/_fast_matrix_market/src/pystreambuf.h.notice.txt
+
+```text
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+Based on https://gist.github.com/asford/544323a5da7dddad2c9174490eb5ed06
+
+Original license text
+---------------------
+
+This component utilizes components derived from cctbx, available at
+http://cci.lbl.gov/cctbx_sources/boost_adaptbx/python_streambuf.h
+
+*** License agreement ***
+
+cctbx Copyright (c) 2006, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject to
+receipt of any required approvals from the U.S. Dept. of Energy).  All
+rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+(1) Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+(2) Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+You are under no obligation whatsoever to provide any bug fixes,
+patches, or upgrades to the features, functionality or performance of
+the source code ("Enhancements") to anyone; however, if you choose to
+make your Enhancements available either publicly, or directly to
+Lawrence Berkeley National Laboratory, without imposing a separate
+written license agreement for such Enhancements, then you hereby grant
+the following license: a  non-exclusive, royalty-free perpetual license
+to install, use, modify, prepare derivative works, incorporate into
+other computer software, distribute, and sublicense such enhancements or
+derivative works thereof, in binary and source code form.
+
+*/
+
+#pragma once
+
+#include <Python.h>
+#include <pybind11/pybind11.h>
+
+#include <streambuf>
+#include <iostream>
+
+namespace py = pybind11;
+
+/// A stream buffer getting data from and putting data into a Python file object
+/** The aims are as follow:
+
+    - Given a C++ function acting on a standard stream, e.g.
+
+      \code
+      void read_inputs(std::istream& input) {
+        ...
+        input >> something >> something_else;
+      }
+      \endcode
+
+      and given a piece of Python code which creates a file-like object,
+      to be able to pass this file object to that C++ function, e.g.
+
+      \code
+      import gzip
+      gzip_file_obj = gzip.GzipFile(...)
+      read_inputs(gzip_file_obj)
+      \endcode
+
+      and have the standard stream pull data from and put data into the Python
+      file object.
+
+    - When Python \c read_inputs() returns, the Python object is able to
+      continue reading or writing where the C++ code left off.
+
+    - Operations in C++ on mere files should be competitively fast compared
+      to the direct use of \c std::fstream.
+
+
+    \b Motivation
+
+      - the standard Python library offer of file-like objects (files,
+        compressed files and archives, network, ...) is far superior to the
+        offer of streams in the C++ standard library and Boost C++ libraries.
+
+      - i/o code involves a fair amount of text processing which is more
+        efficiently prototyped in Python but then one may need to rewrite
+        a time-critical part in C++, in as seamless a manner as possible.
+
+    \b Usage
+
+    This is 2-step:
+
+      - a trivial wrapper function
+
+        \code
+          using boost_adaptbx::python::streambuf;
+          void read_inputs_wrapper(streambuf& input)
+          {
+            streambuf::istream is(input);
+            read_inputs(is);
+          }
+
+          def("read_inputs", read_inputs_wrapper);
+        \endcode
+
+        which has to be written every time one wants a Python binding for
+        such a C++ function.
+
+      - the Python side
+
+        \code
+          from boost.python import streambuf
+          read_inputs(streambuf(python_file_obj=obj, buffer_size=1024))
+        \endcode
+
+        \c buffer_size is optional. See also: \c default_buffer_size
+
+  Note: references are to the C++ standard (the numbers between parentheses
+  at the end of references are margin markers).
+*/
+
+namespace pystream{
+
+class streambuf : public std::basic_streambuf<char>
+{
+  private:
+    typedef std::basic_streambuf<char> base_t;
+
+  public:
+    /* The syntax
+        using base_t::char_type;
+       would be nicer but Visual Studio C++ 8 chokes on it
+    */
+    typedef base_t::char_type   char_type;
+    typedef base_t::int_type    int_type;
+    typedef base_t::pos_type    pos_type;
+    typedef base_t::off_type    off_type;
+    typedef base_t::traits_type traits_type;
+
+    /// The default size of the read and write buffer.
+    /** They are respectively used to buffer data read from and data written to
+        the Python file object. It can be modified from Python.
+    */
+    static inline std::size_t default_buffer_size = 1024;
+
+    /// Construct from a Python file object
+    /** if buffer_size is 0 the current default_buffer_size is used.
+    */
+    streambuf(
+      py::object& python_file_obj,
+      std::size_t buffer_size_=0)
+    :
+      py_read (getattr(python_file_obj, "read", py::none())),
+      py_write (getattr(python_file_obj, "write", py::none())),
+      py_seek (getattr(python_file_obj, "seek", py::none())),
+      py_tell (getattr(python_file_obj, "tell", py::none())),
+      buffer_size(buffer_size_ != 0 ? buffer_size_ : default_buffer_size),
+      write_buffer(0),
+      pos_of_read_buffer_end_in_py_file(0),
+      pos_of_write_buffer_end_in_py_file(buffer_size),
+      farthest_pptr(0)
+    {
+      assert(buffer_size != 0);
+      /* Some Python file objects (e.g. sys.stdout and sys.stdin)
+         have non-functional seek and tell. If so, assign None to
+         py_tell and py_seek.
+       */
+      if (!py_tell.is_none()) {
+        try {
+          py_tell();
+        }
+        catch (py::error_already_set& err) {
+          py_tell = py::none();
+          py_seek = py::none();
+          err.restore();
+          PyErr_Clear();
+        }
+      }
+
+      if (!py_write.is_none()) {
+        // C-like string to make debugging easier
+        write_buffer = new char[buffer_size + 1];
+        write_buffer[buffer_size] = '\0';
+        setp(write_buffer, write_buffer + buffer_size);  // 27.5.2.4.5 (5)
+        farthest_pptr = pptr();
+      }
+      else {
+        // The first attempt at output will result in a call to overflow
+        setp(0, 0);
+      }
+
+      if (!py_tell.is_none()){
+        off_type py_pos = py_tell().cast<off_type>();
+        pos_of_read_buffer_end_in_py_file = py_pos;
+        pos_of_write_buffer_end_in_py_file = py_pos;
+      }
+    }
+
+    /// Mundane destructor freeing the allocated resources
+    virtual ~streambuf() {
+      if (write_buffer) delete[] write_buffer;
+    }
+
+    /// C.f. C++ standard section 27.5.2.4.3
+    /** It is essential to override this virtual function for the stream
+        member function readsome to work correctly (c.f. 27.6.1.3, alinea 30)
+     */
+    virtual std::streamsize showmanyc() {
+      int_type const failure = traits_type::eof();
+      int_type status = underflow();
+      if (status == failure) return -1;
+      return egptr() - gptr();
+    }
+
+    /// C.f. C++ standard section 27.5.2.4.3
+    virtual int_type underflow() {
+      int_type const failure = traits_type::eof();
+      if (py_read.is_none()) {
+        throw std::invalid_argument(
+          "That Python file object has no 'read' attribute");
+      }
+      read_buffer = py_read(buffer_size);
+      char *read_buffer_data;
+      py::ssize_t py_n_read;
+      if (PYBIND11_BYTES_AS_STRING_AND_SIZE(read_buffer.ptr(),
+            &read_buffer_data, &py_n_read) == -1) {
+        setg(0, 0, 0);
+        throw std::invalid_argument(
+          "The method 'read' of the Python file object "
+          "did not return a string.");
+      }
+      off_type n_read = (off_type)py_n_read;
+      pos_of_read_buffer_end_in_py_file += n_read;
+      setg(read_buffer_data, read_buffer_data, read_buffer_data + n_read);
+      // ^^^27.5.2.3.1 (4)
+      if (n_read == 0) return failure;
+      return traits_type::to_int_type(read_buffer_data[0]);
+    }
+
+    /// C.f. C++ standard section 27.5.2.4.5
+    virtual int_type overflow(int_type c=traits_type::eof()) {
+      if (py_write.is_none()) {
+        throw std::invalid_argument(
+          "That Python file object has no 'write' attribute");
+      }
+      farthest_pptr = (std::max)(farthest_pptr, pptr());
+      off_type n_written = (off_type)(farthest_pptr - pbase());
+
+      // Write all outstanding bytes. Write in chunks to support 32-bit systems.
+      // The py::bytes constructor insists that sizeof(second argument) <= sizeof(ssize_t)
+      // This is an issue on 32-bit systems where off_type may be long long but ssize_t is an int.
+      for (off_type offset = 0; offset < n_written; ) {
+        off_type chunk_len = std::min((n_written - offset), (off_type)(1 << 25));
+        py::bytes chunk(pbase() + offset, (int)chunk_len);
+        py_write(chunk);
+        offset += chunk_len;
+      }
+
+      if (!traits_type::eq_int_type(c, traits_type::eof())) {
+        char cs = traits_type::to_char_type(c);
+        py_write(py::bytes(&cs, 1));
+        n_written++;
+      }
+      if (n_written) {
+        pos_of_write_buffer_end_in_py_file += n_written;
+        setp(pbase(), epptr());
+        // ^^^ 27.5.2.4.5 (5)
+        farthest_pptr = pptr();
+      }
+      return traits_type::eq_int_type(
+        c, traits_type::eof()) ? traits_type::not_eof(c) : c;
+    }
+
+    /// Update the python file to reflect the state of this stream buffer
+    /** Empty the write buffer into the Python file object and set the seek
+        position of the latter accordingly (C++ standard section 27.5.2.4.2).
+        If there is no write buffer or it is empty, but there is a non-empty
+        read buffer, set the Python file object seek position to the
+        seek position in that read buffer.
+    */
+    virtual int sync() {
+      int result = 0;
+      farthest_pptr = (std::max)(farthest_pptr, pptr());
+      if (farthest_pptr && farthest_pptr > pbase()) {
+        off_type delta = pptr() - farthest_pptr;
+        int_type status = overflow();
+        if (traits_type::eq_int_type(status, traits_type::eof())) result = -1;
+        if (!py_seek.is_none()) py_seek(delta, 1);
+      }
+      else if (gptr() && gptr() < egptr()) {
+        if (!py_seek.is_none()) py_seek(gptr() - egptr(), 1);
+      }
+      return result;
+    }
+
+    /// C.f. C++ standard section 27.5.2.4.2
+    /** This implementation is optimised to look whether the position is within
+        the buffers, so as to avoid calling Python seek or tell. It is
+        important for many applications that the overhead of calling into Python
+        is avoided as much as possible (e.g. parsers which may do a lot of
+        backtracking)
+    */
+    virtual
+    pos_type seekoff(off_type off, std::ios_base::seekdir way,
+                     std::ios_base::openmode which=  std::ios_base::in
+                                                   | std::ios_base::out)
+    {
+      /* In practice, "which" is either std::ios_base::in or out
+         since we end up here because either seekp or seekg was called
+         on the stream using this buffer. That simplifies the code
+         in a few places.
+      */
+      int const failure = off_type(-1);
+
+      if (py_seek.is_none()) {
+        throw std::invalid_argument(
+          "That Python file object has no 'seek' attribute");
+      }
+
+      // we need the read buffer to contain something!
+      if (which == std::ios_base::in && !gptr()) {
+        if (traits_type::eq_int_type(underflow(), traits_type::eof())) {
+          return failure;
+        }
+      }
+
+      // compute the whence parameter for Python seek
+      int whence;
+      switch (way) {
+        case std::ios_base::beg:
+          whence = 0;
+          break;
+        case std::ios_base::cur:
+          whence = 1;
+          break;
+        case std::ios_base::end:
+          whence = 2;
+          break;
+        default:
+          return failure;
+      }
+
+      // Let's have a go
+      off_type result;
+      if (!seekoff_without_calling_python(off, way, which, result)) {
+        // we need to call Python
+        if (which == std::ios_base::out) overflow();
+        if (way == std::ios_base::cur) {
+          if      (which == std::ios_base::in)  off -= egptr() - gptr();
+          else if (which == std::ios_base::out) off += pptr() - pbase();
+        }
+        py_seek(off, whence);
+        result = off_type(py_tell().cast<off_type>());
+        if (which == std::ios_base::in) underflow();
+      }
+      return result;
+    }
+
+    /// C.f. C++ standard section 27.5.2.4.2
+    virtual
+    pos_type seekpos(pos_type sp,
+                     std::ios_base::openmode which=  std::ios_base::in
+                                                   | std::ios_base::out)
+    {
+      return streambuf::seekoff(sp, std::ios_base::beg, which);
+    }
+
+  private:
+    py::object py_read, py_write, py_seek, py_tell;
+
+    std::size_t buffer_size;
+
+    /* This is actually a Python bytes object and the actual read buffer is
+       its internal data, i.e. an array of characters.
+     */
+    py::bytes read_buffer;
+
+    /* A mere array of char's allocated on the heap at construction time and
+       de-allocated only at destruction time.
+    */
+    char *write_buffer;
+
+    off_type pos_of_read_buffer_end_in_py_file,
+             pos_of_write_buffer_end_in_py_file;
+
+    // the farthest place the buffer has been written into
+    char *farthest_pptr;
+
+
+    bool seekoff_without_calling_python(
+      off_type off,
+      std::ios_base::seekdir way,
+      std::ios_base::openmode which,
+      off_type & result)
+    {
+      // Buffer range and current position
+      off_type buf_begin, buf_end, buf_cur, upper_bound;
+      off_type pos_of_buffer_end_in_py_file;
+      if (which == std::ios_base::in) {
+        pos_of_buffer_end_in_py_file = pos_of_read_buffer_end_in_py_file;
+        buf_begin = reinterpret_cast<std::streamsize>(eback());
+        buf_cur = reinterpret_cast<std::streamsize>(gptr());
+        buf_end = reinterpret_cast<std::streamsize>(egptr());
+        upper_bound = buf_end;
+      }
+      else if (which == std::ios_base::out) {
+        pos_of_buffer_end_in_py_file = pos_of_write_buffer_end_in_py_file;
+        buf_begin = reinterpret_cast<std::streamsize>(pbase());
+        buf_cur = reinterpret_cast<std::streamsize>(pptr());
+        buf_end = reinterpret_cast<std::streamsize>(epptr());
+        farthest_pptr = (std::max)(farthest_pptr, pptr());
+        upper_bound = reinterpret_cast<std::streamsize>(farthest_pptr) + 1;
+      }
+      else {
+           throw std::runtime_error(
+             "Control flow passes through branch that should be unreachable.");
+      }
+
+      // Sought position in "buffer coordinate"
+      off_type buf_sought;
+      if (way == std::ios_base::cur) {
+        buf_sought = buf_cur + off;
+      }
+      else if (way == std::ios_base::beg) {
+        buf_sought = buf_end + (off - pos_of_buffer_end_in_py_file);
+      }
+      else if (way == std::ios_base::end) {
+        return false;
+      }
+      else {
+           throw std::runtime_error(
+             "Control flow passes through branch that should be unreachable.");
+      }
+
+      // if the sought position is not in the buffer, give up
+      if (buf_sought < buf_begin || buf_sought >= upper_bound) return false;
+
+      // we are in wonderland
+      if      (which == std::ios_base::in)  gbump(buf_sought - buf_cur);
+      else if (which == std::ios_base::out) pbump(buf_sought - buf_cur);
+
+      result = pos_of_buffer_end_in_py_file + (buf_sought - buf_end);
+      return true;
+    }
+
+  public:
+
+    class istream : public std::istream
+    {
+      public:
+        istream(streambuf& buf) : std::istream(&buf)
+        {
+          exceptions(std::ios_base::badbit);
+        }
+
+        ~istream() { if (this->good()) this->sync(); }
+    };
+
+    class ostream : public std::ostream
+    {
+      public:
+        ostream(streambuf& buf) : std::ostream(&buf)
+        {
+          exceptions(std::ios_base::badbit);
+        }
+
+        ~ostream() { if (this->good()) this->flush(); }
+    };
+};
+
+
+struct streambuf_capsule
+{
+  streambuf python_streambuf;
+
+  streambuf_capsule(
+    py::object& python_file_obj,
+    std::size_t buffer_size=0)
+  :
+    python_streambuf(python_file_obj, buffer_size)
+  {}
+};
+
+struct ostream : private streambuf_capsule, streambuf::ostream
+{
+  ostream(
+    py::object& python_file_obj,
+    std::size_t buffer_size=0)
+  :
+    streambuf_capsule(python_file_obj, buffer_size),
+    streambuf::ostream(python_streambuf)
+  {}
+
+  ~ostream()
+  {
+    if (this->good()){
+      this->flush();
+    }
+  }
+};
+
+struct istream : private streambuf_capsule, streambuf::istream
+{
+  istream(
+    py::object& python_file_obj,
+    std::size_t buffer_size=0)
+  :
+    streambuf_capsule(python_file_obj, buffer_size),
+    streambuf::istream(python_streambuf)
+  {}
+
+  ~istream()
+  {
+    if (this->good()) {
+      this->sync();
+    }
+  }
+};
+
+};
+
+namespace pybind11 { namespace detail {
+    // Wrapping the stream objects with std::shared_ptr so that the streams can be used between API calls.
+    // This enables one API call to open the stream and a follow-up call to read/write to it, with the stream
+    // reference kept in C++.
+    template <> struct type_caster<std::shared_ptr<pystream::istream>> {
+    public:
+        bool load(handle src, bool) {
+            if (getattr(src, "read", py::none()).is_none()){
+              return false;
+            }
+
+			obj = py::reinterpret_borrow<object>(src);
+            value = std::shared_ptr<pystream::istream>(new pystream::istream(obj, 0));
+
+            return true;
+        }
+
+    protected:
+		py::object obj;
+        std::shared_ptr<pystream::istream> value;
+
+    public:
+        static constexpr auto name = _("io.BytesIO");
+        static handle cast(std::shared_ptr<pystream::istream> &src, return_value_policy policy, handle parent) {
+            return none().release();
+        }
+        operator std::shared_ptr<pystream::istream>*() { return &value; }
+        operator std::shared_ptr<pystream::istream>&() { return value; }
+        template <typename _T> using cast_op_type = pybind11::detail::cast_op_type<_T>;
+    };
+
+    template <> struct type_caster<std::shared_ptr<pystream::ostream>> {
+    public:
+        bool load(handle src, bool) {
+            if (getattr(src, "write", py::none()).is_none()){
+              return false;
+            }
+
+			obj = py::reinterpret_borrow<object>(src);
+            value = std::shared_ptr<pystream::ostream>(new pystream::ostream(obj, 0));
+
+            return true;
+        }
+
+    protected:
+		py::object obj;
+        std::shared_ptr<pystream::ostream> value;
+
+    public:
+        static constexpr auto name = _("io.BytesIO");
+        static handle cast(std::shared_ptr<pystream::ostream> &src, return_value_policy policy, handle parent) {
+            return none().release();
+        }
+        operator std::shared_ptr<pystream::ostream>*() { return &value; }
+        operator std::shared_ptr<pystream::ostream>&() { return value; }
+        template <typename _T> using cast_op_type = pybind11::detail::cast_op_type<_T>;
+    };
+}} // namespace pybind11::detail
+```
+
+## scipy/scipy/ndimage/LICENSE.txt
+
+```text
+Copyright (C) 2003-2005 Peter J. Verveer
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following
+   disclaimer in the documentation and/or other materials provided
+   with the distribution.
+
+3. The name of the author may not be used to endorse or promote
+   products derived from this software without specific prior 
+   written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/optimize/__lbfgsb.c.notice.txt
+
+```text
+/*
+ * Copyright (C) 2024 SciPy developers
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * a. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * b. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * c. Names of the SciPy Developers may not be used to endorse or promote
+ *    products derived from this software without specific prior written
+ *    permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ *
+ * This file is a C translation of the Fortran code written by Ciyou Zhu,
+ * Richard Byrd, Jorge Nocedal and Jose Luis Morales with the original
+ * description below.
+ * Some of the functions have been modified and certain arguments are rendered
+ * obsolete to be used in SciPy however original docstrings are kept at the top
+ * of each function for reference.
+ *
+ */
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * ===========   L-BFGS-B (version 3.0.  April 25, 2011  ===================
+ *
+ *     This is a modified version of L-BFGS-B. Minor changes in the updated
+ *     code appear preceded by a line comment as follows
+ *
+ *     c-jlm-jn
+ *
+ *     Major changes are described in the accompanying paper:
+ *
+ *         Jorge Nocedal and Jose Luis Morales, Remark on "Algorithm 778:
+ *         L-BFGS-B: Fortran Subroutines for Large-Scale Bound Constrained
+ *         Optimization"  (2011). To appear in  ACM Transactions on
+ *         Mathematical Software,
+ *
+ *     The paper describes an improvement and a correction to Algorithm 778.
+ *     It is shown that the performance of the algorithm can be improved
+ *     significantly by making a relatively simple modication to the subspace
+ *     minimization phase. The correction concerns an error caused by the use
+ *     of routine dpmeps to estimate machine precision.
+ *
+ *     The total work space **wa** required by the new version is
+ *
+ *                  2*m*n + 11m*m + 5*n + 8*m
+ *
+ *     the old version required
+ *
+ *                  2*m*n + 12m*m + 4*n + 12*m
+ *
+ *
+ *            J. Nocedal  Department of Electrical Engineering and
+ *                        Computer Science.
+ *                        Northwestern University. Evanston, IL. USA
+ *
+ *
+ *           J.L Morales  Departamento de Matematicas,
+ *                        Instituto Tecnologico Autonomo de Mexico
+ *                        Mexico D.F. Mexico.
+ *
+ *                        March  2011
+ *
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *
+ * The original BSD-3 licensed Fortran code can be found at
+ *
+ * https://users.iems.northwestern.edu/~nocedal/lbfgsb.html
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *
+ * References:
+ *
+ * [1]: R. H. Byrd, P. Lu and J. Nocedal. A Limited Memory Algorithm for Bound
+ *      Constrained Optimization, (1995), SIAM Journal on Scientific and
+ *      Statistical Computing, 16, 5, pp. 1190-1208.
+ * [2]: C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,
+ *      FORTRAN routines for large scale bound constrained optimization (1997),
+ *      ACM Transactions on Mathematical Software, 23, 4, pp. 550 - 560.
+ * [3]: J.L. Morales and J. Nocedal. L-BFGS-B: Remark on Algorithm 778:
+ *      L-BFGS-B, FORTRAN routines for large scale bound constrained
+ *      optimization (2011), ACM Transactions on Mathematical Software, 38, 1.
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#include "__lbfgsb.h"
+
+
+enum Status {
+    START        = 0,
+    NEW_X        = 1,
+    RESTART      = 2,      // RESTART FROM LINESEARCH
+    FG           = 3,      // REQUEST FG FOR THE CURRENT X
+    CONVERGENCE  = 4,
+    STOP         = 5,
+    WARNING      = 6,
+    ERROR        = 7,
+    ABNORMAL     = 8       // ABNORMAL TERMINATION IN LINE SEARCH (WHY NOT AN ERROR?)
+};
+
+
+enum StatusMsg {
+    NO_MSG       = 0,
+
+    FG_START     = 301,
+    FG_LNSRCH    = 302,
+
+    CONV_GRAD    = 401,    // CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL
+    CONV_F       = 402,    // CONVERGENCE: PROGRESS <= FACTR*EPSMCH
+
+    STOP_CPU     = 501,    // CPU EXCEEDING THE TIME LIMIT ?!
+    STOP_ITER    = 502,    // TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT
+    STOP_GRAD    = 503,    // PROJECTED GRADIENT IS SUFFICIENTLY SMALL
+    STOP_ITERC   = 504,    // TOTAL NO. of ITERATIONS REACHED LIMIT
+    STOP_CALLB   = 505,    // CALLBACK REQUESTED HALT
+
+    WARN_ROUND   = 601,    // ROUNDING ERRORS PREVENT PROGRESS
+    WARN_STPMAX  = 602,    // STP = STPMAX
+    WARN_STPMIN  = 603,    // STP = STPMIN
+    WARN_XTOL    = 604,    // XTOL TEST SATISFIED ?!
+
+    ERROR_NOFEAS = 701,    // NO FEASIBLE SOLUTION
+    ERROR_FACTR  = 702,    // FACTR < 0
+    ERROR_FTOL   = 703,    // FTOL < 0
+    ERROR_GTOL   = 704,    // GTOL < 0
+    ERROR_XTOL   = 705,    // XTOL < 0
+    ERROR_STP1   = 706,    // STP < STPMIN
+    ERROR_STP2   = 707,    // STP > STPMAX
+    ERROR_STPMIN = 708,    // STPMIN < 0
+    ERROR_STPMAX = 709,    // STPMAX < STPMIN
+    ERROR_INITG  = 710,    // INITIAL G >= 0
+    ERROR_M      = 711,    // M <= 0
+    ERROR_N      = 712,    // N <= 0
+    ERROR_NBD    = 713     // INVALID NBD
+};
+
+
+// Internal functions
+
+static void mainlb(
+    int n, int m, double* x, double* l, double* u,
+    int* nbd, double* f, double* g, double factr, double pgtol,
+    double* ws, double* wy, double* sy, double* ss, double* wt, double* wn,
+    double* snd, double* z, double* r, double* d, double* t, double* xp,
+    double* wa, int* index, int* iwhere, int* indx2, int* task, int* task_msg,
+    int* lsave, int* isave, double* dsave, int maxls, int* ln_task, int* ln_taskmsg
+);
+static void active(
+    int n, double* l, double* u, int* nbd, double* x,
+    int* iwhere, int* prjctd, int* cnstnd, int* boxed
+);
+static void bmv(
+    int m, double* sy, double* wt, int col,
+    double* v, double* p, int* info
+);
+static void cauchy(
+    int n, double* x, double* l, double* u,
+    int* nbd, double *g, int* iorder, int* iwhere, double* t,
+    double* d, double* xcp, int m, double* wy, double* ws,
+    double* sy, double* wt, double theta, int col,
+    int head, double* p, double* c, double* wbp, double* v, int* nseg,
+    double sbgnrm, int* info
+);
+static void cmprlb(
+    int n, int m, double* x, double* g,
+    double* ws, double* wy, double* sy, double* wt,
+    double* z, double* r, double* wa, int* index,
+    double theta, int col, int head, int nfree,
+    int cnstnd, int* info
+);
+static void errclb(
+    int n, int m, double factr, double* l,
+    double* u, int* nbd, int* task, int* task_msg, int* info, int* k
+);
+static void formk(
+    int n, int nsub, int* ind, int nenter,
+    int ileave, int* indx2, int iupdat, int updatd,
+    double* wn, double* wn1, int m, double* ws, double* wy,
+    double* sy, double theta, int col, int head,
+    int* info
+);
+static void formt(
+    int m, double* wt, double* sy, double* ss, int col,
+    double theta, int* info
+);
+static void freev(
+    int n, int* nfree, int* idx, int* nenter, int* ileave, int* idx2,
+    int* iwhere, int* wrk, int updatd, int cnstnd,
+    int iter
+);
+static void hpsolb(int n, double* t, int* iorder, int iheap);
+static void lnsrlb(
+    int n, double* l, double* u, int* nbd, double* x,
+    double f, double* fold, double *gd, double *gdold, double* g,
+    double* d, double* r, double* t, double* z, double* stp, double* dnorm,
+    double* dtd, double* xstep, double* stpmx, int iter, int* ifun,
+    int* iback, int* nfgv, int* info, int* task, int* task_msg, int boxed,
+    int cnstnd, int* isave, double* dsave, int* temp_task, int* temp_task_msg
+);
+static void matupd(
+    int n, int m, double* ws, double *wy, double* sy, double* ss,
+    double* d, double* r, int* itail, int iupdat, int* col,
+    int* head, double* theta, double rr, double dr, double stp,
+    double dtd
+);
+static void projgr(
+    int n, double* l, double* u, int* nbd,
+    double* x, double* g, double* sbgnrm
+);
+static void subsm(
+    int n, int m, int nsub, int* ind, double* l,
+    double* u, int* nbd, double* x, double* d, double* xp,
+    double* ws, double* wy, double theta, double* xx,
+    double* gg, int col, int head, int* iword, double* wv,
+    double* wn, int* info
+);
+
+// Line search functions
+static void dcsrch(
+    double f, double g, double* stp, double ftol,
+    double gtol, double xtol, double stpmin,
+    double stpmax, int* task, int* task_msg, int* isave, double* dsave
+);
+static void dcstep (
+    double* stx, double* fx, double* dx, double* sty, double* fy, double* dy,
+    double* stp, double fp, double dp, int* brackt,
+    double stpmin, double stpmax
+);
+
+static double epsmach = 2.220446049250313e-016;  /* np.finfo(np.float64).eps  */
+
+
+void
+setulb(int n, int m, double* x, double* l, double* u, int* nbd, double* f,
+       double* g, double factr, double pgtol, double* wa, int* iwa, int* task,
+       int* lsave, int* isave, double* dsave, int maxls, int* ln_task)
+{
+    //     ************
+    //
+    //     Subroutine setulb
+    //
+    //     This subroutine partitions the working arrays wa and iwa, and
+    //       then uses the limited memory BFGS method to solve the bound
+    //       constrained optimization problem by calling mainlb.
+    //       (The direct method will be used in the subspace minimization.)
+    //
+    //     n is an integer variable.
+    //       On entry n is the dimension of the problem.
+    //       On exit n is unchanged.
+    //
+    //     m is an integer variable.
+    //       On entry m is the maximum number of variable metric corrections
+    //         used to define the limited memory matrix.
+    //       On exit m is unchanged.
+    //
+    //     x is a double precision array of dimension n.
+    //       On entry x is an approximation to the solution.
+    //       On exit x is the current approximation.
+    //
+    //     l is a double precision array of dimension n.
+    //       On entry l is the lower bound on x.
+    //       On exit l is unchanged.
+    //
+    //     u is a double precision array of dimension n.
+    //       On entry u is the upper bound on x.
+    //       On exit u is unchanged.
+    //
+    //     nbd is an integer array of dimension n.
+    //       On entry nbd represents the type of bounds imposed on the
+    //         variables, and must be specified as follows:
+    //         nbd(i)=0 if x(i) is unbounded,
+    //                1 if x(i) has only a lower bound,
+    //                2 if x(i) has both lower and upper bounds, and
+    //                3 if x(i) has only an upper bound.
+    //       On exit nbd is unchanged.
+    //
+    //     f is a double precision variable.
+    //       On first entry f is unspecified.
+    //       On final exit f is the value of the function at x.
+    //
+    //     g is a double precision array of dimension n.
+    //       On first entry g is unspecified.
+    //       On final exit g is the value of the gradient at x.
+    //
+    //     factr is a double precision variable.
+    //       On entry factr >= 0 is specified by the user.  The iteration
+    //         will stop when
+    //
+    //         (f^k - f^{k+1})/max{|f^k|,|f^{k+1}|,1} <= factr*epsmch
+    //
+    //         where epsmch is the machine precision, which is automatically
+    //         generated by the code. Typical values for factr: 1.d+12 for
+    //         low accuracy; 1.d+7 for moderate accuracy; 1.d+1 for extremely
+    //         high accuracy.
+    //       On exit factr is unchanged.
+    //
+    //     pgtol is a double precision variable.
+    //       On entry pgtol >= 0 is specified by the user.  The iteration
+    //         will stop when
+    //
+    //                 max{|proj g_i | i = 1, ..., n} <= pgtol
+    //
+    //         where pg_i is the ith component of the projected gradient.
+    //       On exit pgtol is unchanged.
+    //
+    //     wa is a double precision working array of length
+    //       (2mmax + 5)nmax + 12mmax^2 + 12mmax.
+    //
+    //     iwa is an integer working array of length 3nmax.
+    //
+    //     task is a working string of characters of length 60 indicating
+    //       the current job when entering and quitting this subroutine.
+    //
+    //     iprint is an integer variable that must be set by the user.
+    //       It controls the frequency and type of output generated:
+    //        iprint<0    no output is generated;
+    //        iprint=0    print only one line at the last iteration;
+    //        0<iprint<99 print also f and |proj g| every iprint iterations;
+    //        iprint=99   print details of every iteration except n-vectors;
+    //        iprint=100  print also the changes of active set and final x;
+    //        iprint>100  print details of every iteration including x and g;
+    //
+    //
+    //     csave is a working string of characters of length 60.
+    //
+    //     lsave is a logical working array of dimension 4.
+    //       On exit with 'task' = NEW_X, the following information is
+    //                                                             available:
+    //         If lsave(1) = .true.  then  the initial X has been replaced by
+    //                                     its projection in the feasible set;
+    //         If lsave(2) = .true.  then  the problem is constrained;
+    //         If lsave(3) = .true.  then  each variable has upper and lower
+    //                                     bounds;
+    //
+    //     isave is an integer working array of dimension 44.
+    //       On exit with 'task' = NEW_X, the following information is
+    //                                                             available:
+    //         isave(22) = the total number of intervals explored in the
+    //                         search of Cauchy points;
+    //         isave(26) = the total number of skipped BFGS updates before
+    //                         the current iteration;
+    //         isave(30) = the number of current iteration;
+    //         isave(31) = the total number of BFGS updates prior the current
+    //                         iteration;
+    //         isave(33) = the number of intervals explored in the search of
+    //                         Cauchy point in the current iteration;
+    //         isave(34) = the total number of function and gradient
+    //                         evaluations;
+    //         isave(36) = the number of function value or gradient
+    //                                  evaluations in the current iteration;
+    //         if isave(37) = 0  then the subspace argmin is within the box;
+    //         if isave(37) = 1  then the subspace argmin is beyond the box;
+    //         isave(38) = the number of free variables in the current
+    //                         iteration;
+    //         isave(39) = the number of active constraints in the current
+    //                         iteration;
+    //         n + 1 - isave(40) = the number of variables leaving the set of
+    //                           active constraints in the current iteration;
+    //         isave(41) = the number of variables entering the set of active
+    //                         constraints in the current iteration.
+    //
+    //     dsave is a double precision working array of dimension 29.
+    //       On exit with 'task' = NEW_X, the following information is
+    //                                                             available:
+    //         dsave(1) = current 'theta' in the BFGS matrix;
+    //         dsave(2) = f(x) in the previous iteration;
+    //         dsave(3) = factr*epsmch;
+    //         dsave(4) = 2-norm of the line search direction vector;
+    //         dsave(5) = the machine precision epsmch generated by the code;
+    //         dsave(7) = the accumulated time spent on searching for
+    //                                                         Cauchy points;
+    //         dsave(8) = the accumulated time spent on
+    //                                                 subspace minimization;
+    //         dsave(9) = the accumulated time spent on line search;
+    //         dsave(11) = the slope of the line search function at
+    //                                  the current point of line search;
+    //         dsave(12) = the maximum relative step length imposed in
+    //                                                           line search;
+    //         dsave(13) = the infinity norm of the projected gradient;
+    //         dsave(14) = the relative step length in the line search;
+    //         dsave(15) = the slope of the line search function at
+    //                                 the starting point of the line search;
+    //         dsave(16) = the square of the 2-norm of the line search
+    //                                                      direction vector.
+    //
+    //     Subprograms called:
+    //
+    //       L-BFGS-B Library ... mainlb.
+    //
+    //
+    //     References:
+    //
+    //       [1] R. H. Byrd, P. Lu, J. Nocedal and C. Zhu, ``A limited
+    //       memory algorithm for bound constrained optimization'',
+    //       SIAM J. Scientific Computing 16 (1995), no. 5, pp. 1190--1208.
+    //
+    //       [2] C. Zhu, R.H. Byrd, P. Lu, J. Nocedal, ``L-BFGS-B: a
+    //       limited memory FORTRAN code for solving bound constrained
+    //       optimization problems'', Tech. Report, NAM-11, EECS Department,
+    //       Northwestern University, 1994.
+    //
+    //       (Postscript files of these papers are available via anonymous
+    //        ftp to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_bcm.)
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    //
+    int lws, lr, lz, lt, ld, lxp, lwa, lwy, lsy, lss, lwt, lwn, lsnd;
+
+    if (task[0] == START)
+    {
+        // Pointer olympics
+        isave[0]  = m*n;
+        isave[1]  = m*m;
+        isave[2]  = 4*m*m;
+        isave[3]  = 0;                      // ws      m*n
+        isave[4]  = isave[3]  + isave[0];   // wy      m*n
+        isave[5]  = isave[4]  + isave[0];   // wsy     m**2
+        isave[6]  = isave[5]  + isave[1];   // wss     m**2
+        isave[7]  = isave[6]  + isave[1];   // wt      m**2
+        isave[8]  = isave[7]  + isave[1];   // wn      4*m**2
+        isave[9]  = isave[8]  + isave[2];   // wsnd    4*m**2
+        isave[10] = isave[9]  + isave[2];   // wz      n
+        isave[11] = isave[10] + n;          // wr      n
+        isave[12] = isave[11] + n;          // wd      n
+        isave[13] = isave[12] + n;          // wt      n
+        isave[14] = isave[13] + n;          // wxp     n
+        isave[15] = isave[14] + n;          // wa      8*m
+    }
+
+    lws  = isave[3];
+    lwy  = isave[4];
+    lsy  = isave[5];
+    lss  = isave[6];
+    lwt  = isave[7];
+    lwn  = isave[8];
+    lsnd = isave[9];
+    lz   = isave[10];
+    lr   = isave[11];
+    ld   = isave[12];
+    lt   = isave[13];
+    lxp  = isave[14];
+    lwa  = isave[15];
+
+    mainlb(n, m, x, l, u, nbd, f, g, factr, pgtol, &wa[lws], &wa[lwy], &wa[lsy],
+           &wa[lss], &wa[lwt], &wa[lwn], &wa[lsnd], &wa[lz], &wa[lr], &wa[ld],
+           &wa[lt], &wa[lxp], &wa[lwa], iwa, &iwa[n], &iwa[2*n], &task[0], &task[1],
+           lsave, &isave[21], dsave, maxls, &ln_task[0], &ln_task[1]);
+
+    return;
+}
+
+
+void
+mainlb(int n, int m, double* x, double* l, double* u,
+       int* nbd, double* f, double* g, double factr, double pgtol,
+       double* ws, double* wy, double* sy, double* ss, double* wt, double* wn,
+       double* snd, double* z, double* r, double* d, double* t, double* xp,
+       double* wa, int* index, int* iwhere, int* indx2, int* task,
+       int* task_msg, int* lsave, int* isave, double* dsave, int maxls,
+       int* temp_task, int* temp_taskmsg)
+{
+    //     ************
+    //
+    //     Subroutine mainlb
+    //
+    //     This subroutine solves bound constrained optimization problems by
+    //       using the compact formula of the limited memory BFGS updates.
+    //
+    //     n is an integer variable.
+    //       On entry n is the number of variables.
+    //       On exit n is unchanged.
+    //
+    //     m is an integer variable.
+    //       On entry m is the maximum number of variable metric
+    //          corrections allowed in the limited memory matrix.
+    //       On exit m is unchanged.
+    //
+    //     x is a double precision array of dimension n.
+    //       On entry x is an approximation to the solution.
+    //       On exit x is the current approximation.
+    //
+    //     l is a double precision array of dimension n.
+    //       On entry l is the lower bound of x.
+    //       On exit l is unchanged.
+    //
+    //     u is a double precision array of dimension n.
+    //       On entry u is the upper bound of x.
+    //       On exit u is unchanged.
+    //
+    //     nbd is an integer array of dimension n.
+    //       On entry nbd represents the type of bounds imposed on the
+    //         variables, and must be specified as follows:
+    //         nbd(i)=0 if x(i) is unbounded,
+    //                1 if x(i) has only a lower bound,
+    //                2 if x(i) has both lower and upper bounds,
+    //                3 if x(i) has only an upper bound.
+    //       On exit nbd is unchanged.
+    //
+    //     f is a double precision variable.
+    //       On first entry f is unspecified.
+    //       On final exit f is the value of the function at x.
+    //
+    //     g is a double precision array of dimension n.
+    //       On first entry g is unspecified.
+    //       On final exit g is the value of the gradient at x.
+    //
+    //     factr is a double precision variable.
+    //       On entry factr >= 0 is specified by the user.  The iteration
+    //         will stop when
+    //
+    //         (f^k - f^{k+1})/max{|f^k|,|f^{k+1}|,1} <= factr*epsmch
+    //
+    //         where epsmch is the machine precision, which is automatically
+    //         generated by the code.
+    //       On exit factr is unchanged.
+    //
+    //     pgtol is a double precision variable.
+    //       On entry pgtol >= 0 is specified by the user.  The iteration
+    //         will stop when
+    //
+    //                 max{|proj g_i | i = 1, ..., n} <= pgtol
+    //
+    //         where pg_i is the ith component of the projected gradient.
+    //       On exit pgtol is unchanged.
+    //
+    //     ws, wy, sy, and wt are double precision working arrays used to
+    //       store the following information defining the limited memory
+    //          BFGS matrix:
+    //          ws, of dimension n x m, stores S, the matrix of s-vectors;
+    //          wy, of dimension n x m, stores Y, the matrix of y-vectors;
+    //          sy, of dimension m x m, stores S'Y;
+    //          ss, of dimension m x m, stores S'S;
+    //          yy, of dimension m x m, stores Y'Y;
+    //          wt, of dimension m x m, stores the Cholesky factorization
+    //                                  of (theta*S'S+LD^(-1)L'); see eq.
+    //                                  (2.26) in [3].
+    //
+    //     wn is a double precision working array of dimension 2m x 2m
+    //       used to store the LEL^T factorization of the indefinite matrix
+    //                 K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
+    //                     [L_a -R_z           theta*S'AA'S ]
+    //
+    //       where     E = [-I  0]
+    //                     [ 0  I]
+    //
+    //     snd is a double precision working array of dimension 2m x 2m
+    //       used to store the lower triangular part of
+    //                 N = [Y' ZZ'Y   L_a'+R_z']
+    //                     [L_a +R_z  S'AA'S   ]
+    //
+    //     z(n),r(n),d(n),t(n), xp(n),wa(8*m) are double precision working arrays.
+    //       z  is used at different times to store the Cauchy point and
+    //          the Newton point.
+    //       xp is used to safeguard the projected Newton direction
+    //
+    //     sg(m),sgo(m),yg(m),ygo(m) are double precision working arrays.
+    //
+    //     index is an integer working array of dimension n.
+    //       In subroutine freev, index is used to store the free and fixed
+    //          variables at the Generalized Cauchy Point (GCP).
+    //
+    //     iwhere is an integer working array of dimension n used to record
+    //       the status of the vector x for GCP computation.
+    //       iwhere(i)=0 or -3 if x(i) is free and has bounds,
+    //                 1       if x(i) is fixed at l(i), and l(i) .ne. u(i)
+    //                 2       if x(i) is fixed at u(i), and u(i) .ne. l(i)
+    //                 3       if x(i) is always fixed, i.e.,  u(i)=x(i)=l(i)
+    //                -1       if x(i) is always free, i.e., no bounds on it.
+    //
+    //     indx2 is an integer working array of dimension n.
+    //       Within subroutine cauchy, indx2 corresponds to the array iorder.
+    //       In subroutine freev, a list of variables entering and leaving
+    //       the free set is stored in indx2, and it is passed on to
+    //       subroutine formk with this information.
+    //
+    //     task is a working string of characters of length 60 indicating
+    //       the current job when entering and leaving this subroutine.
+    //
+    //     iprint is an INTEGER variable that must be set by the user.
+    //       It controls the frequency and type of output generated:
+    //        iprint<0    no output is generated;
+    //        iprint=0    print only one line at the last iteration;
+    //        0<iprint<99 print also f and |proj g| every iprint iterations;
+    //        iprint=99   print details of every iteration except n-vectors;
+    //        iprint=100  print also the changes of active set and final x;
+    //        iprint>100  print details of every iteration including x and g;
+    //
+    //
+    //     csave is a working string of characters of length 60.
+    //
+    //     lsave is a logical working array of dimension 4.
+    //
+    //     isave is an integer working array of dimension 23.
+    //
+    //     dsave is a double precision working array of dimension 29.
+    //
+    //
+    //     Subprograms called
+    //
+    //       L-BFGS-B Library ... cauchy, subsm, lnsrlb, formk,
+    //
+    //        errclb, prn1lb, prn2lb, prn3lb, active, projgr,
+    //
+    //        freev, cmprlb, matupd, formt.
+    //
+    //       Minpack2 Library ... timer
+    //
+    //       Linpack Library ... dcopy, ddot.
+    //
+    //
+    //     References:
+    //
+    //       [1] R. H. Byrd, P. Lu, J. Nocedal and C. Zhu, ``A limited
+    //       memory algorithm for bound constrained optimization'',
+    //       SIAM J. Scientific Computing 16 (1995), no. 5, pp. 1190--1208.
+    //
+    //       [2] C. Zhu, R.H. Byrd, P. Lu, J. Nocedal, ``L-BFGS-B: FORTRAN
+    //       Subroutines for Large Scale Bound Constrained Optimization''
+    //       Tech. Report, NAM-11, EECS Department, Northwestern University,
+    //       1994.
+    //
+    //       [3] R. Byrd, J. Nocedal and R. Schnabel "Representations of
+    //       Quasi-Newton Matrices and their use in Limited Memory Methods'',
+    //       Mathematical Programming 63 (1994), no. 4, pp. 129-156.
+    //
+    //       (Postscript files of these papers are available via anonymous
+    //        ftp to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_bcm.)
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int prjctd, cnstnd, boxed, updatd, wrk;
+    int i, k, nintol, iback, nskip, head, col, iter, itail, iupdat;
+    int nseg, nfgv, info, ifun, iword, nfree, nact, ileave, nenter;
+    double theta, fold, dr, rr, tol, xstep, sbgnrm, stpmx, ddum, dnorm, dtd;
+    double gd, gdold, stp;
+    int one_int = 1;
+
+    stpmx = 0.0;
+
+    if (*task == START) {
+
+        // Initialize counters and scalars
+        col = 0;      // size  : Actual number of variable metric corrections
+        head = 0;     // index : Location of the first s- or y-vector in S or Y
+        theta = 1.0;
+        iupdat = 0;   // size  : Total number of BFGS updates made so far
+        updatd = 0;   // bool  : Whether L-BFGS matrix is updated
+        iback = 0;
+        itail = 0;    // index
+        iword = 0;
+        nact = 0;
+        ileave = 0;   // index  : idx2[ileave:n] are the variables leaving the free set
+        nenter = 0;   // size   : No of variables entering the free set
+        fold = 0.0;
+        dnorm = 0.0;
+        gd = 0.0;
+        sbgnrm = 0.0;
+        stp = 0.0;
+        gdold = 0.0;
+        dtd = 0.0;
+
+        // For operation counts
+        iter = 0;
+        nfgv = 0;
+        nseg = 0;
+        nintol = 0;
+        nskip = 0;
+        nfree = n;
+        ifun = 0;
+        // For stopping tolerance
+        tol = factr * epsmach;
+
+        // 'info' records the termination information.
+        info = 0;
+
+        // Check the input arguments for errors
+        errclb(n, m, factr, l, u, nbd, task, task_msg, &info, &k);
+        if (*task == ERROR) { return; }
+
+        // Initialize iwhere & project x onto the feasible set
+        active(n, l, u, nbd, x, iwhere, &prjctd, &cnstnd, &boxed);
+
+        // End of the initialization
+    } else {
+        // Restore local variables
+        prjctd = lsave[0];
+        cnstnd = lsave[1];
+        boxed  = lsave[2];
+        updatd = lsave[3];
+
+        nintol = isave[0];
+        //     = isave[1];
+        //     = isave[2];
+        iback  = isave[3];
+        nskip  = isave[4];
+        head   = isave[5];
+        col    = isave[6];
+        itail  = isave[7];
+        iter   = isave[8];
+        iupdat = isave[9];
+        //     = isave[10];
+        nseg   = isave[11];
+        nfgv   = isave[12];
+        info   = isave[13];
+        ifun   = isave[14];
+        iword  = isave[15];
+        nfree  = isave[16];
+        nact   = isave[17];
+        ileave = isave[18];
+        nenter = isave[19];
+
+        theta  = dsave[0];
+        fold   = dsave[1];
+        tol    = dsave[2];
+        dnorm  = dsave[3];
+        //     = dsave[4];
+        //     = dsave[5];
+        //     = dsave[6];
+        //     = dsave[7];
+        //     = dsave[8];
+        //     = dsave[9];
+        gd     = dsave[10];
+        stpmx  = dsave[11];
+        sbgnrm = dsave[12];
+        stp    = dsave[13];
+        gdold  = dsave[14];
+        dtd    = dsave[15];
+
+    // After returning from the driver go to the point where execution is to resume.
+        if ((*task == FG) && (*task_msg == FG_LNSRCH)) { goto LINE666; }
+        if (*task == NEW_X) { goto LINE777; }
+        if ((*task == FG) && (*task_msg == FG_START)) { goto LINE111; }
+        if (*task == STOP)
+        {
+            if (*task_msg == STOP_CPU)
+            {
+                dcopy_(&n, t, &one_int, x, &one_int);
+                dcopy_(&n, r, &one_int, g, &one_int);
+                *f = fold;
+            }
+            goto LINE999;
+        }
+    }
+
+    // Compute f0 and g0.
+    *task = FG;
+    *task_msg = FG_START;
+
+    // Return to the driver to calculate f and g, then reenter at 111
+    goto LINE1000;
+
+LINE111:
+    nfgv = 1;
+
+    // Compute the infinity norm of the (-) projected gradient.
+    projgr(n, l, u, nbd, x, g, &sbgnrm);
+
+    if (sbgnrm <= pgtol)
+    {
+        *task = CONVERGENCE;
+        *task_msg = CONV_GRAD;
+        goto LINE999;
+    }
+
+    // ----------------- the beginning of the loop --------------------------
+LINE222:
+    iword = -1;
+
+    if ((!cnstnd) && (col > 0))
+    {
+        dcopy_(&n, x, &one_int, z, &one_int);
+        wrk = updatd;
+        nseg = 0;
+        goto LINE333;
+    }
+
+    /////////////////////////////////////////////////////
+    //
+    // Compute the Generalized Cauchy Point (GCP).
+    //
+    /////////////////////////////////////////////////////
+    cauchy(n, x, l, u, nbd, g, indx2, iwhere, t, d, z, m, wy, ws, sy, wt, theta,
+           col, head, wa, &wa[2*m], &wa[4*m], &wa[6*m], &nseg, sbgnrm, &info);
+    if (info != 0)
+    {
+        // Singular triangular system detected; refresh the lbfgs memory.
+        info = 0;
+        col = 0;
+        head = 0;
+        theta = 1.0;
+        iupdat = 0;
+        updatd = 0;
+        goto LINE222;
+    }
+
+    nintol += nseg;
+
+    // Count the entering and leaving variables for iter > 0;
+    // find the index set of free and active variables at the GCP.
+    freev(n, &nfree, index, &nenter, &ileave, indx2, iwhere, &wrk, updatd,
+          cnstnd, iter);
+    nact = n - nfree;
+
+LINE333:
+    // If there are no free variables or B=theta*I, then skip the subspace
+    // minimization.
+    if ((nfree == 0) || (col == 0)) { goto LINE555; }
+
+    /////////////////////////////////////////////////////
+    //
+    // Subspace minimization
+    //
+    /////////////////////////////////////////////////////
+
+    // Form  the LEL^T factorization of the indefinite
+    //   matrix    K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
+    //                 [L_a -R_z           theta*S'AA'S ]
+    //   where     E = [-I  0]
+    //                 [ 0  I]
+    if (wrk)
+    {
+        formk(n, nfree, index, nenter, ileave, indx2, iupdat, updatd, wn, snd,
+              m, ws, wy, sy, theta, col, head, &info);
+    }
+    if (info != 0)
+    {
+        // nonpositive definiteness in Cholesky factorization;
+        // refresh the lbfgs memory and restart the iteration.
+        info = 0;
+        col = 0;
+        head = 0;
+        theta = 1.0;
+        iupdat = 0;
+        updatd = 0;
+        goto LINE222;
+    }
+
+    // compute r=-Z'B(xcp-xk)-Z'g (using wa(2m+1)=W'(xcp-x) from 'cauchy').
+    cmprlb(n, m, x, g, ws, wy, sy, wt, z, r, wa, index, theta, col, head, nfree,
+           cnstnd, &info);
+    if (info != 0) { goto LINE444; }
+
+    // Call the direct method.
+    subsm(n, m, nfree, index, l, u, nbd, z, r, xp, ws, wy, theta, x, g, col,
+          head, &iword, wa, wn, &info);
+
+LINE444:
+    if (info != 0)
+    {
+        // singular triangular system detected;
+        // refresh the lbfgs memory and restart the iteration.
+        info = 0;
+        col = 0;
+        head = 0;
+        theta = 1.0;
+        iupdat = 0;
+        updatd = 0;
+        goto LINE222;
+    }
+
+LINE555:
+
+    /////////////////////////////////////////////////////
+    //
+    // Line search and optimality tests.
+    //
+    /////////////////////////////////////////////////////
+
+    // Generate the search direction d := z - x.
+    for (i = 0; i < n; i++)
+    {
+        d[i] = z[i] - x[i];
+    }
+
+LINE666:
+    lnsrlb(n, l, u, nbd, x, *f, &fold, &gd, &gdold, g, d, r, t, z, &stp, &dnorm,
+           &dtd, &xstep, &stpmx, iter, &ifun, &iback, &nfgv, &info, task,
+           task_msg, boxed, cnstnd, &isave[21], &dsave[16], temp_task, temp_taskmsg);
+
+    if ((info != 0) || (iback >= maxls))
+    {
+        dcopy_(&n, t, &one_int, x, &one_int);
+        dcopy_(&n, r, &one_int, g, &one_int);
+        *f = fold;
+
+        if (col == 0)
+        {
+            // Abnormal termination
+            if (info == 0)
+            {
+                info = -9;
+                // Restore the actual number of f and g evaluations etc.
+                nfgv--;
+                ifun--;
+                iback--;
+            }
+            *task = ABNORMAL;
+            *task_msg = NO_MSG;
+            iter++;
+            goto LINE999;
+        } else {
+            // Refresh the lbfgs memory and restart the iteration.
+            if (info == 0) { nfgv--; }
+            info = 0;
+            col = 0;
+            head = 0;
+            theta = 1.0;
+            iupdat = 0;
+            updatd = 0;
+            *task = RESTART;
+            *task_msg = NO_MSG;
+            goto LINE222;
+        }
+    } else if ((*task == FG) && (*task_msg == FG_LNSRCH)) {
+        // Return to the driver for calculating f and g; renter at 666.
+        goto LINE1000;
+    } else {
+        // Calculate and print out the quantities related to the new X.
+        iter++;
+
+        // Compute the infinity norm of the projected (-)gradient.
+        projgr(n, l, u, nbd, x, g, &sbgnrm);
+
+        goto LINE1000;
+    }
+
+LINE777:
+
+    // Test for termination.
+    if (sbgnrm <= pgtol)
+    {
+        // Terminate the algorithm.
+        *task = CONVERGENCE;
+        *task_msg = CONV_GRAD;
+        goto LINE999;
+    }
+    ddum = fmax(fmax(fabs(fold), fabs(*f)), 1.0);
+    if ((fold - *f) <= tol*ddum)
+    {
+        // Terminate the algorithm.
+        *task = CONVERGENCE;
+        *task_msg = CONV_F;
+        if (iback >= 10) { info = -5; }
+        // i.e. to issue a warning if iback > 10 in the line search.
+        goto LINE999;
+    }
+
+    // Compute d=newx-oldx, r=newg-oldg, rr=y'y and dr=y's.
+    for (i = 0; i < n; i++)
+    {
+        r[i] = g[i] - r[i];
+    }
+    // 42
+    rr = pow(dnrm2_(&n, r, &one_int), 2.0);
+
+    if (stp == 1.0)
+    {
+        dr = gd - gdold;
+        ddum = -gdold;
+    } else {
+        dr = (gd - gdold)*stp;
+        dscal_(&n, &stp, d, &one_int);
+        ddum = -gdold*stp;
+    }
+
+    if (dr <= epsmach*ddum)
+    {
+        // Skip the L-BFGS update.
+        nskip += 1;
+        updatd = 0;
+        goto LINE888;
+    }
+
+    /////////////////////////////////////////////////////
+    //
+    // Update the L-BFGS matrix.
+    //
+    /////////////////////////////////////////////////////
+    updatd = 1;
+    iupdat += 1;
+
+    // Update matrices WS and WY and form the middle matrix in B.
+    matupd(n, m, ws, wy, sy, ss, d, r, &itail, iupdat, &col, &head, &theta,
+           rr, dr, stp, dtd);
+
+    // Form the upper half of the pds T = theta*SS + L*D^(-1)*L';
+    //    Store T in the upper triangular of the array wt;
+    //    Cholesky factorize T to J*J' with
+    //       J' stored in the upper triangular of wt.
+    formt(m, wt, sy, ss, col, theta, &info);
+
+    if (info != 0)
+    {
+        // Nonpositive definiteness in Cholesky factorization;
+        // refresh the lbfgs memory and restart the iteration.
+        info = 0;
+        col = 0;
+        head = 0;
+        theta = 1.0;
+        iupdat = 0;
+        updatd = 0;
+        goto LINE222;
+    }
+
+    // Now the inverse of the middle matrix in B is
+
+    // [  D^(1/2)      O ] [ -D^(1/2)  D^(-1/2)*L' ]
+    // [ -L*D^(-1/2)   J ] [  0        J'          ]
+LINE888:
+    // -------------------- the end of the loop -----------------------------
+    goto LINE222;
+
+LINE999:
+    ;
+
+LINE1000:
+    // Save local variables
+    lsave[0]  = prjctd;
+    lsave[1]  = cnstnd;
+    lsave[2]  = boxed;
+    lsave[3]  = updatd;
+
+    isave[0]  = nintol;
+    isave[3]  = iback;
+    isave[4]  = nskip;
+    isave[5]  = head;
+    isave[6]  = col;
+    isave[7]  = itail;
+    isave[8]  = iter;
+    isave[9]  = iupdat;
+    isave[11] = nseg;
+    isave[12] = nfgv;
+    isave[13] = info;
+    isave[14] = ifun;
+    isave[15] = iword;
+    isave[16] = nfree;
+    isave[17] = nact;
+    isave[18] = ileave;
+    isave[19] = nenter;
+
+    dsave[0]  = theta;
+    dsave[1]  = fold;
+    dsave[2]  = tol;
+    dsave[3]  = dnorm;
+    // dsave[4]  = epsmch;
+    // dsave[5]  = cpu1;
+    // dsave[6]  = cachyt;
+    // dsave[7]  = sbtime;
+    // dsave[8]  = lnscht;
+    // dsave[9]  = time1;
+    dsave[10] = gd;
+    dsave[11] = stpmx;
+    dsave[12] = sbgnrm;
+    dsave[13] = stp;
+    dsave[14] = gdold;
+    dsave[15] = dtd;
+
+    return;
+}
+
+
+void
+active(int n, double* l, double* u, int* nbd, double* x,
+       int* iwhere, int* prjctd, int* cnstnd, int* boxed)
+{
+    //     ************
+    //
+    //     Subroutine active
+    //
+    //     This subroutine initializes iwhere and projects the initial x to
+    //       the feasible set if necessary.
+    //
+    //     iwhere is an integer array of dimension n.
+    //       On entry iwhere is unspecified.
+    //       On exit iwhere(i)=-1  if x(i) has no bounds
+    //                         3   if l(i)=u(i)
+    //                         0   otherwise.
+    //       In cauchy, iwhere is given finer gradations.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int i;
+
+    // Initialize nbdd, prjctd, cnstnd, and boxed.
+    *prjctd = 0;
+    *cnstnd = 0;
+    *boxed = 1;
+
+    // Project the initial x to the feasible set if necessary.
+
+    for (i = 0; i < n; i++)
+    {
+        if (nbd[i] > 0)
+        {
+            if ((nbd[i] <= 2) && (x[i] <= l[i]))
+            {
+                if (x[i] < l[i])
+                {
+                    *prjctd = 1;
+                    x[i] = l[i];
+                }
+            } else if ((nbd[i] >= 2) && (x[i] >= u[i])) {
+                if (x[i] > u[i])
+                {
+                    *prjctd = 1;
+                    x[i] = u[i];
+                }
+            }
+        }
+    }
+    // 10
+
+    // Initialize iwhere and assign values to cnstnd and boxed.
+    for (i = 0; i < n; i++)
+    {
+        if (nbd[i] != 2) { *boxed = 0; }
+        if (nbd[i] == 0)
+        {
+            // This variable is always free
+            iwhere[i] = -1;
+        } else {
+            // Otherwise set x(i)=mid(x(i), u(i), l(i)).
+            *cnstnd = 1;
+            if ((nbd[i] == 2) && (u[i] - l[i] <= 0.0))
+            {
+                // This variable is always fixed.
+                iwhere[i] = 3;
+            } else {
+                iwhere[i] = 0;
+            }
+        }
+    }
+    // 20
+
+    return;
+}
+
+
+void
+bmv(int m, double* sy, double* wt, int col, double* v, double* p, int* info)
+{
+    //     ************
+    //
+    //     Subroutine bmv
+    //
+    //     This subroutine computes the product of the 2m x 2m middle matrix
+    //       in the compact L-BFGS formula of B and a 2m vector v;
+    //       it returns the product in p.
+    //
+    //     m is an integer variable.
+    //       On entry m is the maximum number of variable metric corrections
+    //         used to define the limited memory matrix.
+    //       On exit m is unchanged.
+    //
+    //     sy is a double precision array of dimension m x m.
+    //       On entry sy specifies the matrix S'Y.
+    //       On exit sy is unchanged.
+    //
+    //     wt is a double precision array of dimension m x m.
+    //       On entry wt specifies the upper triangular matrix J' which is
+    //         the Cholesky factor of (thetaS'S+LD^(-1)L').
+    //       On exit wt is unchanged.
+    //
+    //     col is an integer variable.
+    //       On entry col specifies the number of s-vectors (or y-vectors)
+    //         stored in the compact L-BFGS formula.
+    //       On exit col is unchanged.
+    //
+    //     v is a double precision array of dimension 2col.
+    //       On entry v specifies vector v.
+    //       On exit v is unchanged.
+    //
+    //     p is a double precision array of dimension 2col.
+    //       On entry p is unspecified.
+    //       On exit p is the product Mv.
+    //
+    //     info is an integer variable.
+    //       On entry info is unspecified.
+    //       On exit info = 0       for normal return,
+    //                    = nonzero for abnormal return when the system
+    //                                to be solved by dtrsl is singular.
+    //
+    //     Subprograms called:
+    //
+    //       Linpack ... dtrsl.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int i, k, i2, one_int = 1;
+    double ssum;
+    char *uplo = "U", *trans = "T", *diag = "N";
+
+    if (col == 0) { return; }
+
+    // PART I: solve [  D^(1/2)      O ] [ p1 ] = [ v1 ]
+    //               [ -L*D^(-1/2)   J ] [ p2 ]   [ v2 ].
+
+    // solve Jp2=v2+LD^(-1)v1.
+    p[col] = v[col];
+    for (i = 1; i < col; i++)
+    {
+        i2 = col + i;
+        ssum = 0.0;
+        for (k = 0; k <= i-1; k++)
+        {
+            ssum = ssum + sy[i + m*k] * v[k] / sy[k + m*k];
+        }
+        // 10
+        p[i2] = v[i2] + ssum;
+    }
+    // 20
+
+    // Solve the triangular system
+    // dtrtrs(uplo, trans, diag, n, nrhs, a, lda, b, ldb, info)
+    dtrtrs_(uplo, trans, diag, &col, &one_int, wt, &m, &p[col], &col, info);
+    if (*info != 0) { return; }
+
+    // Solve D^(1/2)p1=v1.
+    for (i = 0; i < col; i++)
+    {
+        p[i] = v[i] / sqrt(sy[i + m*i]);
+    }
+    // 30
+
+    // PART II: solve [ -D^(1/2)   D^(-1/2)*L'  ] [ p1 ] = [ p1 ]
+    //                [  0         J'           ] [ p2 ]   [ p2 ].
+
+    // solve J^Tp2=p2.
+    // dtrtrs(uplo, trans, diag, n, nrhs, a, lda, b, ldb, info)
+    trans = "N";
+    dtrtrs_(uplo, trans, diag, &col, &one_int, wt, &m, &p[col], &col, info);
+    if (*info != 0) { return; }
+
+    // compute p1=-D^(-1/2)(p1-D^(-1/2)L'p2)
+    //           =-D^(-1/2)p1+D^(-1)L'p2.
+
+    for (i = 0; i < col; i++)
+    {
+        p[i] = -p[i] / sqrt(sy[i + m*i]);
+    }
+    // 40
+
+    for (i = 0; i < col; i++)
+    {
+        ssum = 0.0;
+        for (k = i+1; k < col; k++)
+        {
+            ssum = ssum + sy[k + m*i] * p[col + k] / sy[i + m*i];
+        }
+        // 50
+        p[i] = p[i] + ssum;
+    }
+    // 60
+
+    return;
+}
+
+
+void
+cauchy(int n, double* x, double* l, double* u,
+       int* nbd, double *g, int* iorder, int* iwhere, double* t,
+       double* d, double* xcp, int m, double* wy, double* ws,
+       double* sy, double* wt, double theta, int col,
+       int head, double* p, double* c, double* wbp, double* v,
+       int* nseg, double sbgnrm, int* info)
+{
+    //     ************
+    //
+    //     Subroutine cauchy
+    //
+    //     For given x, l, u, g (with sbgnrm > 0), and a limited memory
+    //       BFGS matrix B defined in terms of matrices WY, WS, WT, and
+    //       scalars head, col, and theta, this subroutine computes the
+    //       generalized Cauchy point (GCP), defined as the first local
+    //       minimizer of the quadratic
+    //
+    //                  Q(x + s) = g's + 1/2 s'Bs
+    //
+    //       along the projected gradient direction P(x-tg,l,u).
+    //       The routine returns the GCP in xcp.
+    //
+    //     n is an integer variable.
+    //       On entry n is the dimension of the problem.
+    //       On exit n is unchanged.
+    //
+    //     x is a double precision array of dimension n.
+    //       On entry x is the starting point for the GCP computation.
+    //       On exit x is unchanged.
+    //
+    //     l is a double precision array of dimension n.
+    //       On entry l is the lower bound of x.
+    //       On exit l is unchanged.
+    //
+    //     u is a double precision array of dimension n.
+    //       On entry u is the upper bound of x.
+    //       On exit u is unchanged.
+    //
+    //     nbd is an integer array of dimension n.
+    //       On entry nbd represents the type of bounds imposed on the
+    //         variables, and must be specified as follows:
+    //         nbd(i)=0 if x(i) is unbounded,
+    //                1 if x(i) has only a lower bound,
+    //                2 if x(i) has both lower and upper bounds, and
+    //                3 if x(i) has only an upper bound.
+    //       On exit nbd is unchanged.
+    //
+    //     g is a double precision array of dimension n.
+    //       On entry g is the gradient of f(x).  g must be a nonzero vector.
+    //       On exit g is unchanged.
+    //
+    //     iorder is an integer working array of dimension n.
+    //       iorder will be used to store the breakpoints in the piecewise
+    //       linear path and free variables encountered. On exit,
+    //         iorder(1),...,iorder(nleft) are indices of breakpoints
+    //                                which have not been encountered;
+    //         iorder(nleft+1),...,iorder(nbreak) are indices of
+    //                                     encountered breakpoints; and
+    //         iorder(nfree),...,iorder(n) are indices of variables which
+    //                 have no bound constraits along the search direction.
+    //
+    //     iwhere is an integer array of dimension n.
+    //       On entry iwhere indicates only the permanently fixed (iwhere=3)
+    //       or free (iwhere= -1) components of x.
+    //       On exit iwhere records the status of the current x variables.
+    //       iwhere(i)=-3  if x(i) is free and has bounds, but is not moved
+    //                 0   if x(i) is free and has bounds, and is moved
+    //                 1   if x(i) is fixed at l(i), and l(i) .ne. u(i)
+    //                 2   if x(i) is fixed at u(i), and u(i) .ne. l(i)
+    //                 3   if x(i) is always fixed, i.e.,  u(i)=x(i)=l(i)
+    //                 -1  if x(i) is always free, i.e., it has no bounds.
+    //
+    //     t is a double precision working array of dimension n.
+    //       t will be used to store the break points.
+    //
+    //     d is a double precision array of dimension n used to store
+    //       the Cauchy direction P(x-tg)-x.
+    //
+    //     xcp is a double precision array of dimension n used to return the
+    //       GCP on exit.
+    //
+    //     m is an integer variable.
+    //       On entry m is the maximum number of variable metric corrections
+    //         used to define the limited memory matrix.
+    //       On exit m is unchanged.
+    //
+    //     ws, wy, sy, and wt are double precision arrays.
+    //       On entry they store information that defines the
+    //                             limited memory BFGS matrix:
+    //         ws(n,m) stores S, a set of s-vectors;
+    //         wy(n,m) stores Y, a set of y-vectors;
+    //         sy(m,m) stores S'Y;
+    //         wt(m,m) stores the
+    //                 Cholesky factorization of (theta*S'S+LD^(-1)L').
+    //       On exit these arrays are unchanged.
+    //
+    //     theta is a double precision variable.
+    //       On entry theta is the scaling factor specifying B_0 = theta I.
+    //       On exit theta is unchanged.
+    //
+    //     col is an integer variable.
+    //       On entry col is the actual number of variable metric
+    //         corrections stored so far.
+    //       On exit col is unchanged.
+    //
+    //     head is an integer variable.
+    //       On entry head is the location of the first s-vector (or y-vector)
+    //         in S (or Y).
+    //       On exit col is unchanged.
+    //
+    //     p is a double precision working array of dimension 2m.
+    //       p will be used to store the vector p = W^(T)d.
+    //
+    //     c is a double precision working array of dimension 2m.
+    //       c will be used to store the vector c = W^(T)(xcp-x).
+    //
+    //     wbp is a double precision working array of dimension 2m.
+    //       wbp will be used to store the row of W corresponding
+    //         to a breakpoint.
+    //
+    //     v is a double precision working array of dimension 2m.
+    //
+    //     nseg is an integer variable.
+    //       On exit nseg records the number of quadratic segments explored
+    //         in searching for the GCP.
+    //
+    //     sg and yg are double precision arrays of dimension m.
+    //       On entry sg  and yg store S'g and Y'g correspondingly.
+    //       On exit they are unchanged.
+    //
+    //     iprint is an INTEGER variable that must be set by the user.
+    //       It controls the frequency and type of output generated:
+    //        iprint<0    no output is generated;
+    //        iprint=0    print only one line at the last iteration;
+    //        0<iprint<99 print also f and |proj g| every iprint iterations;
+    //        iprint=99   print details of every iteration except n-vectors;
+    //        iprint=100  print also the changes of active set and final x;
+    //        iprint>100  print details of every iteration including x and g;
+    //
+    //
+    //     sbgnrm is a double precision variable.
+    //       On entry sbgnrm is the norm of the projected gradient at x.
+    //       On exit sbgnrm is unchanged.
+    //
+    //     info is an integer variable.
+    //       On entry info is 0.
+    //       On exit info = 0       for normal return,
+    //                    = nonzero for abnormal return when the system
+    //                              used in routine bmv is singular.
+    //
+    //     Subprograms called:
+    //
+    //       L-BFGS-B Library ... hpsolb, bmv.
+    //
+    //       Linpack ... dscal dcopy, daxpy.
+    //
+    //
+    //     References:
+    //
+    //       [1] R. H. Byrd, P. Lu, J. Nocedal and C. Zhu, ``A limited
+    //       memory algorithm for bound constrained optimization'',
+    //       SIAM J. Scientific Computing 16 (1995), no. 5, pp. 1190--1208.
+    //
+    //       [2] C. Zhu, R.H. Byrd, P. Lu, J. Nocedal, ``L-BFGS-B: FORTRAN
+    //       Subroutines for Large Scale Bound Constrained Optimization''
+    //       Tech. Report, NAM-11, EECS Department, Northwestern University,
+    //       1994.
+    //
+    //       (Postscript files of these papers are available via anonymous
+    //        ftp to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_bcm.)
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int bnded, xlower, xupper;
+    int i, j, col2, nfree, nbreak, pointr, ibp, nleft, ibkmin, iter, one_int = 1;
+    double f1, f2, dt, dtm, tsum, dibp, zibp, dibp2, bkmin, tu, tl, wmc, wmp;
+    double wmw, tj, tj0, neggi, f2_org;
+
+    f1 = 0.0;
+    tl = 0.0;
+    tu = 0.0;
+
+    if (sbgnrm <= 0.0)
+    {
+        dcopy_(&n, x, &one_int, xcp, &one_int);
+        return;
+    }
+    bnded = 1;
+    nfree = n;
+    nbreak = -1;
+    ibkmin = 0;
+    bkmin = 0.0;
+    col2 = 2*col;
+
+    // We set p to zero and build it up as we determine d.
+    for (i = 0; i < col2; i++)
+    {
+        p[i] = 0.0;
+    }
+    // 20
+
+    // In the following loop we determine for each variable its boud status and
+    // its breakpoint, and update p accordingly. Smallest breakpoint is identified.
+    for (i = 0; i < n; i++)
+    {
+        neggi = -g[i];
+        if ((iwhere[i] != 3) && (iwhere[i] != -1))
+        {
+            // If x[i] is not a constant and has bounds, compute the difference
+            // between x[i] and its bounds.
+            if (nbd[i] <= 2) { tl = x[i] - l[i]; }
+            if (nbd[i] >= 2) { tu = u[i] - x[i]; }
+
+            // If a varaible is close enough to a bound, we treat it as at bound.
+            xlower = ((nbd[i] <= 2) && (tl <= 0.0));
+            xupper = ((nbd[i] >= 2) && (tu <= 0.0));
+
+            // Reset iwhere[i]
+            iwhere[i] = 0;
+            if (xlower) {
+                if (neggi <= 0.0) { iwhere[i] = 1; }
+            } else if (xupper) {
+                if (neggi >= 0.0) { iwhere[i] = 2; }
+            } else {
+                if (fabs(neggi) <= 0.0) { iwhere[i] = -3; }
+            }
+        }
+        pointr = head;
+        if ((iwhere[i] != 0) && (iwhere[i] != -1))
+        {
+            d[i] = 0.0;
+        } else {
+            d[i] = neggi;
+            f1 = f1 - neggi * neggi;
+            // Calculate p := p - W'e_i* (g_i).
+            for (j = 0; j < col; j++) {
+                p[j] = p[j] + wy[i + n*pointr]*neggi;
+                p[col + j] = p[col + j] + ws[i + n*pointr]*neggi;
+                pointr = (pointr + 1) % m;
+            }
+            // 40
+            if ((nbd[i] <= 2) && (nbd[i] != 0) && (neggi < 0.0))
+            {
+                // x(i) + d(i) is bounded; compute t(i).
+                nbreak += 1;
+                iorder[nbreak] = i;
+                t[nbreak] = tl / (-neggi);
+                if ((nbreak == 0) || (t[nbreak] < bkmin))
+                {
+                    bkmin = t[nbreak];
+                    ibkmin = nbreak;
+                }
+            } else if ((nbd[i] >= 2) && (neggi > 0.0)) {
+                // x(i) + d(i) is bounded; compute t(i).
+                nbreak += 1;
+                iorder[nbreak] = i;
+                t[nbreak] = tu / neggi;
+                if ((nbreak == 0) || (t[nbreak] < bkmin))
+                {
+                    bkmin = t[nbreak];
+                    ibkmin = nbreak;
+                }
+            } else {
+                // x(i) + d(i) is not bounded.
+                nfree -= 1;
+                iorder[nfree] = i;
+                if (fabs(neggi) > 0.0) { bnded = 0; }
+            }
+        }
+    }
+    // 50
+
+    // The indices of the nonzero components of d are now stored
+    // in iorder(1),...,iorder(nbreak) and iorder(nfree),...,iorder(n).
+    // The smallest of the nbreak breakpoints is in t(ibkmin)=bkmin.
+    if (theta != 1.0)
+    {
+        // Complete the initialization of p for theta not= one.
+        dscal_(&col, &theta, &p[col], &one_int);
+    }
+    // Initialize GCP xcp = x.
+    dcopy_(&n, x, &one_int, xcp, &one_int);
+    if ((nbreak == -1) && (nfree == n))
+    {
+        // is a zero vector, return with the initial xcp as GCP.
+        return;
+    }
+    // Initialize c = W'(xcp - x) = 0.
+    for (j = 0; j < col2; j++)
+    {
+        c[j] = 0.0;
+    }
+    // 60
+
+    // Initialize derivative f2.
+    f2 = -(theta) * f1;
+    f2_org = f2;
+    if (col > 0) {
+        bmv(m, sy, wt, col, p, v, info);
+        if (*info != 0) { return; }
+        f2 = f2 - ddot_(&col2, v, &one_int, p, &one_int);
+    }
+    dtm = -f1 / f2;
+    tsum = 0.0;
+    *nseg = 1;
+
+    // If there are no breakpoints, locate the GCP and return.
+    if (nbreak == -1) { goto LINE888; }
+    nleft = nbreak;
+    iter = 0;
+    tj = 0.0;
+
+    // ------------------- the beginning of the loop -------------------------
+    while (1)
+    {
+        // Find the next smallest breakpoint;
+        // compute dt = t(nleft) - t(nleft + 1).
+        tj0 = tj;
+        if (iter == 0)
+        {
+            // Since we already have the smallest breakpoint we need not do
+            // heapsort yet. Often only one breakpoint is used and the
+            // cost of heapsort is avoided.
+            tj = bkmin;
+            ibp = iorder[ibkmin];
+        } else {
+            if (iter == 1)
+            {
+                // Replace the already used smallest breakpoint with the
+                // breakpoint numbered nbreak > nlast, before heapsort call.
+                if (ibkmin != nbreak)
+                {
+                    t[ibkmin] = t[nbreak];
+                    iorder[ibkmin] = iorder[nbreak];
+                }
+            }
+            // Update heap structure of breakpoints (if iter=2, initialize heap).
+            hpsolb(nleft, t, iorder, iter - 1);
+            tj = t[nleft];
+            ibp = iorder[nleft];
+        }
+
+        dt = tj - tj0;
+
+        // If a minimizer is within this interval, locate the GCP and return.
+        if (dtm < dt) { goto LINE888; }
+
+        // Otherwise fix one variable and reset the corresponding component
+        // of d to zero.
+        tsum = tsum + dt;
+        nleft -= 1;
+        iter += 1;
+        dibp = d[ibp];
+        d[ibp] = 0.0;
+        if (dibp > 0.0) {
+            zibp = u[ibp] - x[ibp];
+            xcp[ibp] = u[ibp];
+            iwhere[ibp] = 2;
+        } else {
+            zibp = l[ibp] - x[ibp];
+            xcp[ibp] = l[ibp];
+            iwhere[ibp] = 1;
+        }
+        if (nleft == -1 && nbreak == n) {
+            // All n variables are fixed, return with xcp as GCP.
+            dtm = dt;
+            goto LINE999;
+        }
+
+        // Update the derivative information.
+        nseg += 1;
+        dibp2 = pow(dibp, 2.0);
+
+        // Update f1 and f2
+
+        // Temporarily set f1 and f2 for col=0.
+        f1 = f1 + dt * f2 + dibp2 - theta*dibp*zibp;
+        f2 = f2 - theta*dibp2;
+        if (col > 0) {
+            // Update c = c + dt*p.
+            daxpy_(&col2, &dt, p, &one_int, c, &one_int);
+            // Choose wbp, the row of W corresponding to the breakpoint encountered.
+            pointr = head;
+            for (j = 0; j < col; j++) {
+                wbp[j] = wy[ibp + n*pointr];
+                wbp[col + j] = theta * ws[ibp + n*pointr];
+                pointr = (pointr + 1) % m;
+            }
+            // 70
+
+            // Compute (wbp)Mc, (wbp)Mp, and (wbp)M(wbp)'.
+            bmv(m, sy, wt, col, wbp, v, info);
+            if (*info != 0) { return; }
+            wmc = ddot_(&col2, c, &one_int, v, &one_int);
+            wmp = ddot_(&col2, p, &one_int, v, &one_int);
+            wmw = ddot_(&col2, wbp, &one_int, v, &one_int);
+            // Update p = p - dibp*wbp.
+            dibp = -dibp;
+            daxpy_(&col2, &dibp, wbp, &one_int, p, &one_int);
+            dibp = -dibp;
+
+            // Complete updating f1 and f2 while col > 0.
+            f1 = f1 + dibp*wmc;
+            f2 = f2 + dibp*2.0*wmp - dibp2*wmw;
+        }
+
+        f2 = fmax(epsmach*f2_org, f2);
+
+        if (nleft >= 0) {
+            // to repeat the loop for unsearched intervals.
+            dtm = -f1 / f2;
+        } else if (bnded) {
+            dtm = 0.0;
+            break;
+        } else {
+            dtm = -f1 / f2;
+            break;
+        }
+    }
+
+    // ------------------- the end of the loop -------------------------------
+
+LINE888:
+    if (dtm <= 0.0) { dtm = 0.0; }
+    tsum = tsum + dtm;
+
+    // Move free variables (i.e. the ones w/o breakpoints) and the variables
+    // whose breakpoints haven't been reached.
+    daxpy_(&n, &tsum, d, &one_int, xcp, &one_int);
+
+LINE999:
+    // Update c = c + dtm*p = W'(x^c - x)
+    // which will be used in computing r = Z'(B(x^c - x) + g).
+
+    if (col > 0) { daxpy_(&col2, &dtm, p, &one_int, c, &one_int); }
+
+    return;
+}
+
+
+void
+cmprlb(int n, int m, double* x, double* g,
+       double* ws, double* wy, double* sy, double* wt,
+       double* z, double* r, double* wa, int* index,
+       double theta, int col, int head, int nfree,
+       int cnstnd, int* info)
+{
+    //     ************
+    //
+    //     Subroutine cmprlb
+    //
+    //       This subroutine computes r=-Z'B(xcp-xk)-Z'g by using
+    //         wa(2m+1)=W'(xcp-x) from subroutine cauchy.
+    //
+    //     Subprograms called:
+    //
+    //       L-BFGS-B Library ... bmv.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int i, j, k, pointr;
+    double a1, a2;
+
+    if ((!cnstnd) && (col > 0))
+    {
+        for (i = 0; i < n; i++) { r[i] = -g[i]; }
+        // 26
+    } else {
+        for (i = 0; i < nfree; i++)
+        {
+            k = index[i];
+            r[i] = -theta*(z[k] - x[k]) - g[k];
+        }
+        // 30
+
+        bmv(m, sy, wt, col, &wa[2*m], wa, info);
+        if (*info != 0) { *info = -8; return; }
+        pointr = head;
+        for (j = 0; j < col; j++)
+        {
+            a1 = wa[j];
+            a2 = theta*wa[col + j];
+            for (i = 0; i < nfree; i++)
+            {
+                k = index[i];
+                r[i] = r[i] + wy[k + n*pointr]*a1 + ws[k + n*pointr]*a2;
+            }
+            // 32
+            pointr = (pointr + 1) % m;
+        }
+        // 34
+    }
+
+    return;
+}
+
+
+void
+errclb(int n, int m, double factr, double* l,
+       double* u, int* nbd, int* task, int* task_msg, int* info,
+       int* k)
+{
+    //     ************
+    //
+    //     Subroutine errclb
+    //
+    //     This subroutine checks the validity of the input data.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int i;
+
+    // Check the input arguments for errors.
+    if (n <= 0) { *task = ERROR; *task_msg = ERROR_N; }
+    if (m <= 0) { *task = ERROR; *task_msg = ERROR_M; }
+    if (factr < 0) { *task = ERROR; *task_msg = ERROR_FACTR; }
+
+    // Check the validity of the arrays nbd(i), u(i), and l(i).
+    for (i = 0; i < n; i++)
+    {
+        if ((nbd[i] < 0) || (nbd[i] > 3))
+        {
+            *task = ERROR;
+            *task_msg = ERROR_NBD;
+            *info = -6;
+            *k = i;
+        }
+        if (nbd[i] == 2)
+        {
+            if (l[i] > u[i])
+            {
+                // Return
+                *task = ERROR;
+                *task_msg = ERROR_NOFEAS;
+                *info = -7;
+                *k = i;
+            }
+        }
+    }
+
+    return;
+}
+
+
+void
+formk(int n, int nsub, int* ind, int nenter, int ileave,
+      int* indx2, int iupdat, int updatd, double* wn,
+      double* wn1, int m, double* ws, double* wy,
+      double* sy, double theta, int col, int head, int* info)
+{
+    //     ************
+    //
+    //     Subroutine formk
+    //
+    //     This subroutine forms  the LEL^T factorization of the indefinite
+    //
+    //       matrix    K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
+    //                     [L_a -R_z           theta*S'AA'S ]
+    //                                                    where E = [-I  0]
+    //                                                              [ 0  I]
+    //     The matrix K can be shown to be equal to the matrix M^[-1]N
+    //       occurring in section 5.1 of [1], as well as to the matrix
+    //       Mbar^[-1] Nbar in section 5.3.
+    //
+    //     n is an integer variable.
+    //       On entry n is the dimension of the problem.
+    //       On exit n is unchanged.
+    //
+    //     nsub is an integer variable
+    //       On entry nsub is the number of subspace variables in free set.
+    //       On exit nsub is not changed.
+    //
+    //     ind is an integer array of dimension nsub.
+    //       On entry ind specifies the indices of subspace variables.
+    //       On exit ind is unchanged.
+    //
+    //     nenter is an integer variable.
+    //       On entry nenter is the number of variables entering the
+    //         free set.
+    //       On exit nenter is unchanged.
+    //
+    //     ileave is an integer variable.
+    //       On entry indx2(ileave),...,indx2(n) are the variables leaving
+    //         the free set.
+    //       On exit ileave is unchanged.
+    //
+    //     indx2 is an integer array of dimension n.
+    //       On entry indx2(1),...,indx2(nenter) are the variables entering
+    //         the free set, while indx2(ileave),...,indx2(n) are the
+    //         variables leaving the free set.
+    //       On exit indx2 is unchanged.
+    //
+    //     iupdat is an integer variable.
+    //       On entry iupdat is the total number of BFGS updates made so far.
+    //       On exit iupdat is unchanged.
+    //
+    //     updatd is a logical variable.
+    //       On entry 'updatd' is true if the L-BFGS matrix is updatd.
+    //       On exit 'updatd' is unchanged.
+    //
+    //     wn is a double precision array of dimension 2m x 2m.
+    //       On entry wn is unspecified.
+    //       On exit the upper triangle of wn stores the LEL^T factorization
+    //         of the 2*col x 2*col indefinite matrix
+    //                     [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
+    //                     [L_a -R_z           theta*S'AA'S ]
+    //
+    //     wn1 is a double precision array of dimension 2m x 2m.
+    //       On entry wn1 stores the lower triangular part of
+    //                     [Y' ZZ'Y   L_a'+R_z']
+    //                     [L_a+R_z   S'AA'S   ]
+    //         in the previous iteration.
+    //       On exit wn1 stores the corresponding updated matrices.
+    //       The purpose of wn1 is just to store these inner products
+    //       so they can be easily updated and inserted into wn.
+    //
+    //     m is an integer variable.
+    //       On entry m is the maximum number of variable metric corrections
+    //         used to define the limited memory matrix.
+    //       On exit m is unchanged.
+    //
+    //     ws, wy, sy, and wtyy are double precision arrays;
+    //     theta is a double precision variable;
+    //     col is an integer variable;
+    //     head is an integer variable.
+    //       On entry they store the information defining the
+    //                                          limited memory BFGS matrix:
+    //         ws(n,m) stores S, a set of s-vectors;
+    //         wy(n,m) stores Y, a set of y-vectors;
+    //         sy(m,m) stores S'Y;
+    //         wtyy(m,m) stores the Cholesky factorization
+    //                                   of (theta*S'S+LD^(-1)L')
+    //         theta is the scaling factor specifying B_0 = theta I;
+    //         col is the number of variable metric corrections stored;
+    //         head is the location of the 1st s- (or y-) vector in S (or Y).
+    //       On exit they are unchanged.
+    //
+    //     info is an integer variable.
+    //       On entry info is unspecified.
+    //       On exit info =  0 for normal return;
+    //                    = -1 when the 1st Cholesky factorization failed;
+    //                    = -2 when the 2st Cholesky factorization failed.
+    //
+    //     Subprograms called:
+    //
+    //       Linpack ... dcopy, dpofa, dtrsl.
+    //
+    //
+    //     References:
+    //       [1] R. H. Byrd, P. Lu, J. Nocedal and C. Zhu, ``A limited
+    //       memory algorithm for bound constrained optimization'',
+    //       SIAM J. Scientific Computing 16 (1995), no. 5, pp. 1190--1208.
+    //
+    //       [2] C. Zhu, R.H. Byrd, P. Lu, J. Nocedal, ``L-BFGS-B: a
+    //       limited memory FORTRAN code for solving bound constrained
+    //       optimization problems'', Tech. Report, NAM-11, EECS Department,
+    //       Northwestern University, 1994.
+    //
+    //       (Postscript files of these papers are available via anonymous
+    //        ftp to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_bcm.)
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int m2, ipntr, jpntr, iy, is, jy, js, is1, js1, k1, i, k, col2, pbegin, pend;
+    int dbegin, dend, upcl, one_int = 1, temp_int;
+    double temp1, temp2, temp3, temp4;
+    char *uplo = "U", *trans = "T", *diag = "N";
+
+    // Form the lower triangular part of
+    //           WN1 = [Y' ZZ'Y   L_a'+R_z']
+    //                 [L_a+R_z   S'AA'S   ]
+    //    where L_a is the strictly lower triangular part of S'AA'Y
+    //          R_z is the upper triangular part of S'ZZ'Y.
+
+    if (updatd)
+    {
+        if (iupdat > m)
+        {
+            //  Shift old part of WN1.
+            for (jy = 0; jy < m - 1; jy++)
+            {
+                js = m + jy;
+                temp_int = m - (jy + 1);
+                dcopy_(&temp_int, &wn1[(jy + 1) + 2*m*(jy + 1)], &one_int, &wn1[jy + 2*m*jy], &one_int);
+                dcopy_(&temp_int, &wn1[(js + 1) + 2*m*(js + 1)], &one_int, &wn1[js + 2*m*js], &one_int);
+                temp_int = m - 1;
+                dcopy_(&temp_int, &wn1[(m + 1) + 2*m*(jy + 1)], &one_int, &wn1[m + 2*m*jy], &one_int);
+            }
+            // 10
+        }
+
+        // Put new rows in blocks (1,1), (2,1) and (2,2).
+        pbegin = 0;     // Inclusive loop start
+        pend = nsub;    // Exclusive loop end
+        dbegin = nsub;  // Inclusive loop start
+        dend = n;       // Exclusive loop end
+        iy = col - 1;
+        is = m + col - 1;
+        ipntr = head + col - 1;
+        if (ipntr >= m) { ipntr -= m; }
+        jpntr = head;
+
+        for (jy = 0; jy < col; jy++)
+        {
+            js = m + jy;
+            temp1 = 0.0;
+            temp2 = 0.0;
+            temp3 = 0.0;
+
+            // Compute element jy of row 'col' of Y'ZZ'Y.
+            for (k = pbegin; k < pend; k++)
+            {
+                k1 = ind[k];
+                temp1 = temp1 + wy[k1 + n*ipntr]*wy[k1 + n*jpntr];
+            }
+            // 15
+
+            // Compute elements jy of row 'col' of L_a and S'AA'S.
+            for (k = dbegin; k < dend; k++)
+            {
+                k1 = ind[k];
+                temp2 = temp2 + ws[k1 + n*ipntr]*ws[k1 + n*jpntr];
+                temp3 = temp3 + ws[k1 + n*ipntr]*wy[k1 + n*jpntr];
+            }
+            // 16
+            wn1[iy + 2*m*jy] = temp1;
+            wn1[is + 2*m*js] = temp2;
+            wn1[is + 2*m*jy] = temp3;
+            jpntr = (jpntr + 1) % m;
+        }
+        // 20
+
+        // Put new column in block (2,1)
+        jy = col - 1;
+        jpntr = head + col - 1;
+        if (jpntr >= m) { jpntr -= m; }
+        ipntr = head;
+
+        for (i = 0; i < col; i++)
+        {
+            is = m + i;
+            temp3 = 0.0;
+            // Compute element i of column 'col' of R_z.
+            for (k = pbegin; k < pend; k++)
+            {
+                k1 = ind[k];
+                temp3 = temp3 + ws[k1 + n*ipntr]*wy[k1 + n*jpntr];
+            }
+            // 25
+            ipntr = (ipntr + 1) % m;
+            wn1[is + 2*m*jy] = temp3;
+        }
+        // 30
+
+        upcl = col - 1;
+    } else {
+        upcl = col;
+    }
+
+    // modify the old parts in blocks (1,1) and (2,2) due to changes
+    // in the set of free variables.
+    ipntr = head;
+    for (iy = 0; iy < upcl; iy++)
+    {
+        is = m + iy;
+        jpntr = head;
+        for (jy = 0; jy <= iy; jy++)
+        {
+            js = m + jy;
+            temp1 = 0.0;
+            temp2 = 0.0;
+            temp3 = 0.0;
+            temp4 = 0.0;
+
+            for (k = 0; k < nenter; k++)
+            {
+                k1 = indx2[k];
+                temp1 = temp1 + wy[k1 + n*ipntr]*wy[k1 + n*jpntr];
+                temp2 = temp2 + ws[k1 + n*ipntr]*ws[k1 + n*jpntr];
+            }
+            // 35
+            for (k = ileave; k < n; k++)
+            {
+                k1 = indx2[k];
+                temp3 = temp3 + wy[k1 + n*ipntr]*wy[k1 + n*jpntr];
+                temp4 = temp4 + ws[k1 + n*ipntr]*ws[k1 + n*jpntr];
+            }
+            // 36
+
+            wn1[iy + 2*m*jy] = wn1[iy + 2*m*jy] + temp1 - temp3;
+            wn1[is + 2*m*js] = wn1[is + 2*m*js] - temp2 + temp4;
+            jpntr = (jpntr + 1) % m;
+        }
+        // 40
+
+        ipntr = (ipntr + 1) % m;
+    }
+    // 45
+
+    // Modify the old parts in block (2,1)
+    ipntr = head;
+    for (is = m; is < m + upcl; is++)
+    {
+        jpntr = head;
+        for (jy = 0; jy < upcl; jy++)
+        {
+            temp1 = 0.0;
+            temp3 = 0.0;
+            for (k = 0; k < nenter; k++)
+            {
+                k1 = indx2[k];
+                temp1 = temp1 + ws[k1 + n*ipntr]*wy[k1 + n*jpntr];
+            }
+            // 50
+            for (k = ileave; k < n; k++)
+            {
+                k1 = indx2[k];
+                temp3 = temp3 + ws[k1 + n*ipntr]*wy[k1 + n*jpntr];
+            }
+            // 51
+            if (is <= jy + m)
+            {
+                wn1[is + 2*m*jy] = wn1[is + 2*m*jy] + temp1 - temp3;
+            } else {
+                wn1[is + 2*m*jy] = wn1[is + 2*m*jy] - temp1 + temp3;
+            }
+            jpntr = (jpntr + 1) % m;
+        }
+        // 55
+        ipntr = (ipntr + 1) % m;
+    }
+    // 60
+
+    // Form the upper triangle of WN = [D+Y' ZZ'Y/theta   -L_a'+R_z' ]
+    //                                 [-L_a +R_z        S'AA'S*theta]
+
+    m2 = 2*m;
+    for (iy = 0; iy < col; iy++)
+    {
+        is = col + iy;
+        is1 = m + iy;
+        for (jy = 0; jy <= iy; jy++)
+        {
+            js = col + jy;
+            js1 = m + jy;
+            wn[jy + m2*iy] = wn1[iy + m2*jy] / theta;
+            wn[js + m2*is] = wn1[is1 + m2*js1] * theta;
+        }
+        // 65
+        for (jy = 0; jy < iy; jy++)
+        {
+            wn[jy + m2*is] = -wn1[is1 + m2*jy];
+        }
+        // 66
+        for (jy = iy; jy < col; jy++)
+        {
+            wn[jy + m2*is] = wn1[is1 + m2*jy];
+        }
+        // 67
+        wn[iy + m2*iy] = wn[iy + m2*iy] + sy[iy + m*iy];
+    }
+    // 70
+
+    // Form the upper triangle of WN= [  LL'            L^-1(-L_a'+R_z')]
+    //                                [(-L_a +R_z)L'^-1   S'AA'S*theta  ]
+    //
+    //    first Cholesky factor (1,1) block of wn to get LL'
+    //                      with L' stored in the upper triangle of wn.
+
+    // dpotrf(uplo, n, a, lda, info)
+    dpotrf_(uplo, &col, wn, &m2, info);
+    if (*info != 0) { *info = -1; return; }
+
+    // Then form L^-1(-L_a'+R_z') in the (1,2) block.
+    col2 = 2*col;
+
+    // dtrtrs(uplo, trans, diag, n, nrhs, a, lda, b, ldb, info)
+    dtrtrs_(uplo, trans, diag, &col, &col, wn, &m2, &wn[m2*col], &m2, info);
+
+    // Form S'AA'S*theta + (L^-1(-L_a'+R_z'))'L^-1(-L_a'+R_z') in the upper
+    //  triangle of (2,2) block of wn.
+    for (is = col; is < col2; is++)
+    {
+        for (js = is; js < col2; js++)
+        {
+            wn[is + m2*js] = wn[is + m2*js] + ddot_(&col, &wn[m2*is], &one_int, &wn[m2*js], &one_int);
+        }
+        // 74
+    }
+    // 72
+
+    // dpotrf(uplo, n, a, lda, info)
+    dpotrf_(uplo, &col, &wn[col + m2*col], &m2, info);
+    if (*info != 0) { *info = -2; }
+
+    return;
+}
+
+
+void
+formt(int m, double* wt, double* sy, double* ss, int col,
+      double theta, int* info)
+{
+    //     ************
+    //
+    //     Subroutine formt
+    //
+    //       This subroutine forms the upper half of the pos. def. and symm.
+    //         T = theta*SS + L*D^(-1)*L', stores T in the upper triangle
+    //         of the array wt, and performs the Cholesky factorization of T
+    //         to produce J*J', with J' stored in the upper triangle of wt.
+    //
+    //     Subprograms called:
+    //
+    //       Linpack ... dpofa.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int i, j, k, k1;
+    double ddum;
+    char *uplo = "U";
+
+    // Form the upper half of  T = theta*SS + L*D^(-1)*L', store T in the upper
+    // triangle of the array wt.
+    for (j = 0; j < col; j++)
+    {
+        wt[m*j] = theta*ss[m*j];
+    }
+    // 52
+
+    for (i = 1; i < col; i++)
+    {
+        for (j = i; j < col; j++)
+        {
+            k1 = (i > j ? j : i);
+            ddum = 0.0;
+            for (k = 0; k < k1; k++)
+            {
+                ddum = ddum + ((sy[i + m*k] * sy[j + m*k]) / sy[k + m*k]);
+            }
+            // 53
+            wt[i + m*j] = ddum + theta*ss[i + m*j];
+        }
+        // 54
+    }
+    // 55
+
+    // Cholesky factorize T to J*J' with J' stored in the upper triangle of wt.
+    // dpotrf(uplo, n, a, lda, info)
+    dpotrf_(uplo, &col, wt, &m, info);
+    if (*info != 0) { *info = -3; }
+
+    return;
+}
+
+
+void
+freev(int n, int* nfree, int* idx, int* nenter, int* ileave, int* idx2,
+      int* iwhere, int* wrk, int updatd, int cnstnd,
+      int iter)
+{
+    //     ************
+    //
+    //     Subroutine freev
+    //
+    //     This subroutine counts the entering and leaving variables when
+    //       iter > 0, and finds the index set of free and active variables
+    //       at the GCP.
+    //
+    //     cnstnd is a logical variable indicating whether bounds are present
+    //
+    //     index is an integer array of dimension n
+    //       for i=1,...,nfree, index(i) are the indices of free variables
+    //       for i=nfree+1,...,n, index(i) are the indices of bound variables
+    //       On entry after the first iteration, index gives
+    //         the free variables at the previous iteration.
+    //       On exit it gives the free variables based on the determination
+    //         in cauchy using the array iwhere.
+    //
+    //     indx2 is an integer array of dimension n
+    //       On entry indx2 is unspecified.
+    //       On exit with iter>0, indx2 indicates which variables
+    //          have changed status since the previous iteration.
+    //       For i= 1,...,nenter, indx2(i) have changed from bound to free.
+    //       For i= ileave+1,...,n, indx2(i) have changed from free to bound.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int i, iact, k;
+
+    // in formk
+    // nenter will be used as exclusive upper bound
+    // ileave will be used as the inclusive lower bound
+
+    *nenter = 0;
+    *ileave = n;
+    if ((iter > 0) && cnstnd)
+    {
+        // Count the entering and leaving variables.
+        for (i = 0; i < *nfree; i++)
+        {
+            k = idx[i];
+
+            if (iwhere[k] > 0)
+            {
+                *ileave -= 1;
+                idx2[*ileave] = k;
+            }
+        }
+        // 20
+        for (i = *nfree; i < n; i++)
+        {
+            k = idx[i];
+            if (iwhere[k] <= 0)
+            {
+                idx2[*nenter] = k;
+                *nenter += 1;
+            }
+        }
+        // 22
+    }
+
+    *wrk = ((*ileave < n) || (*nenter > 0) || updatd);
+
+    // Find the index set of free and active variables at the GCP.
+    *nfree = 0;
+    iact = n;
+    for (i = 0; i < n; i++)
+    {
+        if (iwhere[i] <= 0)
+        {
+            idx[*nfree] = i;
+            *nfree += 1;
+        } else {
+            iact -= 1;
+            idx[iact] = i;
+        }
+    }
+    // 24
+
+    return;
+}
+
+
+void
+hpsolb(int n, double* t, int* iorder, int iheap)
+{
+    //     ************
+    //
+    //     Subroutine hpsolb
+    //
+    //     This subroutine sorts out the least element of t, and puts the
+    //       remaining elements of t in a heap.
+    //
+    //     n is an integer variable.
+    //       On entry n is the dimension of the arrays t and iorder.
+    //       On exit n is unchanged.
+    //
+    //     t is a double precision array of dimension n.
+    //       On entry t stores the elements to be sorted,
+    //       On exit t(n) stores the least elements of t, and t(1) to t(n-1)
+    //         stores the remaining elements in the form of a heap.
+    //
+    //     iorder is an integer array of dimension n.
+    //       On entry iorder(i) is the index of t(i).
+    //       On exit iorder(i) is still the index of t(i), but iorder may be
+    //         permuted in accordance with t.
+    //
+    //     iheap is an integer variable specifying the task.
+    //       On entry iheap should be set as follows:
+    //         iheap .eq. 0 if t(1) to t(n) is not in the form of a heap,
+    //         iheap .ne. 0 if otherwise.
+    //       On exit iheap is unchanged.
+    //
+    //
+    //     References:
+    //       Algorithm 232 of CACM (J. W. J. Williams): HEAPSORT.
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //     ************
+    int i, j, k, indxin, indxout;
+    double ddum, out;
+
+    if (iheap == 0)
+    {
+        // Rearrange the elements t(1) to t(n) to form a heap.
+        for (k = 2; k <= n + 1; k++)
+        {
+            ddum = t[k-1];
+            indxin = iorder[k-1];
+
+            // Add ddum to the heap
+            i = k;
+            while (1)
+            {
+                if (i > 1)
+                {
+                    j = i / 2;
+                    if (ddum < t[j-1])
+                    {
+                        t[i-1] = t[j-1];
+                        iorder[i-1] = iorder[j-1];
+                        i = j;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            // 10
+
+            t[i-1] = ddum;
+            iorder[i-1] = indxin;
+        }
+        // 20
+    }
+
+    // Assign to 'out' the value of t(1), the least member of the heap, and
+    // rearrange the remaining members to form a heap as elements 1 to n-1 of t.
+    if (n > 0)
+    {
+        i = 1;
+        out = t[0];
+        indxout = iorder[0];
+        ddum = t[n];
+        indxin = iorder[n];
+
+        // Restore the heap
+        while (1)
+        {
+            j = i + i;
+            if (j <= n)
+            {
+                if (t[j] < t[j-1]) { j++; }
+                if (t[j-1] < ddum)
+                {
+                    t[i-1] = t[j-1];
+                    iorder[i-1] = iorder[j-1];
+                    i = j;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        t[i-1] = ddum;
+        iorder[i-1] = indxin;
+
+        // Put the least member in t(n).
+        t[n] = out;
+        iorder[n] = indxout;
+    }
+
+    return;
+}
+
+
+void
+lnsrlb(int n, double* l, double* u, int* nbd, double* x,
+       double f, double* fold, double *gd, double *gdold, double* g,
+       double* d, double* r, double* t, double* z, double* stp, double* dnorm,
+       double* dtd, double* xstep, double* stpmx, int iter, int* ifun,
+       int* iback, int* nfgv, int* info, int* task, int* task_msg,
+       int boxed, int cnstnd, int* isave, double* dsave, int* temp_task,
+       int* temp_taskmsg)
+{
+    //     **********
+    //
+    //     Subroutine lnsrlb
+    //
+    //     This subroutine calls subroutine dcsrch from the Minpack2 library
+    //       to perform the line search.  Subroutine dscrch is safeguarded so
+    //       that all trial points lie within the feasible region.
+    //
+    //     Subprograms called:
+    //
+    //       Minpack2 Library ... dcsrch.
+    //
+    //       Linpack ... dtrsl, ddot.
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     **********
+    int i, one_int = 1;
+    double a1, a2, ftol = 1e-3, gtol = 0.9, xtol = 0.1;
+    if (*task_msg == FG_LNSRCH) { goto LINE556; }
+
+    *dnorm = dnrm2_(&n, d, &one_int);
+    *dtd = pow(*dnorm, 2.0);
+
+    // Determine the maximum step length.
+    *stpmx = 1.0e+10;
+    if (cnstnd)
+    {
+        if (iter == 0)
+        {
+            *stpmx = 1.0;
+        } else {
+            for (i = 0; i < n; i++)
+            {
+                a1 = d[i];
+                if (nbd[i] != 0)
+                {
+                    if ((a1 < 0.0) && (nbd[i] <= 2))
+                    {
+                        a2 = l[i] - x[i];
+                        if (a2 >= 0.0)
+                        {
+                            *stpmx = 0.0;
+                        } else if (a1*(*stpmx) < a2) {
+                            *stpmx = a2 / a1;
+                        }
+                    } else if ((a1 > 0.0) && (nbd[i] >= 2)) {
+                        a2 = u[i] - x[i];
+                        if (a2 <= 0.0)
+                        {
+                            *stpmx = 0.0;
+                        } else if (a1*(*stpmx) > a2) {
+                            *stpmx = a2 / a1;
+                        }
+                    }
+                }
+            }
+            // 43
+        }
+    }
+
+    if ((iter == 0) && (!(boxed)))
+    {
+        *stp = fmin(1.0 / (*dnorm), *stpmx);
+    } else {
+        *stp = 1.0;
+    }
+
+    for (i = 0; i < n; i++)
+    {
+        t[i] = x[i];
+        r[i] = g[i];
+    }
+
+    *fold = f;  // Later used in mainlb, see control flow after returning from this function.
+    *ifun = 0;
+    *iback = 0;
+    *temp_task = START;
+    *temp_taskmsg = NO_MSG;
+LINE556:
+    *gd = ddot_(&n, g, &one_int, d, &one_int);
+    if (*ifun == 0)
+    {
+        *gdold = *gd;
+        if (*gd >= 0.0)
+        {
+            // The directional derivative >= 0, line search is impossible.
+            *info = -4;
+            return;
+        }
+    }
+    dcsrch(f, *gd, stp, ftol, gtol, xtol, 0.0, *stpmx, temp_task, temp_taskmsg,
+           isave, dsave);
+
+    *xstep = (*stp) * (*dnorm);
+    if ((*temp_task != CONVERGENCE) && (*temp_task != WARNING))
+    {
+        *task = FG;
+        *task_msg = FG_LNSRCH;
+        *ifun += 1;
+        *nfgv += 1;
+        *iback = *ifun - 1;
+        if (*stp == 1.0)
+        {
+            // for (i = 0; i < n; i++) { x[i] = z[i]; }
+            dcopy_(&n, z, &one_int, x, &one_int);
+        } else {
+            for (i = 0; i < n; i++)
+            {
+                // Take step and prevent rounding error beyond bound.
+                x[i] = (*stp) * d[i] + t[i];
+                if ((nbd[i] == 1) || (nbd[i] == 2)) { x[i] = fmax(x[i], l[i]); }
+                if ((nbd[i] == 2) || (nbd[i] == 3)) { x[i] = fmin(x[i], u[i]); }
+            }
+            // 41
+        }
+    } else {
+        *task = NEW_X;
+        *task_msg = NO_MSG;
+    }
+
+    return;
+}
+
+
+void
+matupd(int n, int m, double* ws, double *wy, double* sy, double* ss,
+       double* d, double* r, int* itail, int iupdat, int* col,
+       int* head, double* theta, double rr, double dr, double stp,
+       double dtd)
+{
+    //     ************
+    //
+    //     Subroutine matupd
+    //
+    //       This subroutine updates matrices WS and WY, and forms the
+    //         middle matrix in B.
+    //
+    //     Subprograms called:
+    //
+    //       Linpack ... dcopy, ddot.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int j, pointr, temp_int, one_int = 1;
+
+    // Set pointers for matrices WS and WY.
+    if (iupdat <= m)
+    {
+        *col = iupdat;
+        *itail = (*head + iupdat - 1) % m;
+    } else {
+        *itail = (*itail + 1) % m;
+        *head = (*head + 1) % m;
+    }
+
+    // Update matrices WS and WY.
+    dcopy_(&n, d, &one_int, &ws[(*itail) * n], &one_int);
+    dcopy_(&n, r, &one_int, &wy[(*itail) * n], &one_int);
+
+    // Set theta=yy/ys.
+    *theta = rr / dr;
+
+    // Form the middle matrix in B.
+    // update the upper triangle of SS (m, m), and the lower triangle of SY (m, m):
+    if (iupdat > m)
+    {
+        for (j = 1; j < *col; j++)
+        {
+            dcopy_(&j, &ss[1 + m*j], &one_int, &ss[m*(j-1)], &one_int);
+            temp_int = *col - j;
+            dcopy_(&temp_int, &sy[j + m*j], &one_int, &sy[(j-1) + m*(j-1)], &one_int);
+        }
+        // 50
+    }
+
+    // add new information: the last row of SY and the last column of SS
+    pointr = *head;
+    for (j = 0; j < *col - 1; j++)
+    {
+        sy[*col - 1 + m*j] = ddot_(&n, d, &one_int, &wy[pointr*n], &one_int);
+        ss[j + m*(*col - 1)] = ddot_(&n, &ws[pointr*n], &one_int, &d[0], &one_int);
+        pointr = (pointr + 1) % m;
+    }
+    // 51
+
+    ss[(*col - 1) + m*(*col - 1)] = (stp == 1.0 ? dtd : stp*stp*dtd );
+    sy[(*col - 1) + m*(*col - 1)] = dr;
+
+    return;
+}
+
+
+void
+projgr(int n, double* l, double* u, int* nbd,
+       double* x, double* g, double* sbgnrm)
+{
+    //     ************
+    //
+    //     Subroutine projgr
+    //
+    //     This subroutine computes the infinity norm of the projected
+    //       gradient.
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int i;
+    double gi;
+
+    *sbgnrm = 0.0;
+    for (i = 0; i < n; i++)
+    {
+        gi = g[i];
+        if (gi != gi)
+        {
+            // NaN value in gradient: propagate it
+            *sbgnrm = gi;
+            return;
+        }
+        if (nbd[i] != 0)
+        {
+            if (gi < 0.0)
+            {
+                if (nbd[i] >= 2) { gi = fmax(x[i] - u[i], gi); }
+            } else {
+                if (nbd[i] <= 2) { gi = fmin(x[i] - l[i], gi); }
+            }
+        }
+        *sbgnrm = fmax(*sbgnrm, fabs(gi));
+    }
+    // 15
+
+    return;
+}
+
+
+void subsm(int n, int m, int nsub, int* ind,
+           double* l, double* u, int* nbd, double* x,
+           double* d, double* xp, double* ws, double* wy,
+           double theta, double* xx, double* gg, int col,
+           int head, int* iword, double* wv, double* wn, int* info)
+{
+    //     **********************************************************************
+    //
+    //     This routine contains the major changes in the updated version.
+    //     The changes are described in the accompanying paper
+    //
+    //      Jose Luis Morales, Jorge Nocedal
+    //      "Remark On Algorithm 788: L-BFGS-B: Fortran Subroutines for Large-Scale
+    //       Bound Constrained Optimization". Decemmber 27, 2010.
+    //
+    //             J.L. Morales  Departamento de Matematicas,
+    //                           Instituto Tecnologico Autonomo de Mexico
+    //                           Mexico D.F.
+    //
+    //             J, Nocedal    Department of Electrical Engineering and
+    //                           Computer Science.
+    //                           Northwestern University. Evanston, IL. USA
+    //
+    //                           January 17, 2011
+    //
+    //      **********************************************************************
+    //
+    //
+    //     Subroutine subsm
+    //
+    //     Given xcp, l, u, r, an index set that specifies
+    //       the active set at xcp, and an l-BFGS matrix B
+    //       (in terms of WY, WS, SY, WT, head, col, and theta),
+    //       this subroutine computes an approximate solution
+    //       of the subspace problem
+    //
+    //       (P)   min Q(x) = r'(x-xcp) + 1/2 (x-xcp)' B (x-xcp)
+    //
+    //             subject to l<=x<=u
+    //                       x_i=xcp_i for all i in A(xcp)
+    //
+    //       along the subspace unconstrained Newton direction
+    //
+    //          d = -(Z'BZ)^(-1) r.
+    //
+    //       The formula for the Newton direction, given the L-BFGS matrix
+    //       and the Sherman-Morrison formula, is
+    //
+    //          d = (1/theta)r + (1/theta*2) Z'WK^(-1)W'Z r.
+    //
+    //       where
+    //                 K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
+    //                     [L_a -R_z           theta*S'AA'S ]
+    //
+    //     Note that this procedure for computing d differs
+    //     from that described in [1]. One can show that the matrix K is
+    //     equal to the matrix M^[-1]N in that paper.
+    //
+    //     n is an integer variable.
+    //       On entry n is the dimension of the problem.
+    //       On exit n is unchanged.
+    //
+    //     m is an integer variable.
+    //       On entry m is the maximum number of variable metric corrections
+    //         used to define the limited memory matrix.
+    //       On exit m is unchanged.
+    //
+    //     nsub is an integer variable.
+    //       On entry nsub is the number of free variables.
+    //       On exit nsub is unchanged.
+    //
+    //     ind is an integer array of dimension nsub.
+    //       On entry ind specifies the coordinate indices of free variables.
+    //       On exit ind is unchanged.
+    //
+    //     l is a double precision array of dimension n.
+    //       On entry l is the lower bound of x.
+    //       On exit l is unchanged.
+    //
+    //     u is a double precision array of dimension n.
+    //       On entry u is the upper bound of x.
+    //       On exit u is unchanged.
+    //
+    //     nbd is a integer array of dimension n.
+    //       On entry nbd represents the type of bounds imposed on the
+    //         variables, and must be specified as follows:
+    //         nbd(i)=0 if x(i) is unbounded,
+    //                1 if x(i) has only a lower bound,
+    //                2 if x(i) has both lower and upper bounds, and
+    //                3 if x(i) has only an upper bound.
+    //       On exit nbd is unchanged.
+    //
+    //     x is a double precision array of dimension n.
+    //       On entry x specifies the Cauchy point xcp.
+    //       On exit x(i) is the minimizer of Q over the subspace of
+    //                                                        free variables.
+    //
+    //     d is a double precision array of dimension n.
+    //       On entry d is the reduced gradient of Q at xcp.
+    //       On exit d is the Newton direction of Q.
+    //
+    //    xp is a double precision array of dimension n.
+    //       used to safeguard the projected Newton direction
+    //
+    //    xx is a double precision array of dimension n
+    //       On entry it holds the current iterate
+    //       On output it is unchanged
+    //    gg is a double precision array of dimension n
+    //       On entry it holds the gradient at the current iterate
+    //       On output it is unchanged
+    //
+    //     ws and wy are double precision arrays;
+    //     theta is a double precision variable;
+    //     col is an integer variable;
+    //     head is an integer variable.
+    //       On entry they store the information defining the
+    //                                          limited memory BFGS matrix:
+    //         ws(n,m) stores S, a set of s-vectors;
+    //         wy(n,m) stores Y, a set of y-vectors;
+    //         theta is the scaling factor specifying B_0 = theta I;
+    //         col is the number of variable metric corrections stored;
+    //         head is the location of the 1st s- (or y-) vector in S (or Y).
+    //       On exit they are unchanged.
+    //
+    //     iword is an integer variable.
+    //       On entry iword is unspecified.
+    //       On exit iword specifies the status of the subspace solution.
+    //         iword = 0 if the solution is in the box,
+    //                 1 if some bound is encountered.
+    //
+    //     wv is a double precision working array of dimension 2m.
+    //
+    //     wn is a double precision array of dimension 2m x 2m.
+    //       On entry the upper triangle of wn stores the LEL^T factorization
+    //         of the indefinite matrix
+    //
+    //              K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
+    //                  [L_a -R_z           theta*S'AA'S ]
+    //                                                    where E = [-I  0]
+    //                                                              [ 0  I]
+    //       On exit wn is unchanged.
+    //
+    //     iprint is an INTEGER variable that must be set by the user.
+    //       It controls the frequency and type of output generated:
+    //        iprint<0    no output is generated;
+    //        iprint=0    print only one line at the last iteration;
+    //        0<iprint<99 print also f and |proj g| every iprint iterations;
+    //        iprint=99   print details of every iteration except n-vectors;
+    //        iprint=100  print also the changes of active set and final x;
+    //        iprint>100  print details of every iteration including x and g;
+    //
+    //
+    //     info is an integer variable.
+    //       On entry info is unspecified.
+    //       On exit info = 0       for normal return,
+    //                    = nonzero for abnormal return
+    //                                  when the matrix K is ill-conditioned.
+    //
+    //     Subprograms called:
+    //
+    //       Linpack dtrsl.
+    //
+    //
+    //     References:
+    //
+    //       [1] R. H. Byrd, P. Lu, J. Nocedal and C. Zhu, ``A limited
+    //       memory algorithm for bound constrained optimization'',
+    //       SIAM J. Scientific Computing 16 (1995), no. 5, pp. 1190--1208.
+    //
+    //
+    //
+    //                           *  *  *
+    //
+    //     NEOS, November 1994. (Latest revision June 1996.)
+    //     Optimization Technology Center.
+    //     Argonne National Laboratory and Northwestern University.
+    //     Written by
+    //                        Ciyou Zhu
+    //     in collaboration with R.H. Byrd, P. Lu-Chen and J. Nocedal.
+    //
+    //
+    //     ************
+    int pointr, m2, col2, ibd, jy, js, i, j, k, one_int = 1;
+    double alpha, xk, dk, temp, temp1, temp2, dd_p;
+    char *uplo = "U", *trans = "T", *diag = "N";
+
+    // n, m, col, nsub are size variables.
+    // ind, head are index variables/arrays.
+    if (nsub <= 0) { return; }
+
+    // Compute wv = W'Zd.
+    pointr = head;
+    for (i = 0; i < col; i++)
+    {
+        temp1 = 0.0;
+        temp2 = 0.0;
+        for (j = 0; j < nsub; j++)
+        {
+            k = ind[j];
+            temp1 += wy[k + n*pointr]*d[j];
+            temp2 += ws[k + n*pointr]*d[j];
+        }
+        wv[i] = temp1;
+        wv[col + i] = theta*temp2;
+        pointr = (pointr + 1) % m;
+    }
+
+    // Compute wv:=K^(-1)wv.
+    m2 = 2*m;
+    col2 = 2*col;
+
+    // dtrtrs(uplo, trans, diag, n, nrhs, a, lda, b, ldb, info)
+    dtrtrs_(uplo, trans, diag, &col2, &one_int, wn, &m2, wv, &m2, info);
+    if (*info != 0) { return; }
+
+    for (i = 0; i < col; i++) { wv[i] = -wv[i]; }
+
+    trans = "N";
+    dtrtrs_(uplo, trans, diag, &col2, &one_int, wn, &m2, wv, &m2, info);
+    if (*info != 0) { return; }
+
+    // Compute d = (1/theta)d + (1/theta**2)Z'W wv.
+    pointr = head;
+    for (jy = 0; jy < col; jy++)
+    {
+        js = col + jy;
+        for (i = 0; i < nsub; i++)
+        {
+            k = ind[i];
+            d[i] = d[i] + (wy[k + n*pointr] * wv[jy] / theta) +
+                          (ws[k + n*pointr] * wv[js]);
+        }
+        // 30
+        pointr = (pointr + 1) % m;
+    }
+    // 40
+
+    temp = 1.0 / theta;
+    // n, da, dx, incx
+    dscal_(&nsub, &temp, d, &one_int);
+
+    // -----------------------------------------------------
+    // Let us try the projection, d is the Newton direction.
+
+    *iword = 0;
+    // for (i = 0; i < n; i++) { xp[i] = x[i]; }
+    dcopy_(&n, x, &one_int, xp, &one_int);
+
+    for (i = 0; i < nsub; i++)
+    {
+        k = ind[i];
+        dk = d[i];
+        xk = x[k];
+        if (nbd[k] != 0)
+        {
+            if (nbd[k] == 1)  // Lower bounds only
+            {
+                x[k] = fmax(l[k], xk + dk);
+                if (x[k] == l[k]) { *iword = 1; }
+            } else {
+                if (nbd[k] == 2)  // Upper and lower bounds
+                {
+                    xk = fmax(l[k], xk + dk);
+                    x[k] = fmin(u[k], xk);
+                    if ((x[k] == l[k]) || (x[k] == u[k])) { *iword = 1; }
+                } else {
+                    if (nbd[k] == 3)  // Upper bounds only
+                    {
+                        x[k] = fmin(u[k], xk + dk);
+                        if (x[k] == u[k]) { *iword = 1; }
+                    }
+                }
+            }
+        } else {  // Free variables
+            x[k] = xk + dk;
+        }
+    }
+    // 50
+
+    if (*iword == 0) { return; }
+
+    // Check sign of the directional derivative
+    dd_p = 0.0;
+    for (i = 0; i < n; i++) { dd_p = dd_p + (x[i] - xx[i])*gg[i]; }
+    // 55
+
+    if (dd_p > 0.0)
+    {
+        // for (i = 0; i < n; i++) { x[i] = xp[i]; }
+        dcopy_(&n, xp, &one_int, x, &one_int);
+    } else {
+        return;
+    }
+
+    // -------------------------------------------------------------
+    alpha = 1.0;
+    temp1 = 1.0;
+    ibd = 0;
+
+    for (i = 0; i < nsub; i++)
+    {
+        k = ind[i];
+        dk = d[i];
+        if (nbd[k] != 0)
+        {
+            if ((dk < 0.0) && (nbd[k] <= 2))
+            {
+                temp2 = l[k] - x[k];
+                if (temp2 >= 0.0)
+                {
+                    temp1 = 0.0;
+                } else if (dk * alpha < temp2) {
+                    temp1 = temp2 / dk;
+                }
+            } else if ((dk > 0.0) && (nbd[k] >= 2)) {
+                temp2 = u[k] - x[k];
+                if (temp2 <= 0.0) {
+                    temp1 = 0.0;
+                } else if (dk * alpha > temp2) {
+                    temp1 = temp2 / dk;
+                }
+            }
+            if (temp1 < alpha)
+            {
+                alpha = temp1;
+                ibd = i;
+            }
+        }
+    }
+    // 60
+
+    if (alpha < 1.0)
+    {
+        dk = d[ibd];
+        k = ind[ibd];
+        if (dk > 0.0)
+        {
+            x[k] = u[k];
+            d[ibd] = 0.0;
+        } else if (dk < 0.0) {
+            x[k] = l[k];
+            d[ibd] = 0.0;
+        }
+    }
+
+    for (i = 0; i < nsub; i++)
+    {
+        k = ind[i];
+        x[k] = x[k] + alpha*d[i];
+    }
+    // 70
+
+    return;
+}
+
+
+void
+dcsrch(double f, double g, double* stp, double ftol, double gtol,
+       double xtol, double stpmin, double stpmax, int* task,
+       int* task_msg, int* isave, double* dsave)
+{
+    //     **********
+    //
+    //     Subroutine dcsrch
+    //
+    //     This subroutine finds a step that satisfies a sufficient
+    //     decrease condition and a curvature condition.
+    //
+    //     Each call of the subroutine updates an interval with
+    //     endpoints stx and sty. The interval is initially chosen
+    //     so that it contains a minimizer of the modified function
+    //
+    //           psi(stp) = f(stp) - f(0) - ftol*stp*f'(0).
+    //
+    //     If psi(stp) <= 0 and f'(stp) >= 0 for some step, then the
+    //     interval is chosen so that it contains a minimizer of f.
+    //
+    //     The algorithm is designed to find a step that satisfies
+    //     the sufficient decrease condition
+    //
+    //           f(stp) <= f(0) + ftol*stp*f'(0),
+    //
+    //     and the curvature condition
+    //
+    //           abs(f'(stp)) <= gtol*abs(f'(0)).
+    //
+    //     If ftol is less than gtol and if, for example, the function
+    //     is bounded below, then there is always a step which satisfies
+    //     both conditions.
+    //
+    //     If no step can be found that satisfies both conditions, then
+    //     the algorithm stops with a warning. In this case stp only
+    //     satisfies the sufficient decrease condition.
+    //
+    //     A typical invocation of dcsrch has the following outline:
+    //
+    //     task = 'START'
+    //  10 continue
+    //        call dcsrch( ... )
+    //        if (task .eq. 'FG') then
+    //           Evaluate the function and the gradient at stp
+    //           goto 10
+    //           end if
+    //
+    //     NOTE: The user must no alter work arrays between calls.
+    //
+    //     The subroutine statement is
+    //
+    //        subroutine dcsrch(f,g,stp,ftol,gtol,xtol,stpmin,stpmax,
+    //                          task,isave,dsave)
+    //     where
+    //
+    //       f is a double precision variable.
+    //         On initial entry f is the value of the function at 0.
+    //            On subsequent entries f is the value of the
+    //            function at stp.
+    //         On exit f is the value of the function at stp.
+    //
+    //       g is a double precision variable.
+    //         On initial entry g is the derivative of the function at 0.
+    //            On subsequent entries g is the derivative of the
+    //            function at stp.
+    //         On exit g is the derivative of the function at stp.
+    //
+    //       stp is a double precision variable.
+    //         On entry stp is the current estimate of a satisfactory
+    //            step. On initial entry, a positive initial estimate
+    //            must be provided.
+    //         On exit stp is the current estimate of a satisfactory step
+    //            if task = 'FG'. If task = 'CONV' then stp satisfies
+    //            the sufficient decrease and curvature condition.
+    //
+    //       ftol is a double precision variable.
+    //         On entry ftol specifies a nonnegative tolerance for the
+    //            sufficient decrease condition.
+    //         On exit ftol is unchanged.
+    //
+    //       gtol is a double precision variable.
+    //         On entry gtol specifies a nonnegative tolerance for the
+    //            curvature condition.
+    //         On exit gtol is unchanged.
+    //
+    //       xtol is a double precision variable.
+    //         On entry xtol specifies a nonnegative relative tolerance
+    //            for an acceptable step. The subroutine exits with a
+    //            warning if the relative difference between sty and stx
+    //            is less than xtol.
+    //         On exit xtol is unchanged.
+    //
+    //       stpmin is a double precision variable.
+    //         On entry stpmin is a nonnegative lower bound for the step.
+    //         On exit stpmin is unchanged.
+    //
+    //       stpmax is a double precision variable.
+    //         On entry stpmax is a nonnegative upper bound for the step.
+    //         On exit stpmax is unchanged.
+    //
+    //       task is a character variable of length at least 60.
+    //         On initial entry task must be set to 'START'.
+    //         On exit task indicates the required action:
+    //
+    //            If task(1:2) = 'FG' then evaluate the function and
+    //            derivative at stp and call dcsrch again.
+    //
+    //            If task(1:4) = 'CONV' then the search is successful.
+    //
+    //            If task(1:4) = 'WARN' then the subroutine is not able
+    //            to satisfy the convergence conditions. The exit value of
+    //            stp contains the best point found during the search.
+    //
+    //            If task(1:5) = 'ERROR' then there is an error in the
+    //            input arguments.
+    //
+    //         On exit with convergence, a warning or an error, the
+    //            variable task contains additional information.
+    //
+    //       isave is an integer work array of dimension 2.
+    //
+    //       dsave is a double precision work array of dimension 13.
+    //
+    //     Subprograms called
+    //
+    //       MINPACK-2 ... dcstep
+    //
+    //     MINPACK-1 Project. June 1983.
+    //     Argonne National Laboratory.
+    //     Jorge J. More' and David J. Thuente.
+    //
+    //     MINPACK-2 Project. October 1993.
+    //     Argonne National Laboratory and University of Minnesota.
+    //     Brett M. Averick, Richard G. Carter, and Jorge J. More'.
+    //
+    //     **********
+    int brackt, stage;
+    double finit, ftest, fm, fx, fxm, fy, fym, ginit, gtest, gm, gx, gxm, gy;
+    double gym, stx, sty, stmin, stmax, width, width1;
+    double xtrapl = 1.1;
+    double xtrapu = 4.0;
+
+    // Initialization block.
+    if (*task == START)
+    {
+        // Check the input arguments for errors.
+        if (*stp < stpmin) { *task = ERROR; *task_msg = ERROR_STP1; }
+        if (*stp > stpmax) { *task = ERROR; *task_msg = ERROR_STP2; }
+        if (g >= 0.0) { *task = ERROR; *task_msg = ERROR_INITG; }
+        if (ftol < 0.0) { *task = ERROR; *task_msg = ERROR_FTOL; }
+        if (gtol < 0.0) { *task = ERROR; *task_msg = ERROR_GTOL; }
+        if (xtol < 0.0) { *task = ERROR; *task_msg = ERROR_XTOL; }
+        if (stpmin < 0.0) { *task = ERROR; *task_msg = ERROR_STPMIN; }
+        if (stpmax < stpmin) { *task = ERROR; *task_msg = ERROR_STPMAX; }
+
+        // Exit if there are errors on input.
+        if (*task == ERROR) { return; }
+
+        // Initialize local variables.
+        brackt = 0;
+        stage = 1;
+        finit = f;
+        ginit = g;
+        gtest = ftol * ginit;
+        width = stpmax - stpmin;
+        width1 = width / 0.5;
+
+        // The variables stx, fx, gx contain the values of the step, function,
+        // and derivative at the best step.
+        // The variables sty, fy, gy contain the value of the step, function,
+        // and derivative at sty.
+        // The variables stp, f, g contain the values of the step, function,
+        // and derivative at stp.
+        stx = 0.0;
+        fx = finit;
+        gx = ginit;
+        sty = 0.0;
+        fy = finit;
+        gy = ginit;
+        stmin = 0.0;
+        stmax = *stp + xtrapu*(*stp);
+
+        *task = FG;
+        *task_msg = NO_MSG;
+        goto SAVEVARS;
+
+    } else {
+        // Restore local variables.
+        if (isave[0] == 1) {
+            brackt = 1;
+        } else {
+            brackt = 0;
+        }
+        stage  = isave[1];
+        ginit  = dsave[0];
+        gtest  = dsave[1];
+        gx     = dsave[2];
+        gy     = dsave[3];
+        finit  = dsave[4];
+        fx     = dsave[5];
+        fy     = dsave[6];
+        stx    = dsave[7];
+        sty    = dsave[8];
+        stmin  = dsave[9];
+        stmax  = dsave[10];
+        width  = dsave[11];
+        width1 = dsave[12];
+
+    }
+
+    // If psi(stp) <= 0 and f'(stp) >= 0 for some step, then the algorithm
+    // enters the second stage.
+    ftest = finit + (*stp)*gtest;
+    if ((stage == 1) && (f <= ftest) && (g >= 0.0)) { stage = 2; }
+
+    // Test for warnings.
+    if ((brackt) && ((*stp <= stmin) || (*stp >= stmax)))
+    {
+        *task = WARNING;
+        *task_msg = WARN_ROUND;
+    }
+    if ((brackt) && ((stmax - stmin) <= xtol * stmax))
+    {
+        *task = WARNING;
+        *task_msg = WARN_XTOL;
+    }
+    if ((*stp == stpmax) && (f <= ftest) && (g <= gtest)) {
+        *task = WARNING;
+        *task_msg = WARN_STPMAX;
+    }
+    if ((*stp == stpmin) && ((f > ftest) || (g >= gtest))) {
+        *task = WARNING;
+        *task_msg = WARN_STPMIN;
+    }
+    // Test for convergence.
+    if ((f <= ftest) && (fabs(g) <= gtol * (-ginit))) {
+        *task = CONVERGENCE;
+    }
+
+    // Test for termination.
+    if ((*task == WARNING) || (*task == CONVERGENCE))
+    {
+        goto SAVEVARS;
+    }
+
+    // A modified function is used to predict the step during the first stage if
+    // a lower function value has been obtained but the decrease is not sufficient.
+
+    if ((stage == 1) && (f <= fx) && (f > ftest))
+    {
+        // Define the modified function and derivative values.
+        fm = f - (*stp)*gtest;
+        fxm = fx - stx*gtest;
+        fym = fy - sty*gtest;
+        gm = g - gtest;
+        gxm = gx - gtest;
+        gym = gy - gtest;
+
+        // Call dcstep to update stx, sty, and to compute the new step.
+        dcstep(&stx, &fxm, &gxm, &sty, &fym, &gym, stp, fm, gm, &brackt, stmin, stmax);
+
+        // Reset the function and derivative values for f.
+        fx = fxm + stx*gtest;
+        fy = fym + sty*gtest;
+        gx = gxm + gtest;
+        gy = gym + gtest;
+
+    } else {
+        // Call dcstep to update stx, sty, and to compute the new step.
+        dcstep(&stx, &fx, &gx, &sty, &fy, &gy, stp, f, g, &brackt, stmin, stmax);
+    }
+
+    // Decide if a bisection step is needed.
+    if (brackt)
+    {
+            if (fabs(sty - stx) >= 0.66*width1)
+            {
+                *stp = stx + 0.5*(sty - stx);
+            }
+        width1 = width;
+        width = fabs(sty - stx);
+    }
+
+    // Set the minimum and maximum steps allowed for stp.
+    if (brackt)
+    {
+        stmin = fmin(stx,sty);
+        stmax = fmax(stx,sty);
+    } else {
+        stmin = *stp + xtrapl*(*stp - stx);
+        stmax = *stp + xtrapu*(*stp - stx);
+    }
+
+    // Force the step to be within the bounds stpmax and stpmin.
+    *stp = fmax(*stp, stpmin);
+    *stp = fmin(*stp, stpmax);
+
+    // If further progress is not possible, let stp be the best point obtained
+    // during the search.
+
+    if (((brackt) && (*stp <= stmin || *stp >= stmax)) ||
+        ((brackt) && (stmax - stmin <= xtol * stmax)))
+    {
+        *stp = stx;
+    }
+
+    // Obtain another function and derivative.
+    *task = FG;
+    *task_msg = NO_MSG;
+
+SAVEVARS:
+    if (brackt)
+    {
+        isave[0] = 1;
+    } else {
+        isave[0] = 0;
+    }
+
+    isave[1]  = stage;
+    dsave[0]  = ginit;
+    dsave[1]  = gtest;
+    dsave[2]  = gx;
+    dsave[3]  = gy;
+    dsave[4]  = finit;
+    dsave[5]  = fx;
+    dsave[6]  = fy;
+    dsave[7]  = stx;
+    dsave[8]  = sty;
+    dsave[9]  = stmin;
+    dsave[10] = stmax;
+    dsave[11] = width;
+    dsave[12] = width1;
+
+    return;
+}
+
+
+void
+dcstep (double* stx, double* fx, double* dx, double* sty, double* fy, double* dy,
+        double* stp, double fp, double dp, int* brackt,
+        double stpmin, double stpmax)
+{
+    //     **********
+    //
+    //     Subroutine dcstep
+    //
+    //     This subroutine computes a safeguarded step for a search
+    //     procedure and updates an interval that contains a step that
+    //     satisfies a sufficient decrease and a curvature condition.
+    //
+    //     The parameter stx contains the step with the least function
+    //     value. If brackt is set to .true. then a minimizer has
+    //     been bracketed in an interval with endpoints stx and sty.
+    //     The parameter stp contains the current step.
+    //     The subroutine assumes that if brackt is set to .true. then
+    //
+    //           min(stx,sty) < stp < max(stx,sty),
+    //
+    //     and that the derivative at stx is negative in the direction
+    //     of the step.
+    //
+    //     The subroutine statement is
+    //
+    //       subroutine dcstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
+    //                         stpmin,stpmax)
+    //
+    //     where
+    //
+    //       stx is a double precision variable.
+    //         On entry stx is the best step obtained so far and is an
+    //            endpoint of the interval that contains the minimizer.
+    //         On exit stx is the updated best step.
+    //
+    //       fx is a double precision variable.
+    //         On entry fx is the function at stx.
+    //         On exit fx is the function at stx.
+    //
+    //       dx is a double precision variable.
+    //         On entry dx is the derivative of the function at
+    //            stx. The derivative must be negative in the direction of
+    //            the step, that is, dx and stp - stx must have opposite
+    //            signs.
+    //         On exit dx is the derivative of the function at stx.
+    //
+    //       sty is a double precision variable.
+    //         On entry sty is the second endpoint of the interval that
+    //            contains the minimizer.
+    //         On exit sty is the updated endpoint of the interval that
+    //            contains the minimizer.
+    //
+    //       fy is a double precision variable.
+    //         On entry fy is the function at sty.
+    //         On exit fy is the function at sty.
+    //
+    //       dy is a double precision variable.
+    //         On entry dy is the derivative of the function at sty.
+    //         On exit dy is the derivative of the function at the exit sty.
+    //
+    //       stp is a double precision variable.
+    //         On entry stp is the current step. If brackt is set to .true.
+    //            then on input stp must be between stx and sty.
+    //         On exit stp is a new trial step.
+    //
+    //       fp is a double precision variable.
+    //         On entry fp is the function at stp
+    //         On exit fp is unchanged.
+    //
+    //       dp is a double precision variable.
+    //         On entry dp is the derivative of the function at stp.
+    //         On exit dp is unchanged.
+    //
+    //       brackt is an logical variable.
+    //         On entry brackt specifies if a minimizer has been bracketed.
+    //            Initially brackt must be set to .false.
+    //         On exit brackt specifies if a minimizer has been bracketed.
+    //            When a minimizer is bracketed brackt is set to .true.
+    //
+    //       stpmin is a double precision variable.
+    //         On entry stpmin is a lower bound for the step.
+    //         On exit stpmin is unchanged.
+    //
+    //       stpmax is a double precision variable.
+    //         On entry stpmax is an upper bound for the step.
+    //         On exit stpmax is unchanged.
+    //
+    //     MINPACK-1 Project. June 1983
+    //     Argonne National Laboratory.
+    //     Jorge J. More' and David J. Thuente.
+    //
+    //     MINPACK-2 Project. October 1993.
+    //     Argonne National Laboratory and University of Minnesota.
+    //     Brett M. Averick and Jorge J. More'.
+    //
+    //     **********
+    double gamma, p, q, r, s, sgnd, stpc, stpf, stpq, theta;
+    sgnd = dp * (*dx / fabs(*dx));
+
+    // First case: A higher function value. The minimum is bracketed.
+    // If the cubic step is closer to stx than the quadratic step, the
+    // cubic step is taken, otherwise the average of the cubic and
+    // quadratic steps is taken.
+
+    if (fp > *fx)
+    {
+        theta = 3.0 * (*fx - fp) / (*stp - *stx) + *dx + dp;
+        s = fmax(fabs(theta), fmax(fabs(*dx), fabs(dp)));
+        gamma = s * sqrt(pow(theta / s, 2.0) - (*dx / s)*(dp / s));
+        if (*stp < *stx) { gamma = -gamma; }
+        p = (gamma - *dx) + theta;
+        q = ((gamma - *dx) + gamma) + dp;
+        r = p / q;
+        stpc = *stx + r * (*stp - *stx);
+        stpq = *stx + ((*dx / ((*fx - fp) / (*stp - *stx) + *dx)) / 2.0) * (*stp - *stx);
+        if (fabs(stpc - *stx) < fabs(stpq - *stx))
+        {
+            stpf = stpc;
+        } else {
+            stpf = stpc + (stpq - stpc) / 2.0;
+        }
+        *brackt = 1;
+
+    } else if (sgnd < 0.0) {
+
+        // Second case: A lower function value and derivatives of opposite
+        // sign. The minimum is bracketed. If the cubic step is farther from
+        // stp than the secant step, the cubic step is taken, otherwise the
+        // secant step is taken.
+
+        theta = 3.0 * (*fx - fp) / (*stp - *stx) + *dx + dp;
+        s = fmax(fabs(theta), fmax(fabs(*dx), fabs(dp)));
+        gamma = s * sqrt(pow(theta / s, 2.0) - (*dx / s)*(dp / s));
+        if (*stp > *stx) { gamma = -gamma; }
+        p = (gamma - dp) + theta;
+        q = ((gamma - dp) + gamma) + *dx;
+        r = p / q;
+        stpc = *stp + r * (*stx - *stp);
+        stpq = *stp + (dp / (dp - *dx)) * (*stx - *stp);
+        if (fabs(stpc - *stp) > fabs(stpq - *stp))
+        {
+            stpf = stpc;
+        } else {
+            stpf = stpq;
+        }
+        *brackt = 1;
+
+    } else if (fabs(dp) < fabs(*dx)) {
+
+        // Third case: A lower function value, derivatives of the same sign,
+        // and the magnitude of the derivative decreases.
+
+        // The cubic step is computed only if the cubic tends to infinity
+        // in the direction of the step or if the minimum of the cubic
+        // is beyond stp. Otherwise the cubic step is defined to be the
+        // secant step.
+
+        theta = 3.0 * (*fx - fp) / (*stp - *stx) + *dx + dp;
+        s = fmax(fabs(theta),fmax(fabs(*dx), fabs(dp)));
+
+        // The case gamma = 0 only arises if the cubic does not tend
+        // to infinity in the direction of the step.
+
+        gamma = s*sqrt(fmax(0.0, pow(theta/s, 2.0) - (*dx / s) * (dp / s)));
+        if (*stp > *stx) { gamma = -gamma; }
+        p = (gamma - dp) + theta;
+        q = (gamma + (*dx - dp)) + gamma;
+        r = p / q;
+        if ((r < 0.0) && (gamma != 0.0))
+        {
+            stpc = *stp + r*(*stx - *stp);
+        } else if (*stp > *stx) {
+            stpc = stpmax;
+        } else {
+            stpc = stpmin;
+        }
+        stpq = *stp + (dp / (dp - *dx)) * (*stx - *stp);
+
+        if (*brackt)
+        {
+            // A minimizer has been bracketed. If the cubic step is
+            // closer to stp than the secant step, the cubic step is
+            // taken, otherwise the secant step is taken.
+
+            if (fabs(stpc - *stp) < fabs(stpq - *stp))
+            {
+                stpf = stpc;
+            } else {
+                stpf = stpq;
+            }
+            if (*stp > *stx)
+            {
+                stpf = fmin(*stp + 0.66*(*sty - *stp), stpf);
+            } else {
+                stpf = fmax(*stp + 0.66*(*sty - *stp), stpf);
+            }
+        } else {
+            // A minimizer has not been bracketed. If the cubic step is
+            // farther from stp than the secant step, the cubic step is
+            // taken, otherwise the secant step is taken.
+
+            if (fabs(stpc - *stp) > fabs(stpq - *stp))
+            {
+                stpf = stpc;
+            } else {
+                stpf = stpq;
+            }
+            stpf = fmin(stpmax, stpf);
+            stpf = fmax(stpmin, stpf);
+        }
+
+    } else {
+        // Fourth case: A lower function value, derivatives of the same sign,
+        // and the magnitude of the derivative does not decrease. If the
+        // minimum is not bracketed, the step is either stpmin or stpmax,
+        // otherwise the cubic step is taken.
+
+        if (*brackt) {
+            theta = 3.0 * (fp - *fy) / (*sty - *stp) + *dy + dp;
+            s = fmax(fabs(theta), fmax(fabs(*dy), fabs(dp)));
+            gamma = s*sqrt(pow(theta/s, 2.0) - (*dy / s) * (dp / s));
+            if (*stp > *sty) { gamma = -gamma; }
+            p = (gamma - dp) + theta;
+            q = ((gamma - dp) + gamma) + *dy;
+            r = p / q;
+            stpc = *stp + r*(*sty - *stp);
+            stpf = stpc;
+        } else if (*stp > *stx) {
+            stpf = stpmax;
+        } else {
+            stpf = stpmin;
+        }
+    }
+
+    // Update the interval which contains a minimizer.
+
+    if (fp > *fx) {
+        *sty = *stp;
+        *fy = fp;
+        *dy = dp;
+    } else {
+        if (sgnd < 0.0) {
+            *sty = *stx;
+            *fy = *fx;
+            *dy = *dx;
+        }
+         *stx = *stp;
+         *fx = fp;
+         *dx = dp;
+    }
+
+    // Compute the new step.
+
+    *stp = stpf;
+
+    return;
+}
+```
+
+## scipy/scipy/optimize/_direct/COPYING
+
+```text
+This code is based on the DIRECT 2.0.4 Fortran code by Gablonsky et al. at
+	http://www4.ncsu.edu/~ctk/SOFTWARE/DIRECTv204.tar.gz
+The C version was initially converted via f2c and then cleaned up and
+reorganized by Steven G. Johnson (stevenj@alum.mit.edu), August 2007.
+
+******** Copyright and license for the original Fortran DIRECT code ********
+Copyright (c) 1999, 2000, 2001 North Carolina State University
+
+This program is distributed under the MIT License (see
+http://www.opensource.org/licenses/mit-license.php):
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## scipy/scipy/optimize/tnc/LICENSE
+
+```text
+Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## scipy/scipy/sparse/linalg/_dsolve/SuperLU/License.txt
+
+```text
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met: 
+
+(1) Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer. 
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution. 
+(3) Neither the name of Lawrence Berkeley National Laboratory, U.S. Dept. of
+Energy nor the names of its contributors may be used to endorse or promote
+products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING
+
+```text
+
+BSD Software License
+
+Pertains to ARPACK and P_ARPACK
+
+Copyright (c) 1996-2008 Rice University.
+Developed by D.C. Sorensen, R.B. Lehoucq, C. Yang, and K. Maschhoff.
+All rights reserved.
+
+Arpack has been renamed to arpack-ng.
+
+Copyright (c) 2001-2011 - Scilab Enterprises
+Updated by Allan Cornet, Sylvestre Ledru.
+
+Copyright (c) 2010 - Jordi Gutiérrez Hermoso (Octave patch)
+
+Copyright (c) 2007 - Sébastien Fabbro (gentoo patch)
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer listed
+  in this license in the documentation and/or other materials
+  provided with the distribution.
+
+- Neither the name of the copyright holders nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/sparse/linalg/_propack/PROPACK/license.txt
+
+```text
+    BSD License for PROPACK numerical software
+    http://www.opensource.org/licenses/bsd-license.php
+
+This notice applies to the software packages
+
+    PROPACK77 (Fortran 77) and PROPACK (Matlab)
+
+made available at
+
+    http://sun.stanford.edu/~rmunk/PROPACK
+
+by
+
+    Solar Oscillations Investigation,
+    W.W. Hansen Experimental Physics Laboratory (HEPL),
+    452 Lomita Mall,
+    Stanford University,
+    Stanford, CA 94305-4085, USA
+
+
+Copyright (c) 2005, Rasmus Munk Larsen, Stanford University
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+    * Neither the name of Stanford University nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/scipy/spatial/COPYING_QHULL.txt
 
 ```text
                     Qhull, Copyright (c) 1993-2020
@@ -1972,3 +19017,3317 @@ modified, and redistributed under the following conditions:
    qhull_bug@qhull.org; the authors may or may not act on them as 
    they desire.
 ```
+
+## scipy/scipy/stats/biasedurn/license.txt
+
+```text
+---------- Forwarded message ---------
+From: Agner Fog <agner@agner.org>
+Date: Wed, Jul 22, 2020 at 8:54 PM
+Subject: Re: Add BiasedUrn to SciPy?
+To: Matt Haberland <mhaberla@calpoly.edu>
+Cc: Warren Weckesser <warren.weckesser@gmail.com>
+
+Dear Matt The C++ code for these distributions without binding to the R project
+are available here: 
+https://www.agner.org/random/stocc.zip
+You have my permission to use it in SciPy under the new BSD license. 
+Best regards, 
+Agner Fog
+ 
+On 22/07/2020 17.05, Matt Haberland wrote:
+Hi Agner, I'm a maintainer of the Python scientific computing library SciPy, 
+and I'm working on improving the capabilities of our statistics subpackage 
+scipy.stats. We'd like to add both Fisher's and Wallenius' noncentral 
+hypergeometric distributions, but these look quite challenging to implement.
+We found your BiasedUrn package, and we'd love to wrap it, but we can't 
+include GPL-3 licensed code under our BSD-new license. Would you consider
+re-licensing BiasedUrn under a more permissive license, such as BSD-new or
+MIT, so we can include it in SciPy? 
+Thank you for considering it!
+Matt 
+-- 
+Matt Haberland 
+Assistant Professor
+BioResource and Agricultural Engineering
+08A-3K, Cal Poly
+```
+
+## scipy/scipy/stats/libnpyrandom/logfactorial.c.notice.txt
+
+```text
+/*
+
+Copyright (c) 2005-2022, NumPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+
+    * Neither the name of the NumPy Developers nor the names of any
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+#include <math.h>
+#include <stdint.h>
+
+/*
+ *  logfact[k] holds log(k!) for k = 0, 1, 2, ..., 125.
+ */
+
+static const double logfact[] = {
+    0,
+    0,
+    0.69314718055994529,
+    1.791759469228055,
+    3.1780538303479458,
+    4.7874917427820458,
+    6.5792512120101012,
+    8.5251613610654147,
+    10.604602902745251,
+    12.801827480081469,
+    15.104412573075516,
+    17.502307845873887,
+    19.987214495661885,
+    22.552163853123425,
+    25.19122118273868,
+    27.89927138384089,
+    30.671860106080672,
+    33.505073450136891,
+    36.395445208033053,
+    39.339884187199495,
+    42.335616460753485,
+    45.380138898476908,
+    48.471181351835227,
+    51.606675567764377,
+    54.784729398112319,
+    58.003605222980518,
+    61.261701761002001,
+    64.557538627006338,
+    67.88974313718154,
+    71.257038967168015,
+    74.658236348830158,
+    78.092223553315307,
+    81.557959456115043,
+    85.054467017581516,
+    88.580827542197682,
+    92.136175603687093,
+    95.719694542143202,
+    99.330612454787428,
+    102.96819861451381,
+    106.63176026064346,
+    110.32063971475739,
+    114.03421178146171,
+    117.77188139974507,
+    121.53308151543864,
+    125.3172711493569,
+    129.12393363912722,
+    132.95257503561632,
+    136.80272263732635,
+    140.67392364823425,
+    144.5657439463449,
+    148.47776695177302,
+    152.40959258449735,
+    156.3608363030788,
+    160.3311282166309,
+    164.32011226319517,
+    168.32744544842765,
+    172.35279713916279,
+    176.39584840699735,
+    180.45629141754378,
+    184.53382886144948,
+    188.6281734236716,
+    192.7390472878449,
+    196.86618167289001,
+    201.00931639928152,
+    205.1681994826412,
+    209.34258675253685,
+    213.53224149456327,
+    217.73693411395422,
+    221.95644181913033,
+    226.1905483237276,
+    230.43904356577696,
+    234.70172344281826,
+    238.97838956183432,
+    243.26884900298271,
+    247.57291409618688,
+    251.89040220972319,
+    256.22113555000954,
+    260.56494097186322,
+    264.92164979855278,
+    269.29109765101981,
+    273.67312428569369,
+    278.06757344036612,
+    282.4742926876304,
+    286.89313329542699,
+    291.32395009427029,
+    295.76660135076065,
+    300.22094864701415,
+    304.68685676566872,
+    309.1641935801469,
+    313.65282994987905,
+    318.1526396202093,
+    322.66349912672615,
+    327.1852877037752,
+    331.71788719692847,
+    336.26118197919845,
+    340.81505887079902,
+    345.37940706226686,
+    349.95411804077025,
+    354.53908551944079,
+    359.1342053695754,
+    363.73937555556347,
+    368.35449607240474,
+    372.97946888568902,
+    377.61419787391867,
+    382.25858877306001,
+    386.91254912321756,
+    391.57598821732961,
+    396.24881705179155,
+    400.93094827891576,
+    405.6222961611449,
+    410.32277652693733,
+    415.03230672824964,
+    419.75080559954472,
+    424.47819341825709,
+    429.21439186665157,
+    433.95932399501481,
+    438.71291418612117,
+    443.47508812091894,
+    448.24577274538461,
+    453.02489623849613,
+    457.81238798127816,
+    462.60817852687489,
+    467.4121995716082,
+    472.22438392698058,
+    477.04466549258564,
+    481.87297922988796
+};
+
+/*
+ *  Compute log(k!)
+ */
+
+double logfactorial(int64_t k)
+{
+    const double halfln2pi = 0.9189385332046728;
+
+    if (k < (int64_t) (sizeof(logfact)/sizeof(logfact[0]))) {
+        /* Use the lookup table. */
+        return logfact[k];
+    }
+
+    /*
+     *  Use the Stirling series, truncated at the 1/k**3 term.
+     *  (In a Python implementation of this approximation, the result
+     *  was within 2 ULP of the best 64 bit floating point value for
+     *  k up to 10000000.)
+     */
+    return (k + 0.5)*log(k) - k + (halfln2pi + (1.0/k)*(1/12.0 - 1/(360.0*k*k)));
+}
+```
+
+## scipy/scipy/stats/libnpyrandom/logfactorial.h.notice.txt
+
+```text
+/*
+
+Copyright (c) 2005-2022, NumPy Developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+
+    * Neither the name of the NumPy Developers nor the names of any
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+#ifndef LOGFACTORIAL_H
+#define LOGFACTORIAL_H
+
+#include <stdint.h>
+
+double logfactorial(int64_t k);
+
+#endif
+```
+
+## scipy/subprojects/boost_math/math/LICENSE
+
+```text
+Boost Software License - Version 1.0 - August 17th, 2003
+
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of the software and accompanying documentation covered by
+this license (the "Software") to use, reproduce, display, distribute,
+execute, and transmit the Software, and to prepare derivative works of the
+Software, and to permit third-parties to whom the Software is furnished to
+do so, all subject to the following:
+
+The copyright notices in the Software and this entire statement, including
+the above license grant, this restriction and the following disclaimer,
+must be included in all copies of the Software, in whole or in part, and
+all derivative works of the Software, unless such copies or derivative
+works are solely in the form of machine-executable object code generated by
+a source language processor.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+```
+
+## scipy/subprojects/highs/LICENSE.txt
+
+```text
+MIT License
+
+Copyright (c) 2024 HiGHS
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## scipy/subprojects/highs/extern/LICENCE_1_0.txt
+
+```text
+Boost Software License - Version 1.0 - August 17th, 2003
+
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of the software and accompanying documentation covered by
+this license (the "Software") to use, reproduce, display, distribute,
+execute, and transmit the Software, and to prepare derivative works of the
+Software, and to permit third-parties to whom the Software is furnished to
+do so, all subject to the following:
+
+The copyright notices in the Software and this entire statement, including
+the above license grant, this restriction and the following disclaimer,
+must be included in all copies of the Software, in whole or in part, and
+all derivative works of the Software, unless such copies or derivative
+works are solely in the form of machine-executable object code generated by
+a source language processor.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+```
+
+## scipy/subprojects/highs/extern/filereaderlp/LICENSE
+
+```text
+Copyright (c) 2020 Michael Feldmeier
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## scipy/subprojects/highs/extern/pdqsort/license.txt
+
+```text
+Copyright (c) 2021 Orson Peters <orsonpeters@gmail.com>
+
+This software is provided 'as-is', without any express or implied warranty. In no event will the
+authors be held liable for any damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose, including commercial
+applications, and to alter it and redistribute it freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the
+   original software. If you use this software in a product, an acknowledgment in the product
+   documentation would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as
+   being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+```
+
+## scipy/subprojects/qhull_r/libqhull_r/COPYING.txt
+
+```text
+                    Qhull, Copyright (c) 1993-2020
+                    
+                            C.B. Barber
+                           Arlington, MA 
+                          
+                               and
+
+       The National Science and Technology Research Center for
+        Computation and Visualization of Geometric Structures
+                        (The Geometry Center)
+                       University of Minnesota
+
+                       email: qhull@qhull.org
+
+This software includes Qhull from C.B. Barber and The Geometry Center.  
+Files derived from Qhull 1.0 are copyrighted by the Geometry Center.  The
+remaining files are copyrighted by C.B. Barber.  Qhull is free software 
+and may be obtained via http from www.qhull.org.  It may be freely copied, 
+modified, and redistributed under the following conditions:
+
+1. All copyright notices must remain intact in all files.
+
+2. A copy of this text file must be distributed along with any copies 
+   of Qhull that you redistribute; this includes copies that you have 
+   modified, or copies of programs or other software products that 
+   include Qhull.
+
+3. If you modify Qhull, you must include a notice giving the
+   name of the person performing the modification, the date of
+   modification, and the reason for such modification.
+
+4. When distributing modified versions of Qhull, or other software 
+   products that include Qhull, you must provide notice that the original 
+   source code may be obtained as noted above.
+
+5. There is no warranty or other guarantee of fitness for Qhull, it is 
+   provided solely "as is".  Bug reports or fixes may be sent to 
+   qhull_bug@qhull.org; the authors may or may not act on them as 
+   they desire.
+```
+
+## scipy/subprojects/xsf/LICENSE
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2024, SciPy
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scipy/subprojects/xsf/LICENSES_bundled.txt
+
+```text
+xsf bundles several libraries that are compatibly licensed. We list these here.
+
+Name: Cephes
+Files: include/xsf/cephes/*
+License: BSD-3-Clause
+  Distributed under 3-clause BSD license with permission from the author,
+  see https://lists.debian.org/debian-legal/2004/12/msg00295.html
+
+  Cephes Math Library Release 2.8:  June, 2000
+  Copyright 1984, 1995, 2000 by Stephen L. Moshier
+
+  This software is derived from the Cephes Math Library and is
+  incorporated herein by permission of the author.
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+      * Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+      * Neither the name of the <organization> nor the
+        names of its contributors may be used to endorse or promote products
+        derived from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Name: Faddeeva
+Files: include/xsf/faddeeva.h
+License: MIT
+  Copyright (c) 2012 Massachusetts Institute of Technology
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Name: qd
+Files: include/xsf/cephes/dd_real.h
+License: BSD-3-Clause-LBNL
+  This work was supported by the Director, Office of Science, Division
+  of Mathematical, Information, and Computational Sciences of the
+  U.S. Department of Energy under contract numbers DE-AC03-76SF00098 and
+  DE-AC02-05CH11231.
+
+  Copyright (c) 2003-2009, The Regents of the University of California,
+  through Lawrence Berkeley National Laboratory (subject to receipt of
+  any required approvals from U.S. Dept. of Energy) All rights reserved.
+
+  1. Redistribution and use in source and binary forms, with or
+  without modification, are permitted provided that the following
+  conditions are met:
+
+  (1) Redistributions of source code must retain the copyright
+  notice, this list of conditions and the following disclaimer.
+
+  (2) Redistributions in binary form must reproduce the copyright
+  notice, this list of conditions and the following disclaimer in
+  the documentation and/or other materials provided with the
+  distribution.
+
+  (3) Neither the name of the University of California, Lawrence
+  Berkeley National Laboratory, U.S. Dept. of Energy nor the names
+  of its contributors may be used to endorse or promote products
+  derived from this software without specific prior written
+  permission.
+
+  2. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  3. You are under no obligation whatsoever to provide any bug fixes,
+  patches, or upgrades to the features, functionality or performance of
+  the source code ("Enhancements") to anyone; however, if you choose to
+  make your Enhancements available either publicly, or directly to
+  Lawrence Berkeley National Laboratory, without imposing a separate
+  written license agreement for such Enhancements, then you hereby grant
+  the following license: a non-exclusive, royalty-free perpetual license
+  to install, use, modify, prepare derivative works, incorporate into
+  other computer software, distribute, and sublicense such enhancements
+  or derivative works thereof, in binary and source code form.
+
+Name: mdspan
+Files: include/xsf/third_party/kokkos/mdspan.hpp
+License: Apache-2.0 WITH LLVM-exception
+  For details, see include/xsf/third_party/kokkos/mdspan.hpp
+```
+
+## scipy/tools/wheels/LICENSE_linux.txt
+
+```text
+
+----
+
+This binary distribution of SciPy can also bundle the following software
+(depending on the build):
+
+
+Name: OpenBLAS
+Files: scipy.libs/libscipy_openblas*.so
+Description: bundled as a dynamically linked library
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause
+  Copyright (c) 2011-2014, The OpenBLAS Project
+  All rights reserved.
+  
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+  
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+  
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in
+        the documentation and/or other materials provided with the
+        distribution.
+     3. Neither the name of the OpenBLAS project nor the names of 
+        its contributors may be used to endorse or promote products 
+        derived from this software without specific prior written 
+        permission.
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: LAPACK
+Files: scipy.libs/libscipy_openblas*.so
+Description: bundled in OpenBLAS
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause-Open-MPI
+  Copyright (c) 1992-2013 The University of Tennessee and The University
+                          of Tennessee Research Foundation.  All rights
+                          reserved.
+  Copyright (c) 2000-2013 The University of California Berkeley. All
+                          rights reserved.
+  Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                          reserved.
+  
+  $COPYRIGHT$
+  
+  Additional copyrights may follow
+  
+  $HEADER$
+  
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+  
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer listed
+    in this license in the documentation and/or other materials
+    provided with the distribution.
+  
+  - Neither the name of the copyright holders nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+  
+  The copyright holders provide no reassurances that the source code
+  provided does not infringe any patent, copyright, or any other
+  intellectual property rights of third parties.  The copyright holders
+  disclaim any liability to any recipient for claims brought against
+  recipient by any third party for infringement of that parties
+  intellectual property rights.
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: GCC runtime library
+Files: scipy.libs/libgfortran*.so
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran
+License: GPL-3.0-or-later WITH GCC-exception-3.1
+  Copyright (C) 2002-2017 Free Software Foundation, Inc.
+  
+  Libgfortran is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+  
+  Libgfortran is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  Under Section 7 of GPL version 3, you are granted additional
+  permissions described in the GCC Runtime Library Exception, version
+  3.1, as published by the Free Software Foundation.
+  
+  You should have received a copy of the GNU General Public License and
+  a copy of the GCC Runtime Library Exception along with this program;
+  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+----
+
+Full text of license texts referred to above follows (that they are
+listed below does not necessarily imply the conditions apply to the
+present binary release):
+
+----
+
+GCC RUNTIME LIBRARY EXCEPTION
+
+Version 3.1, 31 March 2009
+
+Copyright (C) 2009 Free Software Foundation, Inc. <http://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+This GCC Runtime Library Exception ("Exception") is an additional
+permission under section 7 of the GNU General Public License, version
+3 ("GPLv3"). It applies to a given file (the "Runtime Library") that
+bears a notice placed by the copyright holder of the file stating that
+the file is governed by GPLv3 along with this Exception.
+
+When you use GCC to compile a program, GCC may combine portions of
+certain GCC header files and runtime libraries with the compiled
+program. The purpose of this Exception is to allow compilation of
+non-GPL (including proprietary) programs to use, in this way, the
+header files and runtime libraries covered by this Exception.
+
+0. Definitions.
+
+A file is an "Independent Module" if it either requires the Runtime
+Library for execution after a Compilation Process, or makes use of an
+interface provided by the Runtime Library, but is not otherwise based
+on the Runtime Library.
+
+"GCC" means a version of the GNU Compiler Collection, with or without
+modifications, governed by version 3 (or a specified later version) of
+the GNU General Public License (GPL) with the option of using any
+subsequent versions published by the FSF.
+
+"GPL-compatible Software" is software whose conditions of propagation,
+modification and use would permit combination with GCC in accord with
+the license of GCC.
+
+"Target Code" refers to output from any compiler for a real or virtual
+target processor architecture, in executable form or suitable for
+input to an assembler, loader, linker and/or execution
+phase. Notwithstanding that, Target Code does not include data in any
+format that is used as a compiler intermediate representation, or used
+for producing a compiler intermediate representation.
+
+The "Compilation Process" transforms code entirely represented in
+non-intermediate languages designed for human-written code, and/or in
+Java Virtual Machine byte code, into Target Code. Thus, for example,
+use of source code generators and preprocessors need not be considered
+part of the Compilation Process, since the Compilation Process can be
+understood as starting with the output of the generators or
+preprocessors.
+
+A Compilation Process is "Eligible" if it is done using GCC, alone or
+with other GPL-compatible software, or if it is done without using any
+work based on GCC. For example, using non-GPL-compatible Software to
+optimize any GCC intermediate representations would not qualify as an
+Eligible Compilation Process.
+
+1. Grant of Additional Permission.
+
+You have permission to propagate a work of Target Code formed by
+combining the Runtime Library with Independent Modules, even if such
+propagation would otherwise violate the terms of GPLv3, provided that
+all Target Code was generated by Eligible Compilation Processes. You
+may then convey such a combination under terms of your choice,
+consistent with the licensing of the Independent Modules.
+
+2. No Weakening of GCC Copyleft.
+
+The availability of this Exception does not imply any general
+presumption that third-party software is unaffected by the copyleft
+requirements of the license of GCC.
+
+----
+
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Use with the GNU Affero General Public License.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    <program>  Copyright (C) <year>  <name of author>
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your program's commands
+might be different; for a GUI interface, you would use an "about box".
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU GPL, see
+<http://www.gnu.org/licenses/>.
+
+  The GNU General Public License does not permit incorporating your program
+into proprietary programs.  If your program is a subroutine library, you
+may consider it more useful to permit linking proprietary applications with
+the library.  If this is what you want to do, use the GNU Lesser General
+Public License instead of this License.  But first, please read
+<http://www.gnu.org/philosophy/why-not-lgpl.html>.
+
+
+Name: libquadmath
+Files: scipy.libs/libquadmath*.so
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libquadmath
+License: LGPL-2.1-or-later
+
+    GCC Quad-Precision Math Library
+    Copyright (C) 2010-2019 Free Software Foundation, Inc.
+    Written by Francois-Xavier Coudert  <fxcoudert@gcc.gnu.org>
+
+    This file is part of the libquadmath library.
+    Libquadmath is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Libquadmath is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+```
+
+## scipy/tools/wheels/LICENSE_osx.txt
+
+```text
+
+----
+
+This binary distribution of SciPy can also bundle the following software
+(depending on the build):
+
+
+Name: OpenBLAS
+Files: scipy/.dylibs/libscipy_openblas*.so
+Description: bundled as a dynamically linked library
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause
+  Copyright (c) 2011-2014, The OpenBLAS Project
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in
+        the documentation and/or other materials provided with the
+        distribution.
+     3. Neither the name of the OpenBLAS project nor the names of
+        its contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: LAPACK
+Files: scipy/.dylibs/libscipy_openblas*.so
+Description: bundled in OpenBLAS
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause-Open-MPI
+  Copyright (c) 1992-2013 The University of Tennessee and The University
+                          of Tennessee Research Foundation.  All rights
+                          reserved.
+  Copyright (c) 2000-2013 The University of California Berkeley. All
+                          rights reserved.
+  Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                          reserved.
+
+  $COPYRIGHT$
+
+  Additional copyrights may follow
+
+  $HEADER$
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer listed
+    in this license in the documentation and/or other materials
+    provided with the distribution.
+
+  - Neither the name of the copyright holders nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+  The copyright holders provide no reassurances that the source code
+  provided does not infringe any patent, copyright, or any other
+  intellectual property rights of third parties.  The copyright holders
+  disclaim any liability to any recipient for claims brought against
+  recipient by any third party for infringement of that parties
+  intellectual property rights.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: GCC runtime library
+Files: scipy/.dylibs/libgfortran*, scipy/.dylibs/libgcc*
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran
+License: GPL-3.0-or-later WITH GCC-exception-3.1
+  Copyright (C) 2002-2017 Free Software Foundation, Inc.
+  
+  Libgfortran is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+  
+  Libgfortran is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  Under Section 7 of GPL version 3, you are granted additional
+  permissions described in the GCC Runtime Library Exception, version
+  3.1, as published by the Free Software Foundation.
+  
+  You should have received a copy of the GNU General Public License and
+  a copy of the GCC Runtime Library Exception along with this program;
+  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+----
+
+Full text of license texts referred to above follows (that they are
+listed below does not necessarily imply the conditions apply to the
+present binary release):
+
+----
+
+GCC RUNTIME LIBRARY EXCEPTION
+
+Version 3.1, 31 March 2009
+
+Copyright (C) 2009 Free Software Foundation, Inc. <http://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+This GCC Runtime Library Exception ("Exception") is an additional
+permission under section 7 of the GNU General Public License, version
+3 ("GPLv3"). It applies to a given file (the "Runtime Library") that
+bears a notice placed by the copyright holder of the file stating that
+the file is governed by GPLv3 along with this Exception.
+
+When you use GCC to compile a program, GCC may combine portions of
+certain GCC header files and runtime libraries with the compiled
+program. The purpose of this Exception is to allow compilation of
+non-GPL (including proprietary) programs to use, in this way, the
+header files and runtime libraries covered by this Exception.
+
+0. Definitions.
+
+A file is an "Independent Module" if it either requires the Runtime
+Library for execution after a Compilation Process, or makes use of an
+interface provided by the Runtime Library, but is not otherwise based
+on the Runtime Library.
+
+"GCC" means a version of the GNU Compiler Collection, with or without
+modifications, governed by version 3 (or a specified later version) of
+the GNU General Public License (GPL) with the option of using any
+subsequent versions published by the FSF.
+
+"GPL-compatible Software" is software whose conditions of propagation,
+modification and use would permit combination with GCC in accord with
+the license of GCC.
+
+"Target Code" refers to output from any compiler for a real or virtual
+target processor architecture, in executable form or suitable for
+input to an assembler, loader, linker and/or execution
+phase. Notwithstanding that, Target Code does not include data in any
+format that is used as a compiler intermediate representation, or used
+for producing a compiler intermediate representation.
+
+The "Compilation Process" transforms code entirely represented in
+non-intermediate languages designed for human-written code, and/or in
+Java Virtual Machine byte code, into Target Code. Thus, for example,
+use of source code generators and preprocessors need not be considered
+part of the Compilation Process, since the Compilation Process can be
+understood as starting with the output of the generators or
+preprocessors.
+
+A Compilation Process is "Eligible" if it is done using GCC, alone or
+with other GPL-compatible software, or if it is done without using any
+work based on GCC. For example, using non-GPL-compatible Software to
+optimize any GCC intermediate representations would not qualify as an
+Eligible Compilation Process.
+
+1. Grant of Additional Permission.
+
+You have permission to propagate a work of Target Code formed by
+combining the Runtime Library with Independent Modules, even if such
+propagation would otherwise violate the terms of GPLv3, provided that
+all Target Code was generated by Eligible Compilation Processes. You
+may then convey such a combination under terms of your choice,
+consistent with the licensing of the Independent Modules.
+
+2. No Weakening of GCC Copyleft.
+
+The availability of this Exception does not imply any general
+presumption that third-party software is unaffected by the copyleft
+requirements of the license of GCC.
+
+----
+
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Use with the GNU Affero General Public License.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    <program>  Copyright (C) <year>  <name of author>
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your program's commands
+might be different; for a GUI interface, you would use an "about box".
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU GPL, see
+<http://www.gnu.org/licenses/>.
+
+  The GNU General Public License does not permit incorporating your program
+into proprietary programs.  If your program is a subroutine library, you
+may consider it more useful to permit linking proprietary applications with
+the library.  If this is what you want to do, use the GNU Lesser General
+Public License instead of this License.  But first, please read
+<http://www.gnu.org/philosophy/why-not-lgpl.html>.
+
+
+Name: libquadmath
+Files: scipy/.dylibs/libquadmath*.so
+Description: dynamically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libquadmath
+License: LGPL-2.1-or-later
+
+    GCC Quad-Precision Math Library
+    Copyright (C) 2010-2019 Free Software Foundation, Inc.
+    Written by Francois-Xavier Coudert  <fxcoudert@gcc.gnu.org>
+
+    This file is part of the libquadmath library.
+    Libquadmath is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Libquadmath is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+```
+
+## scipy/tools/wheels/LICENSE_win32.txt
+
+```text
+
+----
+
+This binary distribution of SciPy can also bundle the following software
+(depending on the build):
+
+
+Name: OpenBLAS
+Files: scipy.libs\libscipy_openblas*.dll
+Description: bundled as a dynamically linked library
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause
+  Copyright (c) 2011-2014, The OpenBLAS Project
+  All rights reserved.
+  
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+  
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+  
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in
+        the documentation and/or other materials provided with the
+        distribution.
+     3. Neither the name of the OpenBLAS project nor the names of 
+        its contributors may be used to endorse or promote products 
+        derived from this software without specific prior written 
+        permission.
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: LAPACK
+Files: scipy.libs\libscipy_openblas*.dll
+Description: bundled in OpenBLAS
+Availability: https://github.com/OpenMathLib/OpenBLAS/
+License: BSD-3-Clause-Open-MPI
+  Copyright (c) 1992-2013 The University of Tennessee and The University
+                          of Tennessee Research Foundation.  All rights
+                          reserved.
+  Copyright (c) 2000-2013 The University of California Berkeley. All
+                          rights reserved.
+  Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                          reserved.
+  
+  $COPYRIGHT$
+  
+  Additional copyrights may follow
+  
+  $HEADER$
+  
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+  
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer listed
+    in this license in the documentation and/or other materials
+    provided with the distribution.
+  
+  - Neither the name of the copyright holders nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+  
+  The copyright holders provide no reassurances that the source code
+  provided does not infringe any patent, copyright, or any other
+  intellectual property rights of third parties.  The copyright holders
+  disclaim any liability to any recipient for claims brought against
+  recipient by any third party for infringement of that parties
+  intellectual property rights.
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Name: GCC runtime library
+Files: scipy.libs\libscipy_openblas*.dll
+Description: statically linked to files compiled with gcc
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgfortran
+License: GPL-3.0-or-later WITH GCC-exception-3.1
+  Copyright (C) 2002-2017 Free Software Foundation, Inc.
+  
+  Libgfortran is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+  
+  Libgfortran is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  Under Section 7 of GPL version 3, you are granted additional
+  permissions described in the GCC Runtime Library Exception, version
+  3.1, as published by the Free Software Foundation.
+  
+  You should have received a copy of the GNU General Public License and
+  a copy of the GCC Runtime Library Exception along with this program;
+  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+
+----
+
+Full text of license texts referred to above follows (that they are
+listed below does not necessarily imply the conditions apply to the
+present binary release):
+
+----
+
+GCC RUNTIME LIBRARY EXCEPTION
+
+Version 3.1, 31 March 2009
+
+Copyright (C) 2009 Free Software Foundation, Inc. <http://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+This GCC Runtime Library Exception ("Exception") is an additional
+permission under section 7 of the GNU General Public License, version
+3 ("GPLv3"). It applies to a given file (the "Runtime Library") that
+bears a notice placed by the copyright holder of the file stating that
+the file is governed by GPLv3 along with this Exception.
+
+When you use GCC to compile a program, GCC may combine portions of
+certain GCC header files and runtime libraries with the compiled
+program. The purpose of this Exception is to allow compilation of
+non-GPL (including proprietary) programs to use, in this way, the
+header files and runtime libraries covered by this Exception.
+
+0. Definitions.
+
+A file is an "Independent Module" if it either requires the Runtime
+Library for execution after a Compilation Process, or makes use of an
+interface provided by the Runtime Library, but is not otherwise based
+on the Runtime Library.
+
+"GCC" means a version of the GNU Compiler Collection, with or without
+modifications, governed by version 3 (or a specified later version) of
+the GNU General Public License (GPL) with the option of using any
+subsequent versions published by the FSF.
+
+"GPL-compatible Software" is software whose conditions of propagation,
+modification and use would permit combination with GCC in accord with
+the license of GCC.
+
+"Target Code" refers to output from any compiler for a real or virtual
+target processor architecture, in executable form or suitable for
+input to an assembler, loader, linker and/or execution
+phase. Notwithstanding that, Target Code does not include data in any
+format that is used as a compiler intermediate representation, or used
+for producing a compiler intermediate representation.
+
+The "Compilation Process" transforms code entirely represented in
+non-intermediate languages designed for human-written code, and/or in
+Java Virtual Machine byte code, into Target Code. Thus, for example,
+use of source code generators and preprocessors need not be considered
+part of the Compilation Process, since the Compilation Process can be
+understood as starting with the output of the generators or
+preprocessors.
+
+A Compilation Process is "Eligible" if it is done using GCC, alone or
+with other GPL-compatible software, or if it is done without using any
+work based on GCC. For example, using non-GPL-compatible Software to
+optimize any GCC intermediate representations would not qualify as an
+Eligible Compilation Process.
+
+1. Grant of Additional Permission.
+
+You have permission to propagate a work of Target Code formed by
+combining the Runtime Library with Independent Modules, even if such
+propagation would otherwise violate the terms of GPLv3, provided that
+all Target Code was generated by Eligible Compilation Processes. You
+may then convey such a combination under terms of your choice,
+consistent with the licensing of the Independent Modules.
+
+2. No Weakening of GCC Copyleft.
+
+The availability of this Exception does not imply any general
+presumption that third-party software is unaffected by the copyleft
+requirements of the license of GCC.
+
+----
+
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Use with the GNU Affero General Public License.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    <program>  Copyright (C) <year>  <name of author>
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your program's commands
+might be different; for a GUI interface, you would use an "about box".
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU GPL, see
+<http://www.gnu.org/licenses/>.
+
+  The GNU General Public License does not permit incorporating your program
+into proprietary programs.  If your program is a subroutine library, you
+may consider it more useful to permit linking proprietary applications with
+the library.  If this is what you want to do, use the GNU Lesser General
+Public License instead of this License.  But first, please read
+<http://www.gnu.org/philosophy/why-not-lgpl.html>.
+```
+

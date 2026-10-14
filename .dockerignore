@@ -17,3 +17,10 @@
 !lmcpp/**
 
 !expr-spec.json
+
+!LICENSE
+!README.md
+!licenses/
+!licenses/**
+!examples/
+!examples/**

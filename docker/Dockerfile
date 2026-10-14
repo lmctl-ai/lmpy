@@ -9,29 +9,64 @@ RUN case "${TARGETARCH:-$(uname -m)}" in arm64|aarch64) lock=aarch64;; amd64|x86
 
 FROM ${BASE} AS builder
 LABEL org.lmctlhq.pycli.s0-builder=true
-RUN apt-get update && apt-get install -y --no-install-recommends cmake g++ ninja-build nlohmann-json3-dev \
- && rm -rf /var/lib/apt/lists/*
+# Immutable signed snapshot plus exact top-level versions; transitive versions
+# are frozen by the snapshot. Retain downloaded .deb hashes and full inventory.
+# Sources URI: https://snapshot.debian.org/archive/debian/20261012T000000Z/
+COPY docker/debian.sources /etc/apt/sources.list.d/debian.sources
+RUN rm /etc/apt/apt.conf.d/docker-clean \
+ && apt-get update && apt-get -o APT::Keep-Downloaded-Packages=true install -y --no-install-recommends \
+    cmake=3.25.1-1 g++=4:12.2.0-3 ninja-build=1.11.1-2~deb12u1 nlohmann-json3-dev=3.11.2-2 \
+ && mkdir /provenance \
+ && dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' > /provenance/builder-packages.tsv \
+ && sha256sum /var/cache/apt/archives/*.deb > /provenance/builder-debs.sha256 \
+ && cp /usr/share/doc/nlohmann-json3-dev/copyright /provenance/nlohmann-copyright.txt \
+ && cp /usr/share/doc/gcc-12-base/copyright /provenance/gcc-copyright.txt \
+ && cp /usr/share/common-licenses/GPL-3 /provenance/GPL-3.txt \
+ && g++ --version > /provenance/compiler.txt \
+ && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb
 COPY lmcpp /src/lmcpp
-RUN cmake -S /src/lmcpp -B /build-lmcpp -G Ninja -DCMAKE_BUILD_TYPE=Release -DLMCPP_BUILD_TESTS=OFF -DLMCPP_STATIC_STDLIB=ON -DCMAKE_INSTALL_PREFIX=/opt/lmcpp \
+RUN cp /src/lmcpp/LICENSE /provenance/lmcpp-LICENSE \
+ && cmake -S /src/lmcpp -B /build-lmcpp -G Ninja -DCMAKE_BUILD_TYPE=Release -DLMCPP_BUILD_TESTS=OFF -DLMCPP_STATIC_STDLIB=ON -DCMAKE_INSTALL_PREFIX=/opt/lmcpp \
  && cmake --build /build-lmcpp --parallel 2 && cmake --install /build-lmcpp
-COPY CMakeLists.txt expr-spec.json /src/pycli/
+COPY CMakeLists.txt expr-spec.json LICENSE README.md /src/pycli/
 COPY src /src/pycli/src
 COPY py /src/pycli/py
 COPY tests /src/pycli/tests
 COPY bin /src/pycli/bin
-RUN cmake -S /src/pycli -B /build-pycli -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/lmcpp -DBUILD_TESTING=ON \
+COPY docker /src/pycli/docker
+COPY scripts /src/pycli/scripts
+COPY examples /src/pycli/examples
+RUN cp /src/pycli/LICENSE /provenance/pycli-LICENSE \
+ && cmake -S /src/pycli -B /build-pycli -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/lmcpp -DBUILD_TESTING=ON \
  && cmake --build /build-pycli --parallel 2
 
 FROM wheels AS test
-RUN apt-get update && apt-get install -y --no-install-recommends cmake && rm -rf /var/lib/apt/lists/*
+COPY docker/debian.sources /etc/apt/sources.list.d/debian.sources
+RUN apt-get update && apt-get install -y --no-install-recommends cmake=3.25.1-1 \
+ && mkdir /test-provenance \
+ && dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' > /test-provenance/test-packages.tsv \
+ && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /build-pycli /build-pycli
 COPY --from=builder /src/pycli /src/pycli
+COPY --from=builder /provenance /src/pycli/provenance
 COPY THIRD_PARTY_NOTICES.md /src/pycli/THIRD_PARTY_NOTICES.md
+COPY licenses /src/pycli/licenses
 CMD ["ctest", "--test-dir", "/build-pycli", "--output-on-failure"]
 
-FROM wheels AS runtime
-COPY --from=builder /build-pycli/bin/pycli /usr/local/bin/pycli
-COPY THIRD_PARTY_NOTICES.md /usr/share/doc/pycli/THIRD_PARTY_NOTICES.md
+FROM wheels AS pruned
+LABEL org.lmctlhq.pycli.s0-builder=true
 COPY scripts/prune.py /prune.py
+RUN python /prune.py && rm /prune.py
+
+# Copy the pruned tree into a fresh base: deleted wheel bytes are not ancestors.
+# The base's pre-existing pip bytes remain part of that pinned shared base layer.
+FROM ${BASE} AS runtime
+COPY --from=pruned /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /build-pycli/bin/pycli /usr/local/bin/pycli
+COPY --from=builder /provenance /usr/share/doc/pycli/build
+COPY THIRD_PARTY_NOTICES.md /usr/share/doc/pycli/THIRD_PARTY_NOTICES.md
+COPY licenses /usr/share/doc/pycli/upstream
+COPY scripts/prune.py /prune.py
+# Hide pip already present in the base; no scientific test bytes were copied.
 RUN python /prune.py && rm /prune.py
 ENTRYPOINT ["/usr/local/bin/pycli"]

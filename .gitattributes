@@ -1,0 +1,3 @@
+# Preserve upstream license/source-notice bytes (verified against manifest hashes).
+licenses/** -whitespace
+THIRD_PARTY_NOTICES.md -whitespace
