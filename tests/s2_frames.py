@@ -78,6 +78,7 @@ class Frames(unittest.TestCase):
   self.call('frame_import',csv='large.csv',out='t.npz');self.assertEqual(self.inspect()['shape'],[700,2])
   self.call('frame_export',rc=1,frame='t.npz',format='json')
   self.call('frame_select',frame='t.npz',out='selected.npz');self.assertEqual(self.inspect('selected.npz')['shape'],[700,2])
+  self.call('frame_inspect',frame='t.npz',head=500)
   self.call('frame_inspect',rc=2,frame='t.npz',head=501)
   self.call('frame_import',rc=2,csv='large.csv',max_rows=699,out='bad.npz')
   # A missing interpreter is an oracle that invalid caps fail before any spawn.
