@@ -95,6 +95,15 @@ class Frames(unittest.TestCase):
   self.call('frame_import',rc=2,columns={'x':list(range(1001))},out='big.npz')
   self.call('frame_import',rc=2,columns={'a':[[1]]},out='bad.npz')
   self.call('frame_inspect',rc=2,frame='t.npz',head=1001)
+ def test_artifact_dtype_overrides_and_nonfinite_aggregate(self):
+  self.table({'k':['a','a'],'x':[1,2],'v':['Inf','Inf']},dtypes={'v':'float64'})
+  self.call('frame_import',frame='t.npz',dtypes={'x':'float64'},out='converted.npz')
+  self.assertEqual(self.inspect('converted.npz')['dtypes']['x'],'float64')
+  self.call('frame_groupby',frame='t.npz',keys=['k'],aggs={'v':['sum']},out='g.npz');self.assertEqual(self.inspect('g.npz')['head']['data']['v__sum'],['Inf'])
+  self.call('frame_import',rc=2,columns={'x':[1]},dtypes={'x':{'dtype':[]}},out='bad.npz')
+ def test_minimal_dependencies(self):
+  import importlib.util
+  for name in ('pyarrow','numexpr','bottleneck','openpyxl'):self.assertIsNone(importlib.util.find_spec(name),name)
  def test_string_storage_budget_before_allocation(self):
   import resource
   # Input is only 132KiB, but fixed-width UTF-8 storage would require >256MiB.
