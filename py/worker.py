@@ -42,6 +42,10 @@ class OutputTooLarge(OverflowError):
     pass
 
 
+class NumericalFailure(ArithmeticError):
+    pass
+
+
 def codec(value):
     """Strict JSON with exact %.17g binary64 and explicit nonfinite tokens."""
     if value is None:
@@ -147,6 +151,173 @@ def solve(p):
     return result
 
 
+def matrix(p, key):
+    import numpy as np
+    a = array(p, key)
+    if a.ndim != 2:
+        raise BadData(key + ' must be a matrix')
+    if not np.isfinite(a).all():
+        raise BadData(key + ' must contain only finite numbers')
+    return a
+
+
+def save_outputs(p, items):
+    """Raw little-endian tensors, one file per entry; C++ validates sizes and writes the safetensors."""
+    import numpy as np
+    outputs = []
+    for i, (key, value) in enumerate(items):
+        dtype = '<i8' if np.issubdtype(value.dtype, np.integer) else '<f8'
+        value = np.ascontiguousarray(value, dtype=dtype)
+        if value.dtype.kind == 'f' and not np.isfinite(value).all():
+            raise NumericalFailure('non-finite values in ' + key)
+        value.tofile(p['output_prefix'] + str(i) + '.bin')
+        outputs.append({'key': key, 'dtype': 'I64' if dtype == '<i8' else 'F64', 'shape': list(value.shape)})
+    return outputs
+
+
+def relative_error(np, reference, approx):
+    scale = float(np.linalg.norm(reference))
+    error = float(np.linalg.norm(reference - approx))
+    return error / scale if scale > 0 else error
+
+
+def lstsq(p):
+    """scipy.linalg.lstsq plus honest status. residues/residual_norm are always recomputed from A x - b."""
+    import numpy as np
+    import scipy.linalg as sla
+    a, b = matrix(p, 'a'), array(p, 'b')
+    if b.ndim not in (1, 2) or b.shape[0] != a.shape[0] or not np.isfinite(b).all():
+        raise BadData('b must be a finite vector or matrix with as many rows as a')
+    driver = p.get('driver') or 'gelsd'
+    try:
+        x, _, rank, singular = sla.lstsq(a, b, cond=p.get('rcond'), lapack_driver=driver, check_finite=True)
+        if singular is None:
+            singular = sla.svdvals(a)
+    except np.linalg.LinAlgError:
+        return {'status': 'NO_CONVERGENCE', 'driver': driver}
+    if not np.isfinite(x).all():
+        return {'status': 'NUMERICAL_FAILURE', 'driver': driver}
+    residual = a @ x - b
+    residues = (residual.reshape(len(residual), -1) ** 2).sum(axis=0)
+    result = {'status': 'OK' if rank >= min(a.shape) else 'RANK_DEFICIENT', 'rank': int(rank),
+              'singular_values': [float(v) for v in singular], 'residues': [float(v) for v in residues],
+              'residual_norm': float(np.linalg.norm(residual)), 'driver': driver}
+    if p.get('output_prefix'):
+        result['outputs'] = save_outputs(p, [('x', x)])
+    elif x.size <= 1000:
+        result['x'] = x.tolist()
+    else:
+        raise OutputTooLarge('use la_lstsq_to for more than 1000 output numbers')
+    return result
+
+
+def props(p):
+    import numpy as np
+    import scipy.linalg as sla
+    a = matrix(p, 'a')
+    what = set(p['what'])
+    result = {'status': 'OK', 'shape': list(a.shape)}
+    try:
+        if what & {'det', 'slogdet'}:
+            sign, logabs = np.linalg.slogdet(a)
+            if 'slogdet' in what:
+                result['slogdet'] = {'sign': float(sign), 'logabsdet': float(logabs)}
+            if 'det' in what:
+                det = float(np.linalg.det(a))
+                if not math.isfinite(det) or (det == 0.0 and sign != 0):
+                    warnings.warn('det left the binary64 range; use slogdet', NumericalWarning)
+                result['det'] = det
+        if 'trace' in what:
+            result['trace'] = float(np.trace(a))
+        if 'norm' in what:
+            order = p['norm_ord']
+            if order == 'fro':
+                scale = float(np.abs(a).max())
+                result['norm'] = scale * float(np.linalg.norm(a / scale, 'fro')) if scale > 0 else 0.0
+            else:
+                result['norm'] = float(np.linalg.norm(a, {'1': 1, 'inf': np.inf, '2': 2, 'nuc': 'nuc'}[order]))
+        if 'cond' in what:
+            result['cond'] = float(np.linalg.cond(a, {'2': 2, '1': 1, 'inf': np.inf, 'fro': 'fro'}[p['cond_p']]))
+        if 'rank' in what:
+            result['rank'] = int(np.linalg.matrix_rank(a, tol=p.get('rank_tol')))
+        if 'inverse' in what:
+            # Numerically singular means rank < n under numpy's default tolerance; the inverse is withheld then.
+            if int(np.linalg.matrix_rank(a)) < a.shape[0]:
+                result['status'] = 'SINGULAR'
+            else:
+                try:
+                    inverse = sla.inv(a, check_finite=True)
+                except np.linalg.LinAlgError:
+                    inverse = None
+                if inverse is None or not np.isfinite(inverse).all():
+                    result['status'] = 'SINGULAR'
+                else:
+                    result['inverse'] = inverse.tolist()
+                    result['inverse_residual'] = float(np.abs(a @ inverse - np.eye(a.shape[0])).max())
+    except np.linalg.LinAlgError:
+        return {'status': 'NO_CONVERGENCE'}
+    return result
+
+
+def decomp(p):
+    """Factorizations with LAPACK conventions (sign of singular/eigen vectors is LAPACK's). Documented in README."""
+    import numpy as np
+    import scipy.linalg as sla
+    a = matrix(p, 'a')
+    kind, full = p['kind'], bool(p.get('full'))
+    values, driver = {}, None
+    try:
+        if kind == 'svd':
+            driver = 'gesdd'
+            try:
+                u, s, vt = sla.svd(a, full_matrices=full, lapack_driver='gesdd')
+            except np.linalg.LinAlgError:
+                driver = 'gesvd'
+                u, s, vt = sla.svd(a, full_matrices=full, lapack_driver='gesvd')
+            k = len(s)
+            items, values = [('u', u), ('s', s), ('vt', vt)], {'s': s.tolist()}
+            error = relative_error(np, a, (u[:, :k] * s) @ vt[:k])
+        elif kind == 'qr':
+            if p.get('pivoting'):
+                q, r, piv = sla.qr(a, mode='full' if full else 'economic', pivoting=True)
+                items, error = [('q', q), ('r', r), ('p', piv)], relative_error(np, a[:, piv], q @ r)
+            else:
+                q, r = sla.qr(a, mode='full' if full else 'economic')
+                items, error = [('q', q), ('r', r)], relative_error(np, a, q @ r)
+        elif kind == 'eigh':
+            w, v = sla.eigh(a)
+            items, values, error = [('w', w), ('v', v)], {'w': w.tolist()}, relative_error(np, a @ v, v * w)
+        elif kind == 'eig':
+            w, v = sla.eig(a)
+            order = np.lexsort((w.imag, w.real))  # documented order: ascending real part, then imaginary part
+            w, v = w[order], v[:, order]
+            items = [('w_re', w.real), ('w_im', w.imag), ('vr_re', v.real), ('vr_im', v.imag)]
+            values, error = {'w_re': w.real.tolist(), 'w_im': w.imag.tolist()}, relative_error(np, a @ v, v * w)
+        elif kind == 'cholesky':
+            lower = bool(p.get('lower', True))
+            c = sla.cholesky(a, lower=lower)
+            items = [('l' if lower else 'u', c)]
+            error = relative_error(np, a, c @ c.T if lower else c.T @ c)
+        else:
+            pm, l, u = sla.lu(a)
+            items, error = [('p', pm), ('l', l), ('u', u)], relative_error(np, a, pm @ l @ u)
+    except np.linalg.LinAlgError as exc:
+        if kind == 'cholesky':
+            return {'status': 'NOT_POSITIVE_DEFINITE', 'kind': kind}
+        return {'status': 'NO_CONVERGENCE', 'kind': kind, 'message': str(exc)}
+    # LAPACK factorizations are backward stable: a large reconstruction error means the result is not to be trusted.
+    if not error < 1e-8:
+        return {'status': 'NUMERICAL_FAILURE', 'kind': kind, 'reconstruction_error': error}
+    try:
+        outputs = save_outputs(p, items)
+    except NumericalFailure as exc:
+        return {'status': 'NUMERICAL_FAILURE', 'kind': kind, 'message': str(exc)}
+    result = {'status': 'OK', 'kind': kind, 'outputs': outputs, 'values': values, 'reconstruction_error': error}
+    if driver:
+        result['driver'] = driver
+    return result
+
+
 def distribution(p):
     from scipy.stats import norm, t
     families = {'norm': norm, 't': t}
@@ -167,7 +338,8 @@ class NumericalWarning(RuntimeWarning):
     pass
 
 
-OPS = {'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution}
+OPS = {'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution,
+       'la_lstsq': lstsq, 'la_lstsq_to': lstsq, 'la_props': props, 'la_decomp': decomp}
 
 
 def main():
@@ -181,7 +353,7 @@ def main():
         import numpy as np
         if request['op'] == 'stats_dist':
             import scipy.stats
-        elif request['op'] in ('la_solve', 'la_solve_to'):
+        elif request['op'] in ('la_solve', 'la_solve_to', 'la_lstsq', 'la_lstsq_to', 'la_props', 'la_decomp'):
             import scipy.linalg
         elif request['op'] == 'py_info':
             import scipy
