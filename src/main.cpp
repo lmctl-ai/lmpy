@@ -280,6 +280,7 @@ Json call(const std::string& op,const Params& input){
         if(op=="la_lstsq_to")p["out"]=output_path(p);
     }else if(op=="la_props"){
         arrays["a"]=load(p["a"]);auto& a=arrays["a"];if(a.shape.size()!=2)invalid("a must be a matrix");need_finite(a,"a");
+        if(!p.contains("what"))p["what"]=Json::array({"det","rank","cond","norm","trace"});
         std::set<std::string> what;for(const auto& w:p["what"])if(!what.insert(w.get<std::string>()).second)invalid("duplicate entry in what","BAD_PARAM");
         if(what.empty())invalid("what must name at least one property","BAD_PARAM");
         bool square=a.shape[0]==a.shape[1];
@@ -371,7 +372,7 @@ int main(int argc,char** argv){
         Param{"driver",Type::String,false,"gelsd",{"gelsd","gelsy","gelss"},"LAPACK driver."}}};if(write)op.params.emplace_back("out",Type::String,true,nullptr,std::vector<Json>{},"New .safetensors path for x.");return op;};
     Operation props{"la_props",Access::Read,"Scalar matrix properties: det, slogdet, rank, cond, norm, trace and optionally the inverse (<=1000 numbers); SINGULAR when the inverse is withheld","object",{
         Param{"a",Type::Json,true,nullptr,{},"Finite matrix."},
-        Param{"what",Type::Array,false,Json::array({"det","rank","cond","norm","trace"}),{"det","slogdet","rank","cond","norm","trace","inverse"},"Properties to compute.","",false,false,false,{},Type::String},
+        Param{"what",Type::Array,false,nullptr,{"det","slogdet","rank","cond","norm","trace","inverse"},"Properties to compute; default det, rank, cond, norm, trace.","",false,false,false,{},Type::String},
         Param{"norm_ord",Type::String,false,"fro",{"fro","1","inf","2","nuc"},"Matrix norm order."},
         Param{"cond_p",Type::String,false,"2",{"2","1","inf","fro"},"Condition number norm; values other than 2 need a square matrix."},
         Param{"rank_tol",Type::Number,false,nullptr,{},"Rank threshold on singular values; default max(m,n)*eps*sigma_max."}}};
