@@ -3,3 +3,14 @@
 numpy==2.3.3 --hash=sha256:1c02d0629d25d426585fb2e45a66154081b9fa677bc92a881ff1d216bc9919a8
 # scipy-1.16.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl
 scipy==1.16.2 --hash=sha256:ea3421209bf00c8a5ef2227de496601087d8f638a2363ee09af059bd70976dc1
+# Exact manylinux wheel hashes; generated in a build with pip download.
+# pandas-2.3.3-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl
+pandas==2.3.3 --hash=sha256:ecaf1e12bdc03c86ad4a7ea848d66c685cb6851d807a26aa245ca3d2017a1908
+# python_dateutil-2.9.0.post0-py2.py3-none-any.whl
+python_dateutil==2.9.0.post0 --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
+# pytz-2025.2-py2.py3-none-any.whl
+pytz==2025.2 --hash=sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00
+# six-1.17.0-py2.py3-none-any.whl
+six==1.17.0 --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
+# tzdata-2025.2-py2.py3-none-any.whl
+tzdata==2025.2 --hash=sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8

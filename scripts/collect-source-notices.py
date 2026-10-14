@@ -2,7 +2,7 @@
 import hashlib,json,pathlib,tarfile,urllib.request,io
 root=pathlib.Path('/notices');root.mkdir()
 manifest={}
-for name,version in (('numpy','2.3.3'),('scipy','1.16.2')):
+for name,version in (('numpy','2.3.3'),('scipy','1.16.2'),('pandas','2.3.3'),('python-dateutil','2.9.0.post0'),('pytz','2025.2'),('tzdata','2025.2'),('six','1.17.0')):
     meta=json.load(urllib.request.urlopen('https://pypi.org/pypi/'+name+'/'+version+'/json'))
     release=next(item for item in meta['urls'] if item['packagetype']=='sdist')
     data=urllib.request.urlopen(release['url']).read()

@@ -4,7 +4,7 @@ root=pathlib.Path(__file__).resolve().parents[1]
 licenses=root/'licenses'
 manifest=json.loads((licenses/'manifest.json').read_text())
 # Fail before emitting a misleading complete inventory.
-for package in ('numpy','scipy'):
+for package in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six'):
     for name,digest in manifest[package]['files'].items():
         assert hashlib.sha256((licenses/package/name).read_bytes()).hexdigest()==digest,name
 for name in ('nlohmann/LICENSE.MIT','python/LICENSE'):
@@ -22,7 +22,7 @@ required=(
  'scipy/subprojects/highs/LICENSE.txt',
  'scipy/subprojects/boost_math/math/LICENSE')
 for name in required:assert (licenses/name).is_file(),name
-print('''# Third-party notices — S0
+print('''# Third-party notices — S2
 
 pycli is MIT, Copyright (c) 2026 Lattice Systems LLC.
 The full pycli/lmcpp MIT notices and nlohmann JSON 3.11.2 MIT notice appear below.
@@ -35,6 +35,7 @@ Scientific wheels: NumPy 2.3.3 and SciPy 1.16.2. Their licenses below retain
 OpenBLAS/LAPACK/libgfortran notices. libquadmath is LGPL-2.1-or-later, not covered
 by the GCC Runtime Library Exception; the amd64 wheels ship it, arm64 does not.
 Static libstdc++/libgcc use GCC licensing with the Runtime Library Exception.
+S2 adds pandas 2.3.3, python-dateutil 2.9.0.post0, pytz 2025.2, tzdata 2025.2 and six 1.17.0, with full source inventories and wheel notices below.
 S1 adds no shipped component. Its ASan/UBSan test binaries statically link GCC's sanitizer
 runtimes (same Runtime Library Exception) and exist only in the test image, never in runtime.
 The runtime additionally retains exact builder package copyrights (including
@@ -52,9 +53,11 @@ that every such source component is linked into the runtime executable.
 ''')
 def emit(title,text):
     print('## '+title+'\n\n```text');print(text.rstrip());print('```\n')
-for name in ('numpy','scipy'):
+for name in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six'):
     dist=metadata.distribution(name);assert dist.version==manifest[name]['version']
-    emit(name+' '+dist.version+' — full wheel notice',dist.read_text('LICENSE.txt'))
+    texts=[dist.locate_file(f).read_text() for f in dist.files if dist.locate_file(f).is_file() and pathlib.PurePosixPath(str(f)).name.lower().startswith(('license','copying','notice')) and '.dist-info/' in str(f)]
+    assert texts,name
+    emit(name+' '+dist.version+' — full wheel notice','\n'.join(texts))
 for path in sorted(licenses.rglob('*')):
     if path.is_file() and path.name!='manifest.json':
         emit(str(path.relative_to(licenses)),path.read_text(errors='replace'))
