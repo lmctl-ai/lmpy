@@ -19,6 +19,7 @@ with tempfile.TemporaryDirectory(prefix="pycli-shim-", dir=home) as td:
     block_file = root / "block-started"
     docker = fake / "docker"
     docker.write_text("""#!/bin/sh
+[ "$1" = run ] || exit 0
 printf '%s\\n' "$@" >"$ARGS_FILE"
 case "${FAKE_DOCKER_CASE:-ok}" in
   ok) echo '{"success":true,"result":{}}'; exit 0;;
@@ -41,8 +42,9 @@ esac
     argv = args_file.read_text().splitlines()
     assert argv[argv.index("--mount") + 1] == f"type=bind,src={colon},dst={colon}", argv
     assert "--network=none" in argv and "--cpus=2" in argv and "--memory=4g" in argv
-    assert all(flag in argv for flag in ("--read-only", "--cap-drop=ALL", "--pids-limit=128", "--security-opt=no-new-privileges"))
-    assert "-v" not in argv and any(arg.startswith("TMPDIR="+str(colon / ".pycli-tmp.")) for arg in argv)
+    assert all(flag in argv for flag in ("--read-only", "--cap-drop=ALL", "--pids-limit=128", "--security-opt=no-new-privileges", "--init", "--pull=never"))
+    assert "-v" not in argv and "TMPDIR=/tmp" in argv
+    assert "PYCLI_READONLY" in argv and "PYCLI_DRYRUN" in argv
     assert "PYCLI_TIMEOUT_S" in argv and "PYCLI_SECRET" not in argv and "SECRET_SHIM_TEST" not in argv
     assert not list(colon.glob(".pycli-tmp.*"))
 
@@ -72,8 +74,8 @@ esac
     dirs=[]
     for i in range(2):
         args=(root/('args-'+str(i))).read_text().splitlines()
-        dirs.append(next(arg for arg in args if arg.startswith('TMPDIR=')))
-    assert dirs[0]!=dirs[1], 'concurrent calls share a removable temp directory'
+        dirs.append(args[args.index('--name')+1])
+    assert dirs[0]!=dirs[1], 'concurrent calls share a container name'
     for peer in peers:
         os.killpg(peer.pid,signal.SIGTERM);peer.communicate(timeout=3)
     assert not list(colon.glob('.pycli-tmp.*'))

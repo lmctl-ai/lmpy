@@ -1,39 +1,65 @@
 #!/bin/sh
 set -eu
-script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 uid=$(id -u)
 gid=$(id -g)
-cwd=$(pwd -P)
+# Preserve trailing newlines in cwd so the rejection cannot be bypassed.
+cwd=$(pwd -P; printf /)
+cwd=${cwd%/}
+cwd=${cwd%?}
+invalid_cwd() {
+  printf '{"success":false,"error":{"code":"INVALID_REQUEST","message":"pycli requires a directory below HOME without comma, quote, equals or control characters","data":{}}}\n'
+  exit 2
+}
+case "$cwd" in *[,\"=]*) invalid_cwd;; esac
+if [ "$(printf '%s' "$cwd" | LC_ALL=C tr -d '[:cntrl:]')" != "$cwd" ]; then invalid_cwd; fi
 home=$(CDPATH= cd -- "${HOME:-/}" 2>/dev/null && pwd -P || printf /)
 case "$cwd" in
-  /|"$home") printf '{"success":false,"error":{"code":"INVALID_REQUEST","message":"pycli requires a working directory below HOME","data":{}}}\n'; exit 2 ;;
+  /|"$home") invalid_cwd;;
   "$home"/*) ;;
-  *) printf '{"success":false,"error":{"code":"INVALID_REQUEST","message":"pycli requires a working directory below HOME","data":{}}}\n'; exit 2 ;;
+  *) invalid_cwd;;
 esac
-out=$(mktemp)
-err=$(mktemp)
-tmpdir=$(mktemp -d "$cwd/.pycli-tmp.XXXXXX")
-cleanup() {
-  [ -z "${out:-}" ] || rm -f "$out"
-  [ -z "${err:-}" ] || rm -f "$err"
-  rmdir "$tmpdir" 2>/dev/null || true
+capture_dir=$(mktemp -d "${TMPDIR:-/tmp}/pycli-shim.XXXXXX")
+out="$capture_dir/out"
+err="$capture_dir/err"
+container_name="pycli-$uid-$$-$(basename "$capture_dir")"
+docker_pid=
+cleanup() { rm -rf -- "$capture_dir"; }
+cancel() {
+  sig=$1
+  code=$2
+  trap '' HUP INT TERM
+  docker kill --signal "$sig" "$container_name" >/dev/null 2>&1 || true
+  # Force removal also handles a child stuck in native code and stops descendants.
+  docker rm --force "$container_name" >/dev/null 2>&1 || true
+  if [ -n "$docker_pid" ]; then
+    kill -TERM "$docker_pid" 2>/dev/null || true
+    wait "$docker_pid" 2>/dev/null || true
+  fi
+  # Cover cancellation during container creation, before kill could find its name.
+  docker rm --force "$container_name" >/dev/null 2>&1 || true
+  exit "$code"
 }
 trap cleanup EXIT
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
+trap 'cancel HUP 129' HUP
+trap 'cancel INT 130' INT
+trap 'cancel TERM 143' TERM
 set +e
-docker run --rm --network=none --cpus=2 --memory=4g --pids-limit=128 --read-only --cap-drop=ALL --security-opt=no-new-privileges -u "$uid:$gid" \
-  -e TMPDIR="$tmpdir" ${PYCLI_TIMEOUT_S:+-e PYCLI_TIMEOUT_S} ${PYCLI_BLAS_CORETYPE:+-e PYCLI_BLAS_CORETYPE} \
-  --mount "type=bind,src=$cwd,dst=$cwd" -w "$cwd" pycli:runtime "$@" >"$out" 2>"$err"
+docker run --rm --pull=never --init --name "$container_name" \
+  --network=none --cpus=2 --memory=4g --pids-limit=128 \
+  --read-only --cap-drop=ALL --security-opt=no-new-privileges -u "$uid:$gid" \
+  --tmpfs /tmp:rw,noexec,nosuid,nodev,size=512m \
+  -e TMPDIR=/tmp -e PYCLI_READONLY -e PYCLI_DRYRUN \
+  ${PYCLI_TIMEOUT_S:+-e PYCLI_TIMEOUT_S} ${PYCLI_BLAS_CORETYPE:+-e PYCLI_BLAS_CORETYPE} \
+  --mount "type=bind,src=$cwd,dst=$cwd" -w "$cwd" pycli:runtime "$@" >"$out" 2>"$err" &
+docker_pid=$!
+wait "$docker_pid"
 rc=$?
 set -e
-if grep -Eiq '(^docker:|Error response from daemon|Cannot connect to the Docker daemon|Unable to find image|pull access denied|error during connect|docker: not found)' "$err"; then
-  [ ! -s "$out" ] || cat "$out"
+if grep -Eiq '(^docker:|Error response from daemon|Cannot connect to the Docker daemon|No such image|Unable to find image|pull access denied|error during connect|docker: not found)' "$err"; then
   [ ! -s "$err" ] || cat "$err" >&2
-  printf '{"success":false,"error":{"code":"SERVICE_UNAVAILABLE","message":"pycli container failed to start","data":{"docker_exit":%s}}}\n' "$rc"
+  printf '{"success":false,"error":{"code":"SERVICE_UNAVAILABLE","message":"pycli container unavailable; build locally with scripts/build.sh runtime","data":{"docker_exit":%s}}}\n' "$rc"
   rc=8
-elif { [ "$rc" -ge 128 ] || { [ ! -s "$out" ] && [ "$rc" -ne 0 ]; }; }; then
+elif [ "$rc" -ge 128 ] || { [ ! -s "$out" ] && [ "$rc" -ne 0 ]; }; then
   [ ! -s "$err" ] || cat "$err" >&2
   printf '{"success":false,"error":{"code":"INTERNAL_ERROR","message":"pycli exited without a result","data":{"tool_code":"TOOL_CRASH","exit":%s}}}\n' "$rc"
   rc=1
