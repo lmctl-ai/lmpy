@@ -282,13 +282,13 @@ def frame_save(df,meta,masks,p,inferred):
     return {'status':'OK','shape':[len(df),len(df.columns)],'column_meta':meta,'inferred':inferred,'preview':frame_preview(df,meta,masks,range(min(len(df),min(10,1000//len(df.columns)))))}
 
 
-def frame_predicate(df,node,meta):
+def frame_predicate(df,node,meta,masks):
     import pandas as pd
     if 'and' in node or 'or' in node:
-        key='and' if 'and' in node else 'or';parts=[frame_predicate(df,n,meta) for n in node[key]];result=parts[0]
+        key='and' if 'and' in node else 'or';parts=[frame_predicate(df,n,meta,masks) for n in node[key]];result=parts[0]
         for part in parts[1:]:result=result & part if key=='and' else result | part
         return result
-    if 'not' in node:return ~frame_predicate(df,node['not'],meta)
+    if 'not' in node:return ~frame_predicate(df,node['not'],meta,masks)
     col=node['col']
     if col not in df:raise BadData('unknown predicate column')
     s=df[col];op=node['op'];v=node.get('value');dtype=meta[col]['dtype']
@@ -316,13 +316,13 @@ def frame_predicate(df,node,meta):
         if op in ('contains','startswith') and dtype not in ('string','category'):raise BadData('string predicate requires string/category column')
         v=[typed(x) for x in v] if op in ('isin','between') else typed(v)
     try:
-        if op=='isnull':return s.isna()
-        if op=='isin':return s.isin(v).fillna(False)
-        if op=='between':return s.between(v[0],v[1]).fillna(False)
+        if op=='isnull':return pd.Series(masks[col],index=df.index)
+        if op=='isin':return s.isin(v).fillna(False) & ~masks[col]
+        if op=='between':return s.between(v[0],v[1]).fillna(False) & ~masks[col]
         if op=='startswith':return s.str.startswith(v,na=False)
         if op=='contains':return s.str.contains(v,regex=False,na=False)
         functions={'eq':s.eq,'ne':s.ne,'lt':s.lt,'le':s.le,'gt':s.gt,'ge':s.ge}
-        return functions[op](v).fillna(False)
+        return functions[op](v).fillna(False) & ~masks[col]
     except (TypeError, ValueError, AttributeError) as exc:raise BadData('invalid predicate for column dtype') from exc
 
 
@@ -379,7 +379,7 @@ def frame_operation(op,p):
                 f=io.StringIO();csv.writer(f,lineterminator='\n').writerows(rows());return {'csv':f.getvalue()}
         return {'status':'OK','shape':[len(df),len(df.columns)]}
     if op=='frame_select':
-        if 'where' in p:df=df.loc[frame_predicate(df,p['where'],meta)]
+        if 'where' in p:df=df.loc[frame_predicate(df,p['where'],meta,masks)]
         if p.get('sort_by'):
             names=[v['col'] for v in p['sort_by']]
             if any(c not in df for c in names):raise BadData('unknown sort column')
