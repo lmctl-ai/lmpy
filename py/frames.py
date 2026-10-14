@@ -27,7 +27,7 @@ def frame_dtype(spec):
     return dict(spec)
 
 
-def frame_build(data, policies, inferred, from_csv=False, na_values=()):
+def frame_build(data, policies, inferred, from_csv=False, na_values=(), normalized=False):
     import pandas as pd
     import numpy as np
     import pytz
@@ -77,7 +77,7 @@ def frame_build(data, policies, inferred, from_csv=False, na_values=()):
                 for v, missing in zip(vals, mask):
                     if missing:
                         parsed.append(0);continue
-                    if isinstance(v, bool) or isinstance(v, float) and not v.is_integer():
+                    if isinstance(v, bool) or isinstance(v, float) and (not normalized or not v.is_integer()):
                         raise BadData('int64 requires integral cells')
                     n = int(v)
                     if not -(1 << 63) <= n < (1 << 63):
@@ -349,7 +349,7 @@ def frame_operation(op,p):
         for col in p.get('parse_dates',[]):policies[col]='datetime64[ns]'
         table=frame_preview(df,meta,masks,range(len(df)))
         data={c:[None if isinstance(v,FrameNull) else 'NaN' if isinstance(v,float) and math.isnan(v) else 'Inf' if isinstance(v,float) and v==math.inf else '-Inf' if isinstance(v,float) and v==-math.inf else v for v in vals] for c,vals in table['data'].items()}
-        df,meta,masks=frame_build(data,policies,inferred)
+        df,meta,masks=frame_build(data,policies,inferred,normalized=True)
     if op=='frame_inspect':
         head=p.get('head',10);tail=p.get('tail',0)
         if (min(head,len(df))+min(tail,len(df)))*len(df.columns)>1000:raise BadData('head+tail exceeds 1000 cells')
@@ -428,5 +428,5 @@ def frame_operation(op,p):
                 else:
                     policy=dict(source)
                 policies[name]=policy;inferred[name]=policy['dtype']
-        df,meta,masks=frame_build(data,policies,inferred)
+        df,meta,masks=frame_build(data,policies,inferred,normalized=True)
     return frame_save(df,meta,masks,p,inferred)
