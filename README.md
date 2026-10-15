@@ -388,7 +388,7 @@ solution-limit stop (SciPy currently calls it status 4) maps to NODE_LIMIT;
 negative/unavailable iteration counts are omitted. Available primal solutions
 include `objective`, `x`, `slack`, equality residuals and an independent feasibility
 check. LP `duals.ub/eq/lower/upper` are derivatives of the **original** objective
-(including maximize sign). MILP reports available mip_gap/node_count/dual_bound,
+(including maximize sign). MILP reports available `mip_gap`, `mip_node_count`, `mip_dual_bound`,
 no LP duals; an incumbent within a nonzero requested gap is labelled `incumbent`,
 not proven optimal. In degenerate problems compare feasibility/objective, not x.
 

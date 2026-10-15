@@ -1,0 +1,69 @@
+{
+  "cases": {
+    "matrix_entries": {
+      "rows": 500,
+      "variables": 400,
+      "entries": 200000,
+      "seconds": 0.8145465470006457,
+      "response_bytes": 1819,
+      "objective": -400.0
+    },
+    "variables": {
+      "rows": 390,
+      "variables": 512,
+      "entries": 199680,
+      "seconds": 0.8561110849987017,
+      "response_bytes": 1819,
+      "objective": -512.0
+    },
+    "constraint_rows": {
+      "rows": 4096,
+      "variables": 48,
+      "entries": 196608,
+      "seconds": 0.9997635600011563,
+      "response_bytes": 1815,
+      "objective": -48.0
+    },
+    "ode_states_and_output": {
+      "states": 32,
+      "points": 5926,
+      "trajectory_numbers": 195558,
+      "seconds": 0.7320647239976097,
+      "response_bytes": 1820,
+      "artifact_bytes": 1564608,
+      "evals": 2944
+    }
+  },
+  "cgroup_peak_bytes": 103346176,
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "--pull=never",
+    "--init",
+    "--network=none",
+    "--cpus=2",
+    "--memory=4g",
+    "--pids-limit=128",
+    "--read-only",
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges",
+    "--tmpfs",
+    "/tmp:rw,noexec,nosuid,nodev,size=512m",
+    "-e",
+    "OPENBLAS_NUM_THREADS=1",
+    "-e",
+    "OMP_NUM_THREADS=1",
+    "--mount",
+    "type=bind,src=/home/ubuntu/repos/lmctlhq/pycli/scripts/measure-s4-caps.py,dst=/probe.py,readonly",
+    "--entrypoint",
+    "python3",
+    "pycli:runtime",
+    "-P",
+    "-s",
+    "-B",
+    "/probe.py"
+  ],
+  "exit_code": 0,
+  "image": "sha256:a5d2b45586475842eed754999da11467ab37534b6e74c833b15208af34735b16"
+}

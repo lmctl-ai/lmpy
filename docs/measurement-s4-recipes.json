@@ -1,0 +1,149 @@
+[
+  {
+    "recipe": "curve-fit.lms",
+    "mode": "--check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "recipe": "curve-fit.lms",
+    "mode": "--dry-run",
+    "exit_code": 0,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/curve-fit.lms:13:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/curve-fit.lms:21:34 handled println [\"Fit simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "curve-fit.lms",
+    "mode": "real",
+    "exit_code": 0,
+    "stdout": "a=2.5006 b=0.7021 c=0.1016  rss=0.00439904  m=30  cov=OK\nCurve-fit oracle passed.\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "lp-plan.lms",
+    "mode": "--check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "recipe": "lp-plan.lms",
+    "mode": "--dry-run",
+    "exit_code": 0,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:3:1 dummy write_file [\"demand-s4.csv\",\"total_units,quality_min,regular_capacity,premium_capacity,regular_cost,premium_cost\\n3,5,4,3,1,2\\n\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:4:14 handled pycli.frame_import [{\"csv\":\"demand-s4.csv\",\"out\":\"demand-s4.npz\"}]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:5:35 handled println [\"Production plan simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "lp-plan.lms",
+    "mode": "real",
+    "exit_code": 0,
+    "stdout": "regular=2.000000 premium=1.000000 total_cost=4.000000\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "lstsq-fit.lms",
+    "mode": "--check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "recipe": "lstsq-fit.lms",
+    "mode": "--dry-run",
+    "exit_code": 0,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/lstsq-fit.lms:12:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/lstsq-fit.lms:19:34 handled println [\"Fit simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "lstsq-fit.lms",
+    "mode": "real",
+    "exit_code": 0,
+    "stdout": "coefficients: c0=1.997925 c1=3.003505 c2=-0.500839  rank=3  residual_norm=0.057431\nPolynomial least-squares fit passed.\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "minimize-rosenbrock.lms",
+    "mode": "--check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "recipe": "minimize-rosenbrock.lms",
+    "mode": "--dry-run",
+    "exit_code": 0,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/minimize-rosenbrock.lms:11:33 handled println [\"Minimisation simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "minimize-rosenbrock.lms",
+    "mode": "real",
+    "exit_code": 0,
+    "stdout": "finite differences: x=0.999996 y=0.999991 value=0.0000000000 nfev=117\nanalytic gradient:  x=1.000000 y=1.000000 value=0.0000000000 nfev=40\nRosenbrock oracle passed.\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "ode-sir.lms",
+    "mode": "--check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "recipe": "ode-sir.lms",
+    "mode": "--dry-run",
+    "exit_code": 0,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/ode-sir.lms:3:18 handled pycli.ode_solve [{\"atol\":1e-12,\"events\":[{\"direction\":-1,\"expr\":\"b*s*i/population-g*i\",\"terminal\":false}],\"max_output_points\":161,\"method\":\"DOP853\",\"params\":{\"b\":0.3,\"g\":0.1,\"population\":1000},\"rhs\":[\"-b*s*i/population\",\"b*s*i/population-g*i\",\"g*i\"],\"rtol\":1e-10,\"states\":[\"s\",\"i\",\"r\"],\"t_span\":[0,160],\"y0\":[999,1,0]}]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/ode-sir.lms:4:39 handled println [\"SIR trajectory simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "ode-sir.lms",
+    "mode": "real",
+    "exit_code": 0,
+    "stdout": "peak_day=38.355308 peak_infected=300.796071 population=1000.000000\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "sales-report.lms",
+    "mode": "--check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "recipe": "sales-report.lms",
+    "mode": "--dry-run",
+    "exit_code": 0,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:6:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:11:1 dummy write_file [\"sales-s2.csv\",\"ts,region,sales\\n2026-03-01T12:00:00+00:00,East,10\\n2026-03-02T12:00:00+00:00,West,20\\n2026-03-03T12:00:00+00:00,East,30\\n2026-03-04T12:00:00+00:00,West,40\\n2026-03-05T12:00:00+00:00,East,50\\n2026-03-06T12:00:00+00:00,West,60\\n2026-03-07T12:00:00+00:00,East,70\\n2026-03-08T12:00:00+00:00,West,80\\n2026-03-09T12:00:00+00:00,East,90\\n2026-03-10T12:00:00+00:00,West,100\\n\"]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:12:16 handled pycli.frame_import [{\"csv\":\"sales-s2.csv\",\"dtypes\":{\"ts\":{\"dtype\":\"datetime64[ns]\",\"tz\":\"UTC\"}},\"out\":\"sales-s2.npz\"}]\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:13:37 handled println [\"Sales report simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "sales-report.lms",
+    "mode": "real",
+    "exit_code": 0,
+    "stdout": "Region totals: {\"region\":[\"East\",\"West\"],\"sales__sum\":[450,500],\"sales__mean\":[90,100],\"sales__count\":[5,5]}\nWeekly CSV: ts,sales__sum,sales__count\n2026-03-08T00:00:00+00:00,260,4\n2026-03-15T00:00:00+00:00,690,6\n\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "solve.lms",
+    "mode": "--check",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "recipe": "solve.lms",
+    "mode": "--dry-run",
+    "exit_code": 0,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/solve.lms:5:34 handled println [\"Solve simulated.\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/solve.lms:13:32 handled println [\"Quantile simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "recipe": "solve.lms",
+    "mode": "real",
+    "exit_code": 0,
+    "stdout": "S0 solve and normal quantile passed.\n",
+    "stderr": ""
+  }
+]
