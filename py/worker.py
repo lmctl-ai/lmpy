@@ -422,6 +422,15 @@ def main():
                 import scipy.linalg
                 import scipy.stats
                 sm_import()  # statsmodels class API only; patsy never loads (see py/sm.py)
+        elif request['op'].startswith(('interp_', 'sig_', 'spatial_')):
+            # Lazy per operation group: only the scipy subpackage the op needs (scipy.signal itself pulls in interpolate/spatial/stats).
+            if request['op'].startswith('interp_'):
+                import scipy.interpolate
+            elif request['op'].startswith('sig_'):
+                import scipy.signal
+            else:
+                import scipy.spatial
+                import scipy.spatial.distance
         elif request['op'] == 'py_info':
             import scipy
         for module in list(sys.modules):
@@ -432,7 +441,7 @@ def main():
         imported = time.monotonic()
         if request['op'] in ('opt_linprog','ode_solve','opt_linprog_to','ode_solve_to'):
             request['params']['time_budget_s']=max(0.0,request['params']['time_budget_s']-(imported-start))
-        if request['op'].startswith(('sm_','ml_')):
+        if request['op'].startswith(('sm_','ml_','interp_','sig_','spatial_')):
             request['params']['time_budget_s']=max(0.05,request['params']['time_budget_s']-(imported-start))
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter('always')
@@ -440,6 +449,7 @@ def main():
                 result = (frame_operation(request['op'], request['params']) if request['op'].startswith('frame_')
                           else ml_operation(request['op'],request['params']) if request['op'].startswith('ml_')
                           else sm_operation(request['op'])(request['params']) if request['op'].startswith('sm_')
+                          else s7_operation(request['op'])(request['params']) if request['op'].startswith(('interp_', 'sig_', 'spatial_'))
                           else numeric_operation(request['op'])(request['params']) if request['op'] in NUMERIC_OPS
                           else OPS[request['op']](request['params']))
         result['meta'] = {'python': sys.version.split()[0], 'numpy': np.__version__,
@@ -447,6 +457,7 @@ def main():
                           'pandas': sys.modules['pandas'].__version__ if 'pandas' in sys.modules else 'unloaded',
                           'sklearn': sys.modules['sklearn'].__version__ if 'sklearn' in sys.modules else 'unloaded',
                           'statsmodels': sys.modules['statsmodels'].__version__ if 'statsmodels' in sys.modules else 'unloaded',
+                          'scipy_subpackages': [m for m in ('interpolate', 'signal', 'spatial') if 'scipy.' + m in sys.modules],
                           'forbidden_modules_loaded': [m for m in ('patsy', 'formulaic', 'statsmodels.formula.api') if m in sys.modules],
                           'import_ms': (imported-start)*1000, 'elapsed_ms': (time.monotonic()-start)*1000}
         response = {'ok': True, 'result': result}

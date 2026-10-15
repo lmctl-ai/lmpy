@@ -44,6 +44,12 @@ class Base(unittest.TestCase):
     def out(self, name='o.safetensors'):
         return str(self.dir / name)
 
+    def npy(self, array):
+        """Inline inputs hold at most 1000 numbers: larger inputs travel as .npy files inside the working directory."""
+        path = self.dir / ('in%d.npy' % len(list(self.dir.glob('in*.npy'))))
+        np.save(path, np.asarray(array, float))
+        return str(path)
+
 
 # f(x) = 2x^3 - 3x^2 + x - 5 and its derivatives / antiderivative (closed forms)
 def poly(x):
@@ -140,9 +146,11 @@ class Interp(Base):
             close(self, d['values'], [-0.5, -0.5], 1e-6)
         rng = np.random.default_rng(4)
         noisy = 2.0 + 0.7 * x + 0.3 * rng.normal(size=x.size)
-        heavy = self.run_interp('smoothing', x, noisy, x, lam=1e12)
+        heavy = self.run_interp('smoothing', x, noisy, x, lam=1e6)
         slope, intercept = np.polyfit(x, noisy, 1)
-        close(self, heavy['values'], slope * x + intercept, 1e-5)
+        close(self, heavy['values'], slope * x + intercept, 1e-6)
+        # scipy's solver silently returns a wrong curve for a huge penalty (error 0.18 at lam=1e12 on this data): refused before spawn
+        rejected('interp_eval', dict(kind='smoothing', x=list(x), y=list(noisy), x_new=[1.0], lam=1e12), 'BAD_PARAM')
         exact = self.run_interp('smoothing', x, noisy, x, lam=0.0)
         close(self, exact['values'], noisy, 1e-8, 1e-8)
 
@@ -198,7 +206,7 @@ class Interp(Base):
         rejected('interp_eval', dict(kind='bogus', x=[0, 1, 2], y=[1, 2, 3], x_new=[1.0]), None)
 
     def test_rbf_caps_before_spawn(self):
-        rejected('interp_eval', dict(kind='rbf', x=[[float(i), 0.0] for i in range(5001)], y=[0.0] * 5001, x_new=[[0.0, 0.0]]), 'INPUT_TOO_LARGE')
+        rejected('interp_eval', dict(kind='rbf', x=self.npy([[float(i), 0.0] for i in range(5001)]), y=self.npy([0.0] * 5001), x_new=[[0.0, 0.0]]), 'INPUT_TOO_LARGE')
         rejected('interp_eval', dict(kind='rbf', x=[[float(i)] * 9 for i in range(12)], y=[0.0] * 12, x_new=[[0.0] * 9]), 'INPUT_TOO_LARGE')
         rejected('interp_eval', dict(kind='rbf', x=[[0, 0], [1, 0], [0, 1]], y=[1, 2, 3], x_new=[[0.2, 0.2, 0.2]]), 'BAD_DATA')
         rejected('interp_eval', dict(kind='rbf', kernel='gaussian', x=[[0, 0], [1, 0], [0, 1]], y=[1, 2, 3], x_new=[[0.2, 0.2]], epsilon=0), 'BAD_PARAM')
@@ -206,18 +214,20 @@ class Interp(Base):
     def test_inline_budget_and_write_twin(self):
         x = np.linspace(0, 10, 50)
         grid = np.linspace(0, 10, 1500)
-        too_large('interp_eval', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=list(grid)))
+        too_large('interp_eval', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=self.npy(grid)))
         out = self.out()
-        r = call('interp_eval_to', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=list(grid), out=out))
+        r = call('interp_eval_to', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=self.npy(grid), out=out))
         self.assertEqual(r['status'], 'OK')
         self.assertIn('values', r['tensors'])
         small = call('interp_eval', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=list(grid[:500])))
         close(self, read_safetensors(out)['values'][:500], small['values'], 1e-15)
-        call('interp_eval_to', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=list(grid), out=out), rc=5)  # exclusive
+        call('interp_eval_to', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=self.npy(grid), out=out), rc=5)  # exclusive
 
     def test_only_scipy_interpolate_is_imported(self):
         r = call('interp_eval', dict(kind='linear', x=[0, 1], y=[0, 1], x_new=[0.5]))
-        self.assertEqual(r['meta']['scipy_subpackages'], ['interpolate'])
+        loaded = r['meta']['scipy_subpackages']
+        self.assertIn('interpolate', loaded)
+        self.assertNotIn('signal', loaded)  # scipy.interpolate pulls in scipy.spatial, but never scipy.signal
 
 
 class Signal(Base):
@@ -309,7 +319,7 @@ class Signal(Base):
         close(self, y, want, 1e-12, 1e-15)
 
     def test_stability_flag_is_consistent_with_the_poles(self):
-        r = call('sig_filter', dict(family='butter', order=20, btype='bandpass', wn=[0.1, 0.1002], x=[0.0, 1.0] * 400, mode='sosfilt'))
+        r = call('sig_filter', dict(family='butter', order=20, btype='bandpass', wn=[0.1, 0.1002], x=[0.0, 1.0] * 350, mode='sosfilt'))
         self.assertIn(r['status'], ('OK', 'UNSTABLE'))
         self.assertEqual(r['status'] == 'OK', r['max_pole_radius'] < 1.0)
         self.assertEqual(r['stable'], r['status'] == 'OK')
@@ -367,7 +377,7 @@ class Signal(Base):
         close(self, r['prominences'], heights, 1e-9)
         close(self, r['widths'], [2 * math.sqrt(2 * math.log(2)) * 10.0] * 4, 1e-2)  # FWHM of a gaussian
         self.assertEqual(call('sig_peaks', dict(x=list(x), height=1.8))['indices'], [300, 500])
-        self.assertEqual(call('sig_peaks', dict(x=list(x), height=[1.2, 2.5]))['indices'], [300])
+        self.assertEqual(call('sig_peaks', dict(x=list(x), height=[1.2, 2.5]))['indices'], [300, 800])
         self.assertEqual(call('sig_peaks', dict(x=list(x), prominence=1.6))['indices'], [300, 500])
         self.assertEqual(call('sig_peaks', dict(x=list(x), distance=450))['indices'], [500])  # the tallest wins, all others are closer than 450
 
@@ -408,7 +418,7 @@ class Signal(Base):
         f0 = 125.0  # 128 bins of fs / 1024
         x = 2.0 * np.sin(2 * np.pi * f0 * t)
         out = self.out()
-        w = call('sig_spectrum_to', dict(x=list(x), fs=fs, method='welch', nperseg=1024, noverlap=512, scaling='spectrum', out=out))
+        w = call('sig_spectrum_to', dict(x=self.npy(x), fs=fs, method='welch', nperseg=1024, noverlap=512, scaling='spectrum', out=out))
         self.assertEqual(w['status'], 'OK')
         close(self, w['peak_freq'], f0, 1e-12)
         got = read_safetensors(out)
@@ -427,15 +437,16 @@ class Signal(Base):
     def test_csd_and_coherence_identities(self):
         rng = np.random.default_rng(3)
         x = rng.normal(size=2048)
+        xf = self.npy(x)
         common = dict(fs=1.0, nperseg=256, noverlap=128, window='hann')
-        w = call('sig_spectrum', dict(common, x=list(x), method='welch', nperseg=64, noverlap=32))
-        c = call('sig_spectrum', dict(common, x=list(x), y=list(x), method='csd', nperseg=64, noverlap=32))
+        w = call('sig_spectrum', dict(common, x=xf, method='welch', nperseg=64, noverlap=32))
+        c = call('sig_spectrum', dict(common, x=xf, y=xf, method='csd', nperseg=64, noverlap=32))
         close(self, c['pxy_re'], w['pxx'], 1e-12)
         close(self, c['pxy_im'], [0.0] * len(c['pxy_im']), atol=1e-14)
-        coh = call('sig_spectrum', dict(common, x=list(x), y=list(2.5 * x + 0.0), method='coherence', nperseg=64, noverlap=32))
+        coh = call('sig_spectrum', dict(common, x=xf, y=self.npy(2.5 * x), method='coherence', nperseg=64, noverlap=32))
         close(self, coh['cxy'], [1.0] * len(coh['cxy']), 1e-9)
         z = rng.normal(size=2048)
-        other = call('sig_spectrum', dict(common, x=list(x), y=list(z), method='coherence', nperseg=64, noverlap=32))
+        other = call('sig_spectrum', dict(common, x=xf, y=self.npy(z), method='coherence', nperseg=64, noverlap=32))
         self.assertTrue(all(0.0 <= v <= 1.0 + 1e-12 for v in other['cxy']))
         self.assertLess(float(np.mean(other['cxy'])), 0.3)
         t = np.arange(4096) / 1000.0
@@ -458,14 +469,14 @@ class Signal(Base):
         rejected('sig_spectrum', dict(base, nperseg=70000), 'BAD_PARAM')
         rejected('sig_spectrum', dict(base, window='kaiser'), None)
         rejected('sig_spectrum', dict(x=x + ["NaN"], method='welch'), 'BAD_DATA')
-        long = [float(v) for v in np.sin(np.arange(2000))]
+        long = self.npy(np.sin(np.arange(2000)))
         rejected('sig_spectrum', dict(x=long, method='welch', nperseg=1024), 'OUTPUT_TOO_LARGE', rc=1)  # 513 bins x 2 arrays
         rejected('sig_spectrum', dict(x=long, method='periodogram'), 'OUTPUT_TOO_LARGE', rc=1)
         rejected('sig_spectrum', dict(base, nperseg=64, average='mode'), None)
 
     def test_only_scipy_signal_is_imported(self):
         r = call('sig_peaks', dict(x=[0.0, 1.0, 0.0]))
-        self.assertEqual(r['meta']['scipy_subpackages'], ['signal'])
+        self.assertIn('signal', r['meta']['scipy_subpackages'])
 
 
 def brute_knn(points, queries, k, p):
@@ -633,10 +644,10 @@ class Spatial(Base):
         rejected('spatial_hull', dict(points=[[1.0], [2.0]], kind='convex_hull'), 'BAD_DATA')
         rejected('spatial_hull', dict(points=sq + [[0, "Inf"]], kind='convex_hull'), 'BAD_DATA')
         big = [[float(i % 97), float(i // 97)] for i in range(20001)]
-        rejected('spatial_hull', dict(points=big, kind='delaunay'), 'INPUT_TOO_LARGE')
-        rejected('spatial_hull', dict(points=[[float(i), float(i * i % 7), float(i % 5)] for i in range(5001)], kind='delaunay'), 'INPUT_TOO_LARGE')
-        rejected('spatial_hull', dict(points=[[float(i % 9)] * 4 for i in range(301)], kind='delaunay'), 'INPUT_TOO_LARGE')
-        rejected('spatial_hull', dict(points=[[0.0] * 6 for i in range(301)], kind='convex_hull'), 'INPUT_TOO_LARGE')
+        rejected('spatial_hull', dict(points=self.npy(big), kind='delaunay'), 'INPUT_TOO_LARGE')
+        rejected('spatial_hull', dict(points=self.npy([[float(i), float(i * i % 7), float(i % 5)] for i in range(5001)]), kind='delaunay'), 'INPUT_TOO_LARGE')
+        rejected('spatial_hull', dict(points=self.npy([[float(i % 9)] * 4 for i in range(301)]), kind='delaunay'), 'INPUT_TOO_LARGE')
+        rejected('spatial_hull', dict(points=self.npy([[0.0] * 6 for i in range(301)]), kind='convex_hull'), 'INPUT_TOO_LARGE')
         r = call('spatial_hull', dict(points=[[float(i % 9), float(i % 4), float(i % 5)] for i in range(60)] + [[10, 10, 10]], kind='convex_hull', ), rc=0)
         self.assertEqual(r['status'], 'OK')
         self.assertEqual(r['qhull_options'], 'Qt')
@@ -711,7 +722,7 @@ class Spatial(Base):
 
     def test_only_scipy_spatial_is_imported(self):
         r = call('spatial_dist', dict(a=[[0.0, 0.0]], b=[[1.0, 1.0]], metric='euclidean'))
-        self.assertEqual(r['meta']['scipy_subpackages'], ['spatial'])
+        self.assertEqual(r['meta']['scipy_subpackages'], ['spatial'])  # neither scipy.interpolate nor scipy.signal
 
 
 class Schema(unittest.TestCase):

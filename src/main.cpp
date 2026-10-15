@@ -481,6 +481,7 @@ Json prepare_root(const Params& in){
 #include "s4.hpp"
 #include "s5.hpp"
 #include "ml.hpp"
+#include "s7.hpp"
 int expr_check_cli(){
     try{
         std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
@@ -570,13 +571,15 @@ Json call(const std::string& op,const Params& input){
         if(p["fn"]=="ppf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid("ppf probabilities must lie in [0,1]","BAD_PROBABILITY");
     }
     if(sm)p=prepare_sm(op,p);
+    const bool s7=s7_op(op),s7_write=s7&&s7_twin(op);
+    if(s7)p=prepare_s7(op,input,arrays);
     bool s4_write=op=="opt_linprog_to"||op=="ode_solve_to";bool s4=s4_write||op=="opt_linprog"||op=="ode_solve";std::string s4_out;
     bool numeric=s4||op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
     if(s4)p=(op=="opt_linprog"||op=="opt_linprog_to")?prepare_linprog(input,arrays):prepare_ode(input,arrays);
     else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
-    if(sm||ml)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
+    if(sm||ml||s7)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
     if(numeric){
         {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
         p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=s4?Json(std::max(0.01,double(seconds)-2.0)):Json(std::max(1,seconds-10));  // worker stops cooperatively before the hard kill
@@ -591,7 +594,7 @@ Json call(const std::string& op,const Params& input){
     }
     Json request=p;if(ml)request.erase("out");
     if(s4){if(s4_write)s4_out=p["out"].get<std::string>();request["force_artifact"]=s4_write;}
-    if(s4||sm_twin||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
+    if(s4||sm_twin||s7_write||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
     {std::ofstream f(temp.file("req.json"));f<<Json{{"op",op},{"params",request}}.dump();if(!f)throw std::runtime_error("cannot write request");}
     {std::ofstream f(temp.file("worker.py"));f<<PYCLI_WORKER_SOURCE;if(!f)throw std::runtime_error("cannot write worker");}
     std::string python="python3";
@@ -633,7 +636,7 @@ Json call(const std::string& op,const Params& input){
         auto output=temp.file("output.bin");if(fs::file_size(output)!=n*8)throw std::runtime_error("worker output size mismatch");tensor.bytes.resize(n*8);std::ifstream f(output,std::ios::binary);f.read(reinterpret_cast<char*>(tensor.bytes.data()),n*8);
         pycli::TensorBundle bundle;bundle.tensors["x"]=tensor;auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);result.erase("shape");result["x"]=pycli::descriptor({path,"x"},tensor);
     }
-    if(op=="la_lstsq_to"||op=="la_decomp"||sm_twin){
+    if(op=="la_lstsq_to"||op=="la_decomp"||sm_twin||s7_write){
         std::string status=result.value("status",std::string());
         if(status!="OK"&&!((op=="la_lstsq_to"||sm_twin)&&status=="RANK_DEFICIENT"))no_artifact(result,"no artifact was produced");
         auto bundle=read_outputs(temp,result);auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);
@@ -704,6 +707,7 @@ int main(int argc,char** argv){
         Param{"pivoting",Type::Boolean,false,false,{},"qr only: column pivoting, adds int64 tensor p with A[:,p]=Q@R."},
         Param{"lower",Type::Boolean,false,true,{},"cholesky only: false returns the upper factor u."}}};
     CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
+    add_s7_ops(spec);
     auto common=[](){return std::vector<Param>{Param{"frame",Type::String,true,nullptr,{},"Stored-only .npz table ref inside cwd."}};};
     std::vector<Param> import_params={Param{"columns",Type::Object,false,nullptr,{},"Inline column map, <=1000 cells."},Param{"records",Type::Array,false,nullptr,{},"Inline records with identical keys, <=1000 cells.","",false,false,false,{},Type::Object},Param{"csv",Type::String,false,nullptr,{},"UTF-8 CSV path with header, <=16MiB, 200000 rows, 500000 cells; string width <=65536 bytes."},Param{"frame",Type::String,false,nullptr,{},"Existing table ref to copy."},Param{"dtypes",Type::Object,false,Json::object(),{},"Column dtype overrides: int64,float64,bool,string,datetime64[ns],category; object specs may give tz/categories/ordered."},Param{"delimiter",Type::String,false,",",{},"Single-byte CSV delimiter."},Param{"na_values",Type::Array,false,Json::array(),{},"CSV missing tokens in addition to empty cells.","",false,false,false,{},Type::String},Param{"parse_dates",Type::Array,false,Json::array(),{},"ISO datetime columns; timezone requires a dtype object override.","",false,false,false,{},Type::String},Param{"max_rows",Type::Integer,false,200000,{},"CSV maximum data rows, 0..200000."},Param{"out",Type::String,true,nullptr,{},"New .npz table artifact; CONFLICT if exists."}};
     spec.operations.push_back(Operation{"frame_import",Access::Write,"Import typed tables; inference is returned explicitly","object",import_params});
