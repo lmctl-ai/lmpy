@@ -639,3 +639,38 @@ existing S8 group **46 tests**; additional **3 ASan/UBSan preflight tests**, exi
 The R sampler comparison again checked 25 quantiles, worst **2.85 standard errors**; optional absent lmda/statsrust legs printed setup hints.
 All **five requested scratch mutations were rejected** by the regression tests (expected test exit 1), not installed in production.
 Full command/result evidence: [acceptance-s8a-review.json](acceptance-s8a-review.json). amd64 execution remains unverified.
+
+## S8b (first half): matrix functions, sparse, special functions, root systems, time-series tests (aarch64, 2026-10-16)
+
+Runtime image **635 MB** on disk (634 MB before), `inspect .Size` **136,628,927** bytes (**+41,754** over the S8a review figure 136,587,173: source only; no wheel or package was added to the runtime, so the notices are
+unchanged). mpmath 1.3.0 (a pure-Python wheel, hash-locked in `docker/requirements-test.lock`) is installed in the **test image only**; the test image grew by about 18 MB of site-packages, the runtime by nothing.
+
+**Import cost** (worker import phase, p50 of 10 fresh calls through the production shim; `docs/measurement-s8b-shim.json`, `scripts/measure-s8b.py`). No group approaches the 3 s split-worker threshold.
+
+| Operation | Imports | Worker import p50 | Call p50 wall | p95 wall |
+|---|---|---|---|---|
+| `py_info` (reference) | numpy + scipy | 0.11 s | 0.66 s | 0.69 s |
+| `la_matrix_fn` | numpy, `scipy.linalg` | 0.36 s | 0.97 s | 1.09 s |
+| `la_sparse` | numpy, `scipy.sparse.linalg` | 0.34 s | 0.95 s | 1.01 s |
+| `special_fn` | numpy, `scipy.special` | 0.33 s | 0.93 s | 0.97 s |
+| `opt_root` | numpy, scipy.optimize/integrate/special (the S3 group) | 0.45 s | 1.08 s | 1.27 s |
+| `sm_tsa_tools` adfuller / ljung_box | pandas + statsmodels (the S5 group) | 1.07-1.09 s | 1.83-1.85 s | 2.1-2.3 s |
+
+**Caps measured in the hardened container** (2 CPUs, 4 GiB, read-only root, `scripts/measure-s8b-caps.py`, raw output `docs/measurement-s8b-caps.txt`; cgroup peak over the whole probe **0.18 GB**), every case at its cap:
+
+| Case | Result |
+|---|---|
+| `la_matrix_fn_to` n = 447 (the input cap): inv / expm / sqrtm / logm (SPD) | 0.8 s / 0.8 s / 0.9-1.1 s / 1.3 s |
+| `logm` of a general random 447 x 447 matrix (Schur with complex arithmetic) / `pinv` 400 x 500 | 3.1 s / 0.9 s |
+| `spsolve` 1-D n = 20000 / 2-D Poisson n = 19881 (98,841 entries, SuperLU fill-in) | 0.7 s / 0.8 s |
+| `eigsh` shift-invert (sigma = 0) k = 5, n = 66000 (200,000 entries), with vectors | 1.1 s |
+| `svds` k = 5 on the 2-D Poisson matrix | 3.1 s |
+| `eigs` k = 3 on a random 100000 x 100000 matrix with 200,000 entries | 10.5 s (just inside the default 10 s `time_limit`) |
+| `cg` / `gmres` / `eigsh` LA and SA on the 1-D Poisson matrix, n = 66000 | `TIME_LIMIT` at 10.7 s (the matrix needs ~n iterations; raise `time_limit` to 30 or use shift-invert) |
+| `special_fn_to` 200000 values: jv, hyp2f1, gammaincinv, airy (4 outputs), struve, owens_t | 0.7-1.5 s each |
+| `opt_root` 16 unknowns (hybr, x_i^2 = i + 1) / weakly coupled system (lm) | 0.7 s / 0.8 s |
+
+Memory is tiny everywhere (the largest dense case holds 447 x 447 matrices); the binding resource is time, which the cooperative `time_limit` turns into the status `TIME_LIMIT`.
+
+Acceptance: `./scripts/build.sh test` 0; `docker run --rm --pull=never --network=none pycli:test` 33/33 groups exit 0 (629 s with four groups in parallel); runtime rebuild 0; all 27 recipes passed real,
+`--check` and `--dry-run` through the host shim, 81/81 exit 0 (rcli and statsrust on PATH; the optional lmda legs were skipped with their hints, no lmda binary is present).

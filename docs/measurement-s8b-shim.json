@@ -1,0 +1,139 @@
+{
+  "image_bytes": 136628927,
+  "py_info": {
+    "wall": {
+      "p50_ms": 662.037,
+      "p95_ms": 694.055,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 106.263,
+      "p95_ms": 132.822,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 110.79,
+      "p95_ms": 137.277,
+      "n": 10
+    }
+  },
+  "la_matrix_fn_expm_8x8": {
+    "wall": {
+      "p50_ms": 968.486,
+      "p95_ms": 1092.199,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 363.9,
+      "p95_ms": 427.373,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 364.462,
+      "p95_ms": 428.052,
+      "n": 10
+    }
+  },
+  "la_sparse_cg_100": {
+    "wall": {
+      "p50_ms": 950.899,
+      "p95_ms": 1014.729,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 339.449,
+      "p95_ms": 375.937,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 343.093,
+      "p95_ms": 379.918,
+      "n": 10
+    }
+  },
+  "la_sparse_eigsh_100": {
+    "wall": {
+      "p50_ms": 954.638,
+      "p95_ms": 994.148,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 342.664,
+      "p95_ms": 370.025,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 355.461,
+      "p95_ms": 384.286,
+      "n": 10
+    }
+  },
+  "special_fn_gammainc_100": {
+    "wall": {
+      "p50_ms": 928.735,
+      "p95_ms": 973.874,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 333.088,
+      "p95_ms": 356.333,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 333.873,
+      "p95_ms": 357.251,
+      "n": 10
+    }
+  },
+  "opt_root_circle_line": {
+    "wall": {
+      "p50_ms": 1078.632,
+      "p95_ms": 1265.591,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 454.069,
+      "p95_ms": 599.341,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 456.63,
+      "p95_ms": 602.403,
+      "n": 10
+    }
+  },
+  "sm_tsa_tools_adfuller_200": {
+    "wall": {
+      "p50_ms": 1834.181,
+      "p95_ms": 2082.569,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1067.145,
+      "p95_ms": 1276.559,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1076.39,
+      "p95_ms": 1285.815,
+      "n": 10
+    }
+  },
+  "sm_tsa_tools_ljung_box_200": {
+    "wall": {
+      "p50_ms": 1852.67,
+      "p95_ms": 2301.438,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1085.278,
+      "p95_ms": 1430.485,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1087.551,
+      "p95_ms": 1433.406,
+      "n": 10
+    }
+  }
+}

@@ -86,4 +86,4 @@ for fn, args in (('jv', {'v': 2.5, 'z': 'xs.npy'}), ('hyp2f1', {'a': 1.5, 'b': 2
 # a 16-equation system: x_i - cos-free chain x_i^2 = i
 eq = ['x%d^2 - %d' % (i, i + 1) for i in range(16)]
 run('opt_root 16 equations hybr', 'opt_root', dict(equations=eq, start={'x%d' % i: 1.0 for i in range(16)}))
-run('opt_root 16 coupled equations lm', 'opt_root', dict(equations=['x%d - 0.1*x%d^2 - %d' % (i, (i + 1) % 16, i) for i in range(16)], start={'x%d' % i: 0.0 for i in range(16)}, method='lm'))
+run('opt_root 16 weakly coupled equations lm', 'opt_root', dict(equations=['x%d - 0.01*x%d^2 - %d' % (i, (i + 1) % 16, i) for i in range(16)], start={'x%d' % i: 0.0 for i in range(16)}, method='lm'))

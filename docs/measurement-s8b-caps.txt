@@ -1,0 +1,24 @@
+la_matrix_fn_to inv n=447 (general)                            rc 0 OK                    0.8 s  peak 0.09 GB
+la_matrix_fn_to expm n=447 (general)                           rc 0 OK                    0.8 s  peak 0.10 GB
+la_matrix_fn_to logm n=447 (spd)                               rc 0 OK                    1.3 s  peak 0.11 GB
+la_matrix_fn_to sqrtm n=447 (spd)                              rc 0 OK                    0.8 s  peak 0.11 GB
+la_matrix_fn_to sqrtm n=447 (general)                          rc 0 OK                    1.1 s  peak 0.11 GB
+la_matrix_fn_to logm n=447 (general)                           rc 0 OK                    3.1 s  peak 0.13 GB
+la_matrix_fn_to pinv 400 x 500                                 rc 0 OK                    0.8 s  peak 0.13 GB
+la_sparse_to spsolve 1-D n=20000                               rc 0 OK                    0.6 s  peak 0.13 GB
+la_sparse_to cg 1-D n=66000, 200000 entries                    rc 1 TIME_LIMIT           10.7 s  peak 0.14 GB
+la_sparse_to gmres 1-D n=66000                                 rc 1 TIME_LIMIT           10.7 s  peak 0.14 GB
+la_sparse_to eigsh LM sigma=0 k=5 n=66000 (shift-invert)       rc 0 OK                    0.9 s  peak 0.16 GB
+la_sparse_to eigsh LA k=5 n=66000                              rc 1 TIME_LIMIT           10.7 s  peak 0.16 GB
+la_sparse_to eigsh SA k=5 n=66000 (clustered end: slow)        rc 1 TIME_LIMIT           10.6 s  peak 0.16 GB
+la_sparse_to spsolve 2-D Poisson n=19881 (98841 entries)       rc 0 OK                    0.8 s  peak 0.16 GB
+la_sparse_to svds k=5 2-D Poisson                              rc 0 OK                    2.6 s  peak 0.16 GB
+la_sparse_to eigs LM k=3 random 100000 x 100000, 200000 entries rc 0 OK                   10.5 s  peak 0.18 GB
+special_fn_to jv 200000 values                                 rc 0 OK                    0.8 s  peak 0.18 GB
+special_fn_to hyp2f1 200000 values                             rc 0 OK                    0.7 s  peak 0.18 GB
+special_fn_to gammaincinv 200000 values                        rc 0 OK                    0.7 s  peak 0.18 GB
+special_fn_to airy 200000 values                               rc 0 OK                    0.6 s  peak 0.18 GB
+special_fn_to struve 200000 values                             rc 0 OK                    1.5 s  peak 0.18 GB
+special_fn_to owens_t 200000 values                            rc 0 OK                    0.6 s  peak 0.18 GB
+opt_root 16 equations hybr                                     rc 0 OK                    0.7 s  peak 0.18 GB
+opt_root 16 weakly coupled equations lm                        rc 0 OK                    0.8 s  peak 0.18 GB
