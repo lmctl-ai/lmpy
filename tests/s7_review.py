@@ -109,6 +109,17 @@ class Review(old.Base):
   for name in ['sig_filter','sig_filter_to']:
    p={p['name']:p for p in ops[name]['params']};self.assertIn('phase-normalisation',p['wn']['description'])
   p={p['name']:p for p in ops['sig_peaks']['params']};self.assertIn('half prominence',p['rel_height']['description'])
+ def test_schema_spectrum_power_promise(self):
+  schema=json.loads(subprocess.check_output([BIN,'--schema'],text=True));ops={o['name']:o for o in schema['operations']}
+  for name in ['sig_spectrum','sig_spectrum_to']:self.assertIn('Only Welch/periodogram',ops[name]['description'])
+ def test_schema_signal_input_caps_and_sampled_widths(self):
+  schema=json.loads(subprocess.check_output([BIN,'--schema'],text=True));ops={o['name']:o for o in schema['operations']}
+  p={p['name']:p for p in ops['sig_peaks']['params']};self.assertIn('sampled crossings',p['rel_height']['description'])
+  for name in ['sig_filter','sig_spectrum','sig_peaks']:self.assertIn('inline <=1000',ops[name]['description'])
+ def test_schema_all_write_descriptors(self):
+  schema=json.loads(subprocess.check_output([BIN,'--schema'],text=True));ops={o['name']:o for o in schema['operations']}
+  for op in ops.values():
+   if op['access']=='write':self.assertIn('artifacts[name]',op['description'])
   for name in ['opt_minimize','sm_ols','sig_peaks','spatial_knn']:self.assertIn('time_limit',{p['name'] for p in ops[name]['params']})
  def test_signal_cleanup_staging(self):
   marker=self.dir/'started';wrapper=self.dir/'wait-python';wrapper.write_text('#!/usr/local/bin/python3\nimport pathlib,sys,time\npathlib.Path('+repr(str(marker))+').write_text(sys.argv[-2])\ntime.sleep(30)\n');wrapper.chmod(0o755)
