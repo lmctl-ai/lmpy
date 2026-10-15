@@ -1,0 +1,82 @@
+"""S4 independent hand optima, exhaustive integer search, analytic ODEs and primary ODEPACK data."""
+import itertools,json,math,os,pathlib,subprocess,sys,tempfile,unittest
+BIN=sys.argv.pop(1);ROOT=pathlib.Path(__file__).resolve().parents[1]
+class S4(unittest.TestCase):
+ def setUp(self):self.tmp=tempfile.TemporaryDirectory();self.cwd=pathlib.Path(self.tmp.name)
+ def tearDown(self):self.tmp.cleanup()
+ def call(self,op,rc=0,env=None,**p):
+  r=subprocess.run([BIN,op,'--input-json',json.dumps(p)],cwd=self.cwd,env=env,capture_output=True,text=True,timeout=48)
+  self.assertEqual(r.returncode,rc,(op,r.stdout,r.stderr));return json.loads(r.stdout)
+ def ode(self,**p):return self.call('ode_solve',**dict({'rhs':['-y[0]'],'y0':[1],'t_span':[0,1]},**p))
+ def test_production_diet_duals(self):
+  # Wyndor: max 3x+5y subject to x<=4, 2y<=12, 3x+2y<=18; optimum (2,6), 36.
+  p=dict(c=[3,5],a_ub=[[1,0],[0,2],[3,2]],b_ub=[4,12,18],maximize=True)
+  r=self.call('opt_linprog',**p);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['objective'],36);self.assertAlmostEqual(r['x'][0],2);self.assertAlmostEqual(r['x'][1],6)
+  for i in range(3):
+   q=dict(p,b_ub=list(p['b_ub']));q['b_ub'][i]+=1e-4;s=self.call('opt_linprog',**q);self.assertAlmostEqual((s['objective']-r['objective'])/1e-4,r['duals']['ub'][i],places=6)
+  # min x+2y, x+y>=3, x+3y>=5: intersection (2,1), cost4.
+  r=self.call('opt_linprog',c=[1,2],a_ub=[[-1,-1],[-1,-3]],b_ub=[-3,-5]);self.assertAlmostEqual(r['objective'],4)
+ def test_lp_statuses_degenerate_and_fixed_bounds(self):
+  r=self.call('opt_linprog',c=[1,1],a_eq=[[1,1]],b_eq=[1]);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(sum(r['x']),1);self.assertAlmostEqual(r['objective'],1)
+  self.assertEqual(self.call('opt_linprog',c=[1],a_ub=[[1],[-1]],b_ub=[0,-1])['status'],'INFEASIBLE')
+  self.assertEqual(self.call('opt_linprog',c=[-1])['status'],'UNBOUNDED')
+  r=self.call('opt_linprog',c=[1],bounds=[[2,2]]);self.assertAlmostEqual(r['objective'],2)
+  r=self.call('opt_linprog',c=[1],bounds=[[None,None]]);self.assertEqual(r['status'],'UNBOUNDED')
+ def test_milp_knapsack_assignment_bruteforce(self):
+  weights=[2,3,4,5];values=[3,4,5,8];poss=list(itertools.product((0,1),repeat=4));want=max(sum(a*b for a,b in zip(x,values)) for x in poss if sum(a*b for a,b in zip(x,weights))<=8)
+  r=self.call('opt_linprog',c=values,a_ub=[weights],b_ub=[8],integrality=['binary']*4,maximize=True);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['objective'],want);self.assertTrue(all(abs(v-round(v))<1e-9 for v in r['x']));self.assertIn('mip_gap',r);self.assertNotIn('duals',r)
+  costs=[[9,2,7],[6,4,3],[5,8,1]];rows=[[int(k//3==i) for k in range(9)] for i in range(3)]+[[int(k%3==j) for k in range(9)] for j in range(3)]
+  want=min(sum(costs[i][j] for i,j in enumerate(perm)) for perm in itertools.permutations(range(3)))
+  r=self.call('opt_linprog',c=sum(costs,[]),a_eq=rows,b_eq=[1]*6,integrality=['binary']*9);self.assertAlmostEqual(r['objective'],want)
+ def test_matrix_refs_artifact_and_prespawn(self):
+  import numpy as np
+  np.save(self.cwd/'a.npy',np.eye(400));np.save(self.cwd/'b.npy',np.ones(400));np.save(self.cwd/'c.npy',-np.ones(400))
+  r=self.call('opt_linprog',c='c.npy',a_ub='a.npy',b_ub='b.npy');self.assertEqual(r['status'],'OK');self.assertIsInstance(r['x'],dict);self.assertLess(len(json.dumps(r)),16000);self.assertTrue(pathlib.Path(r['artifact']['path']).is_file())
+  x=self.call('array_inspect',ref=r['x']['ref'],limit=5);self.assertEqual(x['preview'],[1]*5)
+  np.save(self.cwd/'too.npy',np.zeros((400,501)))
+  self.call('opt_linprog',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),c=[1],a_ub='too.npy',b_ub=[1])
+  for params in ({'c':[1,2],'a_ub':[[1]],'b_ub':[1]},{'c':[1],'integrality':['semi']},{'c':[1],'node_limit':100001},{'c':['NaN']},{'c':[1],'time_limit':31}):self.call('opt_linprog',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),**params)
+  self.call('opt_linprog',rc=6,env=dict(os.environ,PYCLI_READONLY='1'),c=[1],out='no.safetensors');self.assertFalse((self.cwd/'no.safetensors').exists())
+ def test_decay_all_methods_and_backward(self):
+  for method in ('RK45','RK23','DOP853','Radau','BDF','LSODA'):
+   r=self.ode(method=method,rtol=1e-9,atol=1e-12);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['final_state'][0],math.exp(-1),delta=2e-8)
+  r=self.ode(t_span=[1,0],y0=[math.exp(-1)],t_eval=[1,.5,0],rtol=1e-10,atol=1e-12);self.assertAlmostEqual(r['final_state'][0],1,delta=2e-9)
+ def test_harmonic_lotka_conservation(self):
+  r=self.ode(rhs=['y[1]','-y[0]'],y0=[1,0],t_span=[0,20],max_output_points=101,method='DOP853',rtol=1e-10,atol=1e-12)
+  self.assertEqual(r['status'],'OK')
+  for t,ys in zip(r['t'],r['y']):self.assertAlmostEqual(ys[0],math.cos(t),delta=1e-8);self.assertAlmostEqual(sum(v*v for v in ys),1,delta=1e-8)
+  r=self.ode(rhs=['a*y[0]-b*y[0]*y[1]','d*y[0]*y[1]-g*y[1]'],params={'a':1.5,'b':1,'d':1,'g':3},y0=[2,1],t_span=[0,20],method='DOP853',rtol=1e-10,atol=1e-12,max_output_points=101)
+  def h(y):return y[0]-3*math.log(y[0])+y[1]-1.5*math.log(y[1])
+  self.assertLess(max(abs(h(y)-h([2,1])) for y in r['y']),1e-6)
+ def test_robertson_primary_reference(self):
+  # ODEPACK DLSODA example, opkdmain.f: t=40, y=(.71583, .91855e-5, .28416), five printed significant digits.
+  for method in ('BDF','Radau'):
+   r=self.ode(rhs=['-0.04*y[0]+10000*y[1]*y[2]','0.04*y[0]-10000*y[1]*y[2]-30000000*y[1]^2','30000000*y[1]^2'],y0=[1,0,0],t_span=[0,40],method=method,rtol=1e-10,atol=1e-13)
+   self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['final_state'][0],.71583,delta=5e-6);self.assertAlmostEqual(r['final_state'][1],.91855e-5,delta=5e-11);self.assertAlmostEqual(r['final_state'][2],.28416,delta=5e-6);self.assertAlmostEqual(sum(r['final_state']),1,delta=1e-11)
+ def test_ball_event_and_event_limit(self):
+  r=self.ode(rhs=['y[1]','-g'],params={'g':9.81},y0=[10,0],t_span=[0,5],events=[{'expr':'y[0]','direction':-1,'terminal':True}],rtol=1e-10,atol=1e-12)
+  self.assertEqual(r['status'],'OK');self.assertEqual(r['termination'],'event');self.assertAlmostEqual(r['final_time'],math.sqrt(20/9.81),places=9);self.assertAlmostEqual(r['final_state'][0],0,delta=1e-9);self.assertEqual(r['event_counts'],[1])
+  r=self.ode(rhs=['0'],t_span=[0,100],max_step=.1,events=[{'expr':'0'}]);self.assertEqual(r['status'],'EVENT_LIMIT');self.assertEqual(r['event_counts'],[32])
+ def test_budgets_nonfinite_and_step_failure(self):
+  for method in ('RK45','RK23','DOP853','Radau','BDF','LSODA'):
+   r=self.ode(method=method,max_evals=1);self.assertEqual(r['status'],'EVAL_LIMIT');self.assertLessEqual(r['evals'],1)
+  r=self.ode(time_limit=1e-9);self.assertEqual(r['status'],'TIME_LIMIT')
+  r=self.ode(rhs=['1/0']);self.assertEqual(r['status'],'NON_FINITE')
+  r=self.ode(events=[{'expr':'0/0'}]);self.assertEqual(r['status'],'NON_FINITE')
+  r=self.ode(t_span=[0,1000000000000],max_step=.001,max_steps=5);self.assertEqual(r['status'],'STEP_LIMIT');self.assertLessEqual(r['steps'],5)
+  r=self.ode(rhs=['y[0]^2'],t_span=[0,2],rtol=1e-10,atol=1e-12);self.assertEqual(r['status'],'STEP_SIZE_TOO_SMALL')
+ def test_ode_artifacts_and_named_state(self):
+  r=self.ode(max_output_points=1000,out='o.safetensors');self.assertEqual(r['status'],'OK');self.assertIsInstance(r['y'],dict);self.assertTrue((self.cwd/'o.safetensors').exists());self.assertLess(len(json.dumps(r)),16000)
+  self.assertAlmostEqual(r['final_state'][0],math.exp(-1),delta=1e-5)
+  r=self.ode(rhs={'s':'-k*s'},y0={'s':1},params={'k':2});self.assertAlmostEqual(r['final_state'][0],math.exp(-2),delta=1e-5)
+ def test_injection_and_caps_before_spawn(self):
+  env=dict(os.environ,PYCLI_PYTHON='/missing-python')
+  corpus=json.loads((ROOT/'tests/expr-corpus.json').read_text())
+  negative=corpus['reject'];negative=[x['expression'] if isinstance(x,dict) else x for x in negative]
+  negative+=['y[-1]','y[1]','y[0].__class__','y[0]**2','t; import os','__import__("os")','lambda:1']
+  for text in negative:
+   for path in ('rhs','events'):
+    p={'rhs':[text]} if path=='rhs' else {'events':[{'expr':text}]}
+    self.ode(rc=2,env=env,**p)
+  for p in ({'y0':[1]*33,'rhs':['0']*33},{'t_span':[0,1e300]},{'events':[{'expr':'t'}]*5},{'t_eval':[0,.5,.4,1]},{'max_output_points':10001},{'rtol':0},{'atol':-1},{'params':{'t':1}}):self.ode(rc=2,env=env,**p)
+if __name__=='__main__':unittest.main()
