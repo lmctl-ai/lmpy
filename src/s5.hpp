@@ -55,7 +55,7 @@ void sm_check_include(const Params& in){
 void sm_check_alpha(const Params& in){double a=in["alpha"];if(!(a>0&&a<1))bad_param("alpha must lie strictly between 0 and 1");}
 Json prepare_sm(const std::string& op,const Params& input){
     Json p=input;const bool twin=op.size()>3&&op.compare(op.size()-3,3,"_to")==0;
-    if(op!="sm_arima"&&op!="sm_arima_to"&&op!="sm_tsa_acf"){
+    if(op!="sm_arima"&&op!="sm_arima_to"&&op!="sm_tsa_acf"&&op!="sm_tsa_tools"){
         sm_name(input.at("y"),"y");sm_terms(input.at("terms"));sm_check_include(input);sm_check_alpha(input);
         for(const char* key:{"weights","cluster","offset","exposure"})if(input.contains(key))sm_name(input[key],key);
         const std::string cov=input["cov_type"];
@@ -71,6 +71,39 @@ Json prepare_sm(const std::string& op,const Params& input){
             if(input.contains("exposure")&&link!="log")bad_param("exposure needs the log link");
             if(input.contains("exposure")&&input.contains("offset"))bad_param("give offset or exposure, not both");
             int_param(input,"maxiter",1,100);double tol=input["tol"];if(!(tol>=1e-12&&tol<=1e-2))bad_param("tol must be in [1e-12, 1e-2]");
+        }
+    }else if(op=="sm_tsa_tools"){
+        sm_name(input.at("series"),"series");sm_check_alpha(input);const std::string test=input["test"];
+        auto given=[&](const char* k){return input.contains(k)&&!input[k].is_null();};
+        auto only=[&](std::initializer_list<const char*> keys,const char* where){for(const char* k:keys)if(given(k))bad_param(std::string(k)+" is only used by "+where);};
+        if(test=="acf"||test=="pacf"){
+            only({"regression","autolag","maxlag","kpss_lags","lags","model_df"},"adfuller, kpss and ljung_box");
+            int64_t nlags=given("nlags")?input["nlags"].get<int64_t>():20;if(nlags<1||nlags>int64_t(SM_ACF_LAGS))bad_param("nlags must be in 1..100");
+            p["nlags"]=nlags;p["adjusted"]=given("adjusted")?input["adjusted"]:Json(false);p["method"]=given("method")?input["method"]:Json("ywm");
+            if(test=="acf"&&given("method"))bad_param("method is only used by pacf");if(test=="pacf"&&given("adjusted"))bad_param("adjusted is only used by acf");
+        }else{
+            only({"nlags","adjusted","method"},"acf and pacf");
+            if(test=="adfuller"){
+                only({"kpss_lags","lags","model_df"},"kpss and ljung_box");
+                p["regression"]=given("regression")?input["regression"]:Json("c");p["autolag"]=given("autolag")?input["autolag"]:Json("AIC");
+                if(given("maxlag")){int64_t m=input["maxlag"];if(m<0||m>1000)bad_param("maxlag must be in 0..1000");}
+            }else if(test=="kpss"){
+                only({"autolag","maxlag","lags","model_df"},"adfuller and ljung_box");
+                std::string reg=given("regression")?input["regression"].get<std::string>():"c";if(reg!="c"&&reg!="ct")bad_param("kpss regression is c or ct");p["regression"]=reg;
+                Json lags=given("kpss_lags")?input["kpss_lags"]:Json("auto");
+                if(lags.is_string()){if(lags!="auto"&&lags!="legacy")bad_param("kpss_lags is auto, legacy or an integer");}
+                else if(!lags.is_number_integer()||lags.get<int64_t>()<0||lags.get<int64_t>()>1000)bad_param("kpss_lags is auto, legacy or an integer in 0..1000");
+                p["kpss_lags"]=lags;
+            }else{
+                only({"regression","autolag","maxlag","kpss_lags"},"adfuller and kpss");
+                Json lags=given("lags")?input["lags"]:Json(10);int64_t smallest;
+                if(lags.is_array()){
+                    if(lags.empty()||lags.size()>100)bad_param("lags needs 1..100 entries");smallest=INT64_MAX;
+                    for(const auto& v:lags){if(!v.is_number_integer()||v.get<int64_t>()<1||v.get<int64_t>()>100)bad_param("every lag must be an integer in 1..100");smallest=std::min<int64_t>(smallest,v.get<int64_t>());}
+                }else{if(!lags.is_number_integer()||lags.get<int64_t>()<1||lags.get<int64_t>()>100)bad_param("lags must be an integer in 1..100 or a list of them");smallest=1;}
+                int64_t df=given("model_df")?input["model_df"].get<int64_t>():0;if(df<0||df>=smallest)bad_param("model_df must be >= 0 and below the smallest lag");
+                p["lags"]=lags;p["model_df"]=df;
+            }
         }
     }else if(op=="sm_tsa_acf"){
         sm_name(input.at("series"),"series");int_param(input,"nlags",1,SM_ACF_LAGS);sm_check_alpha(input);

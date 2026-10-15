@@ -2143,6 +2143,492 @@
       ]
     },
     {
+      "name": "la_matrix_fn",
+      "access": "read",
+      "returns": "object",
+      "description": "Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (A Y A = A), logm (expm(Y) = A) and sqrtm (Y Y = A) report the relative residual and fail with NUMERICAL_FAILURE above 1e-6; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite matrix (inline <=1000 numbers, .npy or safetensors#key, <=200000 numbers); square for every function except pinv."
+        },
+        {
+          "name": "fn",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "inv",
+            "pinv",
+            "expm",
+            "logm",
+            "sqrtm"
+          ],
+          "description": "Matrix function."
+        },
+        {
+          "name": "rtol",
+          "type": "number",
+          "occurs": "?",
+          "description": "pinv only: singular values below rtol * the largest are treated as zero, in [0, 1) (default max(m, n) * machine epsilon)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "special_fn",
+      "access": "read",
+      "returns": "object",
+      "description": "Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: every vector argument has the same length n and scalars repeat; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "fn",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "erf",
+            "erfc",
+            "erfcx",
+            "erfinv",
+            "erfcinv",
+            "gammainc",
+            "gammaincc",
+            "gammaincinv",
+            "gammainccinv",
+            "betainc",
+            "betaincinv",
+            "zeta",
+            "polygamma",
+            "lambertw",
+            "expit",
+            "logit",
+            "log_ndtr",
+            "ndtri",
+            "ellipk",
+            "ellipe",
+            "hyp2f1",
+            "jv",
+            "yv",
+            "iv",
+            "kv",
+            "spherical_jn",
+            "airy",
+            "struve",
+            "owens_t",
+            "boxcox",
+            "inv_boxcox",
+            "xlogy",
+            "xlog1py",
+            "logsumexp"
+          ],
+          "description": "Function. Arguments by name: erf, erfc, erfcx, expit, log_ndtr, airy: x; erfinv, erfcinv: y; logit, ndtri: p; gammainc, gammaincc: a, x; gammaincinv, gammainccinv: a, y; betainc: a, b, x; betaincinv: a, b, y; zeta: x, q; polygamma: n (integer >= 0), x; lambertw: z, k; ellipk, ellipe: m; hyp2f1: a, b, c, z; jv, yv, iv, kv: v, z; spherical_jn: n (integer >= 0), z; struve: v, x; owens_t: h, a; boxcox: x, lmbda; inv_boxcox: y, lmbda; xlogy, xlog1py: x, y; logsumexp: a (a vector)."
+        },
+        {
+          "name": "args",
+          "type": "object",
+          "occurs": "1",
+          "description": "Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; vector lengths must agree (BAD_DATA)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "la_sparse",
+      "access": "read",
+      "returns": "object",
+      "description": "Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU, n <= 20000), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses the tolerance, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "task",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "spsolve",
+            "cg",
+            "gmres",
+            "eigsh",
+            "eigs",
+            "svds"
+          ],
+          "description": "Operation."
+        },
+        {
+          "name": "shape",
+          "type": "json",
+          "occurs": "1",
+          "description": "[rows, cols], each 1..100000 (square except for svds)."
+        },
+        {
+          "name": "row",
+          "type": "json",
+          "occurs": "1",
+          "description": "Row indices of the entries: an integer vector (inline, .npy, safetensors#key; <=200000 entries, in range) or, with frame, the int64 column name."
+        },
+        {
+          "name": "col",
+          "type": "json",
+          "occurs": "1",
+          "description": "Column indices, like row."
+        },
+        {
+          "name": "val",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite entry values, like row (a numeric column name with frame)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional .npz table holding the entries; row, col and val then name its columns."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "?",
+          "description": "Right-hand side vector of length n (spsolve, cg, gmres only)."
+        },
+        {
+          "name": "k",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs, eigsh, svds: number of eigenvalues / singular values, 1..50 and below the dimension (eigsh < n, eigs < n-1, svds < min(rows, cols))."
+        },
+        {
+          "name": "which",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "LM",
+            "SM",
+            "LA",
+            "SA",
+            "BE",
+            "LR",
+            "SR",
+            "LI",
+            "SI"
+          ],
+          "description": "Which values ARPACK returns (default LM): eigsh LM, SM, LA, SA, BE; eigs LM, SM, LR, SR, LI, SI; svds LM, SM."
+        },
+        {
+          "name": "sigma",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs / eigsh: shift for shift-invert mode (needs which=LM); eigenvalues nearest sigma are returned."
+        },
+        {
+          "name": "ncv",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs, eigsh, svds: Lanczos basis size, k+2 .. dimension (default ARPACK's)."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs, eigsh, svds: REQUIRED non-negative integer; the ARPACK start vector is numpy PCG64(seed).uniform(-1, 1), so equal seeds give equal results."
+        },
+        {
+          "name": "rtol",
+          "type": "number",
+          "occurs": "?",
+          "description": "cg / gmres: relative residual tolerance in (0, 1), default 1e-8; ARPACK: tolerance in [0, 1), default 0 (machine precision)."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Iteration cap, 1..1000000 (cg / gmres default min(10 n, 100000); ARPACK default 10 n)."
+        },
+        {
+          "name": "restart",
+          "type": "number",
+          "occurs": "?",
+          "description": "gmres: restart length, 1..1000 (default 20)."
+        },
+        {
+          "name": "vectors",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "eigs, eigsh, svds: also return the vectors v (n x k), or u (rows x k) and vt (k x cols)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "la_matrix_fn_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (A Y A = A), logm (expm(Y) = A) and sqrtm (Y Y = A) report the relative residual and fail with NUMERICAL_FAILURE above 1e-6; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite matrix (inline <=1000 numbers, .npy or safetensors#key, <=200000 numbers); square for every function except pinv."
+        },
+        {
+          "name": "fn",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "inv",
+            "pinv",
+            "expm",
+            "logm",
+            "sqrtm"
+          ],
+          "description": "Matrix function."
+        },
+        {
+          "name": "rtol",
+          "type": "number",
+          "occurs": "?",
+          "description": "pinv only: singular values below rtol * the largest are treated as zero, in [0, 1) (default max(m, n) * machine epsilon)."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the arrays there and returns the artifacts[name] descriptors."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "special_fn_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: every vector argument has the same length n and scalars repeat; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "fn",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "erf",
+            "erfc",
+            "erfcx",
+            "erfinv",
+            "erfcinv",
+            "gammainc",
+            "gammaincc",
+            "gammaincinv",
+            "gammainccinv",
+            "betainc",
+            "betaincinv",
+            "zeta",
+            "polygamma",
+            "lambertw",
+            "expit",
+            "logit",
+            "log_ndtr",
+            "ndtri",
+            "ellipk",
+            "ellipe",
+            "hyp2f1",
+            "jv",
+            "yv",
+            "iv",
+            "kv",
+            "spherical_jn",
+            "airy",
+            "struve",
+            "owens_t",
+            "boxcox",
+            "inv_boxcox",
+            "xlogy",
+            "xlog1py",
+            "logsumexp"
+          ],
+          "description": "Function. Arguments by name: erf, erfc, erfcx, expit, log_ndtr, airy: x; erfinv, erfcinv: y; logit, ndtri: p; gammainc, gammaincc: a, x; gammaincinv, gammainccinv: a, y; betainc: a, b, x; betaincinv: a, b, y; zeta: x, q; polygamma: n (integer >= 0), x; lambertw: z, k; ellipk, ellipe: m; hyp2f1: a, b, c, z; jv, yv, iv, kv: v, z; spherical_jn: n (integer >= 0), z; struve: v, x; owens_t: h, a; boxcox: x, lmbda; inv_boxcox: y, lmbda; xlogy, xlog1py: x, y; logsumexp: a (a vector)."
+        },
+        {
+          "name": "args",
+          "type": "object",
+          "occurs": "1",
+          "description": "Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; vector lengths must agree (BAD_DATA)."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the arrays there and returns the artifacts[name] descriptors."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "la_sparse_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU, n <= 20000), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses the tolerance, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "task",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "spsolve",
+            "cg",
+            "gmres",
+            "eigsh",
+            "eigs",
+            "svds"
+          ],
+          "description": "Operation."
+        },
+        {
+          "name": "shape",
+          "type": "json",
+          "occurs": "1",
+          "description": "[rows, cols], each 1..100000 (square except for svds)."
+        },
+        {
+          "name": "row",
+          "type": "json",
+          "occurs": "1",
+          "description": "Row indices of the entries: an integer vector (inline, .npy, safetensors#key; <=200000 entries, in range) or, with frame, the int64 column name."
+        },
+        {
+          "name": "col",
+          "type": "json",
+          "occurs": "1",
+          "description": "Column indices, like row."
+        },
+        {
+          "name": "val",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite entry values, like row (a numeric column name with frame)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional .npz table holding the entries; row, col and val then name its columns."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "?",
+          "description": "Right-hand side vector of length n (spsolve, cg, gmres only)."
+        },
+        {
+          "name": "k",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs, eigsh, svds: number of eigenvalues / singular values, 1..50 and below the dimension (eigsh < n, eigs < n-1, svds < min(rows, cols))."
+        },
+        {
+          "name": "which",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "LM",
+            "SM",
+            "LA",
+            "SA",
+            "BE",
+            "LR",
+            "SR",
+            "LI",
+            "SI"
+          ],
+          "description": "Which values ARPACK returns (default LM): eigsh LM, SM, LA, SA, BE; eigs LM, SM, LR, SR, LI, SI; svds LM, SM."
+        },
+        {
+          "name": "sigma",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs / eigsh: shift for shift-invert mode (needs which=LM); eigenvalues nearest sigma are returned."
+        },
+        {
+          "name": "ncv",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs, eigsh, svds: Lanczos basis size, k+2 .. dimension (default ARPACK's)."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "eigs, eigsh, svds: REQUIRED non-negative integer; the ARPACK start vector is numpy PCG64(seed).uniform(-1, 1), so equal seeds give equal results."
+        },
+        {
+          "name": "rtol",
+          "type": "number",
+          "occurs": "?",
+          "description": "cg / gmres: relative residual tolerance in (0, 1), default 1e-8; ARPACK: tolerance in [0, 1), default 0 (machine precision)."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Iteration cap, 1..1000000 (cg / gmres default min(10 n, 100000); ARPACK default 10 n)."
+        },
+        {
+          "name": "restart",
+          "type": "number",
+          "occurs": "?",
+          "description": "gmres: restart length, 1..1000 (default 20)."
+        },
+        {
+          "name": "vectors",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "eigs, eigsh, svds: also return the vectors v (n x k), or u (rows x k) and vt (k x cols)."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the arrays there and returns the artifacts[name] descriptors."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
       "name": "frame_import",
       "access": "write",
       "returns": "object",
@@ -3126,6 +3612,81 @@
           "occurs": "?",
           "default": 500000,
           "description": "Cap on expression evaluations."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "opt_root",
+      "access": "read",
+      "returns": "object",
+      "description": "Roots of n equations in n named unknowns (scipy.optimize.root hybr or lm), or a bracketed single equation (brentq): equations are expressions in the unknowns (the closed S3 grammar, no data columns, no eval path), each equation f_i(x) = 0. Honest success: the solver's own flag is not trusted, the residual max|f_i(x)| is recomputed and must be <= residual_tol, otherwise the status is NO_CONVERGENCE (a local minimum of the norm is not a root); EVAL_LIMIT and TIME_LIMIT return the best point. Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE. Result: x {name: value}, fun, residual_norm, residual_max, nfev, evals",
+      "params": [
+        {
+          "name": "equations",
+          "type": "array",
+          "occurs": "1",
+          "description": "1..16 expressions, one per unknown, each set equal to 0.",
+          "items": "string"
+        },
+        {
+          "name": "start",
+          "type": "object",
+          "occurs": "1",
+          "description": "Start values {name: number} (names [a-z][a-z0-9_]{0,31}), one per equation; with bracket only the name is used."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "hybr",
+          "enum": [
+            "hybr",
+            "lm",
+            "brentq"
+          ],
+          "description": "hybr (Powell hybrid, square systems) or lm (Levenberg-Marquardt); brentq is chosen when a bracket is given."
+        },
+        {
+          "name": "bracket",
+          "type": "array",
+          "occurs": "?",
+          "description": "One equation in one unknown: [lower, upper] with f(lower), f(upper) of opposite signs (BAD_INTERVAL otherwise); solved with brentq.",
+          "items": "number"
+        },
+        {
+          "name": "xtol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.49012e-08,
+          "description": "Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq)."
+        },
+        {
+          "name": "residual_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-08,
+          "description": "Largest accepted max|f_i(x)| at the returned point; larger is NO_CONVERGENCE even when the solver claims success."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 100,
+          "description": "brentq iterations, 1..1000."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."
         },
         {
           "name": "time_limit",
@@ -4440,6 +5001,137 @@
           "occurs": "?",
           "default": 10.0,
           "description": "ML computation wall budget >0..30 seconds, default 10; imports excluded; Python signal boundaries plus hard child timeout and pre-spawn work caps."
+        }
+      ]
+    },
+    {
+      "name": "sm_tsa_tools",
+      "access": "read",
+      "returns": "object",
+      "description": "Time-series tests and correlograms on one numeric series (statsmodels.tsa.stattools / stats.diagnostic; patsy is never imported): acf and pacf (delegating to sm_tsa_acf), adfuller (statistic, MacKinnon p-value, used_lag, nobs, critical_values, icbest), kpss (statistic, interpolated p-value with p_value_bounded none|above|below, above/below when the statistic is outside the published table, lags, critical_values) and ljung_box (lags, statistic, p_value per lag). Statuses OK, NUMERICAL_FAILURE, TIME_LIMIT; constant series are CONSTANT_SERIES, series too short for the requested lags TOO_SHORT.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "series",
+          "type": "string",
+          "occurs": "1",
+          "description": "Series column (no missing values)."
+        },
+        {
+          "name": "test",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "acf",
+            "pacf",
+            "adfuller",
+            "kpss",
+            "ljung_box"
+          ],
+          "description": "acf / pacf: the sm_tsa_acf estimators (same code path); adfuller: augmented Dickey-Fuller unit-root test; kpss: stationarity test (null: stationary); ljung_box: Ljung-Box portmanteau test of no autocorrelation."
+        },
+        {
+          "name": "nlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "acf / pacf only: 1..100 and below the series length (pacf: below half of it); default 20."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "acf / pacf only: confidence level 1-alpha."
+        },
+        {
+          "name": "adjusted",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "acf only: divide autocovariances by n-k instead of n (default false, matches R)."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "ywm",
+            "ywadjusted",
+            "ols",
+            "ldb"
+          ],
+          "description": "pacf only: ywm (default, R's pacf), ywadjusted, ols, ldb."
+        },
+        {
+          "name": "regression",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "c",
+            "ct",
+            "ctt",
+            "n"
+          ],
+          "description": "adfuller: deterministic terms c (constant, default), ct (+ trend), ctt (+ quadratic trend) or n (none); kpss: c (level stationarity, default) or ct (trend stationarity)."
+        },
+        {
+          "name": "autolag",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "AIC",
+            "BIC",
+            "t-stat",
+            "none"
+          ],
+          "description": "adfuller: how the number of augmentation lags is chosen up to maxlag (default AIC); none uses exactly maxlag."
+        },
+        {
+          "name": "maxlag",
+          "type": "number",
+          "occurs": "?",
+          "description": "adfuller: largest number of augmentation lags, 0..1000 (default 12 (n/100)^(1/4)); the series must be long enough (TOO_SHORT otherwise)."
+        },
+        {
+          "name": "kpss_lags",
+          "type": "json",
+          "occurs": "?",
+          "description": "kpss: the Bartlett window length: \"auto\" (default, data dependent), \"legacy\" (ceil(12 (n/100)^(1/4))) or an integer 0..1000."
+        },
+        {
+          "name": "lags",
+          "type": "json",
+          "occurs": "?",
+          "description": "ljung_box: an integer m (tests lags 1..m) or a list of up to 100 lags in 1..100; default 10."
+        },
+        {
+          "name": "model_df",
+          "type": "number",
+          "occurs": "?",
+          "description": "ljung_box: degrees of freedom removed from the chi-square reference (fitted ARMA parameters), 0 <= model_df < the smallest lag; default 0."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     }

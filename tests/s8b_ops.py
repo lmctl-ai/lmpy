@@ -607,6 +607,177 @@ class Root(Base):
             self.assertTrue(param.get('description'), param['name'])
 
 
+# ---------------------------------------------------------------------------------------------------- sm_tsa_tools
+def ar1(n, phi, seed, scale=1.0):
+    rng = np.random.default_rng(seed)
+    x = np.zeros(n)
+    e = rng.normal(size=n) * scale
+    for t in range(1, n):
+        x[t] = phi * x[t - 1] + e[t]
+    return x
+
+
+def hand_acf(x, nlags):
+    v = x - x.mean()
+    return [float(v[:len(v) - k] @ v[k:] / (v @ v)) for k in range(nlags + 1)]
+
+
+def hand_pacf(acf, nlags):
+    """Durbin-Levinson on the autocorrelations (Yule-Walker, n denominator)."""
+    out, phi = [1.0], np.zeros(nlags + 1)
+    prev = np.zeros(nlags + 1)
+    for k in range(1, nlags + 1):
+        num = acf[k] - sum(prev[j] * acf[k - j] for j in range(1, k))
+        den = 1.0 - sum(prev[j] * acf[j] for j in range(1, k))
+        phi[k] = num / den
+        for j in range(1, k):
+            phi[j] = prev[j] - phi[k] * prev[k - j]
+        out.append(float(phi[k]))
+        prev = phi.copy()
+    return out
+
+
+MACKINNON = {  # published tau-statistic response-surface coefficients (MacKinnon 2010, table for one variable): cv = b0 + b1/n + b2/n^2 + b3/n^3
+    'c': {'1%': (-3.43035, -6.5393, -16.786, -79.433), '5%': (-2.86154, -2.8903, -4.234, -40.040), '10%': (-2.56677, -1.5384, -2.809, 0.0)},
+    'ct': {'1%': (-3.95877, -9.0531, -28.428, -134.155), '5%': (-3.41049, -4.3904, -9.036, -45.374), '10%': (-3.12705, -2.5856, -3.925, -22.380)}}
+
+
+def hand_adf(y, regression):
+    """Dickey-Fuller regression with no augmentation lags: dy_t on [1, (t,) y_{t-1}]; the statistic is the t ratio of y_{t-1}."""
+    dy, lag = np.diff(y), y[:-1]
+    cols = [np.ones(len(dy))] + ([np.arange(1, len(dy) + 1.0)] if regression == 'ct' else []) + [lag]
+    X = np.column_stack(cols)
+    beta = np.linalg.solve(X.T @ X, X.T @ dy)
+    resid = dy - X @ beta
+    sigma2 = resid @ resid / (len(dy) - X.shape[1])
+    se = math.sqrt(sigma2 * np.linalg.inv(X.T @ X)[-1, -1])
+    return float(beta[-1] / se), len(dy)
+
+
+def hand_kpss(y, regression, lags):
+    n = len(y)
+    if regression == 'c':
+        e = y - y.mean()
+    else:
+        X = np.column_stack([np.ones(n), np.arange(1.0, n + 1)])
+        e = y - X @ np.linalg.solve(X.T @ X, X.T @ y)
+    s = np.cumsum(e)
+    var = e @ e / n
+    for k in range(1, lags + 1):
+        var += 2.0 / n * (1.0 - k / (lags + 1.0)) * float(e[k:] @ e[:-k])
+    return float(s @ s / (n * n * var))
+
+
+def chi2_sf_even(x, dof):
+    """Survival function of chi-square with an even number of degrees of freedom (closed form)."""
+    half, term, total = x / 2.0, 1.0, 1.0
+    for j in range(1, dof // 2):
+        term *= half / j
+        total += term
+    return math.exp(-half) * total
+
+
+class Tsa(Base):
+    def tools(self, test, series, **extra):
+        return call('sm_tsa_tools', dict(columns={'y': [float(v) for v in series]}, series='y', test=test, **extra))
+
+    def test_acf_and_pacf_reuse_the_existing_estimators(self):
+        x = ar1(300, 0.6, 3)
+        a = self.tools('acf', x, nlags=12)
+        self.assertEqual((a['status'], a['test']), ('OK', 'acf'))
+        close(self, a['values'], hand_acf(x, 12), 1e-12, 1e-14)
+        p = self.tools('pacf', x, nlags=8)
+        close(self, p['values'], hand_pacf(hand_acf(x, 8), 8), 1e-10, 1e-12)
+        old = call('sm_tsa_acf', dict(columns={'y': list(map(float, x))}, series='y', kind='acf', nlags=12))
+        self.assertEqual(a['values'], old['values'])  # the same code path, not a second implementation
+        self.assertEqual(a['ci_lower'], old['ci_lower'])
+
+    def test_adfuller_statistic_critical_values_and_decisions(self):
+        for regression in ('c', 'ct'):
+            y = np.cumsum(ar1(120, 0.0, 5)) * 0.5 + ar1(120, 0.5, 6)
+            r = self.tools('adfuller', y, regression=regression, autolag='none', maxlag=0)
+            self.assertEqual((r['status'], r['used_lag'], r['nobs'], r['regression']), ('OK', 0, 119, regression))
+            stat, nobs = hand_adf(y, regression)
+            self.assertAlmostEqual(r['statistic'], stat, delta=1e-9)
+            for level, coefficients in MACKINNON[regression].items():
+                cv = sum(c / nobs ** i for i, c in enumerate(coefficients))
+                self.assertAlmostEqual(r['critical_values'][level], cv, delta=1e-9, msg=(regression, level))
+        stationary = self.tools('adfuller', ar1(400, 0.3, 7), autolag='AIC')
+        self.assertLess(stationary['p_value'], 0.01)
+        self.assertLessEqual(stationary['used_lag'], stationary['maxlag'])
+        self.assertIn('icbest', stationary)
+        walk = self.tools('adfuller', np.cumsum(ar1(400, 0.0, 8)), autolag='AIC')
+        self.assertGreater(walk['p_value'], 0.05)
+        self.assertGreater(walk['statistic'], walk['critical_values']['5%'])
+
+    def test_kpss_statistic_and_interpolated_p_value(self):
+        table = {'c': ([0.347, 0.463, 0.574, 0.739], [0.10, 0.05, 0.025, 0.01]), 'ct': ([0.119, 0.146, 0.176, 0.216], [0.10, 0.05, 0.025, 0.01])}
+        found_interior = False
+        for regression in ('c', 'ct'):
+            for seed in range(20, 60):
+                y = np.cumsum(ar1(150, 0.0, seed, 0.12)) + ar1(150, 0.2, seed + 100)
+                stat = hand_kpss(y, regression, 4)
+                if table[regression][0][0] < stat < table[regression][0][-1]:
+                    break
+            r = self.tools('kpss', y, regression=regression, kpss_lags=4)
+            self.assertEqual((r['status'], r['lags']), ('OK', 4))
+            self.assertAlmostEqual(r['statistic'], stat, delta=1e-9)
+            self.assertAlmostEqual(r['p_value'], float(np.interp(stat, *table[regression])), delta=1e-9)
+            self.assertEqual(r['p_value_bounded'], 'none')
+            found_interior = True
+            for level, crit in zip(('10%', '5%', '2.5%', '1%'), table[regression][0]):
+                self.assertAlmostEqual(r['critical_values'][level], crit, delta=1e-12)
+        self.assertTrue(found_interior)
+        stationary = self.tools('kpss', ar1(300, 0.2, 9), kpss_lags=4)
+        self.assertEqual((stationary['p_value'], stationary['p_value_bounded']), (0.1, 'above'))
+        walk = self.tools('kpss', np.cumsum(ar1(300, 0.0, 10)), kpss_lags=4)
+        self.assertEqual((walk['p_value'], walk['p_value_bounded']), (0.01, 'below'))
+        legacy = self.tools('kpss', ar1(300, 0.2, 9), kpss_lags='legacy')
+        self.assertEqual(legacy['lags'], math.ceil(12 * (300 / 100) ** 0.25))
+
+    def test_ljung_box_statistic_and_closed_form_p_values(self):
+        x = ar1(200, 0.4, 12)
+        acf = hand_acf(x, 10)
+        n = len(x)
+        q = lambda m: n * (n + 2) * sum(acf[k] ** 2 / (n - k) for k in range(1, m + 1))
+        r = self.tools('ljung_box', x, lags=[2, 4, 10])
+        self.assertEqual(r['lags'], [2, 4, 10])
+        close(self, r['statistic'], [q(2), q(4), q(10)], 1e-10)
+        close(self, r['p_value'], [chi2_sf_even(q(m), m) for m in (2, 4, 10)], 1e-10)
+        adj = self.tools('ljung_box', x, lags=[4, 10], model_df=2)
+        close(self, adj['p_value'], [chi2_sf_even(q(4), 2), chi2_sf_even(q(10), 8)], 1e-10)
+        upto = self.tools('ljung_box', x, lags=4)
+        self.assertEqual(upto['lags'], [1, 2, 3, 4])
+        close(self, upto['statistic'], [q(m) for m in (1, 2, 3, 4)], 1e-10)
+        white = self.tools('ljung_box', np.random.default_rng(1).normal(size=500), lags=[10])
+        self.assertGreater(white['p_value'][0], 0.01)
+        strong = self.tools('ljung_box', ar1(500, 0.8, 2), lags=[10])
+        self.assertLess(strong['p_value'][0], 1e-10)
+
+    def test_validation_statuses_and_patsy_isolation(self):
+        base = dict(columns={'y': [float(v) for v in ar1(100, 0.3, 1)]}, series='y')
+        rejected('sm_tsa_tools', dict(base, test='kpss', regression='ctt'), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='adfuller', regression='x'))
+        rejected('sm_tsa_tools', dict(base, test='adfuller', maxlag=-1), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='adfuller', autolag='BIC2'))
+        rejected('sm_tsa_tools', dict(base, test='acf', regression='c'), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='acf', lags=[1]), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='ljung_box', nlags=5), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='ljung_box', lags=[]), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='ljung_box', lags=101), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='ljung_box', lags=[3], model_df=3), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='kpss', kpss_lags='many'), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='adfuller', kpss_lags=3), 'BAD_PARAM')
+        rejected('sm_tsa_tools', dict(base, test='bogus'))
+        call('sm_tsa_tools', dict(columns={'y': [1.0, 'NaN', 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]}, series='y', test='adfuller'), rc=2)
+        short = call('sm_tsa_tools', dict(columns={'y': [1.0, 2.0, 1.5, 2.5]}, series='y', test='adfuller'), rc=2)
+        self.assertIn(short['error']['data']['tool_code'], ('TOO_SHORT', 'BAD_DATA'))
+        const = call('sm_tsa_tools', dict(columns={'y': [2.0] * 50}, series='y', test='kpss'), rc=2)
+        self.assertEqual(const['error']['data']['tool_code'], 'CONSTANT_SERIES')
+        r = self.tools('adfuller', ar1(100, 0.3, 1))
+        self.assertEqual(r['meta']['forbidden_modules_loaded'], [])
+
+
 class Schema(unittest.TestCase):
     def test_registration_access_and_documentation(self):
         schema = json.loads(subprocess.run([BIN, '--schema'], capture_output=True, text=True).stdout)

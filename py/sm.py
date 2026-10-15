@@ -57,6 +57,7 @@ def sm_import():
         import statsmodels.tsa.statespace.sarimax
         import statsmodels.tsa.stattools
         import statsmodels.stats.stattools
+        import statsmodels.stats.diagnostic
         import statsmodels.tools.sm_exceptions
     finally:
         sys.modules.pop('patsy', None)
@@ -632,5 +633,55 @@ def sm_tsa_acf(p):
             'ci_lower': [float(v) for v in ci[:, 0]], 'ci_upper': [float(v) for v in ci[:, 1]], 'alpha': p['alpha']}
 
 
+def sm_tsa_tools(p):
+    """acf / pacf delegate to sm_tsa_acf (one implementation); adfuller, kpss and ljung_box are the statsmodels tests with explicit, reported choices."""
+    test = p['test']
+    if test in ('acf', 'pacf'):
+        result = sm_tsa_acf(dict(p, kind=test))
+        result['test'] = test
+        return result
+    import warnings
+    np, df, meta, masks = sm_load(p)
+    from statsmodels.tsa.stattools import adfuller, kpss
+    from statsmodels.stats.diagnostic import acorr_ljungbox
+    y, _ = sm_series(np, p, df, meta, masks, p['series'], False)
+    n = len(y)
+    if n < 8:
+        raise BadData('the series needs at least 8 observations', 'TOO_SHORT')
+    if float(np.ptp(y)) == 0.0:
+        raise BadData('the series is constant: the test statistic is undefined', 'CONSTANT_SERIES')
+    result = {'status': 'OK', 'test': test, 'n': n}
+
+    def body():
+        with np.errstate(all='ignore'), warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # InterpolationWarning is reported explicitly as p_value_bounded
+            try:
+                if test == 'adfuller':
+                    out = adfuller(y, maxlag=p.get('maxlag'), regression=p['regression'], autolag=None if p['autolag'] == 'none' else p['autolag'])
+                    result.update({'statistic': float(out[0]), 'p_value': float(out[1]), 'used_lag': int(out[2]), 'nobs': int(out[3]),
+                                   'critical_values': {k: float(v) for k, v in out[4].items()}, 'regression': p['regression'], 'autolag': p['autolag'],
+                                   'maxlag': int(p['maxlag']) if p.get('maxlag') is not None else int(12 * (n / 100.0) ** 0.25)})
+                    if len(out) > 5:
+                        result['icbest'] = float(out[5])
+                elif test == 'kpss':
+                    stat, pvalue, lags, crit = kpss(y, regression=p['regression'], nlags=p['kpss_lags'])
+                    below = pvalue <= 0.01 and stat > crit['1%']
+                    above = pvalue >= 0.1 and stat < crit['10%']
+                    result.update({'statistic': float(stat), 'p_value': float(pvalue), 'lags': int(lags), 'critical_values': {k: float(v) for k, v in crit.items()},
+                                   'regression': p['regression'], 'p_value_bounded': 'below' if below else 'above' if above else 'none'})
+                else:
+                    table = acorr_ljungbox(y, lags=p['lags'], model_df=p['model_df'], return_df=True)
+                    result.update({'lags': [int(v) for v in table.index], 'statistic': [float(v) for v in table['lb_stat']], 'p_value': [float(v) for v in table['lb_pvalue']], 'model_df': p['model_df']})
+            except ValueError as exc:
+                raise BadData('the %s test cannot run on this series: %s' % (test, str(exc)[:200]), 'TOO_SHORT')
+        return True
+    if sm_fit_guard(p, body) is None:
+        return {'status': 'TIME_LIMIT', 'test': test}
+    values = [result['statistic']] if not isinstance(result['statistic'], list) else result['statistic']
+    if not all(math.isfinite(v) for v in values):
+        return {'status': 'NUMERICAL_FAILURE', 'test': test, 'n': n, 'message': 'the test statistic is not finite for this series'}
+    return result
+
+
 def sm_operation(name):
-    return {'sm_ols': sm_ols, 'sm_ols_to': sm_ols, 'sm_glm': sm_glm, 'sm_glm_to': sm_glm, 'sm_arima': sm_arima, 'sm_arima_to': sm_arima, 'sm_tsa_acf': sm_tsa_acf}[name]
+    return {'sm_ols': sm_ols, 'sm_ols_to': sm_ols, 'sm_glm': sm_glm, 'sm_glm_to': sm_glm, 'sm_arima': sm_arima, 'sm_arima_to': sm_arima, 'sm_tsa_acf': sm_tsa_acf, 'sm_tsa_tools': sm_tsa_tools}[name]
