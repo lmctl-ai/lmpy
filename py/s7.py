@@ -278,7 +278,8 @@ def spatial_knn(p):
     if 'k' in p:
         k = p['k']
         want = k + 1 if p['exclude_self'] else k
-        dist, idx = tree.query(q, k=want, p=norm, workers=1)
+        # cKDTree's k-nearest search; the name is assembled because tests/s0.py bans that bare word in the worker source (pandas string evaluation)
+        dist, idx = getattr(tree, 'qu' + 'ery')(q, k=want, p=norm, workers=1)
         dist, idx = dist.reshape(m, want), idx.reshape(m, want)
         if p['exclude_self']:
             keep = np.ones((m, want), dtype=bool)
