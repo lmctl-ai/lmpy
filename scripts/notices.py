@@ -4,7 +4,7 @@ root=pathlib.Path(__file__).resolve().parents[1]
 licenses=root/'licenses'
 manifest=json.loads((licenses/'manifest.json').read_text())
 # Fail before emitting a misleading complete inventory.
-for package in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six'):
+for package in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six','statsmodels','patsy','packaging'):
     for name,digest in manifest[package]['files'].items():
         assert hashlib.sha256((licenses/package/name).read_bytes()).hexdigest()==digest,name
 for name in ('nlohmann/LICENSE.MIT','python/LICENSE'):
@@ -23,9 +23,11 @@ required=(
  'scipy/subprojects/boost_math/math/LICENSE',
  'pandas/pandas/_libs/src/vendored/ujson/lib/ultrajsonenc.c.notice.txt',
  'pandas/pandas/_libs/include/pandas/vendored/klib/khash.h.notice.txt',
- 'pandas/pandas/_libs/src/vendored/numpy/datetime/np_datetime.c.notice.txt')
+ 'pandas/pandas/_libs/src/vendored/numpy/datetime/np_datetime.c.notice.txt',
+ 'statsmodels/LICENSE.txt','statsmodels/statsmodels/LICENSE.txt','statsmodels/statsmodels/stats/libqsturng/LICENSE.txt',
+ 'statsmodels/statsmodels/multivariate/factor_rotation/LICENSE.txt','patsy/LICENSE.txt','packaging/LICENSE.APACHE','packaging/LICENSE.BSD')
 for name in required:assert (licenses/name).is_file(),name
-print('''# Third-party notices — S2
+print('''# Third-party notices — S5
 
 pycli is MIT, Copyright (c) 2026 Lattice Systems LLC.
 The full pycli/lmcpp MIT notices and nlohmann JSON 3.11.2 MIT notice appear below.
@@ -39,6 +41,9 @@ OpenBLAS/LAPACK/libgfortran notices. libquadmath is LGPL-2.1-or-later, not cover
 by the GCC Runtime Library Exception; the amd64 wheels ship it, arm64 does not.
 Static libstdc++/libgcc use GCC licensing with the Runtime Library Exception.
 S2 adds pandas 2.3.3, python-dateutil 2.9.0.post0, pytz 2025.2, tzdata 2025.2 and six 1.17.0, with full source inventories and wheel notices below.
+S5 adds statsmodels 0.14.6 (BSD-3-Clause, with bundled third-party notices for libqsturng, factor_rotation and the state-space
+test data), patsy 1.0.3 (BSD-3-Clause; a hard dependency of statsmodels that pycli never imports) and packaging 26.3
+(Apache-2.0 OR BSD-2-Clause), with source inventories and wheel notices below.
 S1 adds no shipped component. Its ASan/UBSan test binaries statically link GCC's sanitizer
 runtimes (same Runtime Library Exception) and exist only in the test image, never in runtime.
 The runtime additionally retains exact builder package copyrights (including
@@ -56,7 +61,7 @@ that every such source component is linked into the runtime executable.
 ''')
 def emit(title,text):
     print('## '+title+'\n\n```text');print(text.rstrip());print('```\n')
-for name in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six'):
+for name in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six','statsmodels','patsy','packaging'):
     dist=metadata.distribution(name);assert dist.version==manifest[name]['version']
     texts=[dist.locate_file(f).read_text() for f in dist.files if dist.locate_file(f).is_file() and pathlib.PurePosixPath(str(f)).name.lower().startswith(('license','copying','notice')) and '.dist-info/' in str(f)]
     assert texts,name

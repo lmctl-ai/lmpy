@@ -14,3 +14,9 @@ pytz==2025.2 --hash=sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262
 six==1.17.0 --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
 # tzdata-2025.2-py2.py3-none-any.whl
 tzdata==2025.2 --hash=sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8
+# packaging-26.3-py3-none-any.whl
+packaging==26.3 --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
+# patsy-1.0.3-py2.py3-none-any.whl
+patsy==1.0.3 --hash=sha256:d3dbebe8fd5f46e29912d030b63c6268647b59bf788a99e2af28a30234cf357c
+# statsmodels-0.14.6-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+statsmodels==0.14.6 --hash=sha256:19b58cf7474aa9e7e3b0771a66537148b2df9b5884fbf156096c0e6c1ff0469d
