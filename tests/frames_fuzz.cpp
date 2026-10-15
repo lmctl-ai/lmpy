@@ -26,6 +26,18 @@ for(int i=0;i<2000;++i){
  for(bool is_ode:{false,true}){std::map<std::string,Array> arrays;try{if(is_ode)prepare_ode(ode,arrays);else prepare_linprog(lp,arrays);++s4_ok;}catch(const lmcpp::Error&){++s4_bad;}}
 }
 if(s4_ok<1000||s4_bad<1000)return 1;
+size_t ml_ok=0,ml_bad=0;
+for(int i=0;i<2000;++i){
+ pycli::TensorBundle model;Json prep={{"scale",false},{"one_hot",Json::array()},{"categories",Json::object()}};
+ model.metadata={{"pycli_model","1"},{"family","linear"},{"sklearn_version","1.7.2"},{"features","[\"x\"]"},{"feature_dtypes","{\"x\":\"numeric-f64\"}"},{"preprocess",prep.dump()},{"params","{\"fit_intercept\":true}"},{"labels","[]"},{"width","1"},{"train_rows","3"},{"seed","null"},{"components","1"},{"target","y"},{"train_sha256",std::string(64,'a')},{"lock_id",std::string(64,'b')}};
+ pycli::TensorData t;t.dtype="F64";t.shape={1};t.bytes.resize(8);model.tensors["coef_"]=t;model.tensors["intercept_"]=t;
+ switch(i%6){case 0:break;case 1:model.tensors["coef_"].shape={int64_t(rng())};break;case 2:model.metadata["preprocess"]=std::string(rng()%100,char(rng()));break;case 3:model.metadata["width"]=std::to_string(rng());break;case 4:model.tensors["unexpected"]=t;break;case 5:model.metadata["features"]="null";break;}
+ try{ml_model_info(model,false);++ml_ok;}catch(const lmcpp::Error&){++ml_bad;}
+ Json decoded;try{frames::csv(std::string(rng()%100,char(rng())),",",20000,&decoded);}catch(const lmcpp::Error&){}
+ try{ml_table_npz(good);}catch(const lmcpp::Error&){}
+}
+if(ml_ok<300||ml_bad<1000)return 1;
+std::cout<<"S6 model/CSV preflight fuzz: "<<ml_ok<<" accepted, "<<ml_bad<<" rejected\n";
 std::cout<<"S4 structured preflight fuzz: "<<s4_ok<<" accepted, "<<s4_bad<<" rejected\n";
 std::cout<<"table fuzz: "<<accepted<<" ZIPs passed all size/header/layout checks; "<<rejected<<" rejected; 10000 CSV/rule/predicate cases\n";
 }

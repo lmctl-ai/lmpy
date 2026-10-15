@@ -36,6 +36,8 @@ class ML(unittest.TestCase):
   for f in ['gaussian_nb','lda']:
    self.fit(f,cols,['x','z'],'y');_,t=bundle(self.cwd/(f+'.safetensors'));x=np.c_[cols['x'],cols['z']];means=np.array([x[:3].mean(0),x[3:].mean(0)])
    np.testing.assert_allclose(t['theta_' if f=='gaussian_nb' else 'means_'],means,rtol=1e-12)
+   if f=='gaussian_nb':
+    variance=np.array([x[:3].var(0),x[3:].var(0)])+1e-9*x.var(0).max();np.testing.assert_allclose(t['var_'],variance,rtol=1e-12)
    if f=='lda':
     centered=np.r_[x[:3]-means[0],x[3:]-means[1]];cov=centered.T@centered/4;w=np.linalg.solve(cov,means[1]-means[0]);np.testing.assert_allclose(t['coef_'].ravel(),w,rtol=1e-10,atol=1e-12)
  def test_all_family_roundtrips(self):
@@ -74,6 +76,10 @@ class ML(unittest.TestCase):
    self.call('ml_fit',family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},predict_frame='test.npz',predict_out='tree.npz');self.assertTrue((self.cwd/'tree.npz').exists());(self.cwd/'tree.npz').unlink()
    self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},out='no.safetensors',predict_frame='test.npz',predict_out='tree.npz')
   r=self.fit('logistic',{'x':list(range(20)),'y':[0]*10+[1]*10},['x'],'y',params={'max_iter':1},rc=1);self.assertEqual(r['error']['data']['tool_code'],'NO_CONVERGENCE')
+ def test_wide_preview_budget(self):
+  cols={"f"+str(i):list(range(15)) for i in range(64)}
+  r=self.fit('standard_scaler',cols,list(cols));self.assertLess(len(json.dumps(r)),65536)
+  p=self.predict('standard_scaler.safetensors',cols,'transform');self.assertLess(len(json.dumps(p)),65536)
  def test_csv_npz_caps_and_nan_preflight(self):
   base=dict(family='ridge',features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},out='fit.safetensors')
   (self.cwd/'train.csv').write_text('x,y\n1,2\n2,4\n3,6\n')
@@ -88,7 +94,8 @@ class ML(unittest.TestCase):
   cols={'x':[-3,-2,-1,1,2,3],'y':[0,0,0,1,1,1]};self.fit('logistic',cols,['x'],'y')
   for kind in ['predict_proba','decision_function']:
    r=self.predict('logistic.safetensors',cols,kind);self.assertTrue(all(t['num_threads']==1 for t in r['threads']));data=self.output('pred.npz');(self.cwd/'pred.npz').unlink()
-   if kind=='predict_proba':np.testing.assert_allclose(np.array(list(data.values())).sum(0),1,atol=1e-15)
+   if kind=='predict_proba':
+    np.testing.assert_allclose(np.array(list(data.values())).sum(0),1,atol=1e-15);_,t=bundle(self.cwd/'logistic.safetensors');want=1/(1+np.exp(-(np.array(cols['x'])*t['coef_'].item()+t['intercept_'].item())));np.testing.assert_allclose(data['probability_1'],want,rtol=1e-14)
   tamper(self.cwd/'logistic.safetensors',self.cwd/'old.safetensors',lambda h:h['__metadata__'].update(sklearn_version='0.0.0'))
   r=self.predict('old.safetensors',cols,allow_version_skew=True);self.assertTrue(r['version_skew_accepted'])
  def test_budgets_seeds_laziness(self):
@@ -100,6 +107,11 @@ class Isolation(unittest.TestCase):
  def test_dependency_inventory(self):
   import importlib.metadata as md
   for package,version in [('scikit-learn','1.7.2'),('joblib','1.5.2'),('threadpoolctl','3.6.0')]:self.assertEqual(md.version(package),version)
+ def test_installed_deserialization_guard(self):
+  code="import sys;sys.path.insert(0,'/repo/tests/oracle');from s3 import load_worker;w=load_worker();w.ml_import();import pickle;sys.addaudithook(w.audit);pickle.loads(b'cos\\nsystem\\n.')"
+  code=code.replace('/repo',str(ROOT))
+  r=subprocess.run([sys.executable,'-c',code],capture_output=True,text=True)
+  self.assertNotEqual(r.returncode,0);self.assertIn('blocked serialization audit event',r.stderr)
  def test_guard_audit_event(self):
   sys.path.insert(0,str(ROOT/'tests/oracle'));from s3 import load_worker
   w=load_worker()
