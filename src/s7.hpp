@@ -1,7 +1,7 @@
 // S7 front end: interpolation, signal processing and spatial operations. Every array is loaded, shape-checked and finite-checked here;
 // every enum, QHull option string, order, window and cap is decided here, so the worker never sees a request that could exhaust memory.
 #pragma once
-constexpr size_t S7_INLINE=900, S7_RBF_POINTS=5000, S7_RBF_DIM=8, S7_KNN_DIM=32, S7_ORDER=20, S7_NPERSEG=65536, S7_NFFT=131072, S7_DIST_PAIRS=1000000, S7_FREQS=200, S7_KNN_K=1000, S7_HULL_DIM=6;
+constexpr size_t S7_INLINE=900, S7_RBF_POINTS=5000, S7_RBF_DIM=8, S7_KNN_DIM=32, S7_ORDER=20, S7_NPERSEG=65536, S7_NFFT=131072, S7_DIST_PAIRS=1000000, S7_FREQS=200, S7_KNN_K=1000, S7_HULL_DIM=6, S7_ARTIFACT=1900000, S7_BRUTE_WORK=20000000;
 const std::vector<std::string> S7_WINDOWS={"hann","hamming","blackman","boxcar","bartlett","flattop","parzen","bohman","blackmanharris","nuttall","barthann","cosine","triang"};
 bool s7_twin(const std::string& op){return op.size()>3&&op.compare(op.size()-3,3,"_to")==0;}
 bool s7_op(const std::string& op){return op.rfind("interp_",0)==0||op.rfind("sig_",0)==0||op.rfind("spatial_",0)==0;}
@@ -60,6 +60,12 @@ Json prepare_interp(const Params& in,std::map<std::string,Array>& arrays,bool tw
         double epsilon=in.contains("epsilon")&&!in["epsilon"].is_null()?s7_number(in["epsilon"],"epsilon"):1.0;if(!(epsilon>0))bad_param("epsilon must be > 0");p["epsilon"]=epsilon;
         double smoothing=in.contains("smoothing")&&!in["smoothing"].is_null()?s7_number(in["smoothing"],"smoothing"):0.0;if(smoothing<0)bad_param("smoothing must be >= 0");p["smoothing"]=smoothing;
         if(in.contains("degree")&&!in["degree"].is_null()){int64_t d=in["degree"];if(d<-1||d>3)bad_param("degree must be -1..3");}
+        int minimum=kernel=="quintic"?2:(kernel=="thin_plate_spline"||kernel=="cubic")?1:0;
+        int degree=in.contains("degree")&&!in["degree"].is_null()?in["degree"].get<int>():minimum;
+        if(degree!=-1&&degree<minimum)bad_param("rbf degree is below this kernel's polynomial minimum");
+        size_t terms=1;for(int j=1;j<=degree;++j)terms=terms*(size_t(x.shape[1])+j)/j;
+        if(degree>=0&&n<terms)bad_param("too few rbf nodes for polynomial degree: need at least "+std::to_string(terms));
+        p["degree"]=degree;
         if(in.contains("integrate")&&!in["integrate"].is_null())bad_param("integrate is not available for kind rbf");
     }else{
         for(const char* key:{"kernel","epsilon","smoothing","degree"})if(in.contains(key)&&!in[key].is_null())bad_param(std::string(key)+" is only used with kind rbf");
@@ -67,6 +73,7 @@ Json prepare_interp(const Params& in,std::map<std::string,Array>& arrays,bool tw
     const std::string extrapolate=in["extrapolate"];
     const bool has_new=in.contains("x_new")&&!in["x_new"].is_null(),has_int=in.contains("integrate")&&!in["integrate"].is_null();
     if(!has_new&&!has_int)bad_param("give x_new, integrate or both");
+    if(twin&&!has_new)bad_param("interp_eval_to needs x_new; integrate-only requests use interp_eval");
     size_t outputs=0;
     if(has_new){
         const Array& q=s7_load(in,"x_new",arrays,rbf?2:1);
@@ -110,6 +117,7 @@ Json prepare_filter(const Params& in,std::map<std::string,Array>& arrays,bool tw
         if(given){double v=s7_number(in[key],key);if(!(v>0&&v<=hi))bad_param(std::string(key)+" must be in (0, "+std::to_string(int(hi))+"] dB");}
     };
     ripple("rp",needs_rp,100);ripple("rs",needs_rs,200);
+    if(family=="ellip"&&in["rp"].get<double>()>=in["rs"].get<double>())bad_param("ellip requires rp < rs");
     const size_t sections=band?size_t(order):size_t((order+1)/2);size_t numbers=6*sections;
     const bool has_x=in.contains("x")&&!in["x"].is_null();
     if(in.contains("mode")&&!in["mode"].is_null()&&!has_x)bad_param("mode is only used with x");
@@ -119,7 +127,7 @@ Json prepare_filter(const Params& in,std::map<std::string,Array>& arrays,bool tw
         numbers+=x.data.size();
     }else if(twin)bad_param("the write form needs x");
     if(in.contains("freqs")&&!in["freqs"].is_null()){
-        Array f=load(in["freqs"]);if(f.shape.size()!=1||f.data.size()>S7_FREQS)invalid("freqs needs a vector of at most "+std::to_string(S7_FREQS)+" values","BAD_PARAM");need_finite(f,"freqs");
+        Array f=load(in["freqs"]);if(f.shape.size()!=1)invalid("freqs must be a vector","BAD_DATA");if(f.data.size()>S7_FREQS)invalid("freqs exceeds 200 values","INPUT_TOO_LARGE");need_finite(f,"freqs");
         for(double v:f.data)if(v<0||v>nyquist)bad_param("freqs must lie in [0, Nyquist]");
         numbers+=2*f.data.size();arrays["freqs"]=std::move(f);
     }
@@ -147,11 +155,12 @@ Json prepare_spectrum(const Params& in,std::map<std::string,Array>& arrays,bool 
         s7_reject_unused(in,{"nperseg","noverlap"},"with welch, csd and coherence");
         effective=n;
     }else{
-        size_t nperseg=in.contains("nperseg")&&!in["nperseg"].is_null()?size_t(int_param(in,"nperseg",2,1000000000)):std::min<size_t>(256,n);
-        if(nperseg>n)bad_param("nperseg ("+std::to_string(nperseg)+") exceeds the signal length ("+std::to_string(n)+")");
+        size_t nperseg=in.contains("nperseg")&&!in["nperseg"].is_null()?size_t(int_param(in,"nperseg",2,1000000000)):std::min<size_t>(256,method=="coherence"?n/2:n);
         if(nperseg>S7_NPERSEG)invalid("nperseg is limited to 65536","INPUT_TOO_LARGE");
+        if(nperseg>n)bad_param("nperseg exceeds the signal length");
         size_t noverlap=in.contains("noverlap")&&!in["noverlap"].is_null()?size_t(int_param(in,"noverlap",0,1000000000)):nperseg/2;
         if(noverlap>=nperseg)bad_param("noverlap must be smaller than nperseg");
+        if(method=="coherence"&&1+(n-nperseg)/(nperseg-noverlap)<2)bad_param("coherence requires at least two averaged segments (nperseg < signal length)");
         p["nperseg"]=nperseg;p["noverlap"]=noverlap;effective=nperseg;
     }
     if(in.contains("nfft")&&!in["nfft"].is_null()){
@@ -187,8 +196,10 @@ Json prepare_knn(const Params& in,std::map<std::string,Array>& arrays,bool twin)
     if(has_k){
         int64_t k=in["k"];if(k<1||size_t(k)>S7_KNN_K)bad_param("k must be 1..1000");
         if(size_t(k)+(exclude?1:0)>n)bad_param("k"+std::string(exclude?" + 1":"")+" exceeds the number of points ("+std::to_string(n)+")");
+        if(2*m*(size_t(k)+(exclude?1:0))>S7_ARTIFACT)output_too_large("spatial_knn query workspace/output exceeds 1900000 numbers; reduce queries or k");
         if(!twin)s7_inline_budget(2*m*size_t(k),"spatial_knn");
-    }else{double r=s7_number(in["radius"],"radius");if(!(r>0))bad_param("radius must be > 0");}
+    }else{double r=s7_number(in["radius"],"radius");if(!(r>0))bad_param("radius must be > 0");if(!twin)s7_inline_budget(m,"spatial_knn");}
+    if(!norm.is_string()&&norm.get<double>()>2&&n*m*d>S7_BRUTE_WORK)invalid("p > 2 uses stable exact distances: n*m*d exceeds 20000000","INPUT_TOO_LARGE");
     int_param(in,"max_pairs",1,1000000);
     return p;
 }
@@ -216,7 +227,9 @@ Json prepare_dist(const Params& in,std::map<std::string,Array>& arrays,bool twin
     if(metric=="mahalanobis"){
         if(!has_vi)bad_param("metric mahalanobis needs vi (the inverse covariance matrix)");
         const Array& vi=s7_load(in,"vi",arrays,2);if(size_t(vi.shape[0])!=d||size_t(vi.shape[1])!=d)invalid("vi must be "+std::to_string(d)+" x "+std::to_string(d),"BAD_DATA");
-        need_symmetric(vi);
+        double scale=0;for(double v:vi.data)scale=std::max(scale,std::abs(v));bool changed=false;
+        for(size_t i=0;i<d;++i)for(size_t j=0;j<i;++j){double a=vi.data[i*d+j],b=vi.data[j*d+i];if(std::abs(a-b)>1e-12*scale)invalid("vi must be symmetric to relative tolerance 1e-12","NOT_SYMMETRIC");if(a!=b){changed=true;arrays["vi"].data[i*d+j]=arrays["vi"].data[j*d+i]=a/2+b/2;}}
+        p["vi_symmetrised"]=changed;
     }else if(has_vi)bad_param("vi is only used with metric mahalanobis");
     const size_t pairs=size_t(a.shape[0])*m;
     if(pairs>S7_DIST_PAIRS)invalid("the distance matrix would hold "+std::to_string(pairs)+" entries (limit "+std::to_string(S7_DIST_PAIRS)+")","INPUT_TOO_LARGE");
