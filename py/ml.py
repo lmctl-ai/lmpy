@@ -24,7 +24,7 @@ def ml_estimator(family, params, seed):
     if family == 'ridge': return linear.Ridge(solver='svd', **p)
     if family == 'lasso': return linear.Lasso(selection='cyclic', **p)
     if family == 'elastic_net': return linear.ElasticNet(selection='cyclic', **p)
-    if family == 'logistic': return linear.LogisticRegression(solver='lbfgs', random_state=seed, n_jobs=1, **p)
+    if family == 'logistic': return linear.LogisticRegression(solver='lbfgs', n_jobs=1, **p)
     if family == 'linear_svc': return svm.LinearSVC(dual='auto', random_state=seed, **p)
     if family == 'gaussian_nb': return nb.GaussianNB(**p)
     if family == 'lda':
@@ -88,12 +88,17 @@ def ml_fit_one(df,p):
     scaler=None
     if prep['scale']:
         scaler=sklearn.preprocessing.StandardScaler();x=scaler.fit_transform(x)
+    if p['family']=='kmeans' and len(np.unique(x,axis=0))<p['params']['n_clusters']:
+        return None,None,None,None,None,'DEGENERATE_CLUSTERS'
+    if p['family']=='lda':
+        within=x-np.array([x[y==i].mean(axis=0) for i in range(len(labels))])[y]
+        if not np.any(within):return None,None,None,None,None,'DEGENERATE_DATA'
     est=ml_estimator(p['family'],p['params'],p.get('seed',0))
     with warnings.catch_warnings(record=True) as notes:
         warnings.simplefilter('always');est.fit(x,y)
     for note in notes: warnings.warn(str(note.message), note.category)
     if (p['family']=='kmeans' and est.n_iter_>=p['params']['max_iter']) or any(issubclass(v.category,sklearn.exceptions.ConvergenceWarning) for v in notes): return None,None,None,None,None,'NO_CONVERGENCE'
-    return est,x,prep,labels,scaler,'OK'
+    return est,x,prep,labels,scaler,'RANK_DEFICIENT' if p['family']=='linear' and est.rank_<x.shape[1] else 'OK'
 
 
 def ml_result(est,x,kind,family,labels):
@@ -156,7 +161,7 @@ def ml_fit(p):
     import sklearn,hashlib
     df,meta,masks,inferred=frame_load(p)
     est,x,prep,labels,scaler,status=ml_fit_one(df,p)
-    if status!='OK': return {'status':status}
+    if status not in ('OK','RANK_DEFICIENT'): return {'status':status}
     family=p['family'];attrs=p['ml_spec']['families'][family]['attributes']
     kind='transform' if family in ('pca','standard_scaler') else 'predict'
     prediction=ml_result(est,x[:20],kind,family,labels)
@@ -189,7 +194,10 @@ def ml_fit(p):
     info={'pycli_model':'1','family':family,'sklearn_version':sklearn.__version__,'features':p['features'],'feature_dtypes':{f:'string' if f in prep['one_hot'] else 'numeric-f64' for f in p['features']},'preprocess':prep,'params':p['params'],'labels':labels,'width':x.shape[1],'train_rows':len(x),'seed':p.get('seed'),'components':int(r),'target':p.get('target',''),'train_sha256':digest.hexdigest(),'lock_id':p['lock_id']}
     metadata={k:json.dumps(v,separators=(',',':'),ensure_ascii=False) if not isinstance(v,str) else v for k,v in info.items()}
     if sum(len(k)+len(v) for k,v in metadata.items())>16384:raise BadData('model metadata exceeds 16KiB')
-    return {'status':'OK','rank':int(est.rank_) if family=='linear' else None,'rank_deficient':bool(est.rank_<x.shape[1]) if family=='linear' else False,'classes':labels,'features':p['features'],'family':family,'model_metadata':metadata,'outputs':save_outputs(p,tensors),'prediction_preview':ml_preview(prediction),'preview_truncated':len(x)>len(next(iter(ml_preview(prediction).values()))),'seed':p.get('seed'),'generator':'sklearn RandomState(MT19937)','preprocess':p['preprocess']}
+    result={'status':status,'rank':int(est.rank_) if family=='linear' else None,'rank_deficient':bool(est.rank_<x.shape[1]) if family=='linear' else False,'classes':labels,'features':p['features'],'family':family,'model_metadata':metadata,'outputs':save_outputs(p,tensors),'prediction_preview':ml_preview(prediction),'preview_truncated':len(x)>len(next(iter(ml_preview(prediction).values()))),'seed':p.get('seed'),'preprocess':p['preprocess']}
+    if p.get('seed') is None:result.pop('seed')
+    if p['ml_spec']['families'][family]['stochastic']:result['generator']='sklearn RandomState(MT19937)'
+    return result
 
 
 def ml_load(p):
@@ -239,10 +247,22 @@ def ml_cv(p):
     elif cv=='group':splitter=split.GroupKFold(n_splits=n,shuffle=shuffle,random_state=seed if shuffle else None)
     elif cv=='stratified':splitter=split.StratifiedKFold(n_splits=n,shuffle=shuffle,random_state=seed if shuffle else None)
     else:splitter=split.KFold(n_splits=n,shuffle=shuffle,random_state=seed if shuffle else None)
+    if cv=='group' and len(set(groups))<n:raise BadData('group CV needs at least n_splits distinct groups')
+    if cv=='stratified' and max(np.bincount(y))<n:raise BadData('n_splits exceeds every class count')
+    if 'roc_auc' in p['metrics'] and (len(labels)!=2 or p['family']=='linear_svc'):raise BadData('roc_auc requires binary predict_proba family')
+    if 'log_loss' in p['metrics'] and p['family']=='linear_svc':raise BadData('log_loss requires predict_proba')
     folds=[]
+    def undefined(i,train,message,metric_name=None,status='UNDEFINED_METRIC'):
+        result={'status':status,'fold_index':i,'folds':folds,'completed_folds':len(folds),'message':message+'; consider stratified CV or shuffle','missing_classes':[v for v in labels if v not in set(df.iloc[train][p['target']])]}
+        if metric_name is not None:result['metric']=metric_name
+        return result
     for i,(train,test) in enumerate(splitter.split(df,y,groups)):
+        if task=='classification':
+            present=set(df.iloc[train][p['target']])
+            if len(present)<2:return undefined(i,train,'training fold has fewer than two classes',status='INSUFFICIENT_CLASSES')
+            if len(present)!=len(labels) and 'log_loss' in p['metrics']:return undefined(i,train,'training fold lacks classes','log_loss')
         est,x,prep,fold_labels,scaler,status=ml_fit_one(df.iloc[train],p)
-        if status!='OK':return {'status':status,'folds':folds,'completed_folds':len(folds)}
+        if status not in ('OK','RANK_DEFICIENT'):return {'status':status,'fold_index':i,'folds':folds,'completed_folds':len(folds)}
         xx,_=ml_matrix(df.iloc[test],p['features'],p['preprocess'],prep)
         if scaler is not None:xx=scaler.transform(xx)
         pred=np.asarray(ml_result(est,xx,'predict',p['family'],fold_labels)['prediction'])
@@ -252,22 +272,24 @@ def ml_cv(p):
             if name=='accuracy':score=metric.accuracy_score(true,pred)
             elif name=='f1_macro':score=metric.f1_score(true,pred,average='macro',zero_division=0)
             elif name=='roc_auc':
-                if len(labels)!=2 or not hasattr(est,'predict_proba'):raise BadData('roc_auc requires binary predict_proba family')
-                score=metric.roc_auc_score((true==labels[1]).astype(int),est.predict_proba(xx)[:,1])
+                if len(set(true))<2:return undefined(i,train,'held-out fold has only one class','roc_auc')
+                probabilities=ml_result(est,xx,'predict_proba',p['family'],fold_labels)
+                score=metric.roc_auc_score((true==labels[1]).astype(int),probabilities['probability_1'])
             elif name=='log_loss':
-                if not hasattr(est,'predict_proba'):raise BadData('log_loss requires predict_proba')
-                if fold_labels!=labels:raise BadData('training fold lacks classes')
-                score=metric.log_loss(true,est.predict_proba(xx),labels=labels)
+                probabilities=ml_result(est,xx,'predict_proba',p['family'],fold_labels)
+                score=metric.log_loss(true,np.column_stack(list(probabilities.values())),labels=labels)
             elif name=='mse':score=metric.mean_squared_error(true,pred)
             elif name=='mae':score=metric.mean_absolute_error(true,pred)
             else:score=metric.r2_score(true,pred,force_finite=False)
-            if not np.isfinite(score):return {'status':'UNDEFINED_METRIC','folds':folds,'completed_folds':len(folds)}
+            if not np.isfinite(score):return undefined(i,train,'metric is not finite',name)
             scores[name]=float(score)
-        item={'fold':i,'train_rows':len(train),'test_rows':len(test),'scores':scores}
+        item={'fold':i,'status':status,'train_rows':len(train),'test_rows':len(test),'scores':scores}
         if len(df)*n<=600:item['test_indices']=test.tolist()
         else:item.update(test_indices_sha256=hashlib.sha256(test.astype('<i8').tobytes()).hexdigest(),indices_omitted=True)
         folds.append(item)
-    return {'status':'OK','folds':folds,'mean':{k:float(np.mean([f['scores'][k] for f in folds])) for k in p['metrics']},'std':{k:float(np.std([f['scores'][k] for f in folds])) for k in p['metrics']},'seed':seed,'generator':'sklearn RandomState(MT19937)','preprocessing_fitted_per_fold':True}
+    result={'status':'RANK_DEFICIENT' if any(f['status']=='RANK_DEFICIENT' for f in folds) else 'OK','completed_folds':len(folds),'folds':folds,'mean':{k:float(np.mean([f['scores'][k] for f in folds])) for k in p['metrics']},'std':{k:float(np.std([f['scores'][k] for f in folds])) for k in p['metrics']},'seed':seed,'preprocessing_fitted_per_fold':True}
+    if shuffle or p['ml_spec']['families'][p['family']]['stochastic']:result['generator']='sklearn RandomState(MT19937)'
+    return result
 
 
 def ml_operation(op,p):
@@ -283,5 +305,6 @@ def ml_operation(op,p):
             return result
     except _SmAlarm:return {'status':'TIME_LIMIT'}
     except NumericalFailure as e:return {'status':'NUMERICAL_FAILURE','message':str(e)}
-    except ValueError as e:raise BadData(str(e))
+    except BadData:raise
+    except ValueError as e:return {'status':'NUMERICAL_FAILURE','message':str(e)}
     finally:signal.setitimer(signal.ITIMER_REAL,0);signal.signal(signal.SIGALRM,old)

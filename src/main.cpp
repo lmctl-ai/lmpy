@@ -614,7 +614,7 @@ Json call(const std::string& op,const Params& input){
     if(!response.value("ok",false)){auto code=response.value("tool_code",std::string("PY_ERROR"));auto kind=response.value("error_class",std::string());throw Error{(code=="BAD_DATA"||kind=="validation")?ErrorCode::ValidationError:kind=="internal"?ErrorCode::InternalError:ErrorCode::CommandFailed,response.value("message",std::string("worker failure")),{{"tool_code",code},{"exception",response.value("exception",std::string())},{"warnings",response.value("warnings",Json::array())}}};}
     Json result=response["result"];
     if(ml&&op!="ml_cv"){
-        if(result.value("status",std::string())!="OK")no_artifact(result,"ML operation produced no artifact");
+        if(result.value("status",std::string())!="OK"&&!(op=="ml_fit"&&result.value("status",std::string())=="RANK_DEFICIENT"&&result.contains("model_metadata")))no_artifact(result,"ML operation produced no artifact");
         auto path=p["out"].get<std::string>();
         if(op=="ml_fit"&&result.contains("model_metadata")){
             auto bundle=read_outputs(temp,result,32);bundle.metadata=result["model_metadata"].get<std::map<std::string,std::string>>();ml_model_info(bundle,false);result.erase("model_metadata");

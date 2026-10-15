@@ -40,7 +40,7 @@ class Review(unittest.TestCase):
   self.assertEqual(r['error']['data']['tool_code'],'DEGENERATE_DATA');self.assertFalse((self.cwd/'lda.safetensors').exists())
  def test_logistic_is_deterministic(self):
   r=self.call('ml_fit',family='logistic',columns={'x':[-2,-1,1,2],'y':[0,0,1,1]},features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},out='a.safetensors')
-  self.assertEqual(r['status'],'OK');self.assertIsNone(r['generator']);self.assertIsNone(r['seed'])
+  self.assertEqual(r['status'],'OK');self.assertNotIn('generator',r);self.assertNotIn('seed',r)
  def cv(self,labels,metrics):
   return self.call('ml_cv',family='logistic',columns={'x':list(range(len(labels))),'y':labels},features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},seed=123,cv='kfold',n_splits=2,shuffle=False,metrics=metrics)
  def test_fold_missing_classes(self):

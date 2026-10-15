@@ -117,7 +117,7 @@ class ML(unittest.TestCase):
   r=self.predict('old.safetensors',cols,allow_version_skew=True);self.assertTrue(r['version_skew_accepted'])
  def test_budgets_seeds_laziness(self):
   base=dict(columns={'x':[-3,-2,-1,1,2,3],'y':[0,0,0,1,1,1]},features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},out='fit.safetensors')
-  self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family='logistic',**base)
+  self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family='linear_svc',**base)
   r=self.call('ml_fit',rc=1,family='logistic',seed=123,time_limit=0.000001,**base);self.assertEqual(r['error']['data']['tool_code'],'TIME_LIMIT');self.assertFalse((self.cwd/'fit.safetensors').exists())
   for op,args in [('py_info',{}),('stats_dist',{'dist':'norm','fn':'cdf','x':[0]})]:self.assertEqual(self.call(op,**args)['meta']['sklearn'],'unloaded')
 class Isolation(unittest.TestCase):

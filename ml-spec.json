@@ -148,7 +148,7 @@
           ]
         }
       },
-      "stochastic": true,
+      "stochastic": false,
       "attributes": {
         "coef_": "decision",
         "intercept_": "decision_rows",
