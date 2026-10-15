@@ -107,4 +107,7 @@ class S4(unittest.TestCase):
     p={'rhs':[text]} if path=='rhs' else {'events':[{'expr':text}]}
     self.ode(rc=2,env=env,**p)
   for p in ({'y0':[1]*33,'rhs':['0']*33},{'t_span':[0,1e300]},{'events':[{'expr':'t'}]*5},{'t_eval':[0,.5,.4,1]},{'max_output_points':10001},{'rtol':0},{'atol':-1},{'params':{'t':1}},{'method':'unsafe'}):self.ode(rc=2,env=env,**p)
+ def test_atol_type_validation_before_spawn(self):
+  for value in ('0.000001',True,{},None):
+   with self.subTest(value=value):self.ode(rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),atol=value)
 if __name__=='__main__':unittest.main()
