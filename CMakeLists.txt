@@ -90,6 +90,8 @@ if(BUILD_TESTING)
  set_tests_properties(s1_arrays s1_la PROPERTIES ENVIRONMENT "OPENBLAS_NUM_THREADS=1")
  add_test(NAME s3_expr COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/s3_expr.py $<TARGET_FILE:pycli_dev>)
  add_test(NAME s4_review COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/s4_review.py $<TARGET_FILE:pycli_dev>)
+ # This group verifies native HiGHS status with a 1 ms budget: avoid CPU contention before solver entry.
+ set_tests_properties(s4_review PROPERTIES RUN_SERIAL TRUE)
  add_test(NAME s4_ops COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/s4_ops.py $<TARGET_FILE:pycli_dev>)
  add_test(NAME s3_ops COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/s3_ops.py $<TARGET_FILE:pycli_dev>)
  add_test(NAME s3_semantics COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/s3_semantics.py $<TARGET_FILE:pycli_dev>)
