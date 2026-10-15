@@ -1,0 +1,39 @@
+// access: read
+// What it does: solves the same equations with pycli opt_root (hybr, lm and the bracketed brentq form), pycli num_root and R's uniroot through rcli, and checks
+//   the known answers: the classic root of x^3 - 2x - 5 (2.0945514815423265) and the circle/line system x^2 + y^2 = 4, x = y (x = y = sqrt 2). A system with no
+//   real root must be reported as NO_CONVERGENCE with the residual, never as success.
+// Tolerance: 1e-12 for the bracketed scalar root across tools; 1e-8 for the nonlinear systems.
+// Setup: the rcli leg is skipped with a hint when rcli is not on PATH (run from a directory below HOME for rcli).
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+known = 2.0945514815423265;
+b = pycli.opt_root({equations: ["x^3 - 2*x - 5"], start: {x: 2}, bracket: [2, 3], xtol: 0.00000000000001});
+if (b.status == "simulated") { println("Root comparison simulated."); exit(0); }
+n = pycli.num_root({f: "x^3 - 2*x - 5", lower: 2, upper: 3, xtol: 0.00000000000001});
+if (b.status != "ok" || b.result.status != "OK" || n.status != "ok" || n.result.status != "OK") { println(json_stringify(b), json_stringify(n)); exit(1); }
+println(sprintf("root of x^3 - 2x - 5: known %.16f | opt_root brentq %.16f | num_root %.16f", known, b.result.x.x, n.result.root));
+worst = max(abs(b.result.x.x - known), abs(n.result.root - known));
+legs = 2;
+if (which("rcli") == null) { println("R leg skipped: rcli not on PATH (see examples/schemas/README.md)"); }
+else {
+  r = rcli.num_root({f: "x^3 - 2*x - 5", lower: 2, upper: 3, tol: 0.00000000000001});
+  if (r.status != "ok") { println("rcli num_root failed:", json_stringify(r)); exit(1); }
+  println(sprintf("  R uniroot %.16f", r.result.root));
+  worst = max(worst, abs(r.result.root - known));
+  legs = 3;
+}
+if (worst > 0.000000000001) { println("scalar root mismatch above 1e-12"); exit(1); }
+println(sprintf("scalar root: %d tool(s) agree, largest error %.12f", legs, worst));
+sqrt2 = sqrt(2);
+for (method in ["hybr", "lm"]) {
+  s = pycli.opt_root({equations: ["x^2 + y^2 - 4", "x - y"], start: {x: 1, y: 1}, method: method});
+  if (s.status != "ok" || s.result.status != "OK") { println(method, json_stringify(s)); exit(1); }
+  err = max(abs(s.result.x.x - sqrt2), abs(s.result.x.y - sqrt2));
+  println(sprintf("system with %-4s: x = %.12f y = %.12f residual %.12f error %.12f (%d evaluations)", method, s.result.x.x, s.result.x.y, s.result.residual_max, err, s.result.evals));
+  if (err > 0.00000001) { println("system root is off"); exit(1); }
+}
+none = pycli.opt_root({equations: ["x^2 + 1"], start: {x: 1}});
+if (none.status != "ok" || none.result.status != "NO_CONVERGENCE" || none.result.residual_max < 0.99) { println("a system without a root must be NO_CONVERGENCE:", json_stringify(none)); exit(1); }
+println(sprintf("x^2 + 1 = 0: status %s, best residual %.3f (the solver's own success flag is not trusted)", none.result.status, none.result.residual_max));
+println("Root finding agrees.");

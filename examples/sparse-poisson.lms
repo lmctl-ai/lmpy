@@ -1,0 +1,51 @@
+// access: read
+// What it does: assembles the 1-D Poisson matrix tridiagonal(-1, 2) as COO triplets in lmscript, solves -u'' = 2 on (0, 1) (the exact solution u(x) = x (1 - x) is
+//   reproduced exactly by the 3-point scheme) with la_sparse spsolve, cg and gmres, and finds the smallest and largest eigenvalues with ARPACK (eigsh, seeded)
+//   against the analytic spectrum lambda_j = 4 sin^2(j pi / (2 (n + 1))) (sin is evaluated here by a Taylor series: lmscript has no trigonometry).
+// Tolerance: solutions within 1e-9 of u(x_i); eigenvalues within 1e-9 relative of the analytic values.
+// How to run: put the pycli bin directory on PATH, then run lmscript examples/sparse-poisson.lms
+import "../cli.schema.dev.json" as pycli;
+
+n = 120;
+h = 1 / (n + 1);
+row = []; col = []; val = []; b = []; exact = [];
+for (i = 0; i < n; i = i + 1) {
+  row = concat(row, [i]); col = concat(col, [i]); val = concat(val, [2.0]);
+  if (i + 1 < n) { row = concat(row, [i, i + 1]); col = concat(col, [i + 1, i]); val = concat(val, [-1.0, -1.0]); }
+  x = (i + 1) * h;
+  b = concat(b, [2 * h * h]);
+  exact = concat(exact, [x * (1 - x)]);
+}
+function sine(t) { term = t; total = t; for (k = 1; k < 25; k = k + 1) { term = 0 - term * t * t / ((2 * k) * (2 * k + 1)); total = total + term; } return total; }
+function analytic(j) { s = sine(j * 3.141592653589793 / (2 * (n + 1))); return 4 * s * s; }
+
+worst = 0;
+for (task in ["spsolve", "cg", "gmres"]) {
+  params = {task: task, shape: [n, n], row: row, col: col, val: val, b: b};
+  if (task == "cg") { params.rtol = 0.000000000001; }
+  if (task == "gmres") { params.rtol = 0.000000000001; params.restart = 120; params.maxiter = 10; }
+  r = pycli.la_sparse(params);
+  if (r.status == "simulated") { println("Sparse Poisson simulated."); exit(0); }
+  if (r.status != "ok" || r.result.status != "OK") { println(task, "failed:", json_stringify(r)); exit(1); }
+  err = 0;
+  for (i = 0; i < n; i = i + 1) { d = abs(r.result.x[i] - exact[i]); if (d > err) { err = d; } }
+  println(sprintf("%-7s max |u - exact| = %.12f relative residual %.12f%s", task, err, r.result.relative_residual, ""));
+  if (err > worst) { worst = err; }
+}
+if (worst > 0.000000001) { println("a solution differs from x (1 - x)"); exit(1); }
+low = pycli.la_sparse({task: "eigsh", shape: [n, n], row: row, col: col, val: val, k: 3, which: "SA", seed: 7});
+high = pycli.la_sparse({task: "eigsh", shape: [n, n], row: row, col: col, val: val, k: 3, which: "LA", seed: 7});
+if (low.status != "ok" || low.result.status != "OK" || high.status != "ok" || high.result.status != "OK") { println(json_stringify(low), json_stringify(high)); exit(1); }
+println("eigsh (seed 7): smallest and largest three eigenvalues against the analytic spectrum");
+rel = 0;
+for (k = 0; k < 3; k = k + 1) {
+  lo = analytic(k + 1); hi = analytic(n - 2 + k);
+  println(sprintf("  lambda_%d %.12f (analytic %.12f)   lambda_%d %.12f (analytic %.12f)", k + 1, low.result.w[k], lo, n - 2 + k, high.result.w[k], hi));
+  d = abs(low.result.w[k] - lo) / lo; if (d > rel) { rel = d; }
+  d = abs(high.result.w[k] - hi) / hi; if (d > rel) { rel = d; }
+}
+println(sprintf("largest relative eigenvalue error %.12f; ARPACK residual %.12f", rel, low.result.max_residual));
+if (rel > 0.000000001) { println("eigenvalues differ from the analytic spectrum"); exit(1); }
+again = pycli.la_sparse({task: "eigsh", shape: [n, n], row: row, col: col, val: val, k: 3, which: "SA", seed: 7});
+for (k = 0; k < 3; k = k + 1) { if (again.result.w[k] != low.result.w[k]) { println("the seeded ARPACK run is not reproducible"); exit(1); } }
+println("Sparse Poisson solves and spectrum agree.");

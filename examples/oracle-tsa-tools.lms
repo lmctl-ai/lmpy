@@ -1,0 +1,75 @@
+// access: read
+// What it does: runs the time-series tests of sm_tsa_tools on a deterministic AR(1) series (coefficient 0.6, 120 points, pseudo-random noise from a
+//   65537-modulus LCG) and compares them with (1) closed forms worked out in this file (lag-1 autocorrelation by dot product, the Ljung-Box statistic by
+//   its formula and its p-value in closed form for even degrees of freedom), (2) R through rcli (ts_acf) and (3) lmstats statsrust (acf_pacf, adf, kpss,
+//   ljung_box) when those binaries are on PATH. Every comparison group that is absent is skipped with a hint.
+// Tolerance: autocorrelations and statistics 1e-9; p-values 1e-8 (lmstats evaluates the MacKinnon polynomial with its own normal CDF: a 1.4e-9 difference is recorded in docs/oracle-findings.md).
+// Setup: see examples/schemas/README.md (rcli needs R and a working directory below HOME; statsrust is built from lmctl-ai/lmstats).
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+import "schemas/statsrust.cli.schema.v1.json" as lmstats;
+
+seed = 99; x = []; prev = 0;
+for (i = 0; i < 120; i = i + 1) { seed = (75 * seed + 74) % 65537; e = (seed / 65537 - 0.5) * 3.4; prev = 0.6 * prev + e; x = concat(x, [prev]); }
+n = len(x);
+mean = 0; for (v in x) { mean = mean + v / n; }
+den = 0; for (v in x) { den = den + (v - mean) * (v - mean); }
+function rho(k) { num = 0; for (t = k; t < n; t = t + 1) { num = num + (x[t] - mean) * (x[t - k] - mean); } return num / den; }
+function chi2_sf_even(q, m) { half = q / 2; term = 1; total = 1; for (j = 1; j < m / 2; j = j + 1) { term = term * half / j; total = total + term; } return total / pow(2.718281828459045, half); }
+
+acf = pycli.sm_tsa_tools({columns: {y: x}, series: "y", test: "acf", nlags: 4});
+if (acf.status == "simulated") { println("TSA comparison simulated."); exit(0); }
+lb = pycli.sm_tsa_tools({columns: {y: x}, series: "y", test: "ljung_box", lags: [2, 4]});
+adf = pycli.sm_tsa_tools({columns: {y: x}, series: "y", test: "adfuller"});
+kp = pycli.sm_tsa_tools({columns: {y: x}, series: "y", test: "kpss"});
+for (r in [acf, lb, adf, kp]) { if (r.status != "ok" || r.result.status != "OK") { println("sm_tsa_tools failed:", json_stringify(r)); exit(1); } }
+worst = 0; worst_p = 0;
+println("leg 1: closed forms (quantity | pycli | hand)");
+for (k = 1; k <= 4; k = k + 1) {
+  d = abs(acf.result.values[k] - rho(k)); if (d > worst) { worst = d; }
+  println(sprintf("  acf[%d] | %.15f | %.15f", k, acf.result.values[k], rho(k)));
+}
+q2 = 0; q4 = 0;
+for (k = 1; k <= 4; k = k + 1) { term = n * (n + 2) * rho(k) * rho(k) / (n - k); if (k <= 2) { q2 = q2 + term; } q4 = q4 + term; }
+println(sprintf("  ljung_box Q(2) | %.12f | %.12f   p | %.18f | %.18f", lb.result.statistic[0], q2, lb.result.p_value[0], chi2_sf_even(q2, 2)));
+println(sprintf("  ljung_box Q(4) | %.12f | %.12f   p | %.18f | %.18f", lb.result.statistic[1], q4, lb.result.p_value[1], chi2_sf_even(q4, 4)));
+for (pair in [[lb.result.statistic[0], q2], [lb.result.statistic[1], q4], [lb.result.p_value[0], chi2_sf_even(q2, 2)], [lb.result.p_value[1], chi2_sf_even(q4, 4)]]) {
+  d = abs(pair[0] - pair[1]) / max(abs(pair[1]), 0.000000000001); if (d > worst) { worst = d; }
+}
+println(sprintf("  adfuller: statistic %.9f p %.9f used lag %d; kpss: statistic %.9f p %.3f lags %d", adf.result.statistic, adf.result.p_value, adf.result.used_lag, kp.result.statistic, kp.result.p_value, kp.result.lags));
+legs = 1;
+if (which("rcli") == null) { println("leg 2 skipped: rcli not on PATH (see examples/schemas/README.md)"); }
+else {
+  r = rcli.ts_acf({x: x, lag_max: 4});
+  if (r.status != "ok") { println("rcli ts_acf failed:", json_stringify(r)); exit(1); }
+  println("leg 2: acf vs R acf()");
+  for (k = 0; k <= 4; k = k + 1) { d = abs(acf.result.values[k] - r.result.value[k]); if (d > worst) { worst = d; } println(sprintf("  acf[%d] | %.15f | %.15f", k, acf.result.values[k], r.result.value[k])); }
+  legs = legs + 1;
+}
+if (which("statsrust") == null) { println("leg 3 skipped: statsrust not on PATH (see examples/schemas/README.md)"); }
+else {
+  sa = lmstats.adf({series: x});
+  sk = lmstats.kpss({series: x});
+  sl = lmstats.ljung_box({series: x, diag_lags: 4});
+  sc = lmstats.acf_pacf({series: x, diag_nlags: 4, diag_pacf_method: "ywadjusted"});
+  if (sa.status != "ok" || sk.status != "ok" || sl.status != "ok" || sc.status != "ok") { println("lmstats failed:", json_stringify(sa), json_stringify(sk), json_stringify(sl), json_stringify(sc)); exit(1); }
+  println("leg 3: lmstats (quantity | pycli | lmstats)");
+  println(sprintf("  adf statistic | %.12f | %.12f; p | %.15f | %.15f; used lag | %d | %d; nobs | %d | %d", adf.result.statistic, sa.result.adf_stat, adf.result.p_value, sa.result.p_value, adf.result.used_lag, sa.result.used_lag, adf.result.nobs, sa.result.nobs));
+  println(sprintf("  kpss statistic | %.12f | %.12f; p | %.3f | %.3f; lags | %d | %d", kp.result.statistic, sk.result.kpss_stat, kp.result.p_value, sk.result.p_value, kp.result.lags, sk.result.lags));
+  full = pycli.sm_tsa_tools({columns: {y: x}, series: "y", test: "ljung_box", lags: 4});
+  for (k = 0; k < 4; k = k + 1) {
+    d = abs(full.result.statistic[k] - sl.result.q_stat[k]) / sl.result.q_stat[k]; if (d > worst) { worst = d; }
+    d = abs(full.result.p_value[k] - sl.result.p_values[k]) / sl.result.p_values[k]; if (d > worst) { worst = d; }
+  }
+  for (k = 0; k <= 4; k = k + 1) { d = abs(acf.result.values[k] - sc.result.acf[k]); if (d > worst) { worst = d; } }
+  pc = pycli.sm_tsa_tools({columns: {y: x}, series: "y", test: "pacf", nlags: 4, method: "ywadjusted"});
+  for (k = 0; k <= 4; k = k + 1) { d = abs(pc.result.values[k] - sc.result.pacf[k]); if (d > worst) { worst = d; } }
+  d = abs(adf.result.statistic - sa.result.adf_stat); if (d > worst) { worst = d; }
+  d = abs(adf.result.p_value - sa.result.p_value); if (d > worst_p) { worst_p = d; }
+  d = abs(kp.result.statistic - sk.result.kpss_stat); if (d > worst) { worst = d; }
+  if (adf.result.used_lag != sa.result.used_lag || kp.result.lags != sk.result.lags) { println("lag choices differ between pycli and lmstats"); exit(1); }
+  legs = legs + 1;
+}
+println(sprintf("%d comparison group(s); largest difference %.15f (statistics, correlations), %.15f (adf p-value)", legs, worst, worst_p));
+if (worst > 0.000000001 || worst_p > 0.00000001) { println("time-series test mismatch above tolerance"); exit(1); }
+println("Time-series tests agree: statistics within 1e-9, p-values within 1e-8.");
