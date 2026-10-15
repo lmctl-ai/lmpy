@@ -61,6 +61,11 @@ class Review(Base):
         t=self.table({'v':['Inf','-Inf']},name='inf.npz',dtypes={'v':'float64'})
         self.assertEqual(call('frame_rolling',dict(frame=t,columns=['v'],window=2,functions=['mean'],out=self.p('inf-out.npz')),rc=2)['error']['data']['tool_code'],'NON_FINITE')
 
+    def test_count_min_periods_counts_window_rows(self):
+        t=self.table({'v':[1.,None,3.]},dtypes={'v':'float64'})
+        z=call('frame_rolling',dict(frame=t,columns=['v'],window=3,min_periods=3,functions=['count'],out=self.p('out.npz')))
+        self.assertEqual(z['preview']['data']['v__count'],[None,None,2])
+
     def test_missing_cardinality(self):
         l=self.table({'k':[1,None,None]},dtypes={'k':'int64'})
         r=self.table({'k':[1,None]},name='right.npz',dtypes={'k':'int64'})
