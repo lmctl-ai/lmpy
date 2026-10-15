@@ -11,7 +11,8 @@ All file writes use `result.artifacts[name]` with the same descriptor fields:
 | `py_info` | read | none | versions, OpenBLAS pools/threads/core, PCG64 RNG kind, architecture, worker SHA256, hash/isolation flags |
 | `la_solve` | read | a, b, assume_a=gen/sym/pos | x, rcond estimate, residual norm, domain status |
 | `la_solve_to` | write | same plus exclusive out.safetensors | x descriptor; fails if no artifact is produced |
-| `stats_dist` | read | dist=norm/t, fn=pdf/cdf/ppf/sf, x vector, params | values and captured warnings |
+| `stats_dist` | read | dist (norm, t for pdf/cdf/ppf/sf; norm, t, uniform, expon, gamma, beta, lognorm, chi2, poisson, binom for rvs), fn=pdf/cdf/ppf/sf/rvs, x vector, params; rvs: n and a REQUIRED integer seed | values and captured warnings; rvs echoes seed and generator (PCG64) |
+| `stats_dist_to` | write | fn=rvs only: same dist/params/seed, n up to 1,000,000, exclusive out.safetensors, key (default x) | sample size, seed, generator, artifacts[key] descriptor |
 | `array_import` | write | format=json/csv/csv_file/npy/safetensors, data, key (default x), header, na=nan/error, exclusive out.safetensors | new F64 artifact descriptor, source dtype, finite/NaN/Inf counts, min, max, norm, na_count (pure C++, no Python) |
 | `array_inspect` | read | ref (inline, file.npy, file.safetensors#key, or bare file.safetensors), limit<=1000 | dtype, shape, size, counts, min, max, norm, preview; a bare safetensors path lists tensors from the validated header only |
 | `la_lstsq` | read | a (m by n), b, rcond, driver=gelsd/gelsy/gelss | x (<=1000 numbers), rank, singular_values, residues, residual_norm, status OK/RANK_DEFICIENT/NO_CONVERGENCE |
@@ -613,3 +614,62 @@ box, in read and write forms; in-domain nonfinite results are NUMERICAL_FAILURE.
 `interp_eval_to` requires `x_new`; integral-only calls use the read operation.
 Within S7, malformed shapes/data use BAD_DATA; invalid parameter values use BAD_PARAM;
 input resource caps use INPUT_TOO_LARGE and result budgets OUTPUT_TOO_LARGE.
+
+## S8a: table/array bridge, frame_mutate, frame_merge, frame_rolling, ml_metrics, seeded sampling
+
+These operations read and write the table NPZ (`frame_import` output) member by member with numpy: no pandas, no scipy.stats, no scikit-learn is imported
+(`meta.pandas` and `meta.sklearn` stay `unloaded`; `frame_mutate` additionally loads `scipy.special` for the expression functions), so a call costs about the
+bare interpreter. Tables keep every column's dtype, categories and NA mask exactly. Table limits as everywhere: 200000 rows, 256 columns, 500000 cells, 256 MiB.
+
+| Operation | Access | Contract |
+|---|---|---|
+| `frame_to_array` | read | Ordered unique `columns` (int64, float64, bool; bool maps to 0/1) of a table to a rank-2 row-major F64 array, `offset`/`limit` rows, `squeeze` for one column as a vector; `missing` error (default, `NA_NOT_ALLOWED`) or nan; reports `source_dtypes`, `source_na_count`, `source_nan_count`, `missing_mask_lost`, `n_rows_total`; `values` inline only when <=1000 values |
+| `frame_to_array_to` | write | Same conversion into an exclusive `out.safetensors` under `key` (default `x`), <=200000 values; `artifacts[key]` is the common seven-field descriptor |
+| `array_to_frame` | write | Inline / `.npy` / `safetensors#key` array (vector = one column) to an exclusive `out.npz` with explicit unique `columns`, optional `dtypes` (float64, int64, bool), `nan_policy` value (default, NaN stays a value) or missing |
+| `frame_mutate` | write | `assign` list of `{name, expr}` (<=32): new or replaced float64 columns from the safe expression grammar; `allow_replace`, `nonfinite` error (default) / mask / keep |
+| `frame_merge` | write | Join of `left` and `right` tables on `on` (or `left_on` with `right_on`), `how` inner/left/right/outer, `validate`, `suffixes`, `max_rows` |
+| `frame_rolling` | write | `window` rows (or `time_window` on an explicit datetime `on` column) over numeric `columns` with `functions` sum, mean, std, var, min, max, median, count; `min_periods`, `center` |
+| `ml_metrics` | read | Hand-formula metrics from table columns (`frame` plus names) or arrays: accuracy, balanced_accuracy, precision, recall, f1, confusion_matrix, roc_auc, log_loss, brier, r2, mse, mae, mape |
+| `stats_dist` / `stats_dist_to` | read / write | `fn` rvs: seeded sampling, see the table at the top |
+
+Bridge details. `frame_to_array` refuses strings, categories and datetimes (`BAD_DTYPE`: encode them first), int64 values beyond +-2^53 (`INT64_NOT_EXACT`
+unless `allow_lossy_int`, which counts them in `lossy_int_count`), a selection of zero rows or columns (`BAD_DATA`) and more than 200000 values (`INPUT_TOO_LARGE`).
+`missing=nan` turns masked NAs into NaN: a masked NA and a numeric NaN then look the same, which the result states with `missing_mask_lost: true` and both source counts.
+`array_to_frame` defaults the dtype from the source (`I64`/`I32`/`U8` -> int64, bool -> bool, otherwise float64); a bool override needs exactly 0/1, an int64 override
+exact integers within +-2^53 (`BAD_DATA` before any process starts). Nothing is inferred from file names and no index column is added. Write forms honour `PYCLI_READONLY`,
+`PYCLI_DRYRUN`, the exclusive-create rule and the atomic install of every other table writer.
+
+`frame_mutate`: expressions use the S3 grammar (arithmetic, comparisons, `&`, `|`, `ifelse`, the math function list; no reducers, no indexing, no strings). Referenced
+columns must be int64, float64 or bool with identifier-style names (`[a-z][a-z0-9_]{0,31}`); other columns pass through untouched and may have any name. Assignments run
+in order, so later ones can use earlier ones (and replaced columns). A masked missing value in any referenced column makes the result a masked missing value; comparisons
+and logic return 1/0 with NaN for NaN operands. NaN/Inf produced from non-missing inputs follow `nonfinite` (default: the call fails with `NON_FINITE` and writes
+nothing). int64 inputs must be exactly representable (`INT64_NOT_EXACT`). The result column dtype is always float64.
+
+`frame_merge`: keys are int64, bool, string/category (compared by label) or datetime columns of matching type (`KEY_DTYPE_MISMATCH`; float64 keys are `BAD_DTYPE`). Rows
+with a missing key never match; they are kept unmatched by left/right/outer (SQL semantics, unlike pandas). Output order: inner, left and outer follow the left rows (each
+with its matches in right row order), right follows the right rows (matches in left row order); outer appends the unmatched right rows. With `on` the key is one column
+(left value, else right value); with `left_on`/`right_on` both columns are kept. Non-key names on both sides get the suffixes on both sides; the final names must be unique.
+`validate` one_to_one / one_to_many / many_to_one fails with `MERGE_VALIDATION` and the number of repeated keys. The result row count is computed from the key counts before
+anything is built: more than `max_rows` is `ROW_EXPLOSION` (the message reports the rows the join would have had), and an empty result is the status `EMPTY_RESULT` (a
+table needs a row; no artifact). Unmatched cells are masked and dtypes are preserved (an int64 column stays int64). Result counts `n_pairs`, `n_left_only`, `n_right_only` are
+properties of the inputs, whatever `how` keeps.
+
+`frame_rolling`: count windows are trailing (`window` rows ending at the row) or centred (rows `i - window//2 .. i + (window-1)//2`); time windows cover `(t - w, t]` over the rows
+up to and including the row and need an explicit datetime64[ns] `on` column that is sorted ascending with no missing values (`NOT_SORTED`); `time_window` is `<count>s|min|h|D`.
+Missing values and NaN are skipped; a result needs `min_periods` observations (default `window`; time windows 1) and std/var at least two (ddof 1), otherwise it is a masked
+missing value; `count` is always defined (int64). New columns are `<column>__<function>`. Work (rows x window x columns x functions) is capped at 1e8 before the call.
+
+`ml_metrics`: labels may be int, bool, string or category columns (bool and integral floats count as integers), arrays hold numbers. At most 30 distinct labels for label metrics.
+`average` binary treats `pos_label` as positive and everything else as negative (default `pos_label` 1 for 0/1 labels, required otherwise; it must occur among the labels).
+`balanced_accuracy` is the mean recall over the classes present in `y_true`. `roc_auc` is the rank statistic with tied scores counting 1/2; `log_loss` clips probabilities to
+[1e-15, 1 - 1e-15] and reports `log_loss_eps`; `mape` is a fraction. A metric that is mathematically undefined (constant `y_true` for r2, a zero in `y_true` for mape, one class
+for roc_auc, more than two classes for the scored metrics, 0/0 in precision/recall/f1 while `zero_division` is undefined) is listed under `undefined` with its reason, the status is
+`UNDEFINED`, and the defined metrics are still returned.
+
+`stats_dist` rvs: `seed` is required (an integer in [0, 2^63)); the generator is `numpy.random.Generator(PCG64(seed))`, echoed with the seed, so the same call returns the
+same values and a smaller `n` is a prefix of a larger one. Parameters (unknown or missing ones are `BAD_PARAM`): norm `loc`, `scale`; t `df`, `loc`, `scale`; uniform `low`, `high`;
+expon `scale`; gamma `shape`, `scale`; beta `a`, `b`; lognorm `mu`, `sigma` (of the underlying normal); chi2 `df`; poisson `lam`; binom `n`, `p`. Discrete families return integer-valued
+F64. Inline `n` <= 1000, `stats_dist_to` <= 1,000,000. pdf/cdf/ppf/sf remain norm and t only.
+
+Statuses: `OK`; `UNDEFINED` (ml_metrics); `EMPTY_RESULT` (frame_merge); `NUMERICAL_FAILURE` (a sampler overflow); `TIME_LIMIT`. Errors (exit 2) include `NA_NOT_ALLOWED`, `INT64_NOT_EXACT`, `BAD_DTYPE`,
+`UNKNOWN_COLUMN`, `DUPLICATE_COLUMN`, `TOO_MANY_COLUMNS`, `NON_FINITE`, `MERGE_VALIDATION`, `ROW_EXPLOSION`, `KEY_DTYPE_MISMATCH`, `NOT_SORTED`, `BAD_PARAM`, `BAD_DATA`, `INPUT_TOO_LARGE`.
