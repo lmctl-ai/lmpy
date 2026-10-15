@@ -525,5 +525,125 @@ class SchemaAndLimits(Base):
         self.assertAlmostEqual(r['value'], 0.5, delta=1e-14)  # read operations stay allowed
 
 
+class ReviewFixes(Base):
+    """S3 review findings (Opus, Fable, Astra). Each test failed against 7fc6d7a."""
+    HEAVY = 'sum(' + '+'.join(['exp(t*a[0])*cos(t*a[1])'] * 24) + ')'  # ~0.2 s per evaluation over 200000 rows
+
+    def heavy_data(self):
+        np.save(self.dir / 't.npy', np.linspace(0, 1, 200000))
+        return {'t': str(self.dir / 't.npy')}
+
+    def test_gradient_check_is_counted_and_budgeted(self):
+        # The x0 gradient check used to evaluate the objective n+1 times outside the counter and the deadline.
+        t0 = __import__('time').monotonic()
+        r = call('opt_minimize', {'objective': self.HEAVY, 'x0': {'a': [0.1] * 64}, 'data': self.heavy_data(), 'method': 'BFGS',
+                                  'gradient': ['0'] * 64, 'max_evals': 5}, 0, dict(os.environ, PYCLI_TIMEOUT_S='15'))
+        self.assertEqual(r['status'], 'EVAL_LIMIT', r)
+        self.assertLessEqual(r['evals'], 6)
+        self.assertLess(__import__('time').monotonic() - t0, 14)
+        r = call('opt_minimize', {'objective': self.HEAVY, 'x0': {'a': [0.1] * 64}, 'data': self.heavy_data(), 'method': 'BFGS',
+                                  'gradient': ['0'] * 64}, 0, dict(os.environ, PYCLI_TIMEOUT_S='15'))
+        self.assertEqual(r['status'], 'TIME_LIMIT', r)
+
+    def test_budget_exhaustion_at_any_stage_is_a_domain_status(self):
+        r = call('opt_minimize', {'objective': '(a-1)^2', 'x0': {'a': 0.0}, 'gradient': ['2*(a-1)'], 'max_evals': 1}, 0, os.environ)
+        self.assertEqual(r['status'], 'EVAL_LIMIT')
+        self.assertEqual(r['par'], {'a': 0.0})
+        for budget in range(1, 80):
+            r = call('opt_least_squares', {'model': 'a*exp(b*t)', 'response': 'y', 'data': {'t': [0.0, 0.5, 1.0, 1.5, 2.0], 'y': [1.0, 1.6, 2.7, 4.4, 7.4]},
+                                           'x0': {'a': 1.0, 'b': 0.5}, 'max_evals': budget}, 0, os.environ)
+            self.assertIn(r['status'], ('OK', 'EVAL_LIMIT'), (budget, r))
+            self.assertLessEqual(r['evals'], budget)
+            self.assertIn('std_err', r)
+
+    def test_standard_errors_respect_the_deadline(self):
+        # Post-solver evaluations (final residual, Jacobian steps) go through the same guard.
+        r = call('opt_least_squares', {'model': 'a*exp(-b*t)', 'response': 'y', 'data': {'t': [0.0, 1.0, 2.0, 3.0], 'y': [2.0, 1.2, 0.7, 0.45]}, 'x0': {'a': 1.0, 'b': 0.1}, 'max_evals': 40}, 0, os.environ)
+        self.assertLessEqual(r['evals'], 40)
+        self.assertIn(r['status'], ('OK', 'EVAL_LIMIT'))
+
+    def test_residual_count_times_unknowns_is_capped_before_spawn(self):
+        np.save(self.dir / 'd.npy', np.linspace(0, 1, 200000))
+        residuals = [f'd - a[{i % 16}]' for i in range(64)]
+        r = rejected('opt_least_squares', {'residuals': residuals, 'x0': {'a': [1.0] * 16}, 'data': {'d': str(self.dir / 'd.npy')}}, 'INPUT_TOO_LARGE')
+        self.assertIn('residual', r['error']['message'])
+        # scalar residuals do not count as vectors; vector residuals with few unknowns are fine
+        ok = call('opt_least_squares', {'residuals': ['d - a'], 'x0': {'a': 1.0}, 'data': {'d': str(self.dir / 'd.npy')}}, 0, os.environ)
+        self.assertEqual(ok['n_residuals'], 200000)
+        self.assertAlmostEqual(ok['par']['a'], 0.5, delta=1e-6)
+
+    def test_standard_errors_for_near_zero_parameters_and_scaled_responses(self):
+        for scale in (1000.0, 1e6, 1e-3):
+            x = np.arange(1.0, 13.0)
+            y = scale * x
+            X = np.column_stack([np.ones(12), x])
+            se = np.sqrt(np.diag(np.linalg.inv(X.T @ X)))  # absolute_sigma, sigma = 1
+            r = call('opt_least_squares', {'model': 'a+b*x', 'response': 'y', 'data': {'x': x.tolist(), 'y': y.tolist()}, 'x0': {'a': 0.0, 'b': 1.0},
+                                           'absolute_sigma': True, 'tol': 1e-15}, 0, os.environ)
+            with self.subTest(scale=scale):
+                self.assertEqual(r['cov_status'], 'OK', r)
+                np.testing.assert_allclose([r['std_err']['a'], r['std_err']['b']], se, rtol=1e-6)
+        # a nonlinear parameter that is ~0 at the solution: reference from the analytic Jacobian
+        t = np.linspace(0, 10, 25)
+        y = 4.0 * np.exp(-1e-6 * t)
+        J = np.column_stack([np.exp(-1e-6 * t), -4.0 * t * np.exp(-1e-6 * t)])
+        cov = np.linalg.inv(J.T @ J)
+        r = call('opt_least_squares', {'model': 'a*exp(-b*t)', 'response': 'y', 'data': {'t': t.tolist(), 'y': y.tolist()}, 'x0': {'a': 3.0, 'b': 0.05}, 'absolute_sigma': True, 'tol': 1e-15}, 0, os.environ)
+        np.testing.assert_allclose([r['std_err']['a'], r['std_err']['b']], np.sqrt(np.diag(cov)), rtol=1e-5)
+
+    def test_ill_conditioned_jacobian_is_flagged_not_silently_ok(self):
+        x = np.linspace(1.0, 1.001, 20)
+        y = 1 + 2 * x + 3 * x ** 2
+        r = call('opt_least_squares', {'model': 'a+b*x+c*x^2', 'response': 'y', 'data': {'x': x.tolist(), 'y': y.tolist()}, 'x0': {'a': 0.0, 'b': 0.0, 'c': 0.0}}, 0, os.environ)
+        self.assertIn('jacobian_condition', r)
+        flagged = r['cov_status'] != 'OK' or any('ill-conditioned' in w['message'] for w in r['warnings'])
+        self.assertTrue(flagged, r)
+        good = call('opt_least_squares', {'model': 'a+b*x', 'response': 'y', 'data': {'x': [0.0, 1.0, 2.0, 3.0], 'y': [1.0, 3.1, 4.9, 7.2]}, 'x0': {'a': 0.0, 'b': 0.0}}, 0, os.environ)
+        self.assertLess(good['jacobian_condition'], 100)
+        self.assertEqual([w for w in good['warnings'] if 'ill-conditioned' in w['message']], [])
+
+    def test_root_at_an_endpoint_and_tiny_brackets(self):
+        for f, root in (('x*(x-1)', 0.0), ('x-1', 1.0)):
+            r = call('num_root', {'f': f, 'lower': 0, 'upper': 1}, 0, os.environ)
+            self.assertEqual((r['status'], r['root'], r['f_root'], r['iterations'], r['function_calls']), ('OK', root, 0.0, 0, 2), r)
+        r = call('num_root', {'f': '1e-200*(x+3)', 'lower': 0, 'upper': 1}, 2, os.environ)
+        self.assertEqual(r['error']['data']['tool_code'], 'BAD_INTERVAL')
+        r = call('num_root', {'f': '1e-200*(x-0.5)', 'lower': 0, 'upper': 1}, 0, os.environ)  # opposite signs even though the product underflows
+        self.assertEqual(r['status'], 'OK')
+        self.assertAlmostEqual(r['root'], 0.5, delta=1e-9)
+        self.assertGreaterEqual(r['iterations'], 0)
+
+    def test_nonfinite_analytic_gradient_at_x0_is_a_validation_error(self):
+        r = call('opt_minimize', {'objective': 'x^2', 'x0': {'x': 0}, 'method': 'BFGS', 'gradient': ['2*x + 0/0']}, 2, os.environ)
+        self.assertEqual(r['error']['data']['tool_code'], 'NONFINITE_GRADIENT')
+
+    def test_quad_singularity_on_the_centre_node_points_at_points(self):
+        r = call('num_quad', {'f': '1/sqrt(abs(x))', 'a': -1, 'b': 1}, 0, os.environ)
+        self.assertEqual(r['status'], 'NON_FINITE')
+        self.assertIn('points', r['message'])
+        r = call('num_quad', {'f': '1/sqrt(abs(x))', 'a': -1, 'b': 1, 'points': [0]}, 0, os.environ)
+        self.assertEqual(r['status'], 'OK')
+        self.assertAlmostEqual(r['value'], 4.0, delta=1e-6)
+
+    def test_per_component_bounds_for_vector_unknowns(self):
+        base = {'objective': '(v[0]-3)^2+(v[1]-7)^2', 'x0': {'v': [1.0, 1.0]}, 'method': 'L-BFGS-B'}
+        r = call('opt_minimize', {**base, 'bounds': {'v': [[0, 2], [0, 5]]}}, 0, os.environ)
+        np.testing.assert_allclose(r['par']['v'], [2.0, 5.0], atol=1e-5)
+        r = call('opt_minimize', {**base, 'bounds': {'v': [0, 4]}}, 0, os.environ)  # a single pair still broadcasts
+        np.testing.assert_allclose(r['par']['v'], [3.0, 4.0], atol=1e-5)
+        r = call('opt_minimize', {**base, 'bounds': {'v': [[0, 2], [None, 'Inf']]}}, 0, os.environ)
+        np.testing.assert_allclose(r['par']['v'], [2.0, 7.0], atol=1e-5)
+        for bad in ([[0, 2]], [[0, 2], [0, 5], [0, 1]], [[0, 2], [5, 0]], [[0, 2], [0]], [[0, 2], 5], [[0, 2], [2, 5]]):
+            with self.subTest(bad=bad):
+                rejected('opt_minimize', {**base, 'bounds': {'v': bad}}, 'BAD_BOUNDS')
+
+    def test_schema_documents_the_limits_users_hit(self):
+        schema = json.loads(subprocess.run([BIN, '--schema'], capture_output=True, text=True).stdout)
+        ops = {o['name']: o for o in schema['operations']}
+        text = json.dumps(ops['opt_least_squares']) + json.dumps(ops['num_root']) + json.dumps(ops['opt_minimize'])
+        for needle in ('1e-8', 'bracket width', 'infeasible', 'per-component'):
+            self.assertIn(needle, text)
+
+
 if __name__ == '__main__':
     unittest.main()

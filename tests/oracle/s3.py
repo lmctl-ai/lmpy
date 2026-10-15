@@ -78,3 +78,28 @@ POINTS_1 = {'log': [0.5, 2.0, 10.0], 'log1p': [0.5, 2.0], 'log2': [0.5, 8.0], 'l
             'qnorm': [0.025, 0.5, 0.975], 'round': [0.5, 1.5, 2.5, -0.5, 2.4, 2.6], 'floor': [-1.5, 1.5, 2.0], 'ceiling': [-1.5, 1.5, 2.0],
             'trunc': [-1.5, 1.5], 'sign': [-3.0, 0.0, 2.0], 'plogis': [-3.0, 0.0, 2.5]}
 DEFAULT_POINTS = [-1.25, 0.0, 0.3, 1.0, 2.5]
+
+from semantics import *  # noqa: E402,F401  (grid, tokens, cell comparison)
+
+
+def evaluate_semantics(worker, spec, check, expression):
+    """Evaluate one expression over the grid with the real parser (check) and the real builder; returns result tokens."""
+    names = ['x', 'y'] if uses_y(expression) else ['x']
+    parsed = check({'expression': expression, 'names': names})
+    assert parsed['accepted'], (expression, parsed)
+    program = worker.compile_expression(parsed['ast'], set(names), {}, spec)
+    out = []
+    with np.errstate(all='ignore'):
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            for x in SEMANTIC_X:
+                for y in (SEMANTIC_Y if 'y' in names else [None]):
+                    env = {'x': np.float64(x)}
+                    if y is not None:
+                        env['y'] = np.float64(y)
+                    try:
+                        out.append(token(worker.evaluate(program, env)))
+                    except Exception:
+                        out.append('ERR')
+    return out

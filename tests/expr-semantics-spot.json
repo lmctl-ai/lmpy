@@ -1,0 +1,55 @@
+{
+ "lower": 0,
+ "upper": 1,
+ "cases": [
+  {
+   "f": "ifelse(log(x-1)>0,1,0)+1",
+   "status": "NON_FINITE",
+   "why": "NaN condition propagates (R: NA test -> NA)"
+  },
+  {
+   "f": "choose(5,2.5)+0*x",
+   "status": "OK",
+   "value": 10.0,
+   "why": "k rounded to 2 (R warns)"
+  },
+  {
+   "f": "choose(-3,2)+0*x",
+   "status": "OK",
+   "value": 6.0,
+   "why": "negative integer n"
+  },
+  {
+   "f": "lchoose(2000,1000)+0*x",
+   "status": "OK",
+   "value": 1382.26799353748,
+   "why": "log domain: the coefficient overflows"
+  },
+  {
+   "f": "choose(2000,1000)+0*x",
+   "status": "NON_FINITE",
+   "why": "R overflows too"
+  },
+  {
+   "f": "beta(-0.5,2)+0*x",
+   "status": "NON_FINITE",
+   "why": "R restricts beta to a,b >= 0"
+  },
+  {
+   "f": "lbeta(-0.5,2)+0*x",
+   "status": "NON_FINITE",
+   "why": "R restricts lbeta to a,b >= 0"
+  },
+  {
+   "f": "gamma(0)+0*x",
+   "status": "NON_FINITE",
+   "why": "R gamma(0) is NaN (scipy: Inf)"
+  },
+  {
+   "f": "ifelse(x<2,1,2)",
+   "status": "OK",
+   "value": 1.0,
+   "why": "plain branch"
+  }
+ ]
+}
