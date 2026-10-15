@@ -70,7 +70,7 @@ the `eig`/`eigh` residual is scaled by `||A||_F ||V||_F`, so nilpotent/defective
 failures; `eig` returns `vr_cond` and a `NumericalWarning` when it exceeds ~6.7e7 (defective or
 nearly defective: `vr` is then not a basis). Results never hold more than 1000 inline numbers:
 `la_lstsq` refuses requests whose x + residues + singular values exceed that, `la_lstsq_to`
-stores big residues/singular values in the artifact. A missing input file or tensor key is
+stores all x/residues/singular_values vectors in the artifact, including small ones. A missing input file or tensor key is
 `NOT_FOUND` (exit 4); malformed references are validation errors (2).
 An `{shape,data}` envelope takes flat row-major data or nested data of exactly that shape.
 Safetensors files may hold any spec dtype (F16, BF16, ...): only selecting such a tensor fails.
@@ -370,8 +370,8 @@ above the conservative inline budget (850 vector numbers or 24KiB vector JSON,
 with room for metadata under the overall 1000-number /64KiB cap) fail with
 `OUTPUT_TOO_LARGE` and recommend `_to`. They never create an automatic artifact.
 Write forms require `out`, honor readonly/dryrun, and fail without an artifact.
-`outputs_in_artifact` is explicit: false for inline, true for descriptors in x,
-slack, duals.*, t, y or events. Read descriptors with `array_inspect` (limit<=1000).
+`outputs_in_artifact` is explicit: false for inline, true for descriptors under
+`artifacts` (the common contract below). Read tensor refs with `array_inspect` (limit<=1000).
 An LP write without a primal fails; a partial ODE can still be saved with its
 non-OK domain status. Inspect `result.status`, not just the protocol envelope.
 
@@ -548,7 +548,7 @@ need 30 s or report TIME_LIMIT. Full commands, raw data, p95 values and qualific
 
 Seven read operations and seven `_to` write twins. Arrays are inline JSON (<=1000 numbers), `.npy`, or `file.safetensors#key`; every array is loaded, shape-checked
 and finite-checked by the C++ front end (NaN/Inf/NA are `BAD_DATA`, never skipped). Read forms return at most ~900 numbers inline (`OUTPUT_TOO_LARGE`
-otherwise, naming the `_to` form); `_to` forms store the arrays in an exclusive `.safetensors` (descriptors under `tensors`; nothing is written unless the
+otherwise, naming the `_to` form); `_to` forms store the arrays in an exclusive `.safetensors` (descriptors under `artifacts`; nothing is written unless the
 status is `OK`; a non-OK status of a write form is the error's `tool_code`). Each call imports only its scipy subpackage (`meta.scipy_subpackages`).
 
 | Operation | Access | Contract |
@@ -576,16 +576,38 @@ distance is NaN/Inf: zero or constant vectors for cosine/correlation, an indefin
 
 Conventions worth knowing:
 * **Interpolation.** Nodes must be strictly increasing (checked before any work). At a knot a piecewise interpolant's derivative takes the right-hand value.
-  `cubic` rings on step-like data; `pchip` preserves monotonicity; `akima`/`makima` do not overshoot. The smoothing spline's penalty is capped at
+  `cubic` rings on step-like data; `pchip` preserves monotonicity; `akima`/`makima` can overshoot even monotone step-like data. Choose PCHIP for local bounds. The smoothing spline's penalty is capped at
   `lam / h^3 <= 1e11` (h = mean node spacing) because scipy's solver silently returns a wrong curve for larger values (docs/oracle-findings.md). RBF `thin_plate_spline`,
   `cubic` and `quintic` reproduce low-degree polynomials exactly. R's `fmm` spline and `monoH.FC` are different interpolants from not-a-knot and PCHIP.
-* **Filters.** `wn` is the -3 dB point for butter, the ripple edge for cheby1 and ellip, the stopband edge for cheby2. `sosfiltfilt` needs more than 3*(2*sections+1)
+* **Filters.** `wn` is the -3 dB point for butter, the ripple edge for cheby1 and ellip, the stopband edge for cheby2. Bessel uses phase normalization: `wn` is not its -3 dB frequency. `sosfiltfilt` needs more than 3*(2*sections+1)
   samples and squares the magnitude response; `sosfilt` starts from zero state and lags in phase. `marginal: true` flags poles within 1e-6 of the unit circle.
-* **Spectra.** Real, one-sided estimates. `density` is power per Hz (`total_power` = sum x df, the Parseval integral); `spectrum` is power per bin, and an on-bin
-  sine of amplitude A peaks at A^2/2. lmda `series_spectrum` is the boxcar, fs = 1, no-detrend periodogram in density units (agreement 1e-9, docs/oracle-findings.md).
-* **Peaks.** First and last samples are never peaks; a flat top reports its middle sample; `distance` removes the lower of two close peaks.
-* **Neighbours.** Ties between equal distances return indices in an implementation-defined order: compare distances.
+* **Spectra.** Real, one-sided estimates. `density` is power per Hz; `spectrum` is spectrum-scaled power, and an on-bin
+  sine of amplitude A peaks at A^2/2. Only Welch/periodogram return `total_power`: sum(density)*df or sum(spectrum)*df/ENBW, where ENBW=fs*sum(window^2)/sum(window)^2. This removes zero-padding dependence. Coherence defaults to min(256,n/2) and requires at least two segments; a scaled copy has coherence one at bins with defined power. CSD/coherence have no total_power. lmda `series_spectrum` is the boxcar, fs = 1, no-detrend periodogram in density units (agreement 1e-9, docs/oracle-findings.md).
+* **Peaks.** First and last samples are never peaks; a flat top reports its middle sample; `distance` removes the lower of two close peaks. `rel_height=0.5` means half prominence, not generally half maximum. Widths linearly interpolate sampled crossings; analytic Gaussian FWHM is only an approximation at finite sampling. Before prominence work the read form caps candidates at 225; all forms require candidates*effective_window<=20M (otherwise give a smaller explicit `wlen`, rounded up to odd).
+* **Neighbours.** Ties between equal distances return indices in an implementation-defined order: compare distances. The write form requires 2*m*(k+exclude_self)<=1900000 before spawn. Radius enumeration stops as soon as max_pairs is exceeded. For finite p>2 stable brute-force norms avoid KD-tree underflow/overflow, with n*m*d<=20M before spawn; unsafe ranges in the scaled KD path return NUMERICAL_FAILURE. Mahalanobis accepts symmetry roundoff <=1e-12*max(abs(VI)), symmetrizes and reports vi_symmetrised. UNDEFINED reports bounded offending zero/constant row indices.
 * **Hulls.** In 2-D `volume` is the area and `area` the perimeter. Delaunay `volume` is the sum of simplex volumes (equals the hull volume). Voronoi
   `regions` and `ridge_vertices` are flat arrays with `*_offsets` (-1 is the point at infinity). Point caps shrink with dimension (convex_hull 20000/20000/800/400/100
   for d=2..6; delaunay and voronoi 20000/800/300/100/50), sized from the measured cyclic-polytope worst cases (docs/timings.md); results above 1.9 M numbers are
   `OUTPUT_TOO_LARGE`.
+
+
+All S1–S7 file writes use **one descriptor contract** (breaking migration; no legacy aliases):
+`result.artifacts[name] = {ref,path,format,key,dtype,shape,nbytes}` and
+`outputs_in_artifact:true`. A tensor uses `ref="path#key"`, `format="safetensors"`,
+its tensor dtype/shape and payload bytes. Whole-file descriptors (`table`, `model`,
+`export`) use `ref=path`, format `npz`/`safetensors`/`csv`/`json`, null key/dtype/shape
+and file bytes. Tensor names such as `x`, `y`, `values`, `dual_ub` are map keys.
+Readers take the descriptor's `ref`; table/model readers use the whole-file ref.
+`array_inspect`'s bare-file `tensors` header listing is an inspection result, not a
+write descriptor. Empty tensor outputs are omitted and identified by `empty_outputs`
+where provided. Non-OK write results that cannot produce an artifact preserve bounded
+status/message/warnings and numerical diagnostics under `error.data`.
+
+S3–S7 guarded operations accept `time_limit` in seconds, >0..30, default 10.
+This is a cooperative compute budget; `PYCLI_TIMEOUT_S` independently bounds the
+whole child (imports included) at <=50 seconds. Native work also has pre-spawn caps.
+Interpolation `extrapolate="nan"` permits NaNs **only outside** the node range/bounding
+box, in read and write forms; in-domain nonfinite results are NUMERICAL_FAILURE.
+`interp_eval_to` requires `x_new`; integral-only calls use the read operation.
+Malformed shapes/data use BAD_DATA; invalid parameter values use BAD_PARAM;
+input resource caps use INPUT_TOO_LARGE and result budgets OUTPUT_TOO_LARGE.

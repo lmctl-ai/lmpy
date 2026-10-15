@@ -81,7 +81,7 @@ lmda commit 36e5285, `cargo build --release --offline`). Both exit 0 in real, `-
    `BAD_PARAM` before any work. The fit stays correct below the cap to ~1e-5 of the data scale.
 4. **No unstable SOS design was found.** Seven extreme designs (butter order 20 bandpass with a 2e-4 wide band, cheby1 order 20 at wn = 5e-4, an elliptic
    bandstop 1e-5 wide, butter at wn = 1e-6, cheby2 band 1e-5 wide, ...) all produced finite sections with largest pole radius <= 1 - 2.4e-9: second-order
-   sections do not go unstable the way `ba` coefficients do. `UNSTABLE` is a defensive status; `marginal` (radius >= 1 - 1e-6) is the reachable warning.
+   sections are more robust than `ba`, but finite-precision designs can round a pole to one: `UNSTABLE` is reachable. Stability now uses extended-precision quadratics of the rounded SOS, avoiding companion-matrix root error. `marginal` flags radius >= 1 - 1e-6.
 5. **QHull degenerate and worst-case inputs.** Collinear/coplanar/duplicate/too-few points raise `QhullError` (or are pre-checked) and become `DEGENERATE`. Cyclic
    polytopes (moment-curve points) are the worst case: d=4 with n=5000 and d=6 with n=300 ran past the 50 s kill and d=5 with n=1000 crashed the output
    limit, which is why the point caps shrink with the dimension (README, docs/timings.md).
