@@ -27,3 +27,6 @@
 !cli.schema.dev.json
 
 !ml-spec.json
+
+!docs/
+!docs/**
