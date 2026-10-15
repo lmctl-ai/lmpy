@@ -106,6 +106,7 @@ def ml_result(est,x,kind,family,labels):
         if not np.isfinite(est.decision_function(x)).all(): raise NumericalFailure('nonfinite classification score')
     elif family in ('gaussian_nb','knn_classifier'):
         if not np.isfinite(est.predict_proba(x)).all(): raise NumericalFailure('nonfinite classification probability')
+        if est.predict_proba(x).shape != (len(x),len(labels)): raise NumericalFailure('probability width disagrees with stored classes')
     elif family=='kmeans' and kind=='predict':
         if not np.isfinite(est.transform(x)).all(): raise NumericalFailure('nonfinite centroid distance')
     if kind=='predict':
@@ -115,6 +116,7 @@ def ml_result(est,x,kind,family,labels):
     elif kind=='predict_proba':
         if family not in ('logistic','gaussian_nb','lda','knn_classifier','random_forest_classifier','hist_gradient_boosting_classifier'): raise BadData('predict_proba unavailable')
         a=est.predict_proba(x)
+        if a.shape != (len(x),len(labels)): raise NumericalFailure('probability width disagrees with stored classes')
     elif kind=='decision_function':
         if family not in ('logistic','linear_svc','lda','hist_gradient_boosting_classifier'): raise BadData('decision_function unavailable')
         a=est.decision_function(x)
@@ -199,6 +201,7 @@ def ml_load(p):
         if key in attrs and (key=='classes_' or family=='knn_classifier'):attrs[key]=attrs[key].astype('int64')
     if family.startswith('knn_'):
         est.fit(attrs['train_x_'],attrs['train_y_'])
+        if family=='knn_classifier' and (not np.array_equal(est.classes_,attrs['classes_']) or not np.array_equal(est.classes_,np.arange(len(m['labels'])))): raise BadData('BAD_MODEL reconstructed classes disagree with stored classes','BAD_MODEL')
     else:
         for key in p['ml_spec']['families'][family]['attributes']:
             value=attrs[key]

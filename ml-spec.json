@@ -258,7 +258,8 @@
       "stochastic": false,
       "attributes": {
         "train_x_": "np",
-        "train_y_": "n"
+        "train_y_": "n",
+        "classes_": "classes"
       }
     },
     "knn_regressor": {
