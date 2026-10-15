@@ -36,6 +36,16 @@ for(int i=0;i<2000;++i){
  Json decoded;try{frames::csv(std::string(rng()%100,char(rng())),",",20000,&decoded);}catch(const lmcpp::Error&){}
  try{ml_table_npz(good);}catch(const lmcpp::Error&){}
 }
+// Structural class integrity plus the short canonical-label parser under sanitizers.
+for(int i=0;i<1000;++i){
+ pycli::TensorBundle model;Json prep={{"scale",false},{"one_hot",Json::array()},{"categories",Json::object()}};
+ model.metadata={{"pycli_model","1"},{"family","knn_classifier"},{"sklearn_version","1.7.2"},{"features","[\"x\"]"},{"feature_dtypes","{\"x\":\"numeric-f64\"}"},{"preprocess",prep.dump()},{"params","{\"n_neighbors\":1,\"weights\":\"uniform\"}"},{"labels","[\"a\",\"b\",\"c\"]"},{"width","1"},{"train_rows","3"},{"seed","null"},{"components","1"},{"target","y"},{"train_sha256",std::string(64,'a')},{"lock_id",std::string(64,'b')}};
+ pycli::TensorData x;x.dtype="F64";x.shape={3,1};x.bytes.resize(24);model.tensors["train_x_"]=x;
+ pycli::TensorData y;y.dtype="I64";y.shape={3};y.bytes.resize(24);for(int64_t j=0;j<3;++j)std::memcpy(y.bytes.data()+j*8,&j,8);model.tensors["classes_"]=y;
+ bool mutate=i%2;if(mutate)y.bytes[8]^=1;model.tensors["train_y_"]=y;
+ bool rejected=false;try{ml_model_info(model,false);}catch(const lmcpp::Error&){rejected=true;}if(rejected!=mutate)return 1;
+ ml_integer_label(std::string(rng()%100,char(rng())));
+}
 if(ml_ok<300||ml_bad<1000)return 1;
 std::cout<<"S6 model/CSV preflight fuzz: "<<ml_ok<<" accepted, "<<ml_bad<<" rejected\n";
 std::cout<<"S4 structured preflight fuzz: "<<s4_ok<<" accepted, "<<s4_bad<<" rejected\n";

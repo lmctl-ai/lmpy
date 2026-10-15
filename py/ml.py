@@ -67,6 +67,7 @@ def ml_matrix(df, features, prep, learned=None):
 
 def ml_target(df,p,task):
     import numpy as np
+    import re
     if task not in ('classification','regression'): return None,[]
     col=df[p['target']]
     if col.isna().any(): raise BadData('target missing')
@@ -100,6 +101,7 @@ def ml_fit_one(df,p):
     with warnings.catch_warnings(record=True) as notes:
         warnings.simplefilter('always');est.fit(x,y)
     for note in notes: warnings.warn(str(note.message), note.category)
+    if p['family']=='kmeans' and len(np.unique(est.labels_))<p['params']['n_clusters']:return None,None,None,None,None,'DEGENERATE_CLUSTERS'
     if (p['family']=='kmeans' and est.n_iter_>=p['params']['max_iter']) or any(issubclass(v.category,sklearn.exceptions.ConvergenceWarning) for v in notes): return None,None,None,None,None,'NO_CONVERGENCE'
     return est,x,prep,labels,scaler,'RANK_DEFICIENT' if p['family']=='linear' and est.rank_<x.shape[1] else 'OK'
 

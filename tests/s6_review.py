@@ -47,6 +47,8 @@ class Review(unittest.TestCase):
  def test_fold_missing_classes(self):
   for labels,metrics,status in [(['p']*5+['q']*4+['r'],['log_loss'],'UNDEFINED_METRIC'),([0]*15+[1]*15,['accuracy'],'INSUFFICIENT_CLASSES')]:
    r=self.cv(labels,metrics);self.assertEqual(r['status'],status);self.assertEqual(r['completed_folds'],len(r['folds']));self.assertIn('fold_index',r);self.assertTrue(r['missing_classes']);self.assertIn('stratified',r['message'])
+ def test_classless_fold_retains_completed(self):
+  r=self.cv([0,0,0,0,1,1],['accuracy']);self.assertEqual(r['status'],'INSUFFICIENT_CLASSES');self.assertEqual(r['fold_index'],1);self.assertEqual(r['completed_folds'],1);self.assertEqual(len(r['folds']),1)
  def test_undefined_metric_diagnostic(self):
   r=self.cv([0,0,0,1,0,1],['roc_auc']);self.assertEqual(r['status'],'UNDEFINED_METRIC');self.assertEqual(r['metric'],'roc_auc');self.assertIn('fold_index',r)
  def test_csv_inline_artifact_class_identity(self):

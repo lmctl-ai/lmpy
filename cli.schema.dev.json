@@ -2317,26 +2317,26 @@
           "name": "columns",
           "type": "object",
           "occurs": "?",
-          "description": "columns input; see README for shapes and limits."
+          "description": "Exactly one source: inline column-name -> equal-length scalar arrays, <=1000 cells; no missing values. Canonical integer class strings become integers; leading zeros/+ remain identifiers."
         },
         {
           "name": "records",
           "type": "array",
           "occurs": "?",
-          "description": "Inline records <=1000 cells",
+          "description": "Exactly one source: inline record objects, <=1000 cells; identical columns per row; no missing values.",
           "items": "object"
         },
         {
           "name": "csv",
           "type": "string",
           "occurs": "?",
-          "description": "csv input; see README for shapes and limits."
+          "description": "Exactly one source: confined UTF-8 header CSV path, <=16MiB /20000 rows /200000 cells. Numeric features typed float64, categorical features string; canonical decimal class labels typed int64."
         },
         {
           "name": "frame",
           "type": "string",
           "occurs": "?",
-          "description": "frame input; see README for shapes and limits."
+          "description": "Exactly one source: confined S2 table NPZ path <=32MiB /20000 rows /200000 cells; no datetime or missing values."
         },
         {
           "name": "family",
@@ -2361,64 +2361,64 @@
             "random_forest_regressor",
             "hist_gradient_boosting_regressor"
           ],
-          "description": "family input; see README for shapes and limits."
+          "description": "Closed estimator family enum. Trees fit-and-predict only (no persisted model); all n_jobs=1, no caller solvers/callables."
         },
         {
           "name": "features",
           "type": "array",
           "occurs": "1",
-          "description": "Ordered feature names",
+          "description": "Required ordered unique feature names, 1..64 raw/encoded; model preserves this order independently of column-map order.",
           "items": "string"
         },
         {
           "name": "target",
           "type": "string",
           "occurs": "?",
-          "description": "target input; see README for shapes and limits."
+          "description": "Required column name for classification/regression; forbidden for unsupervised fit. Class labels homogeneous string/integer, 2..32 classes; canonical decimal strings normalize to int64."
         },
         {
           "name": "params",
           "type": "object",
           "occurs": "?",
           "default": {},
-          "description": "params input; see README for shapes and limits."
+          "description": "Closed per-family primitive parameter tables; unknown keys rejected before spawn. linear: fit_intercept (boolean, default true); . ridge: fit_intercept (boolean, default true); alpha (number, default 1, range [1e-12,1000000.0]); . lasso: fit_intercept (boolean, default true); alpha (number, default 1.0, range [1e-12,1000000.0]); max_iter (integer, default 1000, range [1,1000]); tol (number, default 1e-08, range [1e-12,0.01]); . elastic_net: fit_intercept (boolean, default true); alpha (number, default 1.0, range [1e-12,1000000.0]); max_iter (integer, default 1000, range [1,1000]); tol (number, default 1e-08, range [1e-12,0.01]); l1_ratio (number, default 0.5, range [0,1]); . logistic: fit_intercept (boolean, default true); C (number, default 1.0, range [1e-06,1000000.0]); max_iter (integer, default 1000, range [1,2000]); tol (number, default 1e-08, range [1e-12,0.01]); class_weight (string, default \"none\", enum [\"none\",\"balanced\"]); . linear_svc: fit_intercept (boolean, default true); C (number, default 1.0, range [1e-06,1000000.0]); max_iter (integer, default 1000, range [1,2000]); tol (number, default 1e-08, range [1e-12,0.01]); class_weight (string, default \"none\", enum [\"none\",\"balanced\"]); . gaussian_nb: var_smoothing (number, default 1e-09, range [1e-12,0.01]); . lda: n_components (integer, default 0, range [0,32]); . knn_classifier: n_neighbors (integer, default 5, range [1,128]); weights (string, default \"uniform\", enum [\"uniform\",\"distance\"]); . knn_regressor: n_neighbors (integer, default 5, range [1,128]); weights (string, default \"uniform\", enum [\"uniform\",\"distance\"]); . kmeans: n_clusters (integer, default 2, range [2,32]); n_init (integer, default 10, range [1,10]); max_iter (integer, default 300, range [1,300]); tol (number, default 1e-08, range [1e-12,0.01]); . pca: n_components (integer, default 2, range [1,32]); whiten (boolean, default false); . standard_scaler: no parameters. random_forest_classifier: n_estimators (integer, default 32, range [1,64]); max_depth (integer, default 8, range [1,12]); min_samples_leaf (integer, default 1, range [1,64]); max_features (string, default \"sqrt\", enum [\"sqrt\",\"log2\",\"all\"]); bootstrap (boolean, default true); . hist_gradient_boosting_classifier: max_iter (integer, default 100, range [1,100]); max_depth (integer, default 8, range [1,12]); max_leaf_nodes (integer, default 31, range [2,31]); min_samples_leaf (integer, default 20, range [1,128]); learning_rate (number, default 0.1, range [0.01,1]); l2_regularization (number, default 0, range [0,10000]); . random_forest_regressor: n_estimators (integer, default 32, range [1,64]); max_depth (integer, default 8, range [1,12]); min_samples_leaf (integer, default 1, range [1,64]); max_features (string, default \"all\", enum [\"sqrt\",\"log2\",\"all\"]); bootstrap (boolean, default true); . hist_gradient_boosting_regressor: max_iter (integer, default 100, range [1,100]); max_depth (integer, default 8, range [1,12]); max_leaf_nodes (integer, default 31, range [2,31]); min_samples_leaf (integer, default 20, range [1,128]); learning_rate (number, default 0.1, range [0.01,1]); l2_regularization (number, default 0, range [0,10000]); . "
         },
         {
           "name": "preprocess",
           "type": "object",
           "occurs": "1",
-          "description": "preprocess input; see README for shapes and limits."
+          "description": "Required exact object {scale:boolean, one_hot:[unique feature names]}; no defaults or extra keys. Sorted full one-hot encoding then optional training mean/population-variance scaling; <=64 encoded features; unseen levels rejected."
         },
         {
           "name": "seed",
           "type": "number",
           "occurs": "?",
-          "description": "seed input; see README for shapes and limits."
+          "description": "uint32 [0,4294967295], required for stochastic families (linear_svc/kmeans/trees) and every CV; optional for deterministic lbfgs logistic and other families. MT19937 echoed only when randomness is used."
         },
         {
           "name": "out",
           "type": "string",
           "occurs": "?",
-          "description": "out input; see README for shapes and limits."
+          "description": "Exclusive atomic output path: ml_fit persistable model requires .safetensors; ml_predict requires table .npz. Readonly forbids writes; existing files conflict."
         },
         {
           "name": "predict_frame",
           "type": "string",
           "occurs": "?",
-          "description": "predict_frame input; see README for shapes and limits."
+          "description": "Required only for nonpersistable tree fit: S2 table NPZ with matching features, <=200000 encoded cells; predictions performed in the same call."
         },
         {
           "name": "predict_out",
           "type": "string",
           "occurs": "?",
-          "description": "predict_out input; see README for shapes and limits."
+          "description": "Required exclusive .npz prediction artifact for tree fit; mutually exclusive with model out."
         },
         {
           "name": "time_limit",
           "type": "number",
           "occurs": "?",
           "default": 10.0,
-          "description": "time_limit input; see README for shapes and limits."
+          "description": "ML computation wall budget >0..30 seconds, default 10; imports excluded; Python signal boundaries plus hard child timeout and pre-spawn work caps."
         }
       ]
     },
@@ -2432,32 +2432,32 @@
           "name": "columns",
           "type": "object",
           "occurs": "?",
-          "description": "columns input; see README for shapes and limits."
+          "description": "Exactly one source: inline column-name -> equal-length scalar arrays, <=1000 cells; no missing values. Canonical integer class strings become integers; leading zeros/+ remain identifiers."
         },
         {
           "name": "records",
           "type": "array",
           "occurs": "?",
-          "description": "Inline records <=1000 cells",
+          "description": "Exactly one source: inline record objects, <=1000 cells; identical columns per row; no missing values.",
           "items": "object"
         },
         {
           "name": "csv",
           "type": "string",
           "occurs": "?",
-          "description": "csv input; see README for shapes and limits."
+          "description": "Exactly one source: confined UTF-8 header CSV path, <=16MiB /20000 rows /200000 cells. Numeric features typed float64, categorical features string; canonical decimal class labels typed int64."
         },
         {
           "name": "frame",
           "type": "string",
           "occurs": "?",
-          "description": "frame input; see README for shapes and limits."
+          "description": "Exactly one source: confined S2 table NPZ path <=32MiB /20000 rows /200000 cells; no datetime or missing values."
         },
         {
           "name": "model",
           "type": "string",
           "occurs": "1",
-          "description": "model input; see README for shapes and limits."
+          "description": "Confined v1 safetensors model path <=32MiB; strict attribute shapes/types, class consistency, feature order and sklearn version checked before spawn."
         },
         {
           "name": "kind",
@@ -2470,27 +2470,27 @@
             "decision_function",
             "transform"
           ],
-          "description": "kind input; see README for shapes and limits."
+          "description": "predict: labels/values; predict_proba: columns in echoed class order; decision_function: binary positive for classes[1]; transform: PCA/scaler/kmeans/LDA. Family availability checked."
         },
         {
           "name": "allow_version_skew",
           "type": "boolean",
           "occurs": "?",
           "default": false,
-          "description": "allow_version_skew input; see README for shapes and limits."
+          "description": "Default false: require exact sklearn version; true explicitly accepts version skew without a compatibility guarantee."
         },
         {
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "out input; see README for shapes and limits."
+          "description": "Exclusive atomic output path: ml_fit persistable model requires .safetensors; ml_predict requires table .npz. Readonly forbids writes; existing files conflict."
         },
         {
           "name": "time_limit",
           "type": "number",
           "occurs": "?",
           "default": 10.0,
-          "description": "time_limit input; see README for shapes and limits."
+          "description": "ML computation wall budget >0..30 seconds, default 10; imports excluded; Python signal boundaries plus hard child timeout and pre-spawn work caps."
         }
       ]
     },
@@ -2504,26 +2504,26 @@
           "name": "columns",
           "type": "object",
           "occurs": "?",
-          "description": "columns input; see README for shapes and limits."
+          "description": "Exactly one source: inline column-name -> equal-length scalar arrays, <=1000 cells; no missing values. Canonical integer class strings become integers; leading zeros/+ remain identifiers."
         },
         {
           "name": "records",
           "type": "array",
           "occurs": "?",
-          "description": "Inline records <=1000 cells",
+          "description": "Exactly one source: inline record objects, <=1000 cells; identical columns per row; no missing values.",
           "items": "object"
         },
         {
           "name": "csv",
           "type": "string",
           "occurs": "?",
-          "description": "csv input; see README for shapes and limits."
+          "description": "Exactly one source: confined UTF-8 header CSV path, <=16MiB /20000 rows /200000 cells. Numeric features typed float64, categorical features string; canonical decimal class labels typed int64."
         },
         {
           "name": "frame",
           "type": "string",
           "occurs": "?",
-          "description": "frame input; see README for shapes and limits."
+          "description": "Exactly one source: confined S2 table NPZ path <=32MiB /20000 rows /200000 cells; no datetime or missing values."
         },
         {
           "name": "family",
@@ -2548,39 +2548,39 @@
             "random_forest_regressor",
             "hist_gradient_boosting_regressor"
           ],
-          "description": "family input; see README for shapes and limits."
+          "description": "Closed estimator family enum. Trees fit-and-predict only (no persisted model); all n_jobs=1, no caller solvers/callables."
         },
         {
           "name": "features",
           "type": "array",
           "occurs": "1",
-          "description": "Ordered feature names",
+          "description": "Required ordered unique feature names, 1..64 raw/encoded; model preserves this order independently of column-map order.",
           "items": "string"
         },
         {
           "name": "target",
           "type": "string",
           "occurs": "?",
-          "description": "target input; see README for shapes and limits."
+          "description": "Required column name for classification/regression; forbidden for unsupervised fit. Class labels homogeneous string/integer, 2..32 classes; canonical decimal strings normalize to int64."
         },
         {
           "name": "params",
           "type": "object",
           "occurs": "?",
           "default": {},
-          "description": "params input; see README for shapes and limits."
+          "description": "Closed per-family primitive parameter tables; unknown keys rejected before spawn. linear: fit_intercept (boolean, default true); . ridge: fit_intercept (boolean, default true); alpha (number, default 1, range [1e-12,1000000.0]); . lasso: fit_intercept (boolean, default true); alpha (number, default 1.0, range [1e-12,1000000.0]); max_iter (integer, default 1000, range [1,1000]); tol (number, default 1e-08, range [1e-12,0.01]); . elastic_net: fit_intercept (boolean, default true); alpha (number, default 1.0, range [1e-12,1000000.0]); max_iter (integer, default 1000, range [1,1000]); tol (number, default 1e-08, range [1e-12,0.01]); l1_ratio (number, default 0.5, range [0,1]); . logistic: fit_intercept (boolean, default true); C (number, default 1.0, range [1e-06,1000000.0]); max_iter (integer, default 1000, range [1,2000]); tol (number, default 1e-08, range [1e-12,0.01]); class_weight (string, default \"none\", enum [\"none\",\"balanced\"]); . linear_svc: fit_intercept (boolean, default true); C (number, default 1.0, range [1e-06,1000000.0]); max_iter (integer, default 1000, range [1,2000]); tol (number, default 1e-08, range [1e-12,0.01]); class_weight (string, default \"none\", enum [\"none\",\"balanced\"]); . gaussian_nb: var_smoothing (number, default 1e-09, range [1e-12,0.01]); . lda: n_components (integer, default 0, range [0,32]); . knn_classifier: n_neighbors (integer, default 5, range [1,128]); weights (string, default \"uniform\", enum [\"uniform\",\"distance\"]); . knn_regressor: n_neighbors (integer, default 5, range [1,128]); weights (string, default \"uniform\", enum [\"uniform\",\"distance\"]); . kmeans: n_clusters (integer, default 2, range [2,32]); n_init (integer, default 10, range [1,10]); max_iter (integer, default 300, range [1,300]); tol (number, default 1e-08, range [1e-12,0.01]); . pca: n_components (integer, default 2, range [1,32]); whiten (boolean, default false); . standard_scaler: no parameters. random_forest_classifier: n_estimators (integer, default 32, range [1,64]); max_depth (integer, default 8, range [1,12]); min_samples_leaf (integer, default 1, range [1,64]); max_features (string, default \"sqrt\", enum [\"sqrt\",\"log2\",\"all\"]); bootstrap (boolean, default true); . hist_gradient_boosting_classifier: max_iter (integer, default 100, range [1,100]); max_depth (integer, default 8, range [1,12]); max_leaf_nodes (integer, default 31, range [2,31]); min_samples_leaf (integer, default 20, range [1,128]); learning_rate (number, default 0.1, range [0.01,1]); l2_regularization (number, default 0, range [0,10000]); . random_forest_regressor: n_estimators (integer, default 32, range [1,64]); max_depth (integer, default 8, range [1,12]); min_samples_leaf (integer, default 1, range [1,64]); max_features (string, default \"all\", enum [\"sqrt\",\"log2\",\"all\"]); bootstrap (boolean, default true); . hist_gradient_boosting_regressor: max_iter (integer, default 100, range [1,100]); max_depth (integer, default 8, range [1,12]); max_leaf_nodes (integer, default 31, range [2,31]); min_samples_leaf (integer, default 20, range [1,128]); learning_rate (number, default 0.1, range [0.01,1]); l2_regularization (number, default 0, range [0,10000]); . "
         },
         {
           "name": "preprocess",
           "type": "object",
           "occurs": "1",
-          "description": "preprocess input; see README for shapes and limits."
+          "description": "Required exact object {scale:boolean, one_hot:[unique feature names]}; no defaults or extra keys. Sorted full one-hot encoding then optional training mean/population-variance scaling; <=64 encoded features; unseen levels rejected."
         },
         {
           "name": "seed",
           "type": "number",
           "occurs": "?",
-          "description": "seed input; see README for shapes and limits."
+          "description": "uint32 [0,4294967295], required for stochastic families (linear_svc/kmeans/trees) and every CV; optional for deterministic lbfgs logistic and other families. MT19937 echoed only when randomness is used."
         },
         {
           "name": "cv",
@@ -2593,33 +2593,33 @@
             "group",
             "timeseries"
           ],
-          "description": "cv input; see README for shapes and limits."
+          "description": "kfold/stratified/group/timeseries; supervised families only; preprocessing learned independently per fold. Stratified requires classification; timeseries cannot shuffle."
         },
         {
           "name": "n_splits",
           "type": "number",
           "occurs": "?",
           "default": 5,
-          "description": "n_splits input; see README for shapes and limits."
+          "description": "Integer 2..20, <= rows; default 5; group CV also needs at least n_splits distinct groups."
         },
         {
           "name": "shuffle",
           "type": "boolean",
           "occurs": "?",
           "default": false,
-          "description": "shuffle input; see README for shapes and limits."
+          "description": "Default false; shuffle kfold/stratified/group with required seed; forbidden for timeseries."
         },
         {
           "name": "groups",
           "type": "string",
           "occurs": "?",
-          "description": "groups input; see README for shapes and limits."
+          "description": "Required group column for group CV; forbidden for other CV kinds; group identities never overlap train/test."
         },
         {
           "name": "metrics",
           "type": "array",
           "occurs": "1",
-          "description": "Closed metrics by task",
+          "description": "Required unique metric names (1..4): regressors mse/mae/r2; classifiers accuracy/f1_macro/binary roc_auc/log_loss. Probability metrics unavailable for linear_svc; undefined folds return non-OK with diagnostics.",
           "items": "string"
         },
         {
@@ -2627,7 +2627,7 @@
           "type": "number",
           "occurs": "?",
           "default": 10.0,
-          "description": "time_limit input; see README for shapes and limits."
+          "description": "ML computation wall budget >0..30 seconds, default 10; imports excluded; Python signal boundaries plus hard child timeout and pre-spawn work caps."
         }
       ]
     }

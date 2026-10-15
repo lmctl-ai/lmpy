@@ -2,6 +2,11 @@
 #pragma once
 #include "ml_spec.hpp"
 const Json& ml_spec(){static const Json s=Json::parse(PYCLI_ML_SPEC);return s;}
+bool ml_integer_label(const std::string& text){
+ if(text=="0")return true;if(text.empty()||text.size()>11)return false;size_t start=text[0]=='-'?1:0;
+ if(start==text.size()||text[start]<'1'||text[start]>'9'||text.find_first_not_of("0123456789",start)!=std::string::npos)return false;
+ return std::abs(std::stoll(text))<=1000000000LL;
+}
 void ml_name(const Json& v){if(!v.is_string())bad_param("ML column names must be strings");std::string s=v;if(s.empty()||s.size()>64||s.find('\0')!=std::string::npos)bad_param("ML names must be 1..64 UTF-8 bytes");frames::utf8(s);}
 Json ml_params(const std::string& family,const Json& supplied){
  const auto& families=ml_spec()["families"];if(!families.contains(family))bad_param("unknown ML family");
@@ -84,9 +89,9 @@ Json prepare_ml(const std::string& op,const Params& in,std::map<std::string,Arra
   for(auto& name:strings)types[name]="string";p["dtypes"]=types;
  }
  // Canonical decimal class labels have the same type in CSV, JSON and table sources.
- if(!predict&&task=="classification"&&cols.contains(target)){
+ if(!predict&&task=="classification"&&cols.contains(target)&&cols[target].is_array()&&!cols[target].empty()){
   bool strings=cols[target][0].is_string();for(auto& v:cols[target])if(v.is_string()!=strings)bad_param("class labels must have one type");
-  if(strings){static const std::regex decimal("0|-?[1-9][0-9]*");bool integers=true;for(auto& v:cols[target]){auto text=v.get<std::string>();if(text.size()>11||!std::regex_match(text,decimal)||std::abs(csv_number(text))>1e9){integers=false;break;}}
+  if(strings){bool integers=true;for(auto& v:cols[target]){auto text=v.get<std::string>();if(!ml_integer_label(text)){integers=false;break;}}
    if(integers){for(auto& v:cols[target])v=std::stoll(v.get<std::string>());if(in.contains("csv"))p["dtypes"][target]="int64";}
   }
  }
