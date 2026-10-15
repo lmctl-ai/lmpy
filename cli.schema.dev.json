@@ -89,7 +89,7 @@
       "name": "stats_dist",
       "access": "read",
       "returns": "object",
-      "description": "Normal or Student t pdf/cdf/ppf/sf; <=1000 inline values",
+      "description": "Normal or Student t pdf/cdf/ppf/sf (<=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) from norm, t, uniform, expon, gamma, beta, lognorm, chi2, poisson, binom",
       "params": [
         {
           "name": "dist",
@@ -97,9 +97,17 @@
           "occurs": "1",
           "enum": [
             "norm",
-            "t"
+            "t",
+            "uniform",
+            "expon",
+            "gamma",
+            "beta",
+            "lognorm",
+            "chi2",
+            "poisson",
+            "binom"
           ],
-          "description": "dist input; see README for shapes and limits."
+          "description": "Distribution. pdf/cdf/ppf/sf support norm and t only; every family samples (fn rvs). rvs parameters: norm loc, scale; t df, loc, scale; uniform low, high; expon scale; gamma shape, scale; beta a, b; lognorm mu, sigma (of the underlying normal); chi2 df; poisson lam (<=1e9); binom n (1..1e9), p. Discrete families return integer-valued F64."
         },
         {
           "name": "fn",
@@ -109,22 +117,102 @@
             "pdf",
             "cdf",
             "ppf",
-            "sf"
+            "sf",
+            "rvs"
           ],
-          "description": "fn input; see README for shapes and limits."
-        },
-        {
-          "name": "x",
-          "type": "json",
-          "occurs": "1",
-          "description": "x input; see README for shapes and limits."
+          "description": "pdf, cdf, ppf, sf at x (norm, t), or rvs: seeded random variates."
         },
         {
           "name": "params",
           "type": "object",
           "occurs": "?",
           "default": {},
-          "description": "params input; see README for shapes and limits."
+          "description": "Distribution parameters (see dist); unknown or missing required keys are BAD_PARAM; scale-like parameters must be > 0."
+        },
+        {
+          "name": "n",
+          "type": "number",
+          "occurs": "?",
+          "description": "rvs: sample size >=1; at most 1000 inline, at most 1,000,000 with stats_dist_to."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "rvs: REQUIRED explicit seed, an integer in [0, 2^63). The generator is numpy PCG64(seed); the seed and generator are echoed, and the same seed gives the same stream (a shorter n is a prefix)."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "?",
+          "description": "pdf/cdf/ppf/sf only: evaluation points, a vector of <=1000 numbers (inline, .npy or safetensors#key). Not allowed with rvs."
+        }
+      ]
+    },
+    {
+      "name": "stats_dist_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Seeded sampling written to an exclusive safetensors artifact: same distributions, params and explicit required seed as stats_dist fn rvs, n up to 1,000,000 values (F64 vector under artifacts[key]) Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "dist",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "norm",
+            "t",
+            "uniform",
+            "expon",
+            "gamma",
+            "beta",
+            "lognorm",
+            "chi2",
+            "poisson",
+            "binom"
+          ],
+          "description": "Distribution. pdf/cdf/ppf/sf support norm and t only; every family samples (fn rvs). rvs parameters: norm loc, scale; t df, loc, scale; uniform low, high; expon scale; gamma shape, scale; beta a, b; lognorm mu, sigma (of the underlying normal); chi2 df; poisson lam (<=1e9); binom n (1..1e9), p. Discrete families return integer-valued F64."
+        },
+        {
+          "name": "fn",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "rvs"
+          ],
+          "description": "rvs only: seeded random variates."
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "occurs": "?",
+          "default": {},
+          "description": "Distribution parameters (see dist); unknown or missing required keys are BAD_PARAM; scale-like parameters must be > 0."
+        },
+        {
+          "name": "n",
+          "type": "number",
+          "occurs": "?",
+          "description": "rvs: sample size >=1; at most 1000 inline, at most 1,000,000 with stats_dist_to."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "rvs: REQUIRED explicit seed, an integer in [0, 2^63). The generator is numpy PCG64(seed); the seed and generator are echoed, and the same seed gives the same stream (a shorter n is a prefix)."
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "occurs": "?",
+          "default": "x",
+          "description": "Tensor name in the artifact: [A-Za-z_][A-Za-z0-9_.-]{0,63}."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists)."
         }
       ]
     },
@@ -1521,6 +1609,481 @@
           "type": "string",
           "occurs": "1",
           "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "frame_to_array",
+      "access": "read",
+      "returns": "object",
+      "description": "Table to rank-2 row-major F64 array (columns in the requested order). Result: shape, columns, source_dtypes, source_na_count, source_nan_count, missing_mask_lost, n_rows_total, values (<=1000 values inline; use frame_to_array_to for more). Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported.",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Existing .npz table (frame_import / any table operation)."
+        },
+        {
+          "name": "columns",
+          "type": "array",
+          "occurs": "1",
+          "description": "Ordered unique columns to convert; each must be int64, float64 or bool (bool maps to 0/1). Strings, categories and datetimes are refused (BAD_DTYPE): encode them first.",
+          "items": "string"
+        },
+        {
+          "name": "missing",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "nan"
+          ],
+          "description": "error (default): a masked missing value is NA_NOT_ALLOWED. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."
+        },
+        {
+          "name": "offset",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "First row to convert (0-based, default 0); selecting no rows is BAD_DATA."
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "occurs": "?",
+          "description": "Maximum rows to convert from offset, >=1 (default: all)."
+        },
+        {
+          "name": "allow_lossy_int",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Convert int64 values beyond +-2^53 (not exactly representable in binary64) with rounding, counted in lossy_int_count; off by default (INT64_NOT_EXACT)."
+        }
+      ]
+    },
+    {
+      "name": "frame_to_array_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Table to rank-2 row-major F64 array (columns in the requested order). Result: shape, columns, source_dtypes, source_na_count, source_nan_count, missing_mask_lost, n_rows_total; the array is stored under artifacts[key] (<=200000 values). Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Existing .npz table (frame_import / any table operation)."
+        },
+        {
+          "name": "columns",
+          "type": "array",
+          "occurs": "1",
+          "description": "Ordered unique columns to convert; each must be int64, float64 or bool (bool maps to 0/1). Strings, categories and datetimes are refused (BAD_DTYPE): encode them first.",
+          "items": "string"
+        },
+        {
+          "name": "missing",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "nan"
+          ],
+          "description": "error (default): a masked missing value is NA_NOT_ALLOWED. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."
+        },
+        {
+          "name": "offset",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "First row to convert (0-based, default 0); selecting no rows is BAD_DATA."
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "occurs": "?",
+          "description": "Maximum rows to convert from offset, >=1 (default: all)."
+        },
+        {
+          "name": "allow_lossy_int",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Convert int64 values beyond +-2^53 (not exactly representable in binary64) with rounding, counted in lossy_int_count; off by default (INT64_NOT_EXACT)."
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "occurs": "?",
+          "default": "x",
+          "description": "Tensor name in the artifact: [A-Za-z_][A-Za-z0-9_.-]{0,63}."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "array_to_frame",
+      "access": "write",
+      "returns": "object",
+      "description": "Array (inline, .npy or safetensors#key) to a table: explicit unique column names for every column (a vector is one column), dtypes float64 / int64 / bool (default from the source dtype; bool needs exactly 0/1, int64 exact integers), no implicit index. NaN stays a numeric value unless nan_policy=missing. Result: shape, column_meta, na_counts, nan_count, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "ref",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite or NaN/Inf-containing vector or matrix, <=200000 numbers: inline JSON, file.npy or file.safetensors#key. Rows are table rows."
+        },
+        {
+          "name": "columns",
+          "type": "array",
+          "occurs": "1",
+          "description": "One unique non-empty name (<=256 bytes UTF-8) per column of ref.",
+          "items": "string"
+        },
+        {
+          "name": "dtypes",
+          "type": "object",
+          "occurs": "?",
+          "description": "Optional {column: float64|int64|bool} overrides; others follow the source dtype (int -> int64, bool -> bool, float -> float64)."
+        },
+        {
+          "name": "nan_policy",
+          "type": "string",
+          "occurs": "?",
+          "default": "value",
+          "enum": [
+            "value",
+            "missing"
+          ],
+          "description": "value (default): NaN stays a float64 value. missing: NaN becomes a masked missing value (float64 columns only)."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact inside the working directory (CONFLICT if it exists)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "frame_mutate",
+      "access": "write",
+      "returns": "object",
+      "description": "New or replaced float64 columns from expressions in the existing safe grammar (arithmetic, comparisons, & |, ifelse, math functions; no reducers, no indexing, no eval path). Columns are int64/float64/bool with identifier-style names ([a-z][a-z0-9_]{0,31}); assignments run in order and may use earlier ones. A masked missing value in any referenced column makes the result missing. Comparison/logic results are 1/0 (NaN for NaN operands). nonfinite decides what to do with NaN/Inf results (error, mask or keep). Result: shape, assigned[{name, replaced, n_masked, n_nonfinite}], column_meta, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Existing .npz table."
+        },
+        {
+          "name": "assign",
+          "type": "array",
+          "occurs": "1",
+          "description": "1..32 entries {name, expr}; expr <=2048 bytes / 512 nodes.",
+          "items": "object"
+        },
+        {
+          "name": "allow_replace",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Allow an assignment to overwrite an existing column (default false: BAD_PARAM)."
+        },
+        {
+          "name": "nonfinite",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "mask",
+            "keep"
+          ],
+          "description": "NaN/Inf produced by an expression on non-missing inputs: error (NON_FINITE, default), mask (becomes a masked missing value, counted) or keep (stored as a float64 value)."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact inside the working directory (CONFLICT if it exists)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "frame_merge",
+      "access": "write",
+      "returns": "object",
+      "description": "Join two tables on explicit keys (inner, left, right, outer) with validation and a row-explosion cap checked from key counts before anything is built. Keys are int64, bool, string/category (compared by label) or datetime columns of matching type, never float64; rows with a missing key never match (they stay unmatched in left/right/outer). Order: inner/left/outer follow the left rows (matches in right row order), right follows the right rows (matches in left row order); outer then appends the unmatched right rows. With on the key is one column (taken from the left, else the right); with left_on/right_on both are kept. Non-key names present on both sides get suffixes on both. Unmatched cells are masked, dtypes are preserved. Result: shape, how, n_pairs, n_left_only, n_right_only, columns, column_meta, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "left",
+          "type": "string",
+          "occurs": "1",
+          "description": "Left .npz table."
+        },
+        {
+          "name": "right",
+          "type": "string",
+          "occurs": "1",
+          "description": "Right .npz table."
+        },
+        {
+          "name": "on",
+          "type": "array",
+          "occurs": "?",
+          "description": "Key columns present in both tables (1..8). Give on, or left_on with right_on.",
+          "items": "string"
+        },
+        {
+          "name": "left_on",
+          "type": "array",
+          "occurs": "?",
+          "description": "Key columns of the left table (with right_on).",
+          "items": "string"
+        },
+        {
+          "name": "right_on",
+          "type": "array",
+          "occurs": "?",
+          "description": "Key columns of the right table, same count as left_on.",
+          "items": "string"
+        },
+        {
+          "name": "how",
+          "type": "string",
+          "occurs": "?",
+          "default": "inner",
+          "enum": [
+            "inner",
+            "left",
+            "right",
+            "outer"
+          ],
+          "description": "Join type."
+        },
+        {
+          "name": "validate",
+          "type": "string",
+          "occurs": "?",
+          "default": "many_to_many",
+          "enum": [
+            "one_to_one",
+            "one_to_many",
+            "many_to_one",
+            "many_to_many"
+          ],
+          "description": "Key uniqueness contract: one_to_one needs unique non-missing keys on both sides, one_to_many a unique left, many_to_one a unique right; a violation is MERGE_VALIDATION. many_to_many (default) checks nothing."
+        },
+        {
+          "name": "suffixes",
+          "type": "array",
+          "occurs": "?",
+          "default": [
+            "_x",
+            "_y"
+          ],
+          "description": "Two different non-empty suffixes for colliding non-key names (default _x, _y); the result must still have unique names (DUPLICATE_COLUMN).",
+          "items": "string"
+        },
+        {
+          "name": "max_rows",
+          "type": "number",
+          "occurs": "?",
+          "default": 200000,
+          "description": "Cap on result rows, 1..200000 (also bounded by the 500000-cell table cap); exceeding it is ROW_EXPLOSION and reports the row count the join would have produced."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact inside the working directory (CONFLICT if it exists)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "frame_rolling",
+      "access": "write",
+      "returns": "object",
+      "description": "Rolling-window statistics of numeric columns appended as <column>__<function> (original columns kept). Count windows are trailing (window rows ending at the row, or centred with center: rows i-window/2 .. i+(window-1)/2); time windows (time_window, with an explicit sorted non-missing datetime column on) cover (t-window, t] over the rows up to and including the row. Missing values are skipped; a result needs min_periods observations (std/var also two; ddof=1), otherwise it is missing; count is always defined (int64). Work (rows x window x columns x functions) is capped at 1e8. Result: shape, columns_added, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "1",
+          "description": "Existing .npz table."
+        },
+        {
+          "name": "columns",
+          "type": "array",
+          "occurs": "1",
+          "description": "Numeric columns (int64, float64, bool) to roll, <=64.",
+          "items": "string"
+        },
+        {
+          "name": "functions",
+          "type": "array",
+          "occurs": "1",
+          "description": "1..8 of sum, mean, std, var, min, max, median, count.",
+          "items": "string"
+        },
+        {
+          "name": "window",
+          "type": "number",
+          "occurs": "?",
+          "description": "Rows per window, 1..100000 (give window or time_window)."
+        },
+        {
+          "name": "time_window",
+          "type": "string",
+          "occurs": "?",
+          "description": "Fixed-length time window <count><unit>, unit s, min, h or D (e.g. 30s); needs on."
+        },
+        {
+          "name": "on",
+          "type": "string",
+          "occurs": "?",
+          "description": "Datetime64[ns] column for time_window; must be sorted ascending with no missing values (NOT_SORTED otherwise)."
+        },
+        {
+          "name": "min_periods",
+          "type": "number",
+          "occurs": "?",
+          "description": "Observations needed for a result, 1..window (default: window; time windows: 1)."
+        },
+        {
+          "name": "center",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Count windows only: centre the window on the row."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact inside the working directory (CONFLICT if it exists)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "ml_metrics",
+      "access": "read",
+      "returns": "object",
+      "description": "Model evaluation metrics computed by hand formulas (numpy only; no scikit-learn import). Classification: accuracy, balanced_accuracy (mean recall over the classes present in y_true), precision, recall, f1 (average binary/macro/micro/weighted), confusion_matrix (rows true, columns predicted, labels sorted; <=30 labels). Scored: roc_auc (rank statistic with ties as 1/2), log_loss (probabilities clipped to [1e-15, 1-1e-15], reported in log_loss_eps) and brier, binary with pos_label. Regression: r2, mse, mae, mape (fraction, not percent). A metric that is mathematically undefined (constant y_true for r2, a zero in y_true for mape, one class for roc_auc, 0/0 in precision/recall with zero_division=undefined) is listed under undefined with a reason, the status is UNDEFINED and the defined metrics are still returned. Data come from a table (frame with column names) or from arrays; NaN/missing values are refused (NA_NOT_ALLOWED / BAD_DATA).",
+      "params": [
+        {
+          "name": "metrics",
+          "type": "array",
+          "occurs": "1",
+          "description": "1..14 metric names: accuracy, balanced_accuracy, precision, recall, f1, confusion_matrix, roc_auc, log_loss, brier, r2, mse, mae, mape.",
+          "items": "string"
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional .npz table; then y_true/y_pred/y_score are column names (labels may be int64, bool, string or category)."
+        },
+        {
+          "name": "y_true",
+          "type": "json",
+          "occurs": "1",
+          "description": "Column name (with frame) or numeric vector (inline <=1000, .npy, safetensors#key) of true labels/targets."
+        },
+        {
+          "name": "y_pred",
+          "type": "json",
+          "occurs": "?",
+          "description": "Column name or vector of predicted labels/values (classification and regression metrics)."
+        },
+        {
+          "name": "y_score",
+          "type": "json",
+          "occurs": "?",
+          "description": "Column name or vector of scores / probabilities of pos_label (roc_auc, log_loss, brier); log_loss and brier need values in [0, 1]."
+        },
+        {
+          "name": "average",
+          "type": "string",
+          "occurs": "?",
+          "default": "binary",
+          "enum": [
+            "binary",
+            "macro",
+            "micro",
+            "weighted"
+          ],
+          "description": "Averaging for precision, recall and f1 (default binary, which uses pos_label)."
+        },
+        {
+          "name": "pos_label",
+          "type": "json",
+          "occurs": "?",
+          "description": "Positive class for binary precision/recall/f1 and for roc_auc, log_loss, brier. Default 1 when the labels are 0/1 (or false/true); required otherwise."
+        },
+        {
+          "name": "zero_division",
+          "type": "string",
+          "occurs": "?",
+          "default": "undefined",
+          "enum": [
+            "undefined",
+            "0",
+            "1"
+          ],
+          "description": "Value for precision/recall/f1 terms with a zero denominator, or undefined (default: the metric is reported undefined)."
         },
         {
           "name": "time_limit",

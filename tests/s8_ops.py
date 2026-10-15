@@ -43,6 +43,14 @@ class Base(unittest.TestCase):
         call('frame_import', dict(columns=columns, out=self.p(name), **extra))
         return self.p(name)
 
+    def csv_table(self, columns, name='t.npz'):
+        """frame_import of a column map through a CSV file (inline tables hold at most 1000 cells)."""
+        names = list(columns)
+        rows = len(columns[names[0]])
+        (self.dir / (name + '.csv')).write_text(','.join(names) + '\n' + ''.join(','.join(str(columns[c][i]).lower() if isinstance(columns[c][i], bool) else str(columns[c][i]) for c in names) + '\n' for i in range(rows)))
+        call('frame_import', dict(csv=self.p(name + '.csv'), out=self.p(name)))
+        return self.p(name)
+
     def read(self, name):
         return s8.read_table(self.p(name) if not os.path.isabs(name) else name)
 
@@ -108,7 +116,7 @@ class Bridge(Base):
 
     def test_inline_budget_write_twin_descriptor_and_exclusive_out(self):
         n = 400
-        t = self.table({'a': list(range(n)), 'b': [i / 8 for i in range(n)], 'c': [i % 2 == 0 for i in range(n)]})
+        t = self.csv_table({'a': list(range(n)), 'b': [i / 8 for i in range(n)], 'c': [i % 2 == 0 for i in range(n)]})
         too_large('frame_to_array', dict(frame=t, columns=['a', 'b', 'c']))  # 1200 values
         out = self.p('x.safetensors')
         r = call('frame_to_array_to', dict(frame=t, columns=['a', 'b', 'c'], out=out, key='design'))
@@ -141,7 +149,7 @@ class Bridge(Base):
         self.assertFalse(os.path.exists(out))
 
     def test_array_to_frame_dtypes_masks_and_nan_policy(self):
-        floats = [[1.0, 2.0], [float('nan'), 4.0], [float('inf'), 6.0]]
+        floats = [[1.0, 2.0], ['NaN', 4.0], ['Inf', 6.0]]
         r = call('array_to_frame', dict(ref=[[1.0, 2.0], [3.0, 4.0]], columns=['p', 'q'], out=self.p('f.npz')))
         self.assertEqual((r['status'], r['shape'], r['column_meta']['p']['dtype']), ('OK', [2, 2], 'float64'))
         self.assertEqual(set(r['artifacts']['table']), DESCRIPTOR_KEYS)
@@ -174,7 +182,7 @@ class Bridge(Base):
         rejected('array_to_frame', dict(ok, dtypes={'a': 'string'}))
         rejected('array_to_frame', dict(ok, dtypes={'a': 'bool'}), 'BAD_DATA')  # values are not exactly 0/1
         rejected('array_to_frame', dict(ok, ref=[[1.5, 2.0]], dtypes={'a': 'int64'}), 'BAD_DATA')
-        rejected('array_to_frame', dict(ok, ref=[[float('nan'), 2.0]], dtypes={'a': 'int64'}), 'BAD_DATA')
+        rejected('array_to_frame', dict(ok, ref=[['NaN', 2.0]], dtypes={'a': 'int64'}), 'BAD_DATA')
         rejected('array_to_frame', dict(ok, out=self.p('x.safetensors')), 'BAD_REF')
         rejected('array_to_frame', dict(ok, ref=self.p('nope.npy')), 'ARTIFACT_NOT_FOUND', rc=4)
         (self.dir / 'bad.npy').write_bytes(b'\x93NUMPY\x01\x00\xff\xff' + b'x' * 20)
@@ -302,11 +310,14 @@ RIGHT = {'id': [2, 2, 3, 4, None, 3], 'w': [200, 201, 300, 400, 999, 301], 'k': 
 class Merge(Base):
     def setUp(self):
         super().setUp()
+        self.count = 0
         self.table(LEFT, 'l.npz', dtypes={'id': 'int64', 'v': 'float64'})
         self.table(RIGHT, 'r.npz', dtypes={'id': 'int64'})
 
     def merge(self, how, **extra):
-        return call('frame_merge', dict(left=self.p('l.npz'), right=self.p('r.npz'), on=['id'], how=how, out=self.p('o_%s.npz' % how), **extra))
+        self.count += 1
+        self.last = 'o_%s_%d.npz' % (how, self.count)
+        return call('frame_merge', dict(left=self.p('l.npz'), right=self.p('r.npz'), on=['id'], how=how, out=self.p(self.last), **extra))
 
     def expected(self, how):
         pairs = s8.hand_merge(LEFT, RIGHT, how, ['id'], ['id'])
@@ -323,18 +334,19 @@ class Merge(Base):
         for how in ('inner', 'left', 'right', 'outer'):
             r = self.merge(how)
             rows, pairs = self.expected(how)
-            t = self.read('o_%s.npz' % how)
+            t = self.read(self.last)
             self.assertEqual(t['columns'], ['id', 'k_x', 'v', 'w', 'k_y'], how)
             for column, want in rows.items():
                 self.assertTrue(s8.same(t['data'][column], want), (how, column, t['data'][column], want))
             self.assertEqual(r['shape'], [len(pairs), 5])
             self.assertEqual(r['n_pairs'], sum(1 for i, j in pairs if i is not None and j is not None))
-            self.assertEqual((r['n_left_only'], r['n_right_only']), (sum(1 for i, j in pairs if j is None), sum(1 for i, j in pairs if i is None)))
+            outer = s8.hand_merge(LEFT, RIGHT, 'outer', ['id'], ['id'])  # unmatched input rows are counted for every join type, also the ones that drop them
+            self.assertEqual((r['n_left_only'], r['n_right_only']), (sum(1 for i, j in outer if j is None), sum(1 for i, j in outer if i is None)))
         self.assertEqual(self.merge('inner')['n_pairs'], 2 * 2 + 1 * 2)  # id 2: 2x2, id 3: 1x2; NA keys never match
 
     def test_dtypes_survive_unmatched_rows_as_masks(self):
         self.merge('left')
-        t = self.read('o_left.npz')
+        t = self.read(self.last)
         self.assertEqual(t['meta']['w']['dtype'], 'int64')  # no float promotion: the unmatched rows are masked
         self.assertEqual(t['data']['w'][0], None)
 
@@ -413,9 +425,12 @@ class Merge(Base):
 # ------------------------------------------------------------------------------------------------------------ rolling
 class Rolling(Base):
     VALUES = [3.0, 1.0, None, 4.0, 1.5, 9.0, 2.0, 6.0]
+    count = 0
 
     def roll(self, **extra):
-        params = dict(frame=self.p('t.npz'), columns=['v'], out=self.p('r.npz'))
+        self.count += 1
+        self.last = 'r%d.npz' % self.count
+        params = dict(frame=self.p('t.npz'), columns=['v'], out=self.p(self.last))
         params.update(extra)
         return call('frame_rolling', params)
 
@@ -429,7 +444,7 @@ class Rolling(Base):
             if center:
                 extra['center'] = True
             r = self.roll(**extra)
-            t = self.read('r.npz')
+            t = self.read(self.last)
             mp = window if min_periods is None else min_periods
             self.assertEqual(r['columns_added'], ['v__' + f for f in fns])
             for fn in fns:
@@ -442,7 +457,7 @@ class Rolling(Base):
     def test_integer_and_bool_sources_and_multiple_columns(self):
         self.table({'a': [1, 2, 3, 4, 5], 'b': [True, False, True, True, False], 's': list('abcde')})
         self.roll(columns=['a', 'b'], window=2, functions=['sum', 'max'])
-        t = self.read('r.npz')
+        t = self.read(self.last)
         self.assertEqual(t['columns'], ['a', 'b', 's', 'a__sum', 'a__max', 'b__sum', 'b__max'])
         self.assertTrue(s8.same(t['data']['a__sum'], [None, 3.0, 5.0, 7.0, 9.0]))
         self.assertTrue(s8.same(t['data']['b__sum'], [None, 1.0, 1.0, 2.0, 1.0]))
@@ -453,7 +468,7 @@ class Rolling(Base):
         vals = [1.0, 2.0, 4.0, 8.0, 16.0, None]
         self.table({'t': stamps, 'v': vals}, dtypes={'t': 'datetime64[ns]', 'v': 'float64'})
         r = self.roll(time_window='3s', on='t', functions=['sum', 'count', 'mean'])
-        t = self.read('r.npz')
+        t = self.read(self.last)
         secs = [0, 1, 3, 3, 10, 11]
         for fn in ('sum', 'count', 'mean'):
             want = s8.hand_rolling(vals, fn, None, 1, False, times=secs, span=3)
@@ -696,7 +711,7 @@ class Rvs(Base):
         rejected('stats_dist', dict(base, dist='binom', params={'n': 2.5, 'p': 0.5}), 'BAD_PARAM')
         rejected('stats_dist', dict(base, dist='t', params={'df': 0.0}), 'BAD_PARAM')
         rejected('stats_dist', dict(base, dist='cauchy'))
-        rejected('stats_dist_to', dict(dist='norm', fn='pdf', x=[0.0], params={}, out=self.p('z.safetensors')), 'BAD_PARAM')  # the write twin samples only
+        rejected('stats_dist_to', dict(dist='norm', fn='pdf', x=[0.0], params={}, out=self.p('z.safetensors')))  # the write twin samples only (enum)
         call('stats_dist_to', dict(base, out=self.p('s.safetensors')))
         call('stats_dist_to', dict(base, out=self.p('s.safetensors')), rc=5)
         call('stats_dist_to', dict(base, out=self.p('r.safetensors')), rc=6, env=dict(os.environ, PYCLI_READONLY='1'))

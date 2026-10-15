@@ -399,7 +399,16 @@ def main():
         # Trusted imports are selected by a closed table before the guard. SciPy
         # imports test/network/process helpers even for its numerical modules.
         import numpy as np
-        if request['op'] == 'stats_dist':
+        s8 = request['op'] in ('frame_to_array', 'frame_to_array_to', 'array_to_frame', 'frame_mutate', 'frame_merge', 'frame_rolling', 'ml_metrics', 'stats_dist_to') or (request['op'] == 'stats_dist' and request['params'].get('fn') == 'rvs')
+        if s8:
+            import io
+            warm = io.BytesIO()  # numpy imports its NPZ helpers lazily; do it before the import guard (no pandas, no scipy needed)
+            np.savez(warm, a=np.zeros(1))
+            warm.seek(0)
+            np.load(warm, allow_pickle=False)['a']
+            if request['op'] == 'frame_mutate':
+                import scipy.special  # the expression function table (no pandas, no scipy.stats)
+        elif request['op'] == 'stats_dist':
             import scipy.stats
         elif request['op'] in ('la_solve', 'la_solve_to', 'la_lstsq', 'la_lstsq_to', 'la_props', 'la_decomp'):
             import scipy.linalg
@@ -437,12 +446,13 @@ def main():
         imported = time.monotonic()
         if request['op'] in ('opt_linprog','ode_solve','opt_linprog_to','ode_solve_to'):
             request['params']['time_budget_s']=max(0.0,request['params']['time_budget_s']-(imported-start))
-        if request['op'].startswith(('sm_','ml_','interp_','sig_','spatial_')):
+        if s8 or request['op'].startswith(('sm_','ml_','interp_','sig_','spatial_')):
             request['params']['time_budget_s']=max(0.05,request['params']['time_budget_s']-(imported-start))
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter('always')
             with np.errstate(all='warn'):
-                result = (frame_operation(request['op'], request['params']) if request['op'].startswith('frame_')
+                result = (s8_operation(request['op'])(request['params']) if s8
+                          else frame_operation(request['op'], request['params']) if request['op'].startswith('frame_')
                           else ml_operation(request['op'],request['params']) if request['op'].startswith('ml_')
                           else sm_operation(request['op'])(request['params']) if request['op'].startswith('sm_')
                           else s7_operation(request['op'])(request['params']) if request['op'].startswith(('interp_', 'sig_', 'spatial_'))

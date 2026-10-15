@@ -27,7 +27,7 @@ void cleanup_signal(int sig) {
     // All per-call filenames are fixed; signal cleanup uses POSIX-safe calls only.
     if(!active_dir[0])_exit(128+sig);
     char path[4096];
-    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","c.npy","a_ub.npy","b_ub.npy","a_eq.npy","b_eq.npy","x.npy","y.npy","x_new.npy","freqs.npy","points.npy","queries.npy","vi.npy","output.bin","expr_spec.json","d_0.npy","d_1.npy","d_2.npy","d_3.npy","d_4.npy","d_5.npy","d_6.npy","d_7.npy","d_8.npy","d_9.npy","d_10.npy","d_11.npy","d_12.npy","d_13.npy","d_14.npy","d_15.npy","d_16.npy","d_17.npy","d_18.npy","d_19.npy","d_20.npy","d_21.npy","d_22.npy","d_23.npy","d_24.npy","d_25.npy","d_26.npy","d_27.npy","d_28.npy","d_29.npy","d_30.npy","d_31.npy","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","out_8.bin","out_9.bin","out_10.bin","out_11.bin","out_12.bin","out_13.bin","out_14.bin","out_15.bin","out_16.bin","out_17.bin","out_18.bin","out_19.bin","out_20.bin","out_21.bin","out_22.bin","out_23.bin","out_24.bin","out_25.bin","out_26.bin","out_27.bin","out_28.bin","out_29.bin","out_30.bin","out_31.bin","m_0.npy","m_1.npy","m_2.npy","m_3.npy","m_4.npy","m_5.npy","m_6.npy","m_7.npy","m_8.npy","m_9.npy","m_10.npy","m_11.npy","m_12.npy","m_13.npy","m_14.npy","m_15.npy","m_16.npy","m_17.npy","m_18.npy","m_19.npy","m_20.npy","m_21.npy","m_22.npy","m_23.npy","m_24.npy","m_25.npy","m_26.npy","m_27.npy","m_28.npy","m_29.npy","m_30.npy","m_31.npy","predict.npz","frame.npz","input.csv","table.npz","export.bin"}){
+    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","c.npy","a_ub.npy","b_ub.npy","a_eq.npy","b_eq.npy","x.npy","y.npy","x_new.npy","freqs.npy","points.npy","queries.npy","vi.npy","output.bin","expr_spec.json","d_0.npy","d_1.npy","d_2.npy","d_3.npy","d_4.npy","d_5.npy","d_6.npy","d_7.npy","d_8.npy","d_9.npy","d_10.npy","d_11.npy","d_12.npy","d_13.npy","d_14.npy","d_15.npy","d_16.npy","d_17.npy","d_18.npy","d_19.npy","d_20.npy","d_21.npy","d_22.npy","d_23.npy","d_24.npy","d_25.npy","d_26.npy","d_27.npy","d_28.npy","d_29.npy","d_30.npy","d_31.npy","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","out_8.bin","out_9.bin","out_10.bin","out_11.bin","out_12.bin","out_13.bin","out_14.bin","out_15.bin","out_16.bin","out_17.bin","out_18.bin","out_19.bin","out_20.bin","out_21.bin","out_22.bin","out_23.bin","out_24.bin","out_25.bin","out_26.bin","out_27.bin","out_28.bin","out_29.bin","out_30.bin","out_31.bin","m_0.npy","m_1.npy","m_2.npy","m_3.npy","m_4.npy","m_5.npy","m_6.npy","m_7.npy","m_8.npy","m_9.npy","m_10.npy","m_11.npy","m_12.npy","m_13.npy","m_14.npy","m_15.npy","m_16.npy","m_17.npy","m_18.npy","m_19.npy","m_20.npy","m_21.npy","m_22.npy","m_23.npy","m_24.npy","m_25.npy","m_26.npy","m_27.npy","m_28.npy","m_29.npy","m_30.npy","m_31.npy","predict.npz","frame.npz","input.csv","table.npz","export.bin","left.npz","right.npz","ref.npy","y_true.npy","y_pred.npy","y_score.npy"}){
         size_t n=0;while(active_dir[n] && n<sizeof(path)-64){path[n]=active_dir[n];++n;}
         path[n++]='/';while(*file)path[n++]=*file++;path[n]=0;unlink(path);
     }
@@ -489,6 +489,7 @@ Json prepare_root(const Params& in){
 #include "s5.hpp"
 #include "ml.hpp"
 #include "s7.hpp"
+#include "s8.hpp"
 int expr_check_cli(){
     try{
         std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
@@ -505,10 +506,11 @@ Json call(const std::string& op,const Params& input){
     if(op=="array_import")return array_import(input);
     if(op=="array_inspect")return array_inspect(input);
     Params p=input;std::map<std::string,Array> arrays;
-    const bool ml=op.rfind("ml_",0)==0;std::string ml_future;
+    const bool s8=s8_op(op,input);
+    const bool ml=op.rfind("ml_",0)==0&&op!="ml_metrics";std::string ml_future;
     if(ml)p=prepare_ml(op,p,arrays,ml_future);
     const bool sm=op.rfind("sm_",0)==0;const bool sm_twin=sm&&op.size()>3&&op.compare(op.size()-3,3,"_to")==0;
-    bool frame=op.rfind("frame_",0)==0||sm||ml;std::string table_input,table_bytes,table_output;
+    bool frame=(op.rfind("frame_",0)==0&&!s8)||sm||ml;std::string table_input,table_bytes,table_output;
     if(frame){
         if(op=="frame_import"||sm||ml){
             size_t sources=p.count("columns")+p.count("records")+p.count("csv")+p.count("frame");if(sources!=1)invalid("provide exactly one of columns, records, csv, frame");
@@ -571,7 +573,10 @@ Json call(const std::string& op,const Params& input){
         uint64_t numbers=decomp_numbers(kind,uint64_t(a.shape[0]),uint64_t(a.shape[1]),full,pivoting);
         if(numbers>MAX_OUTPUT_NUMBERS)output_too_large(kind+" would produce "+std::to_string(numbers)+" numbers (limit "+std::to_string(MAX_OUTPUT_NUMBERS)+"); use full=false");
         p["out"]=output_path(p);
-    }else if(op=="stats_dist"){
+    }else if(op=="stats_dist"&&!s8){
+        for(const char* k:{"n","seed"})if(p.contains(k)&&!p[k].is_null())bad_param(std::string(k)+" is only used by fn rvs");
+        if(p["dist"]!="norm"&&p["dist"]!="t")bad_param("only norm and t have pdf/cdf/ppf/sf; the other families sample (fn rvs)");
+        if(!p.contains("x")||p["x"].is_null())bad_param("pdf, cdf, ppf and sf need x");
         arrays["x"]=load(p["x"]);if(arrays["x"].shape.size()!=1||arrays["x"].data.size()>1000)invalid("stats_dist requires <=1000 vector values");
         auto params=p["params"];if(!params.is_object())invalid("params must be an object");for(auto it=params.begin();it!=params.end();++it){if(it.key()!="loc"&&it.key()!="scale"&&!(p["dist"]=="t"&&it.key()=="df"))invalid("unknown distribution parameter");if(!it.value().is_number()||!std::isfinite(it.value().get<double>()))invalid("distribution parameters must be finite");}
         if(params.contains("scale")&&params["scale"]<=0)invalid("scale must be positive");if(p["dist"]=="t"&&(!params.contains("df")||params["df"]<=0))invalid("t requires positive df");p["missing"]=arrays["x"].missing;
@@ -580,14 +585,17 @@ Json call(const std::string& op,const Params& input){
     if(sm)p=prepare_sm(op,p);
     const bool s7=s7_op(op),s7_write=s7&&s7_twin(op);
     if(s7)p=prepare_s7(op,input,arrays);
+    S8Extra s8x;
+    if(s8)p=prepare_s8(op,input,arrays,s8x);
+    const bool tensor_write=s7_write||s8x.tensor_write;
     bool s4_write=op=="opt_linprog_to"||op=="ode_solve_to";bool s4=s4_write||op=="opt_linprog"||op=="ode_solve";std::string s4_out;
     bool numeric=s4||op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
     if(s4)p=(op=="opt_linprog"||op=="opt_linprog_to")?prepare_linprog(input,arrays):prepare_ode(input,arrays);
     else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
-    if(sm||ml||s7||numeric){double limit=input.value("time_limit",10.);if(!std::isfinite(limit)||!(limit>0&&limit<=30))bad_param("time_limit must be >0..30 seconds");p["time_limit"]=limit;}
+    if(sm||ml||s7||s8||numeric){double limit=input.value("time_limit",10.);if(!std::isfinite(limit)||!(limit>0&&limit<=30))bad_param("time_limit must be >0..30 seconds");p["time_limit"]=limit;}
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
-    if(sm||ml||s7)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
+    if(sm||ml||s7||s8)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
     if(numeric){
         {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
         p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=s4?Json(std::max(0.01,double(seconds)-2.0)):Json(std::max(1,seconds-10));  // worker stops cooperatively before the hard kill
@@ -595,6 +603,11 @@ Json call(const std::string& op,const Params& input){
     if(numeric&&!s4)p["time_budget_s"]=std::min(p["time_budget_s"].get<double>(),p["time_limit"].get<double>());
     if(frame){if(!table_input.empty()){auto file=temp.file(table_input.c_str());std::ofstream f(file,std::ios::binary);f.write(table_bytes.data(),table_bytes.size());if(!f)throw std::runtime_error("cannot copy table input");p[table_input=="frame.npz"?"frame_file":"csv_file"]=file;table_bytes.clear();}if(!table_output.empty())p["output_file"]=temp.file(op=="frame_export"?"export.bin":"table.npz");}
     for(const auto& entry:arrays){auto file=temp.file((entry.first+".npy").c_str());write_npy(entry.second,file);p.erase(entry.first);p[entry.first+"_file"]=file;}
+    if(s8){
+        for(auto& table:s8x.tables){auto file=temp.file((table.first+".npz").c_str());std::ofstream f(file,std::ios::binary);f.write(table.second.data(),table.second.size());if(!f)throw std::runtime_error("cannot copy table input");p[table.first+"_file"]=file;table.second.clear();}
+        if(s8x.needs_spec){std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");p["spec_file"]=temp.file("expr_spec.json");}
+        if(!s8x.table_out.empty()){table_output=s8x.table_out;p["output_file"]=temp.file("table.npz");}
+    }
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");
     if(ml){
         p["output_file"]=temp.file("table.npz");p["output_prefix"]=temp.file("out_");
@@ -602,8 +615,9 @@ Json call(const std::string& op,const Params& input){
         p["lock_id"]=PYCLI_ML_LOCK_SHA256;
     }
     Json request=p;if(ml)request.erase("out");
+    if(s8)for(const char* key:{"out","frame","left","right"})request.erase(key);
     if(s4){if(s4_write)s4_out=p["out"].get<std::string>();request["force_artifact"]=s4_write;}
-    if(s4||sm_twin||s7_write||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
+    if(s4||sm_twin||tensor_write||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
     {std::ofstream f(temp.file("req.json"));f<<Json{{"op",op},{"params",request}}.dump();if(!f)throw std::runtime_error("cannot write request");}
     {std::ofstream f(temp.file("worker.py"));f<<PYCLI_WORKER_SOURCE;if(!f)throw std::runtime_error("cannot write worker");}
     std::string python="python3";
@@ -645,7 +659,7 @@ Json call(const std::string& op,const Params& input){
         auto output=temp.file("output.bin");if(fs::file_size(output)!=n*8)throw std::runtime_error("worker output size mismatch");tensor.bytes.resize(n*8);std::ifstream f(output,std::ios::binary);f.read(reinterpret_cast<char*>(tensor.bytes.data()),n*8);
         pycli::TensorBundle bundle;bundle.tensors["x"]=tensor;auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);result.erase("shape");artifact_tensors(result,path,bundle);
     }
-    if(op=="la_lstsq_to"||op=="la_decomp"||sm_twin||s7_write){
+    if(op=="la_lstsq_to"||op=="la_decomp"||sm_twin||tensor_write){
         std::string status=result.value("status",std::string());
         if(status!="OK"&&!((op=="la_lstsq_to"||sm_twin)&&status=="RANK_DEFICIENT"))no_artifact(result,"no artifact was produced");
         auto bundle=read_outputs(temp,result);auto path=p["out"].get<std::string>();
@@ -670,13 +684,13 @@ Json call(const std::string& op,const Params& input){
         }else if(s4_write)no_artifact(result,"no primal/artifact was produced");
         if(result.dump().size()>65536)output_too_large("S4 inline response exceeds 64KiB");
     }
-    if(frame&&!table_output.empty()){
+    if((frame||s8)&&!table_output.empty()){
         auto output=p["output_file"].get<std::string>();if(!fs::is_regular_file(output))no_artifact(result,"frame operation produced no artifact");
         if(op!="frame_export"){try{frames::npz(frames::bounded_read(output));}catch(const Error&){throw Error{ErrorCode::InternalError,"worker produced invalid table artifact",{{"tool_code","BAD_TABLE_OUTPUT"}}};}}
         size_t shown=inline_numbers(result);if(shown>MAX_INLINE)output_too_large("table summary exceeds 1000 cells");
         frames::install(output,table_output);result["artifacts"]={{op=="frame_export"?"export":"table",file_descriptor(table_output,op=="frame_export"?p["format"].get<std::string>():"npz")}};result["outputs_in_artifact"]=true;
     }
-    if(frame&&result.dump().size()>65536)output_too_large("inline frame response exceeds 64KiB");
+    if((frame||s8)&&result.dump().size()>65536)output_too_large("inline frame response exceeds 64KiB");
     size_t shown=inline_numbers(result);
     if(shown>MAX_INLINE)throw Error{ErrorCode::CommandFailed,"CAP exceeded: result holds "+std::to_string(shown)+" inline numbers (limit 1000); the worker must write large vectors to the artifact",{{"tool_code","OUTPUT_TOO_LARGE"}}};
     return result;
@@ -689,7 +703,17 @@ int main(int argc,char** argv){
     sigaction(SIGTERM,&action,nullptr);sigaction(SIGINT,&action,nullptr);
     Operation info{"py_info",Access::Read,"Pinned Python scientific runtime, BLAS pools and determinism","object",{}};
     auto solve=[](bool write){Operation op{write?"la_solve_to":"la_solve",write?Access::Write:Access::Read,"Dense real solve; inline <=1000 numbers or F64 artifact refs; read solve reports SINGULAR/NOT_POSITIVE_DEFINITE; write solve fails if no artifact","object",{Param{"a",Type::Json,true},Param{"b",Type::Json,true},Param{"assume_a",Type::String,false,"gen",{"gen","sym","pos"}}}};if(write)op.params.emplace_back("out",Type::String,true);return op;};
-    Operation dist{"stats_dist",Access::Read,"Normal or Student t pdf/cdf/ppf/sf; <=1000 inline values","object",{Param{"dist",Type::String,true,nullptr,{"norm","t"}},Param{"fn",Type::String,true,nullptr,{"pdf","cdf","ppf","sf"}},Param{"x",Type::Json,true},Param{"params",Type::Object,false,Json::object()}}};
+    auto stats_params=[](bool write){
+        std::vector<Param> params={Param{"dist",Type::String,true,nullptr,{"norm","t","uniform","expon","gamma","beta","lognorm","chi2","poisson","binom"},"Distribution. pdf/cdf/ppf/sf support norm and t only; every family samples (fn rvs). rvs parameters: norm loc, scale; t df, loc, scale; uniform low, high; expon scale; gamma shape, scale; beta a, b; lognorm mu, sigma (of the underlying normal); chi2 df; poisson lam (<=1e9); binom n (1..1e9), p. Discrete families return integer-valued F64."},
+            Param{"fn",Type::String,true,nullptr,write?std::vector<Json>{"rvs"}:std::vector<Json>{"pdf","cdf","ppf","sf","rvs"},write?"rvs only: seeded random variates.":"pdf, cdf, ppf, sf at x (norm, t), or rvs: seeded random variates."},
+            Param{"params",Type::Object,false,Json::object(),{},"Distribution parameters (see dist); unknown or missing required keys are BAD_PARAM; scale-like parameters must be > 0."},
+            Param{"n",Type::Integer,false,nullptr,{},"rvs: sample size >=1; at most 1000 inline, at most 1,000,000 with stats_dist_to."},
+            Param{"seed",Type::Integer,false,nullptr,{},"rvs: REQUIRED explicit seed, an integer in [0, 2^63). The generator is numpy PCG64(seed); the seed and generator are echoed, and the same seed gives the same stream (a shorter n is a prefix)."}};
+        if(!write)params.push_back(Param{"x",Type::Json,false,nullptr,{},"pdf/cdf/ppf/sf only: evaluation points, a vector of <=1000 numbers (inline, .npy or safetensors#key). Not allowed with rvs."});
+        else{params.push_back(Param{"key",Type::String,false,"x",{},"Tensor name in the artifact: [A-Za-z_][A-Za-z0-9_.-]{0,63}."});params.push_back(Param{"out",Type::String,true,nullptr,{},"New .safetensors path inside the working directory (CONFLICT if it exists)."});}
+        return params;};
+    Operation dist{"stats_dist",Access::Read,"Normal or Student t pdf/cdf/ppf/sf (<=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) from norm, t, uniform, expon, gamma, beta, lognorm, chi2, poisson, binom","object",stats_params(false)};
+    Operation dist_to{"stats_dist_to",Access::Write,"Seeded sampling written to an exclusive safetensors artifact: same distributions, params and explicit required seed as stats_dist fn rvs, n up to 1,000,000 values (F64 vector under artifacts[key])","object",stats_params(true)};
     // S1: arrays and dense linear algebra. Array params accept inline JSON, `file.npy` or `file.safetensors#key`.
     Operation import_op{"array_import",Access::Write,"Convert inline JSON, CSV, a read-only .npy or a safetensors tensor into a new F64 safetensors artifact; fails with CONFLICT if out exists","object",{
         Param{"format",Type::String,true,nullptr,{"json","csv","csv_file","npy","safetensors"},"json: inline array or {shape,data}; csv: inline CSV text; csv_file/npy: path to .csv/.npy; safetensors: path.safetensors#key."},
@@ -718,8 +742,9 @@ int main(int argc,char** argv){
         Param{"full",Type::Boolean,false,false,{},"svd/qr: full_matrices / full Q instead of economic."},
         Param{"pivoting",Type::Boolean,false,false,{},"qr only: column pivoting, adds int64 tensor p with A[:,p]=Q@R."},
         Param{"lower",Type::Boolean,false,true,{},"cholesky only: false returns the upper factor u."}}};
-    CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
+    CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist,dist_to,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
     add_s7_ops(spec);
+    add_s8_ops(spec);
 
 
     auto common=[](){return std::vector<Param>{Param{"frame",Type::String,true,nullptr,{},"Stored-only .npz table ref inside cwd."}};};
@@ -860,7 +885,7 @@ int main(int argc,char** argv){
         spec.operations.push_back(Operation{"sm_tsa_acf",Access::Read,"Sample autocorrelation or partial autocorrelation with confidence intervals (statsmodels.tsa.stattools); lags 0..nlags. Constant series are CONSTANT_SERIES.","object",params});
     }
     add_ml_ops(spec);
-    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0;if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
+    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||operation.name=="array_to_frame"||operation.name=="frame_to_array_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
     for(auto& op:spec.operations){if(op.access==Access::Write)op.description+=" Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).";std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }
