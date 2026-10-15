@@ -745,6 +745,83 @@ def num_root(p):
             'function_calls': max(0, int(info.function_calls)), 'evals': ctx.guard.count}
 
 
+def opt_root(p):
+    """n equations in n named scalar unknowns (scipy.optimize.root hybr/lm) or one bracketed equation (brentq). The solver's success flag is
+    never trusted: the residual is recomputed at the returned point and must be within residual_tol, otherwise NO_CONVERGENCE."""
+    ctx = Context(p)
+    np = ctx.np
+    from scipy import optimize
+    guard = ctx.guard
+    programs = [ctx.program(a) for a in p['equation_asts']]
+    n = ctx.x0.size
+    state = {'at_start': True}
+    best = {'norm': np.inf, 'x': ctx.x0.copy(), 'fun': None}
+
+    def fun(xv):
+        guard.tick()
+        env = ctx.bind(xv)
+        r = np.array([scalar_value(np, evaluate(g, env), 'each equation') for g in programs], dtype=float)
+        if not np.isfinite(r).all():
+            if state['at_start']:
+                raise BadData('the equations are not finite at the start point', 'NONFINITE_RESIDUAL')
+            guard.nonfinite += 1
+            raise NonFinite('non-finite equation value; the best point so far is reported')
+        norm = float(np.max(np.abs(r)))
+        if norm < best['norm']:
+            best['norm'], best['x'], best['fun'] = norm, np.array(xv, dtype=float), r.copy()
+        return r
+    result = {'method': p['method'], 'n_equations': int(n)}
+    status, message, xv = 'OK', '', best['x']
+    with np.errstate(all='ignore'):
+        try:
+            fun(ctx.x0)
+            state['at_start'] = False
+            if 'bracket' in p:
+                lo, hi = float(p['bracket'][0]), float(p['bracket'][1])
+                fa, fb = fun(np.array([lo]))[0], fun(np.array([hi]))[0]
+                if fa == 0.0 or fb == 0.0:
+                    xv = np.array([lo if fa == 0.0 else hi])
+                elif math.copysign(1.0, fa) == math.copysign(1.0, fb):
+                    raise BadData('f(lower) and f(upper) must have opposite signs (or one must be zero)', 'BAD_INTERVAL')
+                else:
+                    root, info = optimize.brentq(lambda t: float(fun(np.array([t]))[0]), lo, hi, xtol=p['xtol'], maxiter=p['maxiter'], full_output=True, disp=False)
+                    xv = np.array([root])
+                    result['iterations'] = max(0, int(info.iterations))
+                    if not info.converged:
+                        status, message = 'NO_CONVERGENCE', str(info.flag)
+            else:
+                res = optimize.root(fun, ctx.x0, method=p['method'], tol=p['xtol'], options={'maxfev': max(1, p['max_evals'] - guard.count)} if p['method'] == 'hybr' else {'maxiter': max(1, p['max_evals'] - guard.count)})
+                xv = np.asarray(res.x, dtype=float)
+                result['nfev'] = int(getattr(res, 'nfev', guard.count))
+                if not res.success:
+                    status, message = 'NO_CONVERGENCE', str(res.message)
+        except SolverStop as exc:
+            status, message, xv = exc.status, exc.message, best['x']
+        if not np.isfinite(xv).all():
+            status, message, xv = 'NUMERICAL_FAILURE', 'the solver returned a non-finite point', best['x']
+        # honest residual at the reported point (counted and budgeted like every other evaluation)
+        final = best['fun']
+        try:
+            state['at_start'] = False
+            final = fun(xv)
+        except SolverStop:
+            pass
+        except BadData:
+            pass
+        if final is None:
+            final = np.full(n, np.nan)
+        residual_max = float(np.max(np.abs(final))) if np.isfinite(final).all() else float('inf')
+        if status == 'OK' and not residual_max <= p['residual_tol']:
+            status = 'NO_CONVERGENCE'
+            message = 'the solver stopped at a point where max|f| = %.3g exceeds residual_tol %.3g (a local minimum of the residual norm is not a root)' % (residual_max, p['residual_tol'])
+    names = [name for name, _ in ctx.layout]
+    result.update({'status': status, 'message': message, 'x': {name: float(v) for name, v in zip(names, xv)}, 'fun': [float(v) for v in final],
+                   'residual_norm': float(np.linalg.norm(final)) if np.isfinite(final).all() else float('inf'), 'residual_max': residual_max,
+                   'evals': guard.count, 'nonfinite_evals': guard.nonfinite})
+    warn_nonfinite(guard, 'equations')
+    return result
+
+
 def f_safe(f, x):
     try:
         return f(x)

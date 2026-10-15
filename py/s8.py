@@ -794,6 +794,8 @@ def stats_rvs(p):
 
 
 def s8_operation(name):
+    if name in S8B_OPS:
+        return s8b_operation(name)
     operation = {'frame_to_array': frame_to_array, 'frame_to_array_to': frame_to_array, 'array_to_frame': array_to_frame, 'frame_mutate': frame_mutate,
             'frame_merge': frame_merge, 'frame_rolling': frame_rolling, 'ml_metrics': ml_metrics, 'stats_dist': stats_rvs, 'stats_dist_to': stats_rvs}[name]
     if name in ('frame_mutate', 'frame_rolling'):

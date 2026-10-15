@@ -383,12 +383,12 @@ class NumericalWarning(RuntimeWarning):
     pass
 
 
-NUMERIC_OPS = ('opt_minimize', 'opt_least_squares', 'num_quad', 'num_root', 'opt_linprog', 'ode_solve', 'opt_linprog_to', 'ode_solve_to')
+NUMERIC_OPS = ('opt_minimize', 'opt_least_squares', 'num_quad', 'num_root', 'opt_root', 'opt_linprog', 'ode_solve', 'opt_linprog_to', 'ode_solve_to')
 
 
 def numeric_operation(name):
     """S3 dispatch table, resolved at call time so py/worker.py still imports on its own (numerics.py is prepended)."""
-    return {'opt_linprog': opt_linprog, 'opt_linprog_to': opt_linprog, 'ode_solve': ode_solve, 'ode_solve_to': ode_solve, 'opt_minimize': opt_minimize, 'opt_least_squares': opt_least_squares, 'num_quad': num_quad, 'num_root': num_root}[name]
+    return {'opt_linprog': opt_linprog, 'opt_linprog_to': opt_linprog, 'ode_solve': ode_solve, 'ode_solve_to': ode_solve, 'opt_minimize': opt_minimize, 'opt_least_squares': opt_least_squares, 'num_quad': num_quad, 'num_root': num_root, 'opt_root': opt_root}[name]
 
 
 OPS = {'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution,
@@ -404,7 +404,7 @@ def main():
         # Trusted imports are selected by a closed table before the guard. SciPy
         # imports test/network/process helpers even for its numerical modules.
         import numpy as np
-        s8 = request['op'] in ('frame_to_array', 'frame_to_array_to', 'array_to_frame', 'frame_mutate', 'frame_merge', 'frame_rolling', 'ml_metrics', 'stats_dist_to') or (request['op'] == 'stats_dist' and request['params'].get('fn') == 'rvs')
+        s8 = request['op'] in ('frame_to_array', 'frame_to_array_to', 'array_to_frame', 'frame_mutate', 'frame_merge', 'frame_rolling', 'ml_metrics', 'stats_dist_to') or request['op'] in S8B_OPS or (request['op'] == 'stats_dist' and request['params'].get('fn') == 'rvs')
         if s8:
             import zoneinfo
             zoneinfo.reset_tzpath(())
@@ -417,6 +417,26 @@ def main():
             np.load(warm, allow_pickle=False)['a']
             if request['op'] == 'frame_mutate':
                 import scipy.special  # the expression function table (no pandas, no scipy.stats)
+            elif request['op'].startswith('la_matrix_fn'):
+                import scipy.linalg as warm_linalg
+                eye = np.eye(2)  # scipy imports helper modules lazily inside these routines: do it before the import guard
+                for routine in (warm_linalg.expm, warm_linalg.logm, warm_linalg.sqrtm, warm_linalg.inv, warm_linalg.pinv):
+                    routine(eye)
+                np.linalg.cond(eye)
+            elif request['op'].startswith('la_sparse'):
+                import scipy.sparse as warm_sparse
+                import scipy.sparse.linalg as warm_spla
+                warm = warm_sparse.diags([np.arange(1.0, 9.0)], [0], format='csr')
+                warm_spla.spsolve(warm.tocsc(), np.ones(8))
+                warm_spla.cg(warm, np.ones(8))
+                warm_spla.gmres(warm, np.ones(8))
+                warm_spla.eigsh(warm, k=2, v0=np.ones(8))
+                warm_spla.eigs(warm, k=2, v0=np.ones(8))
+                warm_spla.svds(warm, k=2, v0=np.ones(8))
+            elif request['op'].startswith('special_fn'):
+                import scipy.special as warm_special
+                for routine in (warm_special.erf, warm_special.gamma, warm_special.lambertw, warm_special.logsumexp):
+                    routine(np.array([0.5]))
         elif request['op'] == 'stats_dist':
             import scipy.stats
         elif request['op'] in ('la_solve', 'la_solve_to', 'la_lstsq', 'la_lstsq_to', 'la_props', 'la_decomp'):

@@ -42,6 +42,8 @@ RUN cp /src/pycli/LICENSE /provenance/pycli-LICENSE \
  && cmake --build /build-pycli --parallel 2
 
 FROM wheels AS test
+COPY docker/requirements-test.lock /locks/
+RUN python -m pip install --no-cache-dir --only-binary=:all: --no-deps --require-hashes -r /locks/requirements-test.lock
 COPY docker/debian.sources /etc/apt/sources.list.d/debian.sources
 RUN apt-get update && apt-get install -y --no-install-recommends cmake=3.25.1-1 \
  && mkdir /test-provenance \

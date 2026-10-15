@@ -477,6 +477,24 @@ Json prepare_quad(const Params& in){
     }
     return request;
 }
+Json prepare_root_system(const Params& in){
+    Vars v=read_vars(in["start"]);if(!v.dims.empty())bad_param("start holds scalar unknowns only (vector unknowns are not available for root systems)");
+    const Json& list=in["equations"];
+    if(!list.is_array()||list.empty()||list.size()>16)bad_param("equations needs 1..16 expressions");
+    if(list.size()!=v.x0.size())invalid("opt_root needs as many equations ("+std::to_string(list.size())+") as unknowns ("+std::to_string(v.x0.size())+")","UNDER_DETERMINED");
+    Json request={{"method",in["method"]},{"variables",layout_json(v)},{"x0_flat",v.x0},{"data",Json::array()},{"equation_asts",Json::array()}};
+    for(size_t i=0;i<list.size();++i){if(!list[i].is_string())bad_param("equations are expression strings");request["equation_asts"].push_back(parse_expression(list[i],v.names,{},false,"equations["+std::to_string(i)+"]"));}
+    double xtol=in["xtol"],rtol=in["residual_tol"];
+    if(!(xtol>0&&xtol<1))bad_param("xtol must be in (0, 1)");if(!(rtol>0&&std::isfinite(rtol)))bad_param("residual_tol must be positive");
+    request["xtol"]=xtol;request["residual_tol"]=rtol;request["maxiter"]=int_param(in,"maxiter",1,1000);request["max_evals"]=int_param(in,"max_evals",1,2000000);
+    if(in.contains("bracket")&&!in["bracket"].is_null()){
+        const Json& b=in["bracket"];
+        if(list.size()!=1)bad_param("bracket needs exactly one equation in one unknown");
+        if(!b.is_array()||b.size()!=2||!b[0].is_number()||!b[1].is_number()||!std::isfinite(b[0].get<double>())||!std::isfinite(b[1].get<double>())||!(b[0].get<double>()<b[1].get<double>()))bad_param("bracket needs finite [lower, upper] with lower < upper");
+        request["bracket"]=b;request["method"]="brentq";
+    }else if(in["method"]=="brentq")bad_param("method brentq needs a bracket");
+    return request;
+}
 Json prepare_root(const Params& in){
     Json request={{"expression_ast",parse_expression(in["f"],{"x"},{},false,"f")}};
     double lower=in["lower"],upper=in["upper"];if(!(std::isfinite(lower)&&std::isfinite(upper)&&lower<upper))bad_param("need finite lower < upper");
@@ -490,6 +508,7 @@ Json prepare_root(const Params& in){
 #include "ml.hpp"
 #include "s7.hpp"
 #include "s8.hpp"
+#include "s8b.hpp"
 int expr_check_cli(){
     try{
         std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
@@ -589,9 +608,9 @@ Json call(const std::string& op,const Params& input){
     if(s8)p=prepare_s8(op,input,arrays,s8x);
     const bool tensor_write=s7_write||s8x.tensor_write;
     bool s4_write=op=="opt_linprog_to"||op=="ode_solve_to";bool s4=s4_write||op=="opt_linprog"||op=="ode_solve";std::string s4_out;
-    bool numeric=s4||op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
+    bool numeric=s4||op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root"||op=="opt_root";
     if(s4)p=(op=="opt_linprog"||op=="opt_linprog_to")?prepare_linprog(input,arrays):prepare_ode(input,arrays);
-    else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
+    else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):op=="opt_root"?prepare_root_system(input):prepare_root(input);
     if(sm||ml||s7||s8||numeric||op=="stats_dist"){double limit=input.value("time_limit",10.);if(!std::isfinite(limit)||!(limit>0&&limit<=30))bad_param("time_limit must be >0..30 seconds");p["time_limit"]=limit;}
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
@@ -746,6 +765,7 @@ int main(int argc,char** argv){
     CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist,dist_to,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
     add_s7_ops(spec);
     add_s8_ops(spec);
+    add_s8b_ops(spec);
 
 
     auto common=[](){return std::vector<Param>{Param{"frame",Type::String,true,nullptr,{},"Stored-only .npz table ref inside cwd."}};};
@@ -817,6 +837,14 @@ int main(int argc,char** argv){
         integer("limit",50,"Maximum subdivisions, 1..1000."),
         Param{"points",Type::Array,false,nullptr,{},"Up to 64 break points strictly inside finite bounds.","",false,false,false,{},Type::Number},
         integer("max_evals",500000,"Cap on expression evaluations.")}});
+    spec.operations.push_back(Operation{"opt_root",Access::Read,"Roots of n equations in n named unknowns (scipy.optimize.root hybr or lm), or a bracketed single equation (brentq): equations are expressions in the unknowns (the closed S3 grammar, no data columns, no eval path), each equation f_i(x) = 0. Honest success: the solver's own flag is not trusted, the residual max|f_i(x)| is recomputed and must be <= residual_tol, otherwise the status is NO_CONVERGENCE (a local minimum of the norm is not a root); EVAL_LIMIT and TIME_LIMIT return the best point. Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE. Result: x {name: value}, fun, residual_norm, residual_max, nfev, evals","object",{
+        Param{"equations",Type::Array,true,nullptr,{},"1..16 expressions, one per unknown, each set equal to 0.","",false,false,false,{},Type::String},
+        Param{"start",Type::Object,true,nullptr,{},"Start values {name: number} (names [a-z][a-z0-9_]{0,31}), one per equation; with bracket only the name is used.",},
+        Param{"method",Type::String,false,"hybr",{"hybr","lm","brentq"},"hybr (Powell hybrid, square systems) or lm (Levenberg-Marquardt); brentq is chosen when a bracket is given."},
+        Param{"bracket",Type::Array,false,nullptr,{},"One equation in one unknown: [lower, upper] with f(lower), f(upper) of opposite signs (BAD_INTERVAL otherwise); solved with brentq.","",false,false,false,{},Type::Number},
+        Param{"xtol",Type::Number,false,1.49012e-8,{},"Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq)."},
+        Param{"residual_tol",Type::Number,false,1e-8,{},"Largest accepted max|f_i(x)| at the returned point; larger is NO_CONVERGENCE even when the solver claims success."},
+        Param{"maxiter",Type::Integer,false,100,{},"brentq iterations, 1..1000."},Param{"max_evals",Type::Integer,false,500000,{},"Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."}}});
     spec.operations.push_back(Operation{"num_root",Access::Read,"Bracketed scalar root of an expression in x (scipy.optimize brentq/bisect/ridder/toms748). f(lower) and f(upper) must be finite with opposite signs (BAD_INTERVAL otherwise). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT. Result: root, f_root, iterations, function_calls","object",{
         Param{"f",Type::String,true,nullptr,{},"Expression in x (no reducers, no data)."},
         Param{"lower",Type::Number,true,nullptr,{},"Bracket start (finite)."},Param{"upper",Type::Number,true,nullptr,{},"Bracket end (finite, > lower)."},
@@ -886,7 +914,7 @@ int main(int argc,char** argv){
         spec.operations.push_back(Operation{"sm_tsa_acf",Access::Read,"Sample autocorrelation or partial autocorrelation with confidence intervals (statsmodels.tsa.stattools); lags 0..nlags. Constant series are CONSTANT_SERIES.","object",params});
     }
     add_ml_ops(spec);
-    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||operation.name=="array_to_frame"||operation.name=="frame_to_array_to"||operation.name=="frame_to_array"||operation.name=="stats_dist"||operation.name=="stats_dist_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
+    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||s8b_op(operation.name)||operation.name=="array_to_frame"||operation.name=="frame_to_array_to"||operation.name=="frame_to_array"||operation.name=="stats_dist"||operation.name=="stats_dist_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
     for(auto& op:spec.operations){if(op.access==Access::Write)op.description+=" Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).";std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }

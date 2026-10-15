@@ -5,9 +5,11 @@
 constexpr size_t S8_INLINE=1000, S8_VALUES=200000, S8_COLS=256, S8_CELLS=500000, S8_RVS_INLINE=1000, S8_RVS_FILE=1000000, S8_WORK=100000000, S8_CLASSES=30, S8_ASSIGN=32, S8_WINDOW=100000;
 constexpr double S8_EXACT=9007199254740992.0;  // 2^53
 struct S8Extra{std::map<std::string,std::string> tables;std::string table_out;bool tensor_write=false,needs_spec=false;};
+bool s8b_op(const std::string& op);
+Json prepare_s8b(const std::string& op,const Params& in,std::map<std::string,Array>& arrays,S8Extra& x);
 bool s8_op(const std::string& op,const Params& in){
     static const std::set<std::string> fixed={"frame_to_array","frame_to_array_to","array_to_frame","frame_mutate","frame_merge","frame_rolling","ml_metrics","stats_dist_to"};
-    return fixed.count(op)||(op=="stats_dist"&&in.contains("fn")&&in["fn"]=="rvs");
+    return fixed.count(op)||s8b_op(op)||(op=="stats_dist"&&in.contains("fn")&&in["fn"]=="rvs");
 }
 struct S8Table{Json meta;std::string bytes;};
 S8Table s8_table(const Params& in,const char* key){
@@ -346,6 +348,7 @@ Json prepare_s8(const std::string& op,const Params& in,std::map<std::string,Arra
     if(op=="frame_merge")return prepare_merge(in,x);
     if(op=="frame_rolling")return prepare_rolling(in,x);
     if(op=="ml_metrics")return prepare_metrics(in,arrays,x);
+    if(s8b_op(op))return prepare_s8b(op,in,arrays,x);
     return prepare_rvs(op,in,x);
 }
 

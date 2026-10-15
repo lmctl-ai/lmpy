@@ -300,13 +300,13 @@ class Special(Base):
         too_large('special_fn', dict(fn='airy', args={'x': self.npy(np.linspace(0, 1, 226))}))
 
     def test_domain_errors_and_poles_are_statuses_not_values(self):
-        for fn, args, status in (('erfinv', {'y': [0.2, 2.0]}, 'DOMAIN_ERROR'), ('ellipk', {'m': [0.5, 2.0]}, 'DOMAIN_ERROR'), ('lambertw', {'z': [-1.0, 1.0]}, 'DOMAIN_ERROR'),
-                                 ('logit', {'p': [0.5, 0.0]}, 'NON_FINITE'), ('zeta', {'x': [2.0, 1.0]}, 'NON_FINITE'), ('erfinv', {'y': [1.0]}, 'NON_FINITE'), ('boxcox', {'x': [-1.0], 'lmbda': 0.5}, 'DOMAIN_ERROR')):
+        for fn, args, status, index in (('erfinv', {'y': [0.2, 2.0]}, 'DOMAIN_ERROR', 1), ('ellipk', {'m': [0.5, 2.0]}, 'DOMAIN_ERROR', 1), ('lambertw', {'z': [1.0, -1.0]}, 'DOMAIN_ERROR', 1),
+                                        ('logit', {'p': [0.5, 0.0]}, 'NON_FINITE', 1), ('zeta', {'x': [2.0, 1.0]}, 'NON_FINITE', 1), ('erfinv', {'y': [1.0]}, 'NON_FINITE', 0), ('boxcox', {'x': [-1.0], 'lmbda': 0.5}, 'DOMAIN_ERROR', 0)):
             r = call('special_fn', dict(fn=fn, args=args))
             self.assertEqual(r['status'], status, (fn, r))
             self.assertNotIn('y', r)
             self.assertEqual(r['n_bad'], 1)
-            self.assertEqual(r['first_index'], 1 if fn != 'erfinv' or len(args['y']) > 1 else 0)
+            self.assertEqual(r['first_index'], index, (fn, r))
         r = call('special_fn_to', dict(fn='logit', args={'p': [0.5, 0.0]}, out=self.p('bad.safetensors')), rc=1)
         self.assertEqual(r['error']['data']['tool_code'], 'NON_FINITE')
         self.assertFalse(os.path.exists(self.p('bad.safetensors')))
@@ -363,6 +363,10 @@ def poisson_eigenvalues(n):
 class Sparse(Base):
     def sparse(self, task, n=200, **extra):
         r, c, v = poisson_coo(n)
+        if len(v) > 1000:  # inline arrays hold at most 1000 numbers
+            r, c, v = self.npy(r), self.npy(c), self.npy(v)
+            if 'b' in extra:
+                extra['b'] = self.npy(extra['b'])
         params = dict(task=task, shape=[n, n], row=r, col=c, val=v)
         params.update(extra)
         return call('la_sparse', params)
@@ -499,7 +503,7 @@ class Sparse(Base):
         self.assertEqual(res['status'], 'OK', res)
         self.assertEqual(set(res['artifacts']['x']), DESCRIPTOR_KEYS)
         close(self, read_safetensors(out)['x'], thomas(n, b), 1e-7, 1e-9)
-        e = call('la_sparse_to', dict(task='eigsh', shape=[n, n], row=self.npy(r), col=self.npy(c), val=self.npy(v), k=3, which='SA', seed=1, vectors=True, out=self.p('e.safetensors')))
+        e = call('la_sparse_to', dict(task='eigsh', shape=[n, n], row=self.npy(r), col=self.npy(c), val=self.npy(v), k=3, which='LM', sigma=0.0, seed=1, vectors=True, out=self.p('e.safetensors')))
         got = read_safetensors(self.p('e.safetensors'))
         close(self, got['w'], poisson_eigenvalues(n)[:3], 1e-8, 1e-12)
         self.assertEqual(got['v'].shape, (n, 3))
