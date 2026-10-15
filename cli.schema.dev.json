@@ -629,7 +629,7 @@
       "name": "sig_spectrum",
       "access": "read",
       "returns": "object",
-      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals; inline <=1000 numbers per input or bounded file refs. Reports f and the estimate, n_segments and df. Only Welch/periodogram return peak_freq, enbw and total_power: sum(density)*df or sum(spectrum)*df/ENBW, invariant under zero padding. Statuses OK, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals; inline <=1000 numbers per input or bounded file refs. Reports f and the estimate, n_segments, df and peak_freq. Only Welch/periodogram return enbw and total_power: sum(density)*df or sum(spectrum)*df/ENBW, invariant under zero padding. Statuses OK, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "method",
@@ -1182,7 +1182,7 @@
       "name": "sig_spectrum_to",
       "access": "write",
       "returns": "object",
-      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals; inline <=1000 numbers per input or bounded file refs. Reports f and the estimate, n_segments and df. Only Welch/periodogram return peak_freq, enbw and total_power: sum(density)*df or sum(spectrum)*df/ENBW, invariant under zero padding. Statuses OK, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals; inline <=1000 numbers per input or bounded file refs. Reports f and the estimate, n_segments, df and peak_freq. Only Welch/periodogram return enbw and total_power: sum(density)*df or sum(spectrum)*df/ENBW, invariant under zero padding. Statuses OK, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "method",

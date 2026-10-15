@@ -62,7 +62,7 @@ class Review(old.Base):
    p=dict(method=method,x=x.tolist(),window='boxcar',detrend='none',fs=1000)
    if method!='periodogram':p.update(nperseg=128 if method=='coherence' else 256,noverlap=0)
    if method in ('csd','coherence'):p['y']=y.tolist()
-   r=self.runop('sig_spectrum',**p);self.assertEqual('total_power' in r,method in ('periodogram','welch'))
+   r=self.runop('sig_spectrum',**p);self.assertIn('peak_freq',r);self.assertEqual('total_power' in r,method in ('periodogram','welch'))
    if method=='csd':self.assertAlmostEqual(r['pxy_re'][32],0,13);self.assertAlmostEqual(r['pxy_im'][32],.128,13)
  def test_voronoi_exact_connectivity_inline_and_artifact(self):
   pts=[[0,0],[2,0],[2,2],[0,2],[1,1]]
