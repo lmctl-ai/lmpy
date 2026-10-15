@@ -43,8 +43,8 @@ class ImportInline(Base):
         result, got = self.imported({'format': 'json', 'data': a.tolist()})
         self.assertEqual(got.tobytes(), a.tobytes())
         self.assertEqual(got.dtype, np.dtype('<f8'))
-        self.assertEqual((result['shape'], result['dtype'], result['nbytes']), ([4, 5], 'F64', 160))
-        self.assertTrue(result['ref'].endswith('.safetensors#x'))
+        self.assertEqual((result['artifacts']['x']['shape'], result['artifacts']['x']['dtype'], result['artifacts']['x']['nbytes']), ([4, 5], 'F64', 160))
+        self.assertTrue(result['artifacts']['x']['ref'].endswith('.safetensors#x'))
         self.assertEqual(result['na_count'], 0)
         self.assertEqual(result['finite_count'], 20)
 
@@ -71,7 +71,7 @@ class ImportInline(Base):
 
     def test_custom_key_and_key_validation(self):
         result, got = self.imported({'format': 'json', 'data': [1, 2], 'key': 'Design_1.a-b'}, key='Design_1.a-b')
-        self.assertTrue(result['ref'].endswith('#Design_1.a-b'))
+        self.assertTrue(result['artifacts']['Design_1.a-b']['ref'].endswith('#Design_1.a-b'))
         for bad in ('', '1x', 'a b', 'a#b', 'x' * 65, '__metadata__', 'a/b'):
             with self.subTest(key=bad):
                 call('array_import', {'format': 'json', 'data': [1], 'key': bad, 'out': self.out('k.safetensors')}, 2)
@@ -97,7 +97,7 @@ class ImportCsv(Base):
         expected = np.array([[1, 2.5, -300], [np.nan, np.nan, np.inf], [np.nan, -np.inf, 5e-324]])
         np.testing.assert_array_equal(got, expected)  # NaN-aware, includes denormal exactness
         self.assertEqual(got[2, 2].tobytes(), np.float64(5e-324).tobytes())
-        self.assertEqual((result['shape'], result['na_count']), ([3, 3], 2))
+        self.assertEqual((result['artifacts']['x']['shape'], result['na_count']), ([3, 3], 2))
         # empty field and NA are missing; the literal NaN is not.
         self.assertEqual(result['nan_count'], 3)
 
@@ -128,7 +128,7 @@ class ImportCsv(Base):
         np.savetxt(path, values, delimiter=',', fmt='%.17g')
         result, got = self.imported({'format': 'csv_file', 'data': str(path)})
         self.assertEqual(got.tobytes(), values.tobytes())
-        self.assertEqual(result['shape'], [400, 500])
+        self.assertEqual(result['artifacts']['x']['shape'], [400, 500])
         (self.dir / 'huge.csv').write_text('\n'.join(['1'] * 200001))
         r = call('array_import', {'format': 'csv_file', 'data': str(self.dir / 'huge.csv'), 'out': self.out('h.safetensors')}, 2)
         self.assertEqual(code(r), 'INPUT_TOO_LARGE')
@@ -207,7 +207,7 @@ class ImportBinary(Base):
             with self.subTest(key=key):
                 result, got = self.imported({'format': 'safetensors', 'data': f'{self.dir}/t.safetensors#{key}', 'key': key}, key=key)
                 self.assertEqual(got.tobytes(), array.astype('<f8').tobytes())
-                self.assertEqual(result['shape'], list(array.shape))
+                self.assertEqual(result['artifacts'][key]['shape'], list(array.shape))
         self.assertEqual(result['source_dtype'], 'BOOL')
 
     def test_safetensors_rejections(self):
@@ -261,7 +261,7 @@ class ImportPolicy(Base):
 
     def test_artifact_is_independently_valid_and_not_world_writable(self):
         result, _ = self.imported({'format': 'json', 'data': [[1, 2], [3, 4]]})
-        path = pathlib.Path(result['path'])
+        path = pathlib.Path(result['artifacts']['x']['path'])
         self.assertEqual(path.stat().st_mode & 0o022, 0)
         raw = path.read_bytes()
         n = struct.unpack('<Q', raw[:8])[0]

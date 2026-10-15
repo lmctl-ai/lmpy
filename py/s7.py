@@ -361,56 +361,6 @@ def spatial_knn(p):
     return s7_emit(np,p,result,[('counts',counts),('indices',np.concatenate(all_i).astype(np.int64)),('distances',np.concatenate(all_d))],'spatial_knn')
 
 
-def spatial_knn(p):
-    import numpy as np
-    from scipy.spatial import cKDTree
-    points = s7_vector(np, p, 'points')
-    queries = s7_vector(np, p, 'queries') if 'queries_file' in p else None
-    norm = np.inf if p['p'] == 'inf' else float(p['p'])
-    s7_cap(points.shape[1] <= S7_KNN_DIM and p.get('k', 1) <= S7_KNN_K, 'knn dimensions / k')
-    tree = cKDTree(points)
-    q = points if queries is None else queries
-    m = len(q)
-    result = {'status': 'OK', 'n_points': len(points), 'n_queries': m, 'p': p['p']}
-    if 'k' in p:
-        k = p['k']
-        want = k + 1 if p['exclude_self'] else k
-        # cKDTree's k-nearest search; the name is assembled because tests/s0.py bans that bare word in the worker source (pandas string evaluation)
-        dist, idx = getattr(tree, 'qu' + 'ery')(q, k=want, p=norm, workers=1)
-        dist, idx = dist.reshape(m, want), idx.reshape(m, want)
-        if p['exclude_self']:
-            keep = np.ones((m, want), dtype=bool)
-            own = idx == np.arange(m)[:, None]
-            has_self = own.any(axis=1)
-            keep[has_self] = ~own[has_self]
-            keep[~has_self, -1] = False  # duplicates can push the point itself out of the first k + 1 neighbours
-            dist, idx = dist[keep].reshape(m, k), idx[keep].reshape(m, k)
-        result['k'] = k
-        return s7_emit(np, p, result, [('indices', idx.astype(np.int64)), ('distances', dist)], 'spatial_knn')
-    radius = p['radius']
-    counts = np.asarray(tree.query_ball_point(q, radius, p=norm, return_length=True, workers=1), dtype=np.int64)
-    if p['exclude_self']:
-        counts = counts - 1
-    total = int(counts.sum())
-    if total > p['max_pairs']:
-        raise OutputTooLarge('%d neighbour pairs lie within the radius (max_pairs %d): shrink the radius or raise max_pairs' % (total, p['max_pairs']))
-    found = tree.query_ball_point(q, radius, p=norm, return_sorted=True, workers=1)
-    indices, distances = [], []
-    for i, row in enumerate(found):
-        row = np.asarray(row, dtype=np.int64)
-        if p['exclude_self']:
-            row = row[row != i]
-        diff = np.abs(points[row] - q[i])
-        d = diff.max(axis=1) if norm == np.inf else (diff ** norm).sum(axis=1) ** (1.0 / norm)
-        order = np.argsort(d, kind='stable')
-        indices.append(row[order])
-        distances.append(d[order])
-    flat_i = np.concatenate(indices) if indices else np.zeros(0, np.int64)
-    flat_d = np.concatenate(distances) if distances else np.zeros(0)
-    result['radius'], result['n_pairs'] = radius, total
-    return s7_emit(np, p, result, [('counts', counts), ('indices', flat_i.astype(np.int64)), ('distances', flat_d)], 'spatial_knn')
-
-
 def spatial_hull(p):
     import numpy as np
     from scipy.spatial import ConvexHull, Delaunay, Voronoi, QhullError

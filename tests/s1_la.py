@@ -41,7 +41,7 @@ class Lstsq(Base):
         self.assertEqual((r['status'], r['rank']), ('OK', 3))
         np.testing.assert_allclose(r['x'], [2, 3, -1], rtol=1e-12, atol=1e-12)
         self.assertLess(r['residual_norm'], 1e-12)
-        self.assertEqual(len(r['residues']), 1)
+        self.assertEqual(r['artifacts']['residues']['shape'], [1])
         self.assertEqual(r['driver'], 'gelsd')
 
     def test_random_integer_problems_against_exact_rationals(self):
@@ -144,7 +144,7 @@ class Lstsq(Base):
         r = call('la_lstsq_to', {'a': str(self.dir / 'a.npy'), 'b': str(self.dir / 'b.npy'), 'out': out})
         x = read_safetensors(out)['x']
         np.testing.assert_allclose(x, sla.lstsq(a, b)[0], rtol=1e-10, atol=1e-12)
-        self.assertEqual((r['status'], r['x']['shape'], r['x']['dtype'], r['x']['ref'], r['rank']), ('OK', [20, 60], 'F64', out + '#x', 20))
+        self.assertEqual((r['status'], r['artifacts']['x']['shape'], r['artifacts']['x']['dtype'], r['artifacts']['x']['ref'], r['rank']), ('OK', [20, 60], 'F64', out + '#x', 20))
 
     def test_to_policy_conflict_dryrun_readonly(self):
         p = {'a': [[1, 0], [0, 1], [1, 1]], 'b': [1, 2, 3], 'out': self.out()}
@@ -332,7 +332,7 @@ class Decomp(Base):
                 self.assertLess(r['reconstruction_error'], 1e-14)
                 self.assertEqual(r['status'], 'OK')
                 np.testing.assert_allclose(r['values']['s'], s, rtol=1e-12)
-                self.assertEqual({k: v['shape'] for k, v in r['tensors'].items()}, {k: list(t[k].shape) for k in t})
+                self.assertEqual({k: v['shape'] for k, v in r['artifacts'].items()}, {k: list(t[k].shape) for k in t})
         r, t = self.decomp([[3, 0], [0, -2]], 'svd')
         np.testing.assert_allclose(t['s'], [3, 2], rtol=1e-15)  # closed form
 
@@ -478,7 +478,7 @@ class Decomp(Base):
         t = read_safetensors(out)
         np.testing.assert_allclose((t['u'] * t['s']) @ t['vt'], a, atol=1e-12)
         r = json.loads(proc.stdout)
-        self.assertEqual(r['tensors']['u']['ref'], out + '#u')
+        self.assertEqual(r['artifacts']['u']['ref'], out + '#u')
         self.assertNotIn('u', r.get('values', {}))
         # 447x447 is the largest square matrix by reference (200000 numbers cap) and must stay inside the wall-clock limit.
         np.save(self.dir / 'sq.npy', rng.standard_normal((447, 447)))
@@ -534,13 +534,13 @@ class ReviewFixes(Base):
         np.testing.assert_allclose(t['residues'], np.zeros(200000), atol=1e-6)
         self.assertEqual(r['residues_count'], 200000)
         self.assertNotIn('residues', r)
-        self.assertEqual(r['tensors']['residues']['shape'], [200000])
+        self.assertEqual(r['artifacts']['residues']['shape'], [200000])
         self.assertAlmostEqual(r['residues_max'], float(t['residues'].max()))
 
-    def test_small_lstsq_to_keeps_vectors_inline(self):
+    def test_small_lstsq_to_has_uniform_descriptors(self):
         r = call('la_lstsq_to', {'a': [[1, 0], [0, 1], [1, 1]], 'b': [1, 2, 3], 'out': self.out()})
-        self.assertEqual(len(r['residues']), 1)
-        self.assertEqual(len(r['singular_values']), 2)
+        self.assertEqual(r['artifacts']['residues']['shape'], [1])
+        self.assertEqual(r['artifacts']['singular_values']['shape'], [2])
 
     def test_eig_nilpotent_and_defective_fixtures_are_not_failures(self):
         fixtures = {'rank1_nilpotent': [[1, -1], [1, -1]], 'nilpotent_scaled': [[1, 2], [-0.5, -1]], 'strict_upper': [[0, 1], [0, 0]],

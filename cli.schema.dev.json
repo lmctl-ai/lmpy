@@ -51,7 +51,7 @@
       "name": "la_solve_to",
       "access": "write",
       "returns": "object",
-      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; read solve reports SINGULAR/NOT_POSITIVE_DEFINITE; write solve fails if no artifact",
+      "description": "Dense real solve; inline <=1000 numbers or F64 artifact refs; read solve reports SINGULAR/NOT_POSITIVE_DEFINITE; write solve fails if no artifact Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "a",
@@ -132,7 +132,7 @@
       "name": "array_import",
       "access": "write",
       "returns": "object",
-      "description": "Convert inline JSON, CSV, a read-only .npy or a safetensors tensor into a new F64 safetensors artifact; fails with CONFLICT if out exists",
+      "description": "Convert inline JSON, CSV, a read-only .npy or a safetensors tensor into a new F64 safetensors artifact; fails with CONFLICT if out exists Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "format",
@@ -249,7 +249,7 @@
       "name": "la_lstsq_to",
       "access": "write",
       "returns": "object",
-      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE, NUMERICAL_FAILURE; read form returns at most 1000 inline numbers (x + residues + singular values), write form stores x (and large residues/singular values) as safetensors",
+      "description": "Dense least squares / minimum-norm solve (scipy.linalg.lstsq); statuses OK, RANK_DEFICIENT, NO_CONVERGENCE, NUMERICAL_FAILURE; read form returns at most 1000 inline numbers (x + residues + singular values), write form stores x (and large residues/singular values) as safetensors Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "a",
@@ -356,7 +356,7 @@
       "name": "la_decomp",
       "access": "write",
       "returns": "object",
-      "description": "Matrix factorization written to a new safetensors artifact: svd (u,s,vt), qr (q,r[,p]), eig (w_re,w_im,vr_re,vr_im), eigh (w,v), cholesky (l or u), lu (p,l,u with A=P@L@U); statuses OK, NOT_POSITIVE_DEFINITE, NO_CONVERGENCE, NUMERICAL_FAILURE (write ops fail with the status as tool_code)",
+      "description": "Matrix factorization written to a new safetensors artifact: svd (u,s,vt), qr (q,r[,p]), eig (w_re,w_im,vr_re,vr_im), eigh (w,v), cholesky (l or u), lu (p,l,u with A=P@L@U); statuses OK, NOT_POSITIVE_DEFINITE, NO_CONVERGENCE, NUMERICAL_FAILURE (write ops fail with the status as tool_code) Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "a",
@@ -426,7 +426,7 @@
             "smoothing",
             "rbf"
           ],
-          "description": "Interpolant. linear/cubic/pchip/akima/makima need >= 2 nodes, smoothing >= 5, rbf at most 5000 nodes in at most 8 dimensions. pchip/akima/makima do not overshoot step-like data; cubic does."
+          "description": "Interpolant. linear/cubic/pchip/akima/makima need >= 2 nodes, smoothing >= 5, rbf at most 5000 nodes in at most 8 dimensions. PCHIP preserves monotonicity and local bounds; Akima, Makima and cubic can overshoot, including monotone step-like data."
         },
         {
           "name": "x",
@@ -444,7 +444,7 @@
           "name": "x_new",
           "type": "json",
           "occurs": "?",
-          "description": "Evaluation points: a vector (a matrix with the node dimension for rbf). Give x_new, integrate or both. Read form: at most ~900 points."
+          "description": "Evaluation points: a vector (a matrix with the node dimension for rbf). Read form: give x_new, integrate or both. Write form requires x_new. Read form: at most ~900 points."
         },
         {
           "name": "bc_type",
@@ -496,7 +496,7 @@
           "name": "degree",
           "type": "number",
           "occurs": "?",
-          "description": "rbf only. Degree of the polynomial term, -1..3 (default: the kernel's minimum)."
+          "description": "rbf only. Degree of the polynomial term, -1..3 (default: the kernel's minimum). -1 disables the polynomial; otherwise at least the kernel minimum with enough nodes for every polynomial term."
         },
         {
           "name": "nu",
@@ -522,6 +522,13 @@
             "extend"
           ],
           "description": "Points outside the nodes: error (BAD_RANGE, the default), nan (NaN values, counted in n_extrapolated) or extend (the end polynomial; for rbf the bounding box of the nodes is the 'range')."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -529,7 +536,7 @@
       "name": "sig_filter",
       "access": "read",
       "returns": "object",
-      "description": "Design an IIR filter as second-order sections (scipy.signal.iirfilter, output sos; never ba) and optionally apply it. Reports sos, max_pole_radius and stable; an unstable design returns status UNSTABLE and is not applied. Optional magnitude/phase at freqs. Statuses OK, UNSTABLE, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Inputs inline <=1000 numbers or bounded file refs. Design an IIR filter as second-order sections (scipy.signal.iirfilter, output sos; never ba) and optionally apply it. Reports sos, max_pole_radius and stable; an unstable design returns status UNSTABLE and is not applied. Optional magnitude/phase at freqs. Statuses OK, UNSTABLE, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "family",
@@ -567,7 +574,7 @@
           "name": "wn",
           "type": "json",
           "occurs": "1",
-          "description": "Critical frequency: a number, or [low, high] for bandpass/bandstop. In Hz when fs is given, else as a fraction of the Nyquist frequency (0..1). Strictly inside (0, Nyquist). For butter/cheby1/ellip/bessel(phase-normalised) it is the -3 dB / ripple edge; for cheby2 the stopband edge."
+          "description": "Critical frequency: a number, or [low, high] for bandpass/bandstop. In Hz when fs is given, else as a fraction of the Nyquist frequency (0..1). Strictly inside (0, Nyquist). Butterworth: -3 dB; cheby1/ellip: ripple edge; cheby2: stopband edge. Bessel uses phase-normalisation: wn is NOT the -3 dB frequency."
         },
         {
           "name": "fs",
@@ -608,6 +615,13 @@
             "sosfiltfilt"
           ],
           "description": "With x. sosfilt is causal (phase lag, zero initial state); sosfiltfilt (default) runs forward and backward: zero phase, squared magnitude, needs more than 3*(2*sections+1) samples."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -615,7 +629,7 @@
       "name": "sig_spectrum",
       "access": "read",
       "returns": "object",
-      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals. Reports f and the estimate, n_segments, df, peak_freq and total_power (the Parseval integral). Statuses OK, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals; inline <=1000 numbers per input or bounded file refs. Reports f and the estimate, n_segments and df. Only Welch/periodogram return peak_freq, enbw and total_power: sum(density)*df or sum(spectrum)*df/ENBW, invariant under zero padding. Statuses OK, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "method",
@@ -673,7 +687,7 @@
           "name": "nperseg",
           "type": "number",
           "occurs": "?",
-          "description": "Segment length, 2..min(signal length, 65536) (default min(256, length)). Not for periodogram."
+          "description": "Segment length, 2..min(signal length, 65536) (default min(256, length), coherence min(256, length/2)). Coherence requires at least two segments; scaled copies yield one only where power is defined. Not for periodogram."
         },
         {
           "name": "noverlap",
@@ -718,6 +732,13 @@
             "median"
           ],
           "description": "Segment averaging, welch and csd only (default mean)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -725,7 +746,7 @@
       "name": "sig_peaks",
       "access": "read",
       "returns": "object",
-      "description": "Local maxima of a finite signal (scipy.signal.find_peaks) with heights, prominences and widths at rel_height. Plateaus report their middle sample; the first and last sample are never peaks. Result: n_peaks, indices, heights, prominences, widths (read form: at most ~225 peaks). Use the _to form for more peaks.",
+      "description": "Inputs inline <=1000 numbers or bounded file refs. Local maxima of a finite signal (scipy.signal.find_peaks) with heights, prominences and widths at rel_height. Plateaus report their middle sample; the first and last sample are never peaks. Result: n_peaks, indices, heights, prominences, widths (read form: at most ~225 peaks). Use the _to form for more peaks.",
       "params": [
         {
           "name": "x",
@@ -767,14 +788,21 @@
           "name": "wlen",
           "type": "number",
           "occurs": "?",
-          "description": "Window length in samples (>= 3) for the prominence base search."
+          "description": "Window length in samples (>= 3), rounded up to odd. Candidates times effective window must be <=20M; otherwise supply a smaller explicit wlen. Read candidate count <=225 before prominence work."
         },
         {
           "name": "rel_height",
           "type": "number",
           "occurs": "?",
           "default": 0.5,
-          "description": "Height fraction of the prominence at which widths are measured, in (0, 1] (0.5 = full width at half maximum)."
+          "description": "Height fraction of the prominence at which widths are measured, in (0, 1] (0.5 = half prominence, FWHM only for isolated zero-baseline peaks). Widths linearly interpolate sampled crossings."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -782,7 +810,7 @@
       "name": "spatial_knn",
       "access": "read",
       "returns": "object",
-      "description": "Nearest neighbours with a k-d tree (scipy.spatial.cKDTree), exact. k-nearest: indices and distances (rows sorted by distance; the index order of equal distances is implementation-defined, compare distances). Radius: counts per query plus flat indices and distances (CSR layout, sorted by distance within a query). Status OK. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Exact nearest neighbours: scaled cKDTree for p<=2 or infinity; stable brute-force for other p (n*m*d<=20M). Unsafe floating-point ranges return NUMERICAL_FAILURE. The write form requires 2*m*(k+exclude_self)<=1900000 before spawn. k-nearest: indices and distances (rows sorted by distance; the index order of equal distances is implementation-defined, compare distances). Radius: counts per query plus flat indices and distances (CSR layout, sorted by distance within a query). Status OK. Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "points",
@@ -828,6 +856,13 @@
           "occurs": "?",
           "default": 100000,
           "description": "Radius mode: refuse (OUTPUT_TOO_LARGE) when more than this many neighbour pairs would result, 1..1000000."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -853,6 +888,13 @@
             "voronoi"
           ],
           "description": "Which QHull structure to compute."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -860,7 +902,7 @@
       "name": "spatial_dist",
       "access": "read",
       "returns": "object",
-      "description": "Pairwise distance matrix (scipy.spatial.distance.cdist) between the rows of a and b (b omitted: a with itself, a symmetric matrix). Metrics come from a closed list. A pair for which the metric is undefined (cosine/correlation of a zero or constant vector, an indefinite VI, overflow) makes the status UNDEFINED with a count, and no matrix is returned. Statuses OK, UNDEFINED, TIME_LIMIT. Result: shape, distances (n x m). Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Pairwise distance matrix (scipy.spatial.distance.cdist) between the rows of a and b (b omitted: a with itself, a symmetric matrix). Metrics come from a closed list. A pair for which the metric is undefined (cosine/correlation of a zero or constant vector, an indefinite VI, overflow) makes the status UNDEFINED with a count and bounded offending row indices, and no matrix is returned. Statuses OK, UNDEFINED, TIME_LIMIT. Result: shape, distances (n x m). Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "a",
@@ -895,7 +937,14 @@
           "name": "vi",
           "type": "json",
           "occurs": "?",
-          "description": "mahalanobis only: the d x d symmetric inverse covariance matrix."
+          "description": "mahalanobis only: the d x d inverse covariance matrix, symmetric within 1e-12*max(abs(VI)); accepted roundoff is symmetrized and vi_symmetrised is reported."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -903,7 +952,7 @@
       "name": "interp_eval_to",
       "access": "write",
       "returns": "object",
-      "description": "Evaluate, differentiate or integrate an interpolant (scipy.interpolate): linear, cubic spline, PCHIP (monotone), Akima, modified Akima, smoothing spline or n-D radial basis functions. Nodes must be finite and strictly increasing (NOT_INCREASING / DUPLICATE_X before any work); outside the node range the extrapolate policy decides (BAD_RANGE by default). Statuses OK, SINGULAR / ILL_CONDITIONED (rbf), NUMERICAL_FAILURE, TIME_LIMIT. Result: values, n_extrapolated, integral, interpolation_error (rbf). Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "description": "Evaluate, differentiate or integrate an interpolant (scipy.interpolate): linear, cubic spline, PCHIP (monotone), Akima, modified Akima, smoothing spline or n-D radial basis functions. Nodes must be finite and strictly increasing (NOT_INCREASING / DUPLICATE_X before any work); outside the node range the extrapolate policy decides (BAD_RANGE by default). Statuses OK, SINGULAR / ILL_CONDITIONED (rbf), NUMERICAL_FAILURE, TIME_LIMIT. Result: values, n_extrapolated, integral, interpolation_error (rbf). Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "kind",
@@ -918,7 +967,7 @@
             "smoothing",
             "rbf"
           ],
-          "description": "Interpolant. linear/cubic/pchip/akima/makima need >= 2 nodes, smoothing >= 5, rbf at most 5000 nodes in at most 8 dimensions. pchip/akima/makima do not overshoot step-like data; cubic does."
+          "description": "Interpolant. linear/cubic/pchip/akima/makima need >= 2 nodes, smoothing >= 5, rbf at most 5000 nodes in at most 8 dimensions. PCHIP preserves monotonicity and local bounds; Akima, Makima and cubic can overshoot, including monotone step-like data."
         },
         {
           "name": "x",
@@ -936,7 +985,7 @@
           "name": "x_new",
           "type": "json",
           "occurs": "?",
-          "description": "Evaluation points: a vector (a matrix with the node dimension for rbf). Give x_new, integrate or both. Read form: at most ~900 points."
+          "description": "Evaluation points: a vector (a matrix with the node dimension for rbf). Read form: give x_new, integrate or both. Write form requires x_new. Read form: at most ~900 points."
         },
         {
           "name": "bc_type",
@@ -988,7 +1037,7 @@
           "name": "degree",
           "type": "number",
           "occurs": "?",
-          "description": "rbf only. Degree of the polynomial term, -1..3 (default: the kernel's minimum)."
+          "description": "rbf only. Degree of the polynomial term, -1..3 (default: the kernel's minimum). -1 disables the polynomial; otherwise at least the kernel minimum with enough nodes for every polynomial term."
         },
         {
           "name": "nu",
@@ -1019,7 +1068,14 @@
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1027,7 +1083,7 @@
       "name": "sig_filter_to",
       "access": "write",
       "returns": "object",
-      "description": "Design an IIR filter as second-order sections (scipy.signal.iirfilter, output sos; never ba) and optionally apply it. Reports sos, max_pole_radius and stable; an unstable design returns status UNSTABLE and is not applied. Optional magnitude/phase at freqs. Statuses OK, UNSTABLE, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "description": "Inputs inline <=1000 numbers or bounded file refs. Design an IIR filter as second-order sections (scipy.signal.iirfilter, output sos; never ba) and optionally apply it. Reports sos, max_pole_radius and stable; an unstable design returns status UNSTABLE and is not applied. Optional magnitude/phase at freqs. Statuses OK, UNSTABLE, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "family",
@@ -1065,7 +1121,7 @@
           "name": "wn",
           "type": "json",
           "occurs": "1",
-          "description": "Critical frequency: a number, or [low, high] for bandpass/bandstop. In Hz when fs is given, else as a fraction of the Nyquist frequency (0..1). Strictly inside (0, Nyquist). For butter/cheby1/ellip/bessel(phase-normalised) it is the -3 dB / ripple edge; for cheby2 the stopband edge."
+          "description": "Critical frequency: a number, or [low, high] for bandpass/bandstop. In Hz when fs is given, else as a fraction of the Nyquist frequency (0..1). Strictly inside (0, Nyquist). Butterworth: -3 dB; cheby1/ellip: ripple edge; cheby2: stopband edge. Bessel uses phase-normalisation: wn is NOT the -3 dB frequency."
         },
         {
           "name": "fs",
@@ -1111,7 +1167,14 @@
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1119,7 +1182,7 @@
       "name": "sig_spectrum_to",
       "access": "write",
       "returns": "object",
-      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals. Reports f and the estimate, n_segments, df, peak_freq and total_power (the Parseval integral). Statuses OK, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals; inline <=1000 numbers per input or bounded file refs. Reports f and the estimate, n_segments and df. Only Welch/periodogram return peak_freq, enbw and total_power: sum(density)*df or sum(spectrum)*df/ENBW, invariant under zero padding. Statuses OK, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "method",
@@ -1177,7 +1240,7 @@
           "name": "nperseg",
           "type": "number",
           "occurs": "?",
-          "description": "Segment length, 2..min(signal length, 65536) (default min(256, length)). Not for periodogram."
+          "description": "Segment length, 2..min(signal length, 65536) (default min(256, length), coherence min(256, length/2)). Coherence requires at least two segments; scaled copies yield one only where power is defined. Not for periodogram."
         },
         {
           "name": "noverlap",
@@ -1227,7 +1290,14 @@
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1235,7 +1305,7 @@
       "name": "sig_peaks_to",
       "access": "write",
       "returns": "object",
-      "description": "Local maxima of a finite signal (scipy.signal.find_peaks) with heights, prominences and widths at rel_height. Plateaus report their middle sample; the first and last sample are never peaks. Result: n_peaks, indices, heights, prominences, widths (read form: at most ~225 peaks). The write form stores them and answers NO_PEAKS (no artifact) when nothing qualifies.",
+      "description": "Inputs inline <=1000 numbers or bounded file refs. Local maxima of a finite signal (scipy.signal.find_peaks) with heights, prominences and widths at rel_height. Plateaus report their middle sample; the first and last sample are never peaks. Result: n_peaks, indices, heights, prominences, widths (read form: at most ~225 peaks). The write form stores them and answers NO_PEAKS (no artifact) when nothing qualifies. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "x",
@@ -1277,20 +1347,27 @@
           "name": "wlen",
           "type": "number",
           "occurs": "?",
-          "description": "Window length in samples (>= 3) for the prominence base search."
+          "description": "Window length in samples (>= 3), rounded up to odd. Candidates times effective window must be <=20M; otherwise supply a smaller explicit wlen. Read candidate count <=225 before prominence work."
         },
         {
           "name": "rel_height",
           "type": "number",
           "occurs": "?",
           "default": 0.5,
-          "description": "Height fraction of the prominence at which widths are measured, in (0, 1] (0.5 = full width at half maximum)."
+          "description": "Height fraction of the prominence at which widths are measured, in (0, 1] (0.5 = half prominence, FWHM only for isolated zero-baseline peaks). Widths linearly interpolate sampled crossings."
         },
         {
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1298,7 +1375,7 @@
       "name": "spatial_knn_to",
       "access": "write",
       "returns": "object",
-      "description": "Nearest neighbours with a k-d tree (scipy.spatial.cKDTree), exact. k-nearest: indices and distances (rows sorted by distance; the index order of equal distances is implementation-defined, compare distances). Radius: counts per query plus flat indices and distances (CSR layout, sorted by distance within a query). Status OK. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "description": "Exact nearest neighbours: scaled cKDTree for p<=2 or infinity; stable brute-force for other p (n*m*d<=20M). Unsafe floating-point ranges return NUMERICAL_FAILURE. The write form requires 2*m*(k+exclude_self)<=1900000 before spawn. k-nearest: indices and distances (rows sorted by distance; the index order of equal distances is implementation-defined, compare distances). Radius: counts per query plus flat indices and distances (CSR layout, sorted by distance within a query). Status OK. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "points",
@@ -1349,7 +1426,14 @@
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1357,7 +1441,7 @@
       "name": "spatial_hull_to",
       "access": "write",
       "returns": "object",
-      "description": "Convex hull, Delaunay triangulation or Voronoi diagram with QHull (scipy.spatial). The QHull options are fixed per kind and never caller-supplied. Degenerate input (collinear/coplanar points, fewer than dim+1 points, duplicates only, a QHull error) is a domain status DEGENERATE with a message, not an error. Statuses OK, DEGENERATE, NUMERICAL_FAILURE, TIME_LIMIT. convex_hull: vertices, simplices, volume, area (in 2-D: area and perimeter); delaunay: simplices, volume, n_coplanar; voronoi: vertices, point_region, regions and ridge_vertices as flat arrays with offsets (-1 is the point at infinity), ridge_points. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "description": "Convex hull, Delaunay triangulation or Voronoi diagram with QHull (scipy.spatial). The QHull options are fixed per kind and never caller-supplied. Degenerate input (collinear/coplanar points, fewer than dim+1 points, duplicates only, a QHull error) is a domain status DEGENERATE with a message, not an error. Statuses OK, DEGENERATE, NUMERICAL_FAILURE, TIME_LIMIT. convex_hull: vertices, simplices, volume, area (in 2-D: area and perimeter); delaunay: simplices, volume, n_coplanar; voronoi: vertices, point_region, regions and ridge_vertices as flat arrays with offsets (-1 is the point at infinity), ridge_points. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "points",
@@ -1380,7 +1464,14 @@
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1388,7 +1479,7 @@
       "name": "spatial_dist_to",
       "access": "write",
       "returns": "object",
-      "description": "Pairwise distance matrix (scipy.spatial.distance.cdist) between the rows of a and b (b omitted: a with itself, a symmetric matrix). Metrics come from a closed list. A pair for which the metric is undefined (cosine/correlation of a zero or constant vector, an indefinite VI, overflow) makes the status UNDEFINED with a count, and no matrix is returned. Statuses OK, UNDEFINED, TIME_LIMIT. Result: shape, distances (n x m). Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "description": "Pairwise distance matrix (scipy.spatial.distance.cdist) between the rows of a and b (b omitted: a with itself, a symmetric matrix). Metrics come from a closed list. A pair for which the metric is undefined (cosine/correlation of a zero or constant vector, an indefinite VI, overflow) makes the status UNDEFINED with a count and bounded offending row indices, and no matrix is returned. Statuses OK, UNDEFINED, TIME_LIMIT. Result: shape, distances (n x m). Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "a",
@@ -1423,13 +1514,20 @@
           "name": "vi",
           "type": "json",
           "occurs": "?",
-          "description": "mahalanobis only: the d x d symmetric inverse covariance matrix."
+          "description": "mahalanobis only: the d x d inverse covariance matrix, symmetric within 1e-12*max(abs(VI)); accepted roundoff is symmetrized and vi_symmetrised is reported."
         },
         {
           "name": "out",
           "type": "string",
           "occurs": "1",
-          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under artifacts."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1437,7 +1535,7 @@
       "name": "frame_import",
       "access": "write",
       "returns": "object",
-      "description": "Import typed tables; inference is returned explicitly",
+      "description": "Import typed tables; inference is returned explicitly Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "columns",
@@ -1548,7 +1646,7 @@
       "name": "frame_export",
       "access": "write",
       "returns": "object",
-      "description": "Export a table inline or to an exclusive file",
+      "description": "Export a table inline or to an exclusive file Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -1579,7 +1677,7 @@
       "name": "frame_select",
       "access": "write",
       "returns": "object",
-      "description": "Structured filtering, column selection and stable sorting",
+      "description": "Structured filtering, column selection and stable sorting Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -1626,7 +1724,7 @@
       "name": "frame_groupby",
       "access": "write",
       "returns": "object",
-      "description": "Closed-function grouped aggregates, sorted keys and observed categories",
+      "description": "Closed-function grouped aggregates, sorted keys and observed categories Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -1666,7 +1764,7 @@
       "name": "frame_resample",
       "access": "write",
       "returns": "object",
-      "description": "Timezone-aware bounded resampling",
+      "description": "Timezone-aware bounded resampling Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -1811,7 +1909,7 @@
       "name": "opt_linprog_to",
       "access": "write",
       "returns": "object",
-      "description": "Dense LP/MILP via HiGHS with row/objective scaling and original-data primal/KKT checks. Status OK/INFEASIBLE/UNBOUNDED/INFEASIBLE_OR_UNBOUNDED/MODEL_ERROR/TIME_LIMIT/NODE_LIMIT/ITERATION_LIMIT/NUMERICAL_FAILURE. LP dual signs follow the original objective. outputs_in_artifact reports descriptors for x/slack/duals; use array_inspect for previews.",
+      "description": "Dense LP/MILP via HiGHS with row/objective scaling and original-data primal/KKT checks. Status OK/INFEASIBLE/UNBOUNDED/INFEASIBLE_OR_UNBOUNDED/MODEL_ERROR/TIME_LIMIT/NODE_LIMIT/ITERATION_LIMIT/NUMERICAL_FAILURE. LP dual signs follow the original objective. outputs_in_artifact reports descriptors for x/slack/duals; use array_inspect for previews. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "c",
@@ -2022,7 +2120,7 @@
       "name": "ode_solve_to",
       "access": "write",
       "returns": "object",
-      "description": "Budgeted solve_ivp with closed RHS/event ASTs. Status OK/EVAL_LIMIT/TIME_LIMIT/STEP_LIMIT/EVENT_LIMIT/NON_FINITE/STEP_SIZE_TOO_SMALL/NO_CONVERGENCE. Non-OK trajectories are partial with termination failed. outputs_in_artifact identifies trajectory refs. Read form never writes; use ode_solve_to for large output.",
+      "description": "Budgeted solve_ivp with closed RHS/event ASTs. Status OK/EVAL_LIMIT/TIME_LIMIT/STEP_LIMIT/EVENT_LIMIT/NON_FINITE/STEP_SIZE_TOO_SMALL/NO_CONVERGENCE. Non-OK trajectories are partial with termination failed. outputs_in_artifact identifies trajectory refs. Read form never writes; use ode_solve_to for large output. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "rhs",
@@ -2230,6 +2328,13 @@
             "error"
           ],
           "description": "inf: a non-finite objective counts as +Inf; error: stop with status NON_FINITE."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -2342,6 +2447,13 @@
           "occurs": "?",
           "default": 500000,
           "description": "Cap on expression evaluations, 1..2000000."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -2403,6 +2515,13 @@
           "occurs": "?",
           "default": 500000,
           "description": "Cap on expression evaluations."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -2470,6 +2589,13 @@
           "occurs": "?",
           "default": 500000,
           "description": "Cap on expression evaluations."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -2571,6 +2697,13 @@
           ],
           "description": "fitted and/or residuals inline (counted against the 1000-number rule).",
           "items": "string"
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -2578,7 +2711,7 @@
       "name": "sm_ols_to",
       "access": "write",
       "returns": "object",
-      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE (overflowing sums of squares; standard errors NA); coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
+      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE (overflowing sums of squares; standard errors NA); coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "columns",
@@ -2667,6 +2800,13 @@
           "type": "string",
           "occurs": "1",
           "description": "New .safetensors artifact with coef (p x 6: estimate, std_err, statistic, p_value, ci_lower, ci_upper), fitted and residuals (and row_index when rows were dropped)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -2821,6 +2961,13 @@
           ],
           "description": "fitted and/or residuals inline (counted against the 1000-number rule).",
           "items": "string"
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -2828,7 +2975,7 @@
       "name": "sm_glm_to",
       "access": "write",
       "returns": "object",
-      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA; never masks the more severe statuses, see rank_deficient), TIME_LIMIT, NUMERICAL_FAILURE (non-finite output or a fitted mean outside the family support); coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
+      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA; never masks the more severe statuses, see rank_deficient), TIME_LIMIT, NUMERICAL_FAILURE (non-finite output or a fitted mean outside the family support); coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "columns",
@@ -2970,6 +3117,13 @@
           "type": "string",
           "occurs": "1",
           "description": "New .safetensors artifact with coef (p x 6: estimate, std_err, statistic, p_value, ci_lower, ci_upper), fitted and residuals (and row_index when rows were dropped)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -3109,6 +3263,13 @@
           "occurs": "?",
           "default": 0.05,
           "description": "Forecast interval and parameter CI level is 1-alpha."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -3116,7 +3277,7 @@
       "name": "sm_arima_to",
       "access": "write",
       "returns": "object",
-      "description": "SARIMAX exact maximum likelihood (statsmodels) on a numeric series. Statuses OK, NO_CONVERGENCE, TIME_LIMIT, NUMERICAL_FAILURE; params table (statsmodels names), sigma2, llf, aic, bic, hqic, nobs_effective, converged, forecast with normal intervals. Writes residuals and the forecast to an exclusive safetensors artifact.",
+      "description": "SARIMAX exact maximum likelihood (statsmodels) on a numeric series. Statuses OK, NO_CONVERGENCE, TIME_LIMIT, NUMERICAL_FAILURE; params table (statsmodels names), sigma2, llf, aic, bic, hqic, nobs_effective, converged, forecast with normal intervals. Writes residuals and the forecast to an exclusive safetensors artifact. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "columns",
@@ -3254,6 +3415,13 @@
           "type": "string",
           "occurs": "1",
           "description": "New .safetensors artifact with residuals and forecast (3 x h: mean, lower, upper)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -3330,6 +3498,13 @@
             "ldb"
           ],
           "description": "pacf only: ywm (Yule-Walker with n denominator, R's pacf), ywadjusted, ols, ldb."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -3337,7 +3512,7 @@
       "name": "ml_fit",
       "access": "write",
       "returns": "object",
-      "description": "Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps.",
+      "description": "Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "columns",
@@ -3452,7 +3627,7 @@
       "name": "ml_predict",
       "access": "write",
       "returns": "object",
-      "description": "Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps.",
+      "description": "Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "columns",

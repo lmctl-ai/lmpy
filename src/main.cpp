@@ -664,8 +664,9 @@ Json call(const std::string& op,const Params& input){
             if(!s4_write)output_too_large("use the _to operation for S4 artifact output");
             auto bundle=read_outputs(temp,result);
             for(auto it=result.begin();it!=result.end();){if(it.value().is_object()&&it.value().contains("tensor"))it=result.erase(it);else ++it;}
-            result.erase("duals");result.erase("dual_keys");pycli::write_bundle(s4_out,bundle);artifact_tensors(result,s4_out,bundle);
+            result.erase("duals");result.erase("dual_keys");artifact_tensors(result,s4_out,bundle);
             if(inline_numbers(result)>MAX_INLINE||result.dump().size()>65536)output_too_large("S4 inline result exceeds budget");
+            pycli::write_bundle(s4_out,bundle);
         }else if(s4_write)no_artifact(result,"no primal/artifact was produced");
         if(result.dump().size()>65536)output_too_large("S4 inline response exceeds 64KiB");
     }
@@ -719,7 +720,7 @@ int main(int argc,char** argv){
         Param{"lower",Type::Boolean,false,true,{},"cholesky only: false returns the upper factor u."}}};
     CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
     add_s7_ops(spec);
-    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0;if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
+
 
     auto common=[](){return std::vector<Param>{Param{"frame",Type::String,true,nullptr,{},"Stored-only .npz table ref inside cwd."}};};
     std::vector<Param> import_params={Param{"columns",Type::Object,false,nullptr,{},"Inline column map, <=1000 cells."},Param{"records",Type::Array,false,nullptr,{},"Inline records with identical keys, <=1000 cells.","",false,false,false,{},Type::Object},Param{"csv",Type::String,false,nullptr,{},"UTF-8 CSV path with header, <=16MiB, 200000 rows, 500000 cells; string width <=65536 bytes."},Param{"frame",Type::String,false,nullptr,{},"Existing table ref to copy."},Param{"dtypes",Type::Object,false,Json::object(),{},"Column dtype overrides: int64,float64,bool,string,datetime64[ns],category; object specs may give tz/categories/ordered."},Param{"delimiter",Type::String,false,",",{},"Single-byte CSV delimiter."},Param{"na_values",Type::Array,false,Json::array(),{},"CSV missing tokens in addition to empty cells.","",false,false,false,{},Type::String},Param{"parse_dates",Type::Array,false,Json::array(),{},"ISO datetime columns; timezone requires a dtype object override.","",false,false,false,{},Type::String},Param{"max_rows",Type::Integer,false,200000,{},"CSV maximum data rows, 0..200000."},Param{"out",Type::String,true,nullptr,{},"New .npz table artifact; CONFLICT if exists."}};
@@ -859,6 +860,7 @@ int main(int argc,char** argv){
         spec.operations.push_back(Operation{"sm_tsa_acf",Access::Read,"Sample autocorrelation or partial autocorrelation with confidence intervals (statsmodels.tsa.stattools); lags 0..nlags. Constant series are CONSTANT_SERIES.","object",params});
     }
     add_ml_ops(spec);
-    for(auto& op:spec.operations){std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
+    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0;if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
+    for(auto& op:spec.operations){if(op.access==Access::Write)op.description+=" Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).";std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }

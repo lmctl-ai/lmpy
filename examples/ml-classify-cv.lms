@@ -13,7 +13,7 @@ if(f.status!="ok"){println(json_stringify(f));exit(1);}
 p=pycli.ml_predict({model:work+"/classifier.safetensors",columns:{x:[-2,0,2]},kind:"predict_proba",out:work+"/probabilities.npz"});
 if(p.status!="ok"){println(json_stringify(p));exit(1);}
 println("Reloaded probabilities:",json_stringify(p.result.prediction_preview));
-println("Model:",f.result.model.ref);
+println("Model:",f.result.artifacts.model.ref);
 
 delete_file(work+"/classifier.safetensors");
 delete_file(work+"/probabilities.npz");

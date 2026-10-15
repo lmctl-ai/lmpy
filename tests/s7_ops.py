@@ -218,7 +218,7 @@ class Interp(Base):
         out = self.out()
         r = call('interp_eval_to', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=self.npy(grid), out=out))
         self.assertEqual(r['status'], 'OK')
-        self.assertIn('values', r['tensors'])
+        self.assertIn('values', r['artifacts'])
         small = call('interp_eval', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=list(grid[:500])))
         close(self, read_safetensors(out)['values'][:500], small['values'], 1e-15)
         call('interp_eval_to', dict(kind='pchip', x=list(x), y=list(np.sin(x)), x_new=self.npy(grid), out=out), rc=5)  # exclusive

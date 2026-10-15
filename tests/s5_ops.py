@@ -323,7 +323,7 @@ class Ols(Base):
         close(self, t['residuals'], np.array(D['y']) - t['fitted'], 1e-12, 1e-12)
         close(self, t['coef'][:, 0], R['lm.coef'], 1e-9)
         self.assertEqual(t['coef'].shape, (6, 6))
-        self.assertEqual(r['tensors']['fitted']['ref'], out + '#fitted')
+        self.assertEqual(r['artifacts']['fitted']['ref'], out + '#fitted')
         close(self, table(r)['estimate'], R['lm.coef'], 1e-9)
         before = hashlib.sha256(pathlib.Path(out).read_bytes()).hexdigest()
         call('sm_ols_to', {'columns': s5.columns('y', 'x1'), 'y': 'y', 'terms': [{'var': 'x1'}], 'out': out}, 5)
@@ -677,7 +677,7 @@ class Arima(Base):
         self.assertEqual(t['forecast'].shape, (3, 20))  # mean, lower, upper
         self.assertEqual(t['residuals'].shape, (120,))
         self.assertNotIn('forecast', r)
-        self.assertEqual(r['tensors']['forecast']['shape'], [3, 20])
+        self.assertEqual(r['artifacts']['forecast']['shape'], [3, 20])
 
     def test_forecast_cap_inline_and_validation(self):
         r = call('sm_arima', {'columns': {'s': D['series']}, 'series': 's', 'order': [1, 0, 0], 'forecast_steps': 101}, 2, NO_PYTHON)

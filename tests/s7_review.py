@@ -64,6 +64,19 @@ class Review(old.Base):
    if method in ('csd','coherence'):p['y']=y.tolist()
    r=self.runop('sig_spectrum',**p);self.assertEqual('total_power' in r,method in ('periodogram','welch'))
    if method=='csd':self.assertAlmostEqual(r['pxy_re'][32],0,13);self.assertAlmostEqual(r['pxy_im'][32],.128,13)
+ def test_voronoi_exact_connectivity_inline_and_artifact(self):
+  pts=[[0,0],[2,0],[2,2],[0,2],[1,1]]
+  expected=[{(1.,0.),(0.,1.),None},{(1.,0.),(2.,1.),None},{(2.,1.),(1.,2.),None},{(0.,1.),(1.,2.),None},{(1.,0.),(0.,1.),(2.,1.),(1.,2.)}]
+  edges={(0,1):{None,(1.,0.)},(1,2):{None,(2.,1.)},(2,3):{None,(1.,2.)},(0,3):{None,(0.,1.)},(0,4):{(1.,0.),(0.,1.)},(1,4):{(1.,0.),(2.,1.)},(2,4):{(2.,1.),(1.,2.)},(3,4):{(0.,1.),(1.,2.)}}
+  for write in [False,True]:
+   r=self.runop('spatial_hull_to' if write else 'spatial_hull',points=pts,kind='voronoi',**({'out':self.out()} if write else {}))
+   a=old.read_safetensors(self.out()) if write else r
+   vertices=np.asarray(a['vertices']);region=np.asarray(a['regions'],dtype=int);offset=np.asarray(a['region_offsets'],dtype=int)
+   cv=lambda ids:{None if int(i)==-1 else tuple(vertices[int(i)]) for i in ids}
+   for i,rid in enumerate(a['point_region']):self.assertEqual(cv(region[offset[int(rid)]:offset[int(rid)+1]]),expected[i])
+   offsets=np.asarray(a['ridge_offsets'],dtype=int);flat=np.asarray(a['ridge_vertices'],dtype=int)
+   got={tuple(sorted(map(int,pair))):cv(flat[offsets[j]:offsets[j+1]]) for j,pair in enumerate(a['ridge_points'])}
+   self.assertEqual(got,edges)
  def test_mahalanobis_roundoff(self):
   vi=np.array([[2,.25],[.25+5e-17,1.]]);a=np.array([[1,0],[0,1],[2,2.]])
   r=self.runop('spatial_dist',a=a.tolist(),b=[[1,1]],metric='mahalanobis',vi=vi.tolist());self.assertTrue(r['vi_symmetrised']);diff=a-[1,1];want=np.sqrt(np.einsum('ij,jk,ik->i',diff,(vi+vi.T)/2,diff));np.testing.assert_allclose(np.ravel(r['distances']),want,rtol=1e-14)
