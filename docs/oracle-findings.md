@@ -48,3 +48,10 @@ All recipes exit 0 in real, `--check` and `--dry-run` modes.
    `unsupported formula syntax` and string data give `data values must be numbers`. The recipe therefore passes dummy columns and the product
    column; the numbers then agree exactly. This is an rcli feature gap, not a numerical discrepancy.
 7. **rcli must be started from a directory below `$HOME`** (otherwise INVALID_REQUEST); recipes should be run from there.
+
+## S6 ML (aarch64)
+
+`oracle-ml-linear.lms`: hand optimum intercept=1, slope=2; pycli `[1,2]`, rcli `fit_lm` `[1,2]`, largest absolute difference 0 on the printed doubles (tolerance 1e-9).
+`oracle-kmeans.lms`: separated six-row blobs; pycli vs the hand partition **ARI=1**, pycli vs rcli Lloyd **ARI=1** after relabeling. sklearn labels are zero-based and R labels one-based; comparing pair co-membership removes that representational difference. Same integer seed does not imply identical RNG algorithms or initial centers across R/sklearn; the fixture has a unique separated partition.
+`ml-classify-cv.lms`: four-fold stratified logistic accuracy **0.975**, mean log_loss **0.20075185634341353**. Saved/reloaded probabilities for x=-2,0,2: positive class `[0.08541919955327777,0.4706034083858738,0.8943013481682253]`.
+The optional lmstats leg prints its setup hint (no prebuilt `statsrust` on PATH); the requested lmda checkout/prebuilt binary is absent, so no lmda build or numerical parity claim is made. All 13 recipes, including the older S0-S5 recipes, were run through the host shim; exact exit codes and stdout are in `measurement-s6-recipes.json`.

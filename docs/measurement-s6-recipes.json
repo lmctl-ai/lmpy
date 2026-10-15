@@ -1,0 +1,223 @@
+{
+  "curve-fit.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/curve-fit.lms:13:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/curve-fit.lms:21:34 handled println [\"Fit simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "a=2.5006 b=0.7021 c=0.1016  rss=0.00439904  m=30  cov=OK\nCurve-fit oracle passed.\n",
+      "stderr": ""
+    }
+  },
+  "lp-plan.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:3:1 dummy write_file [\"demand-s4.csv\",\"total_units,quality_min,regular_capacity,premium_capacity,regular_cost,premium_cost\\n3,5,4,3,1,2\\n\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:4:14 handled pycli.frame_import [{\"csv\":\"demand-s4.csv\",\"out\":\"demand-s4.npz\"}]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:5:35 handled println [\"Production plan simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "regular=2.000000 premium=1.000000 total_cost=4.000000\n",
+      "stderr": ""
+    }
+  },
+  "lstsq-fit.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/lstsq-fit.lms:12:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/lstsq-fit.lms:19:34 handled println [\"Fit simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "coefficients: c0=1.997925 c1=3.003505 c2=-0.500839  rank=3  residual_norm=0.057431\nPolynomial least-squares fit passed.\n",
+      "stderr": ""
+    }
+  },
+  "minimize-rosenbrock.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/minimize-rosenbrock.lms:11:33 handled println [\"Minimisation simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "finite differences: x=0.999996 y=0.999991 value=0.0000000000 nfev=117\nanalytic gradient:  x=1.000000 y=1.000000 value=0.0000000000 nfev=40\nRosenbrock oracle passed.\n",
+      "stderr": ""
+    }
+  },
+  "ml-classify-cv.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/ml-classify-cv.lms:5:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/ml-classify-cv.lms:7:28 handled println [\"classification CV simulated\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "4-fold mean scores: {\"accuracy\":0.975,\"log_loss\":0.20075185634341353}\nReloaded probabilities: {\"probability_0\":[0.9145808004467222,0.5293965916141262,0.10569865183177474],\"probability_1\":[0.08541919955327777,0.4706034083858738,0.8943013481682253]}\nModel: /home/ubuntu/repos/lmctlhq/pycli/classifier.safetensors\n",
+      "stderr": ""
+    }
+  },
+  "ode-sir.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/ode-sir.lms:4:39 handled println [\"SIR trajectory simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "peak_day=38.355308 peak_infected=300.796071 population=1000.000000\n",
+      "stderr": ""
+    }
+  },
+  "oracle-kmeans.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-kmeans.lms:6:9 handled pycli.ml_fit [{\"columns\":{\"x\":[-11,-10,-9,9,10,11],\"z\":[0,1,0,0,1,0]},\"family\":\"kmeans\",\"features\":[\"x\",\"z\"],\"out\":\"./km.safetensors\",\"params\":{\"n_clusters\":2},\"preprocess\":{\"one_hot\":[],\"scale\":false},\"seed\":42}]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-kmeans.lms:7:27 handled println [\"kmeans oracle simulated\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "pycli vs hand blobs: ARI=1\npycli vs rcli Lloyd: ARI=1\nlmda cluster_kmeans deferred: no prebuilt binary; install one to add an optional leg\n",
+      "stderr": ""
+    }
+  },
+  "oracle-ml-linear.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-ml-linear.lms:9:11 handled pycli.ml_fit [{\"columns\":{\"x\":[-3,-2,-1,0,1,2,3],\"y\":[-5,-3,-1,1,3,5,7]},\"family\":\"linear\",\"features\":[\"x\"],\"out\":\"./ols.safetensors\",\"preprocess\":{\"one_hot\":[],\"scale\":false},\"target\":\"y\"}]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-ml-linear.lms:10:32 handled println [\"ML linear oracle simulated\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "pycli OLS intercept= 1 slope= 2\nrcli OLS= [1,2]\nlmstats leg skipped: install prebuilt statsrust; see examples/schemas/README.md\nlmda leg deferred: no prebuilt binary at the requested checkout\n",
+      "stderr": ""
+    }
+  },
+  "oracle-sm-arima.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-sm-arima.lms:26:34 handled println [\"ARIMA comparison simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "pycli: [\"ar.L1\",\"ma.L1\",\"sigma2\"] llf=-174.28654082 aic=354.573082\nleg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)\n  param[0] | 0.574537679132 | 0.574525888288 | 0.000011790844\n  param[1] | 0.054436768010 | 0.054451308668 | 0.000014540658\n  param[2] | 1.065050413786 | 1.065050436121 | 0.000000022335\n  forecast[0] | -0.089998891073 | -0.089998805005 | 0.000000086068\n  forecast[1] | -0.051707754002 | -0.051706643391 | 0.000001110611\n  forecast[2] | -0.029708052977 | -0.029706805224 | 0.000001247753\n  forecast[3] | -0.017068395809 | -0.017067328660 | 0.000001067149\n  forecast[4] | -0.009806436515 | -0.009805622159 | 0.000000814356\nleg 2: pycli vs rcli ts_arima\n  param[0] | 0.574537679132 | 0.574525888288 | 0.000011790844\n  param[1] | 0.054436768010 | 0.054451308668 | 0.000014540658\n  param[2] | 1.065050413786 | 1.065050436121 | 0.000000022335\n  forecast[0] | -0.089998891073 | -0.089998805005 | 0.000000086068\n  forecast[1] | -0.051707754002 | -0.051706643391 | 0.000001110611\n  forecast[2] | -0.029708052977 | -0.029706805224 | 0.000001247753\n  forecast[3] | -0.017068395809 | -0.017067328660 | 0.000001067149\n  forecast[4] | -0.009806436515 | -0.009805622159 | 0.000000814356\nleg 3 skipped: statsrust not on PATH (see examples/schemas/README.md)\n2 leg(s) compared; largest absolute difference 0.000014540658\nARMA(1,1) agrees within 1e-3.\n",
+      "stderr": ""
+    }
+  },
+  "oracle-sm-glm.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-sm-glm.lms:24:34 handled println [\"GLM comparison simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "pycli: converged=true iterations=4 deviance=27.1984531708 aic=134.09792144\nleg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)\n  estimate[0] | 0.516618914190 | 0.516618914190 | 0.000000000000\n  estimate[1] | 0.065569295718 | 0.065569295718 | 0.000000000000\n  estimate[2] | -0.071256132873 | -0.071256132873 | 0.000000000000\n  std_err[0] | 0.228351924253 | 0.228351965294 | 0.000000041041\n  std_err[1] | 0.036981862383 | 0.036981866991 | 0.000000004607\n  std_err[2] | 0.071587357439 | 0.071587364905 | 0.000000007466\nleg 2: pycli vs rcli fit_glm\n  estimate[0] | 0.516618914190 | 0.516618914190 | 0.000000000000\n  estimate[1] | 0.065569295718 | 0.065569295718 | 0.000000000000\n  estimate[2] | -0.071256132873 | -0.071256132873 | 0.000000000000\n  std_err[0] | 0.228351924253 | 0.228351965294 | 0.000000041041\n  std_err[1] | 0.036981862383 | 0.036981866991 | 0.000000004607\n  std_err[2] | 0.071587357439 | 0.071587364905 | 0.000000007466\nleg 3 skipped: statsrust not on PATH (see examples/schemas/README.md)\n2 leg(s) compared; largest absolute difference 0.000000041041\nPoisson GLM agrees within 1e-6.\n",
+      "stderr": ""
+    }
+  },
+  "oracle-sm-regression.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-sm-regression.lms:27:34 handled println [\"OLS comparison simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "coefficient names: [\"const\",\"x1\",\"x2\",\"g[T.b]\",\"g[T.c]\",\"x1:x2\"]\nleg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)\n  estimate[0] | 1.754921166284 | 1.754921166284 | 0.000000000000\n  estimate[1] | 1.927896524978 | 1.927896524978 | 0.000000000000\n  estimate[2] | -0.734388439946 | -0.734388439946 | 0.000000000000\n  estimate[3] | -0.637287930282 | -0.637287930282 | 0.000000000000\n  estimate[4] | -0.619990953878 | -0.619990953878 | 0.000000000000\n  estimate[5] | 0.129864711047 | 0.129864711047 | 0.000000000000\n  std_err[0] | 0.212436997165 | 0.212436997165 | 0.000000000000\n  std_err[1] | 0.032195098397 | 0.032195098397 | 0.000000000000\n  std_err[2] | 0.135553927120 | 0.135553927120 | 0.000000000000\n  std_err[3] | 0.258391444860 | 0.258391444860 | 0.000000000000\n  std_err[4] | 0.245073852757 | 0.245073852757 | 0.000000000000\n  std_err[5] | 0.023668847562 | 0.023668847562 | 0.000000000000\nleg 2: pycli vs rcli fit_lm\n  estimate[0] | 1.754921166284 | 1.754921166284 | 0.000000000000\n  estimate[1] | 1.927896524978 | 1.927896524978 | 0.000000000000\n  estimate[2] | -0.734388439946 | -0.734388439946 | 0.000000000000\n  estimate[3] | -0.637287930282 | -0.637287930282 | 0.000000000000\n  estimate[4] | -0.619990953878 | -0.619990953878 | 0.000000000000\n  estimate[5] | 0.129864711047 | 0.129864711047 | 0.000000000000\n  std_err[0] | 0.212436997165 | 0.212436997165 | 0.000000000000\n  std_err[1] | 0.032195098397 | 0.032195098397 | 0.000000000000\n  std_err[2] | 0.135553927120 | 0.135553927120 | 0.000000000000\n  std_err[3] | 0.258391444860 | 0.258391444860 | 0.000000000000\n  std_err[4] | 0.245073852757 | 0.245073852757 | 0.000000000000\n  std_err[5] | 0.023668847562 | 0.023668847562 | 0.000000000000\nleg 3 skipped: statsrust not on PATH (see examples/schemas/README.md)\n2 leg(s) compared; largest absolute difference 0.000000000000\nOLS agrees within 1e-9.\n",
+      "stderr": ""
+    }
+  },
+  "sales-report.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:6:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:11:1 dummy write_file [\"sales-s2.csv\",\"ts,region,sales\\n2026-03-01T12:00:00+00:00,East,10\\n2026-03-02T12:00:00+00:00,West,20\\n2026-03-03T12:00:00+00:00,East,30\\n2026-03-04T12:00:00+00:00,West,40\\n2026-03-05T12:00:00+00:00,East,50\\n2026-03-06T12:00:00+00:00,West,60\\n2026-03-07T12:00:00+00:00,East,70\\n2026-03-08T12:00:00+00:00,West,80\\n2026-03-09T12:00:00+00:00,East,90\\n2026-03-10T12:00:00+00:00,West,100\\n\"]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:12:16 handled pycli.frame_import [{\"csv\":\"sales-s2.csv\",\"dtypes\":{\"ts\":{\"dtype\":\"datetime64[ns]\",\"tz\":\"UTC\"}},\"out\":\"sales-s2.npz\"}]\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:13:37 handled println [\"Sales report simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "Region totals: {\"region\":[\"East\",\"West\"],\"sales__sum\":[450,500],\"sales__mean\":[90,100],\"sales__count\":[5,5]}\nWeekly CSV: ts,sales__sum,sales__count\n2026-03-08T00:00:00+00:00,260,4\n2026-03-15T00:00:00+00:00,690,6\n\n",
+      "stderr": ""
+    }
+  },
+  "solve.lms": {
+    "--check": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "--dry-run": {
+      "exit": 0,
+      "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/solve.lms:5:34 handled println [\"Solve simulated.\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/solve.lms:13:32 handled println [\"Quantile simulated.\"]\n",
+      "stderr": ""
+    },
+    "real": {
+      "exit": 0,
+      "stdout": "S0 solve and normal quantile passed.\n",
+      "stderr": ""
+    }
+  }
+}
