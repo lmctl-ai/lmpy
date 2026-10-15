@@ -1,0 +1,70 @@
+// access: read
+// What it does: estimates the power spectrum of two exact on-bin tones plus a DC offset with pycli sig_spectrum (periodogram, boxcar window, no
+//   detrend, density scaling, fs = 1) and checks it three ways: (1) Parseval / closed forms computed here from the samples (the integral of the
+//   one-sided density is the mean square; each on-bin tone of amplitude A has density A^2 N / 2 at fs = 1);
+//   (2) a Welch estimate peaks at the same tone frequencies; (3) lmda series_spectrum, when its binary is on PATH, must give the same
+//   one-sided density bin by bin.
+// Tolerance: 1e-9 relative to the largest bin for the lmda comparison; 1e-9 relative for the closed forms.
+// Setup: lmda is built from lmctlhq/lmda (cargo build --release); put its directory on PATH. The leg is skipped with a hint when it is absent.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/lmda.cli.schema.v1.json" as lmda;
+
+n = 512;
+// tones at 32 and 80 samples/256 (bins 64 and 160 of 512): rotate a unit vector by the exact angles pi/4 and 5*pi/8 (no sin/cos in lmscript)
+c1 = sqrt(0.5);
+s1 = sqrt(0.5);
+c2 = 0 - sqrt((1 - sqrt(0.5)) / 2);
+s2 = sqrt((1 + sqrt(0.5)) / 2);
+u1c = 1; u1s = 0; u2c = 1; u2s = 0;
+x = [];
+csvtext = "v\n";
+for (i = 0; i < n; i = i + 1) {
+  v = 0.5 + 3 * u1s + 1 * u2s;
+  x = concat(x, [v]);
+  csvtext = csvtext + sprintf("%.17f", v) + "\n";
+  t1c = u1c * c1 - u1s * s1; t1s = u1s * c1 + u1c * s1; u1c = t1c; u1s = t1s;
+  t2c = u2c * c2 - u2s * s2; t2s = u2s * c2 + u2c * s2; u2c = t2c; u2s = t2s;
+}
+ms = 0;
+for (i = 0; i < n; i = i + 1) { ms = ms + x[i] * x[i] / n; }
+
+p = pycli.sig_spectrum({x: x, method: "periodogram", fs: 1, window: "boxcar", detrend: "none", nfft: 512});
+if (p.status == "simulated") { println("Spectrum comparison simulated."); exit(0); }
+if (p.status != "ok" || p.result.status != "OK") { println("sig_spectrum failed:", json_stringify(p)); exit(1); }
+r = p.result;
+println(sprintf("pycli periodogram: %d bins, df %.9f, peak at bin %d (f = %.9f), total power %.12f", r.n_bins, r.df, r.peak_index, r.peak_freq, r.total_power));
+println("leg 1: closed forms");
+worst = abs(r.total_power - ms) / ms;
+println(sprintf("  Parseval: integral %.12f vs mean square %.12f (relative difference %.12f)", r.total_power, ms, worst));
+// one-sided density at fs = 1, boxcar window: A^2 N / 2, i.e. A = 3 gives 2304 and A = 1 gives 256
+w1 = abs(r.pxx[64] - 2304) / 2304;
+w2 = abs(r.pxx[160] - 256) / 256;
+println(sprintf("  tone 1 (A = 3) bin 64: %.9f expected 2304, relative difference %.12f", r.pxx[64], w1));
+println(sprintf("  tone 2 (A = 1) bin 160: %.9f expected 256, relative difference %.12f", r.pxx[160], w2));
+println(sprintf("  DC bin: %.9f expected %.9f", r.pxx[0], 0.5 * 0.5 * n));
+worst = max(worst, w1, w2, abs(r.pxx[0] - 0.5 * 0.5 * n) / (0.25 * n));
+if (r.peak_index != 64) { println("peak is not at the 32 Hz bin"); exit(1); }
+
+wl = pycli.sig_spectrum({x: x, method: "welch", fs: 256, nperseg: 128, noverlap: 64, window: "hann", detrend: "constant", scaling: "spectrum", nfft: 128});
+if (wl.status != "ok" || wl.result.status != "OK") { println("welch failed:", json_stringify(wl)); exit(1); }
+println(sprintf("leg 2: Welch (hann, 128-sample segments, fs 256): peak at %.6f Hz, expected 32; %d segments", wl.result.peak_freq, wl.result.n_segments));
+if (abs(wl.result.peak_freq - 32) > 0.000001) { println("Welch peak frequency is wrong"); exit(1); }
+println(sprintf("  spectrum-scaled peak %.9f expected A^2/2 = 4.5", wl.result.pxx[wl.result.peak_index]));
+if (abs(wl.result.pxx[wl.result.peak_index] - 4.5) > 0.000001) { println("Welch tone power is wrong"); exit(1); }
+
+legs = 1;
+if (which("lmda") == null) { println("leg 3 skipped: lmda not on PATH (cargo build --release in lmctlhq/lmda; see examples/schemas/README.md)"); }
+else {
+  d = lmda.series_spectrum({csv: csvtext, column: "v", detrend: "none", top: 3});
+  if (d.status != "ok") { println("lmda series_spectrum failed:", json_stringify(d)); exit(1); }
+  top = 0;
+  for (k = 0; k < len(d.result.bins); k = k + 1) { if (d.result.bins[k].power > top) { top = d.result.bins[k].power; } }
+  gap = 0;
+  for (k = 0; k < len(d.result.bins); k = k + 1) { e = abs(d.result.bins[k].power - r.pxx[k]) / top; if (e > gap) { gap = e; } }
+  println(sprintf("leg 3: lmda series_spectrum, %d bins: largest difference relative to the largest bin %.12f; lmda top bins %d, %d", len(d.result.bins), gap, d.result.top[0].bin, d.result.top[1].bin));
+  worst = max(worst, gap);
+  legs = 2;
+}
+println(sprintf("%d comparison group(s); largest relative difference %.12f", legs, worst));
+if (worst > 0.000000001) { println("spectrum mismatch above 1e-9"); exit(1); }
+println("Spectrum agrees within 1e-9.");

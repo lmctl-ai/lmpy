@@ -1,0 +1,67 @@
+// access: read
+// What it does: interpolates the same nodes with pycli interp_eval and with R (rcli interp_approx / interp_spline) and compares the methods that
+//   are the same mathematical object: linear <-> approx(linear), cubic natural <-> splinefun(natural), cubic periodic <-> splinefun(periodic).
+//   The R methods that are NOT the same object (fmm vs not-a-knot, monoH.FC vs pchip) are printed as information, not asserted: see
+//   docs/oracle-findings.md. A closed-form check (a cubic polynomial is reproduced exactly) needs no other tool and always runs.
+// Tolerance: 1e-9 absolute for the identical methods; 1e-10 for the polynomial identity.
+// Setup: see examples/schemas/README.md (the rcli leg is skipped with a hint when rcli is not on PATH).
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+function maxdiff(label, a, b) {
+  worst = 0;
+  for (i = 0; i < len(a); i = i + 1) {
+    d = abs(a[i] - b[i]);
+    if (d > worst) { worst = d; }
+  }
+  println(sprintf("  %s: %d points, largest |difference| %.12f", label, len(a), worst));
+  return worst;
+}
+
+x = [0.0, 0.5, 1.5, 2.0, 3.5, 4.0, 6.0, 6.5, 8.0];
+y = [1.2, 0.7, 2.9, 3.1, 1.4, 0.2, 2.2, 3.3, 1.9];
+xout = [0.25, 0.75, 1.0, 1.75, 2.5, 3.0, 3.75, 4.5, 5.0, 5.5, 6.25, 7.0, 7.5, 7.9];
+yp = [1.2, 0.7, 2.9, 3.1, 1.4, 0.2, 2.2, 3.3, 1.2];
+
+// closed form: f(t) = 2t^3 - 3t^2 + t - 5 is reproduced exactly by the not-a-knot spline through any 4+ nodes
+poly = [];
+for (i = 0; i < len(x); i = i + 1) { poly = concat(poly, [2 * x[i] * x[i] * x[i] - 3 * x[i] * x[i] + x[i] - 5]); }
+exact = [];
+for (i = 0; i < len(xout); i = i + 1) { t = xout[i]; exact = concat(exact, [2 * t * t * t - 3 * t * t + t - 5]); }
+c = pycli.interp_eval({kind: "cubic", x: x, y: poly, x_new: xout});
+if (c.status == "simulated") { println("Interpolation comparison simulated."); exit(0); }
+if (c.status != "ok" || c.result.status != "OK") { println("pycli cubic failed:", json_stringify(c)); exit(1); }
+println("leg 0: not-a-knot cubic vs the cubic polynomial it samples");
+worst = maxdiff("cubic polynomial", c.result.values, exact);
+if (worst > 0.0000000001) { println("polynomial identity violated"); exit(1); }
+
+lin = pycli.interp_eval({kind: "linear", x: x, y: y, x_new: xout});
+nat = pycli.interp_eval({kind: "cubic", bc_type: "natural", x: x, y: y, x_new: xout});
+per = pycli.interp_eval({kind: "cubic", bc_type: "periodic", x: x, y: yp, x_new: xout});
+pch = pycli.interp_eval({kind: "pchip", x: x, y: y, x_new: xout});
+nak = pycli.interp_eval({kind: "cubic", x: x, y: y, x_new: xout});
+legs = 0;
+if (which("rcli") == null) { println("R legs skipped: rcli not on PATH (see examples/schemas/README.md)"); }
+else {
+  println("leg 1: linear vs R approx(method = linear)");
+  r = rcli.interp_approx({x: x, y: y, xout: xout, method: "linear"});
+  if (r.status != "ok") { println("rcli interp_approx failed:", json_stringify(r)); exit(1); }
+  worst = max(worst, maxdiff("linear", lin.result.values, r.result.value));
+  println("leg 2: cubic natural vs R splinefun(method = natural)");
+  r = rcli.interp_spline({x: x, y: y, xout: xout, method: "natural"});
+  if (r.status != "ok") { println("rcli interp_spline failed:", json_stringify(r)); exit(1); }
+  worst = max(worst, maxdiff("natural", nat.result.values, r.result.value));
+  println("leg 3: cubic periodic vs R splinefun(method = periodic)");
+  r = rcli.interp_spline({x: x, y: yp, xout: xout, method: "periodic"});
+  if (r.status != "ok") { println("rcli interp_spline failed:", json_stringify(r)); exit(1); }
+  worst = max(worst, maxdiff("periodic", per.result.values, r.result.value));
+  println("information (not asserted): different mathematical objects");
+  r = rcli.interp_spline({x: x, y: y, xout: xout, method: "fmm"});
+  maxdiff("R fmm vs pycli not-a-knot", nak.result.values, r.result.value);
+  r = rcli.interp_spline({x: x, y: y, xout: xout, method: "monoH.FC"});
+  maxdiff("R monoH.FC vs pycli pchip", pch.result.values, r.result.value);
+  legs = 3;
+}
+println(sprintf("%d R leg(s) compared; largest absolute difference over the asserted legs %.12f", legs, worst));
+if (worst > 0.000000001) { println("interpolation mismatch above the 1e-9 tolerance"); exit(1); }
+println("Interpolation agrees within 1e-9.");

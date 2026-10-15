@@ -1,0 +1,72 @@
+// access: read
+// What it does: a practical spatial story. 40 deterministic pseudo-random "depots" in the unit square and 5 "customers": the 3 nearest depots of
+//   every customer (spatial_knn), the area and perimeter of the region the depots span (spatial_hull convex_hull) and the depot-to-depot
+//   distance matrix (spatial_dist). Every answer is cross-checked in lmscript without trusting the library: brute-force sorted distances,
+//   the shoelace area of the returned hull vertices, and a symmetric zero-diagonal matrix.
+// Tolerance: 1e-12 for distances, 1e-12 for the area and perimeter.
+// How to run: put the pycli bin directory on PATH, then run lmscript examples/spatial-neighbours.lms
+import "../cli.schema.dev.json" as pycli;
+
+seed = 2024;
+depots = [];
+for (i = 0; i < 40; i = i + 1) {
+  seed = (75 * seed + 74) % 65537;
+  px = seed / 65537;
+  seed = (75 * seed + 74) % 65537;
+  depots = concat(depots, [[px, seed / 65537]]);
+}
+customers = [[0.1, 0.1], [0.9, 0.2], [0.5, 0.5], [0.2, 0.8], [0.95, 0.95]];
+
+nn = pycli.spatial_knn({points: depots, queries: customers, k: 3});
+if (nn.status == "simulated") { println("Spatial story simulated."); exit(0); }
+if (nn.status != "ok" || nn.result.status != "OK") { println("spatial_knn failed:", json_stringify(nn)); exit(1); }
+for (q = 0; q < 5; q = q + 1) {
+  all = [];
+  for (j = 0; j < 40; j = j + 1) {
+    dx = depots[j][0] - customers[q][0];
+    dy = depots[j][1] - customers[q][1];
+    all = concat(all, [sqrt(dx * dx + dy * dy)]);
+  }
+  sorted = sort(all);
+  line = sprintf("customer %d nearest depots %d, %d, %d at distances", q, nn.result.indices[q][0], nn.result.indices[q][1], nn.result.indices[q][2]);
+  for (m = 0; m < 3; m = m + 1) {
+    line = line + sprintf(" %.4f", nn.result.distances[q][m]);
+    if (abs(nn.result.distances[q][m] - sorted[m]) > 0.000000000001) { println("neighbour distance disagrees with brute force"); exit(1); }
+    // the reported index must really be at the reported distance
+    j = nn.result.indices[q][m];
+    dx = depots[j][0] - customers[q][0];
+    dy = depots[j][1] - customers[q][1];
+    if (abs(sqrt(dx * dx + dy * dy) - nn.result.distances[q][m]) > 0.000000000001) { println("index and distance disagree"); exit(1); }
+  }
+  println(line);
+}
+
+h = pycli.spatial_hull({points: depots, kind: "convex_hull"});
+if (h.status != "ok" || h.result.status != "OK") { println("spatial_hull failed:", json_stringify(h)); exit(1); }
+// shoelace over the hull vertices (2-D hulls list them counter-clockwise) and the perimeter from the same polygon
+v = h.result.vertices;
+area2 = 0;
+perimeter = 0;
+for (a = 0; a < len(v); a = a + 1) {
+  b = (a + 1) % len(v);
+  area2 = area2 + depots[v[a]][0] * depots[v[b]][1] - depots[v[b]][0] * depots[v[a]][1];
+  dx = depots[v[b]][0] - depots[v[a]][0];
+  dy = depots[v[b]][1] - depots[v[a]][1];
+  perimeter = perimeter + sqrt(dx * dx + dy * dy);
+}
+println(sprintf("hull: %d of 40 depots on the boundary, area %.9f (shoelace %.9f), perimeter %.9f (polygon %.9f)", h.result.n_vertices, h.result.volume, abs(area2) / 2, h.result.area, perimeter));
+if (abs(h.result.volume - abs(area2) / 2) > 0.000000000001 || abs(h.result.area - perimeter) > 0.000000000001) { println("hull area or perimeter disagrees with the polygon"); exit(1); }
+
+first = [];
+for (a = 0; a < 6; a = a + 1) { first = concat(first, [depots[a]]); }
+d = pycli.spatial_dist({a: first, metric: "euclidean"});
+if (d.status != "ok" || d.result.status != "OK") { println("spatial_dist failed:", json_stringify(d)); exit(1); }
+for (a = 0; a < 6; a = a + 1) {
+  if (d.result.distances[a][a] != 0) { println("diagonal is not zero"); exit(1); }
+  for (b = 0; b < 6; b = b + 1) {
+    dx = depots[a][0] - depots[b][0];
+    dy = depots[a][1] - depots[b][1];
+    if (abs(d.result.distances[a][b] - sqrt(dx * dx + dy * dy)) > 0.000000000001) { println("distance matrix entry disagrees"); exit(1); }
+  }
+}
+println("6 x 6 depot distance matrix matches the hand formula; the spatial story passed.");

@@ -1,0 +1,44 @@
+// access: read
+// What it does: a practical pipeline. A synthetic noisy record (four smooth pulses at known positions plus deterministic pseudo-random noise,
+//   100 Hz sampling) is low-pass filtered with a zero-phase 4th-order Butterworth (sig_filter, second-order sections) and its peaks are located
+//   with sig_peaks. The filtered peaks must sit within 2 samples of the true pulse centres with heights within 15 %; the unfiltered record is
+//   shown for contrast (many noise peaks above the same threshold).
+// Tolerance: positions within 2 samples, heights within 15 % of the truth.
+// How to run: put the pycli bin directory on PATH, then run lmscript examples/sig-denoise-peaks.lms
+import "../cli.schema.dev.json" as pycli;
+
+n = 400;
+centres = [60, 150, 240, 330];
+heights = [3.0, 2.0, 4.0, 2.5];
+seed = 12345;
+x = [];
+for (i = 0; i < n; i = i + 1) {
+  v = 0;
+  for (k = 0; k < 4; k = k + 1) {
+    t = (i - centres[k]) / 14;
+    if (abs(t) < 1) { v = v + heights[k] * (1 - t * t) * (1 - t * t); }
+  }
+  seed = (75 * seed + 74) % 65537;
+  x = concat(x, [v + (seed / 65537 - 0.5) * 1.2]);
+}
+raw = pycli.sig_peaks({x: x, height: 0.5});
+if (raw.status == "simulated") { println("Pipeline simulated."); exit(0); }
+if (raw.status != "ok" || raw.result.status != "OK") { println("sig_peaks (raw) failed:", json_stringify(raw)); exit(1); }
+println(sprintf("raw record: %d local maxima above 0.5 (mostly noise)", raw.result.n_peaks));
+
+f = pycli.sig_filter({family: "butter", order: 4, btype: "lowpass", wn: 6.0, fs: 100.0, x: x, mode: "sosfiltfilt", freqs: [1.0, 6.0, 20.0]});
+if (f.status != "ok" || f.result.status != "OK") { println("sig_filter failed:", json_stringify(f)); exit(1); }
+println(sprintf("filter: %d sections, stable %s, |H| at 1, 6, 20 Hz = %.6f %.6f %.6f (one pass; sosfiltfilt squares it)", f.result.n_sections, json_stringify(f.result.stable), f.result.magnitude[0], f.result.magnitude[1], f.result.magnitude[2]));
+if (abs(f.result.magnitude[1] - 0.7071067811865476) > 0.000000001) { println("the -3 dB point of the Butterworth is not at 6 Hz"); exit(1); }
+
+pk = pycli.sig_peaks({x: f.result.y, height: 1.0, distance: 40});
+if (pk.status != "ok" || pk.result.status != "OK") { println("sig_peaks (filtered) failed:", json_stringify(pk)); exit(1); }
+println(sprintf("filtered record: %d peaks", pk.result.n_peaks));
+if (pk.result.n_peaks != 4) { println("expected 4 peaks"); exit(1); }
+for (k = 0; k < 4; k = k + 1) {
+  off = pk.result.indices[k] - centres[k];
+  rel = abs(pk.result.heights[k] - heights[k]) / heights[k];
+  println(sprintf("  peak %d: index %d (true %d), height %.3f (true %.1f), prominence %.3f, width %.1f samples", k, pk.result.indices[k], centres[k], pk.result.heights[k], heights[k], pk.result.prominences[k], pk.result.widths[k]));
+  if (abs(off) > 2 || rel > 0.15) { println("peak", k, "is off target"); exit(1); }
+}
+println("Denoise-and-detect pipeline passed.");
