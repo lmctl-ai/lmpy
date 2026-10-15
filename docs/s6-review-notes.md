@@ -19,6 +19,8 @@ Reviewed baseline: `a9a1156`; reports: REVIEW-S6-Opus, REVIEW-S6-Fable and REVIE
 
 The first red review suite against the original test-image binary exited 1: 14 methods, 11 assertion failures and 2 errors. The original independent KKT/PCA oracle passed. Further fixtures split out the LDA/documentation branches and retain completed folds. Behavioral regressions were installed before their implementation changes. Tests inspect the actual CLI and independently calculated tables/gradients; no estimator-vs-estimator numerical oracle.
 
+The batch regression additionally exposed rank-reduced LDA with requested two axes but one actual SVD axis: the old persistence shape check rejected its own model. A separate red reproducer (exit 1) precedes the fix; effective axes are now persisted and flagged, with both one- and two-axis fixtures.
+
 Compatibility: new strict KNN classifier v1 files persist classes_. S6 prototype KNN models missing that tensor fail BAD_MODEL and need refitting. Other family attribute tables and wheel locks are unchanged. Canonical numeric string class labels now return integers; prefix them when textual identity is required. No new dependencies or relaxed resource caps.
 
 Acceptance and measurements are recorded below after final builds.

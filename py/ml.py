@@ -206,7 +206,8 @@ def ml_fit(p):
     # The LDA SVD can retain more discriminant scalings than requested; persist only
     # the public transform's components (predictions use coef_, not scalings_).
     if family=='lda':
-        r=est._max_components
+        r=min(est._max_components,est.scalings_.shape[1])
+        if r==0:return {'status':'DEGENERATE_DATA'}
         tensors=[(k,v[:,:r] if k=='scalings_' else v[:r] if k=='explained_variance_ratio_' else v) for k,v in tensors]
     elif family=='pca':r=est.n_components_
     else:r=1
@@ -217,6 +218,7 @@ def ml_fit(p):
     metadata={k:json.dumps(v,separators=(',',':'),ensure_ascii=False) if not isinstance(v,str) else v for k,v in info.items()}
     if sum(len(k)+len(v) for k,v in metadata.items())>16384:raise BadData('model metadata exceeds 16KiB')
     result={'status':status,'rank':int(est.rank_) if family=='linear' else None,'rank_deficient':bool(est.rank_<x.shape[1]) if family=='linear' else False,'classes':labels,'features':p['features'],'family':family,'model_metadata':metadata,'outputs':save_outputs(p,tensors),'prediction_preview':ml_preview(prediction),'preview_truncated':len(x)>len(next(iter(ml_preview(prediction).values()))),'seed':p.get('seed'),'preprocess':p['preprocess']}
+    if family=='lda':result.update(components=int(r),components_reduced=r<est._max_components)
     ml_inline_parameters(result,tensors)
     if p.get('seed') is None:result.pop('seed')
     if p['ml_spec']['families'][family]['stochastic']:result['generator']='sklearn RandomState(MT19937)'
