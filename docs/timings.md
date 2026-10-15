@@ -236,3 +236,59 @@ negligible for these sizes (<=100 ms even with 200000 data rows). Every S3 call 
 start; this does not trip the persistent-worker gate (still no 20-call sequences in the recipes). The host was not idle
 (shared four-core machine); the numbers are sequential samples, not an idle-host claim. Test suite: `ctest` now has 21 tests
 (~8 minutes in the container; `s3_ops` ~77 s, `expr_parser_asan_fuzz` ~19 s).
+
+## S4 LP/MILP and ODE — aarch64, 2026-10-14
+
+Final runtime **527 MB** in Docker ls / **115241534 content bytes**;
+test **1.05 GB** / **222291947 content bytes**. No new wheel or package.
+Runtime content is 34717 bytes above the historical S3 measurement; the rounded
+527 MB display is unchanged. Final runtime image:
+`sha256:a5d2b45586475842eed754999da11467ab37534b6e74c833b15208af34735b16`.
+Test image: `sha256:bfc00d15a7e61af53017f83f8c94077d758776809c0a99e00f0c9ad1022c450d`.
+Raw IDs, sizes and layer inventories: measurement-s4-packaging.json.
+
+| Workload | Wall p50 ms | Wall p95 ms | Worker import p50 ms | Worker total p50 ms |
+|---|---:|---:|---:|---:|
+| LP | 1020.1 | 1060.2 | 442.2 | 446.3 |
+| MILP | 995.8 | 1086.0 | 431.2 | 435.6 |
+| ODE_decay_RK45 | 1002.3 | 1009.2 | 429.0 | 432.3 |
+| ODE_Robertson_BDF | 1239.8 | 1296.6 | 427.0 | 676.5 |
+
+Ten sequential fresh calls per workload through the production bin/pycli shim,
+network off, --pull=never, two CPUs/4 GiB/128 pids, read-only root, dropped caps,
+no-new-privileges, init and tmpfs. Own builds, acceptance suite, recipes and cap
+probes had finished before measurement; no other Docker container was running.
+The four-core host was shared and loaded, **not idle**. Start/end load averages:
+[3.47412109375, 5.3212890625, 4.462890625] / [2.166015625, 4.71484375, 4.296875].
+vmstat telemetry spans the sample run in measurement-s4-host-during.txt.
+Warm-filesystem samples are retained without filtering; p95 is the maximum of
+ten, consistent with earlier slices. No causal speed claim versus S3 is made.
+Worker import and total come from each response's meta; these are medians of
+those fields, not differences of wall-clock medians.
+
+LP is the hand-solved Wyndor production example (three constraints/two variables,
+maximize, optimum36). MILP is a four-item binary knapsack with capacity8, checked
+by exhaustive enumeration in the tests. RK45 solves y'=-y, y(0)=1 to t1 at default
+tolerances with 101 output samples. BDF solves Robertson to t40, rtol1e-10,
+atol1e-13. Its primary ODEPACK reference and loose-source tolerance qualification
+are in docs/s4.md; a close numerical result is not presented as certified digits.
+Raw samples: measurement-s4-shim.json; reproduce with
+`python3 scripts/measure-s4.py` (exit 0; all 40 calls exit 0, domain OK).
+
+The separate hardened cap run exercised 200000 dense entries, 512 variables,
+4096 rows and 32 ODE states with the largest permitted grid at that state count
+(5926 points /195558 trajectory numbers). All four calls exit 0, domain OK,
+responses <2 KiB; cgroup peak **103346176 bytes (98.56 MiB)** includes NumPy probe
+arrays. Large vectors/trajectories are artifacts, including a 1564608-byte ODE
+safetensors file. These simple hand-checked cases establish allocation at the
+caps, not worst-case MILP complexity. Probe times were under concurrent acceptance
+load and are not shim latency comparisons. Raw command/results:
+measurement-s4-caps.json, details in docs/s4.md.
+
+Final unpiped acceptance: test build (0), `docker run --rm --network=none pycli:test`
+(23/23, 532.30 s, exit 0), runtime build (0), all seven recipes real/check/dry-run
+(21 exits 0), cap probe (0), final-runtime schema/docs check (0). S4 has 16 test
+groups; expression budgets include every RHS component, event and finite-difference
+Jacobian call. HiGHS MIT inventory/notices and parser ASan/UBSan gates pass.
+Temporary helper files/images, superseded S4 images and project-labeled disposable
+builder cache were removed; final runtime/test retained. amd64 remains unverified.

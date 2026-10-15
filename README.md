@@ -425,3 +425,21 @@ and `examples/ode-sir.lms` (population conservation and the infected peak event)
 HiGHS MIT text is already in the shipped SciPy source-notice inventory; S4 adds
 no wheel. Robertson source/tolerances, oracle independence and composition gaps
 are recorded in docs/s4.md. Current timings are in docs/timings.md.
+
+S4 aarch64 runtime: **527 MB** on disk / **115241534 content bytes**; test image
+1.05 GB. No wheel was added. Ten sequential production-shim calls per workload
+on the shared, loaded host (p95 is the maximum of ten):
+
+| Workload | Wall p50 ms | Wall p95 ms |
+|---|---:|---:|
+| Hand-solved Wyndor LP | 1020 | 1060 |
+| Four-item binary knapsack MILP | 996 | 1086 |
+| Exponential decay, RK45 | 1002 | 1009 |
+| Robertson to t=40, BDF | 1240 | 1297 |
+
+Final acceptance: both image builds exit 0; CTest **23/23**, exit 0 (532.30 s),
+including 16 S4 test groups; all seven recipes pass real execution through the
+host shim, `--check` and `--dry-run` (21 exits 0). Hardened cap probes exit 0
+with a 98.56 MiB cgroup peak including the harness. Measurements, load telemetry,
+source-qualified Robertson tolerances and deliberate gaps are in docs/s4.md and
+docs/timings.md. amd64 execution remains unverified.
