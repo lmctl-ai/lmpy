@@ -37,21 +37,21 @@ class S4(unittest.TestCase):
    header=("{'descr': '<f8', 'fortran_order': False, 'shape': "+repr(shape)+", }").encode();header+=b' '*((64-(10+len(header)+1)%64)%64)+b'\n'
    (self.cwd/name).write_bytes(b'\x93NUMPY\x01\0'+struct.pack('<H',len(header))+header+struct.pack('<%dd'%len(values),*values))
   npy('a.npy',(400,400),[float(i==j) for i in range(400) for j in range(400)]);npy('b.npy',(400,),[1.]*400);npy('c.npy',(400,),[-1.]*400)
-  r=self.call('opt_linprog',c='c.npy',a_ub='a.npy',b_ub='b.npy');self.assertEqual(r['status'],'OK');self.assertIsInstance(r['x'],dict);self.assertLess(len(json.dumps(r)),16000);self.assertTrue(pathlib.Path(r['artifact']['path']).is_file())
+  r=self.call('opt_linprog_to',c='c.npy',a_ub='a.npy',b_ub='b.npy',out='large.safetensors');self.assertEqual(r['status'],'OK');self.assertIsInstance(r['x'],dict);self.assertLess(len(json.dumps(r)),16000);self.assertTrue(pathlib.Path(r['artifact']['path']).is_file())
   x=self.call('array_inspect',ref=r['x']['ref'],limit=5);self.assertEqual(x['preview'],[1]*5)
   npy('too.npy',(400,501),[0.]*(400*501))
   self.call('opt_linprog',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),c=[1],a_ub='too.npy',b_ub=[1])
   for params in ({'c':[1,2],'a_ub':[[1]],'b_ub':[1]},{'c':[1],'integrality':['semi']},{'c':[1],'node_limit':100001},{'c':['NaN']},{'c':[1],'time_limit':31}):self.call('opt_linprog',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),**params)
-  self.call('opt_linprog',rc=6,env=dict(os.environ,PYCLI_READONLY='1'),c=[1],out='no.safetensors');self.assertFalse((self.cwd/'no.safetensors').exists())
+  self.call('opt_linprog_to',rc=6,env=dict(os.environ,PYCLI_READONLY='1'),c=[1],out='no.safetensors');self.assertFalse((self.cwd/'no.safetensors').exists())
  def test_lp_limits_artifacts_and_policies(self):
   r=self.call('opt_linprog',c=[1],time_limit=1e-9);self.assertEqual(r['status'],'TIME_LIMIT')
   r=self.call('opt_linprog',c=[3,4,5,8],a_ub=[[2,3,4,5]],b_ub=[8],integrality=['binary']*4,maximize=True,node_limit=0);self.assertIn(r['status'],('OK','NODE_LIMIT'))
   self.call('array_import',format='json',data=[-1,-2],out='input.safetensors')
   r=self.call('opt_linprog',c='input.safetensors#x',bounds=[[0,1],[0,1]]);self.assertEqual(r['x'],[1,1]);self.assertEqual(r['objective'],-3)
-  self.call('opt_linprog',rc=1,c=[1],a_ub=[[1],[-1]],b_ub=[0,-1],out='none.safetensors');self.assertFalse((self.cwd/'none.safetensors').exists())
-  self.ode(rc=6,env=dict(os.environ,PYCLI_READONLY='1'))
+  self.call('opt_linprog_to',rc=1,c=[1],a_ub=[[1],[-1]],b_ub=[0,-1],out='none.safetensors');self.assertFalse((self.cwd/'none.safetensors').exists())
+  self.call('ode_solve_to',rc=6,env=dict(os.environ,PYCLI_READONLY='1'),rhs=['-y[0]'],y0=[1],t_span=[0,1],out='none.safetensors')
   for op,p in [('opt_linprog',{'c':[1]}),('ode_solve',{'rhs':['-y[0]'],'y0':[1],'t_span':[0,1]})]:
-   self.call(op,env=dict(os.environ,PYCLI_DRYRUN='1'),out='dry.safetensors',**p);self.assertFalse((self.cwd/'dry.safetensors').exists())
+   self.call(op+'_to',env=dict(os.environ,PYCLI_DRYRUN='1'),out='dry.safetensors',**p);self.assertFalse((self.cwd/'dry.safetensors').exists())
  def test_highs_license_and_primary_fixture(self):
   license=(ROOT/'licenses/scipy/subprojects/highs/LICENSE.txt').read_bytes();self.assertIn(b'MIT License',license);self.assertIn(license,(ROOT/'THIRD_PARTY_NOTICES.md').read_bytes())
   source=json.loads((ROOT/'tests/fixtures/robertson-source.json').read_text());self.assertEqual(source['sha256'],'da31255ff43e3a13c2c0ccaed51c3cd260b8ac9d9082f34b8587c9007d9a2376');self.assertTrue(any(line==3931 and '7.158403e-01' in text for line,text in source['rows']))
@@ -88,7 +88,7 @@ class S4(unittest.TestCase):
   r=self.ode(t_span=[0,1000000000000],max_step=.001,max_steps=5);self.assertEqual(r['status'],'STEP_LIMIT');self.assertLessEqual(r['steps'],5)
   r=self.ode(rhs=['y[0]^2'],t_span=[0,2],rtol=1e-10,atol=1e-12);self.assertEqual(r['status'],'STEP_SIZE_TOO_SMALL')
  def test_ode_artifacts_and_named_state(self):
-  r=self.ode(max_output_points=1000,out='o.safetensors');self.assertEqual(r['status'],'OK');self.assertIsInstance(r['y'],dict);self.assertTrue((self.cwd/'o.safetensors').exists());self.assertLess(len(json.dumps(r)),16000)
+  r=self.call('ode_solve_to',rhs=['-y[0]'],y0=[1],t_span=[0,1],max_output_points=1000,out='o.safetensors');self.assertEqual(r['status'],'OK');self.assertIsInstance(r['y'],dict);self.assertTrue((self.cwd/'o.safetensors').exists());self.assertLess(len(json.dumps(r)),16000)
   self.assertAlmostEqual(r['final_state'][0],math.exp(-1),delta=1e-5)
   r=self.ode(rhs={'s':'-k*s'},y0={'s':1},params={'k':2});self.assertAlmostEqual(r['final_state'][0],math.exp(-2),delta=1e-5)
  def test_injection_and_caps_before_spawn(self):

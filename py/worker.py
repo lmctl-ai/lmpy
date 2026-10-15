@@ -381,12 +381,12 @@ class NumericalWarning(RuntimeWarning):
     pass
 
 
-NUMERIC_OPS = ('opt_minimize', 'opt_least_squares', 'num_quad', 'num_root', 'opt_linprog', 'ode_solve')
+NUMERIC_OPS = ('opt_minimize', 'opt_least_squares', 'num_quad', 'num_root', 'opt_linprog', 'ode_solve', 'opt_linprog_to', 'ode_solve_to')
 
 
 def numeric_operation(name):
     """S3 dispatch table, resolved at call time so py/worker.py still imports on its own (numerics.py is prepended)."""
-    return {'opt_linprog': opt_linprog, 'ode_solve': ode_solve, 'opt_minimize': opt_minimize, 'opt_least_squares': opt_least_squares, 'num_quad': num_quad, 'num_root': num_root}[name]
+    return {'opt_linprog': opt_linprog, 'opt_linprog_to': opt_linprog, 'ode_solve': ode_solve, 'ode_solve_to': ode_solve, 'opt_minimize': opt_minimize, 'opt_least_squares': opt_least_squares, 'num_quad': num_quad, 'num_root': num_root}[name]
 
 
 OPS = {'py_info': info, 'la_solve': solve, 'la_solve_to': solve, 'stats_dist': distribution,
@@ -424,7 +424,7 @@ def main():
         sys.meta_path.insert(0, BlockedImports())
         sys.addaudithook(audit)
         imported = time.monotonic()
-        if request['op'] in ('opt_linprog','ode_solve'):
+        if request['op'] in ('opt_linprog','ode_solve','opt_linprog_to','ode_solve_to'):
             request['params']['time_budget_s']=max(0.0,request['params']['time_budget_s']-(imported-start))
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter('always')

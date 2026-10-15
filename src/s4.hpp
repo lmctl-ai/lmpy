@@ -2,14 +2,22 @@
 #pragma once
 constexpr size_t LP_VARIABLES=512, LP_ROWS=4096, LP_ENTRIES=200000, ODE_STATES=32, ODE_POINTS=10000, S4_OUTPUT_NUMBERS=200000;
 double s4_number(const Json& p,const char* key,double low,double high){if(!p.at(key).is_number())bad_param(std::string(key)+" must be a number");double x=p.at(key).get<double>();if(!std::isfinite(x)||x<low||x>high)bad_param(std::string(key)+" out of range");return x;}
+constexpr double LP_MAGNITUDE=1e15, LP_MIN_RATIO=1e-9;
+void lp_magnitude(double x,const std::string& name){if(!std::isfinite(x)||std::abs(x)>LP_MAGNITUDE)invalid(name+" finite magnitude must be <=1e15","VALUE_EXCEEDS_SOLVER_LIMIT");}
+void lp_values(const Array& a,const std::string& name){need_finite(a,name.c_str());for(double x:a.data)lp_magnitude(x,name);}
+void lp_row_range(const double* values,size_t n,double rhs,const std::string& name){
+ double largest=0,smallest=INFINITY;for(size_t j=0;j<n;++j){double x=std::abs(values[j]);if(x){largest=std::max(largest,x);smallest=std::min(smallest,x);}}
+ if(largest&&smallest/largest<LP_MIN_RATIO)invalid(name+" nonzero coefficient ratio must be >=1e-9 after row/objective scaling","UNSAFE_COEFFICIENT_RANGE");
+ if(largest)lp_magnitude(rhs/largest,name+" scaled RHS");
+}
 Json prepare_linprog(const Params& in,std::map<std::string,Array>& arrays){
- Json p=in;arrays["c"]=load(in.at("c"));const auto& c=arrays["c"];if(c.shape.size()!=1||c.data.size()>LP_VARIABLES)invalid("LP needs 1..512 variables","INPUT_TOO_LARGE");need_finite(c,"c");size_t n=c.data.size(),entries=0,rows=0;
+ Json p=in;arrays["c"]=load(in.at("c"));const auto& c=arrays["c"];if(c.shape.size()!=1||c.data.size()>LP_VARIABLES)invalid("LP needs 1..512 variables","INPUT_TOO_LARGE");lp_values(c,"c");lp_row_range(c.data.data(),c.data.size(),0,"c");size_t n=c.data.size(),entries=0,rows=0;
  for(auto suffix:{"ub","eq"}){std::string a="a_"+std::string(suffix),b="b_"+std::string(suffix);if(in.contains(a)!=in.contains(b))bad_param(a+" and "+b+" must be supplied together");if(!in.contains(a))continue;
-  arrays[a]=load(in.at(a));arrays[b]=load(in.at(b));const auto& aa=arrays[a];const auto& bb=arrays[b];need_finite(aa,a.c_str());need_finite(bb,b.c_str());
-  if(aa.shape.size()!=2||bb.shape.size()!=1||size_t(aa.shape[1])!=n||size_t(aa.shape[0])!=bb.data.size())bad_param("LP matrix/vector dimensions disagree");entries+=aa.data.size();rows+=bb.data.size();
+  arrays[a]=load(in.at(a));arrays[b]=load(in.at(b));const auto& aa=arrays[a];const auto& bb=arrays[b];lp_values(aa,a);lp_values(bb,b);
+  if(aa.shape.size()!=2||bb.shape.size()!=1||size_t(aa.shape[1])!=n||size_t(aa.shape[0])!=bb.data.size())bad_param("LP matrix/vector dimensions disagree");for(size_t i=0;i<bb.data.size();++i)lp_row_range(aa.data.data()+i*n,n,bb.data[i],a);entries+=aa.data.size();rows+=bb.data.size();
  }
  if(entries>LP_ENTRIES||rows>LP_ROWS)invalid("LP allows <=200000 combined matrix entries and <=4096 rows","INPUT_TOO_LARGE");
- Json bounds=Json::array();auto read_end=[](const Json& x,bool upper){if(x.is_null()||(x.is_string()&&x==(upper?"Inf":"-Inf")))return upper?std::numeric_limits<double>::infinity():-std::numeric_limits<double>::infinity();if(!x.is_number()||!std::isfinite(x.get<double>()))bad_param("LP bounds must be finite, null or signed infinity tokens");return x.get<double>();};
+ Json bounds=Json::array();auto read_end=[](const Json& x,bool upper){if(x.is_null()||(x.is_string()&&x==(upper?"Inf":"-Inf")))return upper?std::numeric_limits<double>::infinity():-std::numeric_limits<double>::infinity();if(!x.is_number()||!std::isfinite(x.get<double>()))bad_param("LP bounds must be finite, null or signed infinity tokens");lp_magnitude(x.get<double>(),"bounds");return x.get<double>();};
  if(in.contains("bounds")&&(!in["bounds"].is_array()||in["bounds"].size()!=n))bad_param("bounds need one [lower,upper] per variable");
  Json kinds=in.value("integrality",Json::array());if(!kinds.is_array()||(!kinds.empty()&&kinds.size()!=n))bad_param("integrality needs one continuous/integer/binary enum per variable");
  Json integers=Json::array();
@@ -44,7 +52,7 @@ Json prepare_ode(const Params& in,std::map<std::string,Array>& arrays){
  std::vector<double> grid;Json added=Json::array();if(in.contains("t_eval")){auto a=load(in["t_eval"]);need_finite(a,"t_eval");if(a.shape.size()!=1||a.data.size()>ODE_POINTS)invalid("t_eval needs <=10000 points","INPUT_TOO_LARGE");grid=a.data;double sign=t[1]>t[0]?1:-1;
   for(size_t i=0;i<grid.size();++i)if(sign*(grid[i]-t[0])<0||sign*(t[1]-grid[i])<0||(i&&sign*(grid[i]-grid[i-1])<=0))bad_param("t_eval must be strictly ordered within t_span");
   if(grid.front()!=t[0]){grid.insert(grid.begin(),t[0]);added.push_back(t[0]);}if(grid.back()!=t[1]){grid.push_back(t[1]);added.push_back(t[1]);}
- }else{size_t count=int_param(in,"max_output_points",2,ODE_POINTS);for(size_t i=0;i<count;++i)grid.push_back(t[0]+(t[1]-t[0])*(double(i)/double(count-1)));grid.back()=t[1];}
+ }else{size_t count=int_param(in,"max_output_points",2,ODE_POINTS);for(size_t i=0;i<count;++i)grid.push_back(double(static_cast<long double>(t[0])+(static_cast<long double>(t[1])-t[0])*i/(count-1)));grid.front()=t[0];grid.back()=t[1];grid.erase(std::unique(grid.begin(),grid.end()),grid.end());}
  if(grid.size()>ODE_POINTS||(grid.size()+1)*(n+1)+128*(n+2)+n> S4_OUTPUT_NUMBERS)invalid("ODE output number budget exceeded","INPUT_TOO_LARGE");
  int_param(in,"max_evals",1,200000);int_param(in,"max_steps",1,20000);s4_number(in,"time_limit",1e-9,30);s4_number(in,"rtol",1e-13,0.1);
  if(in["atol"].is_array()){if(in["atol"].size()!=n)bad_param("atol vector must match state count");for(const auto& x:in["atol"])if(!x.is_number()||!std::isfinite(x.get<double>())||x.get<double>()<1e-15||x.get<double>()>0.1)bad_param("atol out of range");}else s4_number(in,"atol",1e-15,0.1);

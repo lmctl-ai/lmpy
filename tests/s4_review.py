@@ -46,12 +46,15 @@ class Review(unittest.TestCase):
   r=self.call(c=[1],a_ub=[[1],[-1]],b_ub=[0,-1]);self.assertEqual(r['status'],'INFEASIBLE');self.assertEqual(r['highs_model_status'],8)
  def test_failed_ode_metadata_and_short_grid(self):
   r=self.ode(rhs=['y[0]^2'],t_span=[0,2],rtol=1e-10,atol=1e-12);self.assertEqual(r['status'],'STEP_SIZE_TOO_SMALL');self.assertEqual(r['termination'],'failed');self.assertTrue(r['partial_trajectory'])
+ def test_short_grid(self):
   for span in ([1e9,1e9+.000001],[1e9+.000001,1e9]):
    r=self.ode(rhs=['1'],y0=[0],t_span=span);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['final_state'][0],span[1]-span[0],delta=1e-15);self.assertEqual(len(set(r['t'])),len(r['t']));self.assertLess(r['effective_output_points'],101)
  def test_initial_event_and_integer_indices(self):
   for direction in (-1,0,1):
    for terminal in (False,True):
     r=self.ode(events=[{'expr':'y[0]-1','direction':direction,'terminal':terminal}]);self.assertEqual(r['event_counts'],[0]);self.assertEqual(r['final_time'],1)
+ def test_integer_event_indices(self):
+  r=self.ode(events=[{'expr':'y[0]-0.5','direction':-1}]);self.assertIs(type(r['event_index'][0]),int)
   r=self.ode(rhs=['1'],y0=[0],t_span=[0,8],max_step=.1,events=[{'expr':'sin(t)','direction':1,'terminal':True}]);self.assertAlmostEqual(r['final_time'],2*math.pi,places=8);self.assertEqual(r['event_counts'],[1]);self.assertIs(type(r['event_index'][0]),int)
   r=self.ode(rhs=['y[1]','-9.81'],y0=[10,0],t_span=[0,5],t_eval=[0,1,3,5],events=[{'expr':'y[0]','direction':-1,'terminal':True}]);self.assertAlmostEqual(r['t'][-1],math.sqrt(20/9.81),places=8);self.assertAlmostEqual(r['y'][-1][0],0,delta=1e-8)
  def test_limits_equality_duals_and_integer_output(self):
@@ -59,7 +62,7 @@ class Review(unittest.TestCase):
   p=dict(c=values,a_ub=weights,b_ub=[sum(row)//2 for row in weights],integrality=['binary']*60,maximize=True)
   r=self.call(**p,node_limit=0);self.assertEqual(r['status'],'NODE_LIMIT');self.assertEqual(r['highs_model_status'],16);self.assertFalse(r['has_primal'])
   r=self.call(**p,time_limit=.001);self.assertEqual(r['status'],'TIME_LIMIT');self.assertEqual(r['highs_model_status'],13)
-  r=self.call(**p,node_limit=1);self.assertIn(r['status'],('NODE_LIMIT','OK'));self.assertTrue(r['has_primal']);self.assertTrue(all(x==round(x) and (x!=0 or math.copysign(1,x)==1) for x in r['x']))
+  r=self.call(**p,node_limit=1);self.assertEqual(r['status'],'NODE_LIMIT');self.assertEqual(r['highs_model_status'],16);self.assertTrue(r['has_primal']);self.assertTrue(all(x==round(x) and (x!=0 or math.copysign(1,x)==1) for x in r['x']))
   p=dict(c=[3,5],a_ub=[[1,0],[0,2]],b_ub=[4,12],a_eq=[[3,2]],b_eq=[18],maximize=True);r=self.call(**p);s=self.call(**dict(p,b_eq=[18.0001]));self.assertAlmostEqual((s['objective']-r['objective'])/.0001,r['duals']['eq'][0],places=7)
  def test_read_twins_and_write_twins(self):
   for op,p in [('opt_linprog',{'c':[1]}),('ode_solve',{'rhs':['-y[0]'],'y0':[1],'t_span':[0,1]})]:
@@ -75,8 +78,11 @@ class Review(unittest.TestCase):
    p=dict(c_file=str(self.cwd/'c.npy'),a_ub_file=str(self.cwd/'a.npy'),b_ub_file=str(self.cwd/'b.npy'),maximize=False,bounds=[[0,2]],integrality=[int(integer)],time_limit=10,time_budget_s=10,maxiter=10000,node_limit=10000,mip_rel_gap=0,force_artifact=False)
    a=OptimizeResult(status=0,message='Optimization terminated (HiGHS Status 7: Optimal)',nit=0,x=np.array([x]),ineqlin={'marginals':np.array([dual])},eqlin={'marginals':np.array([])},lower={'marginals':np.array([0.])},upper={'marginals':np.array([0.])},mip_gap=0)
    with patch('scipy.optimize.linprog',return_value=a):return W.opt_linprog(p)
-  self.assertEqual(run(2,0)['status'],'NUMERICAL_FAILURE')
-  self.assertEqual(run(1,0)['status'],'NUMERICAL_FAILURE')
-  self.assertEqual(run(1,float('nan'))['status'],'NUMERICAL_FAILURE')
+  for x,dual in [(2,0),(1,0),(1,float('nan'))]:
+   with self.subTest(x=x,dual=dual):self.assertEqual(run(x,dual)['status'],'NUMERICAL_FAILURE')
   r=run(.99999999,0,True);self.assertEqual(r['x'],[1]);self.assertGreater(r['integrality_error'],0)
+ def test_integer_zero_sign_and_artifact_flag(self):
+  r=self.call(c=[3,4,5,8],a_ub=[[2,3,4,5]],b_ub=[8],integrality=['binary']*4,maximize=True)
+  self.assertTrue(all(x==round(x) and (x!=0 or math.copysign(1,x)==1) for x in r['x']))
+  self.assertFalse(r['outputs_in_artifact'])
 if __name__=='__main__':unittest.main()
