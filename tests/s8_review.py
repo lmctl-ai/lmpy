@@ -1,4 +1,5 @@
 """S8a review regressions: hand-computed expectations and independent NPZ decoding."""
+import pathlib
 from s8_ops import Base, call, rejected, NO_PYTHON, BIN, ROOT, np, json, os, subprocess, unittest
 
 class Review(Base):
@@ -131,6 +132,37 @@ class Review(Base):
             self.assertEqual(z['preview']['data']['x__sum'],[1.,3.,6.,8.])
         z=call('ml_metrics',dict(y_true=[0,0,1,1],y_pred=[0,0,0,2],metrics=['balanced_accuracy']))
         self.assertEqual(z['metrics']['balanced_accuracy'],.5)
+
+    def worker(self):
+        ns={'__name__':'review_worker'}
+        source='\n'.join((pathlib.Path(os.environ['REVIEW_BASELINE_S8']) if name=='s8.py' and os.environ.get('REVIEW_BASELINE_S8') else ROOT/'py'/name).read_text() for name in ('frames.py','numerics.py','s4.py','sm.py','ml.py','s7.py','s8.py','worker.py'))
+        exec(compile(source,'embedded-worker','exec'),ns)
+        return ns
+
+    def test_join_budget_precedes_gather(self):
+        l=self.csv_table({'k':[1]*5000},name='left.npz')
+        r=self.table({'k':[1],'s':['x'*65000]},name='right.npz')
+        w=self.worker()
+        def forbidden(*args): raise AssertionError('gather occurred before byte-budget validation')
+        w['s8_take']=forbidden
+        with self.assertRaises(w['OutputTooLarge']):
+            w['frame_merge'](dict(left_file=l,right_file=r,left_keys=['k'],right_keys=['k'],key_shared=True,how='left',validate='many_to_one',max_rows=200000,output_names=['k','s']))
+
+    def test_registered_budgets_reach_guard(self):
+        w=self.worker(); observed=[]
+        def timeout(p,body): observed.append(p['time_limit']); return None
+        w['s7_guard']=timeout
+        for name in ('frame_merge','ml_metrics','array_to_frame','frame_to_array_to','stats_dist_to'):
+            self.assertEqual(w['s8_operation'](name)({'time_limit':.125})['status'],'TIME_LIMIT',name)
+        self.assertEqual(observed,[.125]*5)
+
+    def test_schema_contract_corrections(self):
+        ops={v['name']:v for v in json.loads(subprocess.run([BIN,'--schema'],capture_output=True,text=True).stdout)['operations']}
+        self.assertIn('only inside',ops['frame_mutate']['description'])
+        params={v['name']:v for v in ops['array_to_frame']['params']}
+        self.assertIn('inline JSON',params['dtypes']['description'])
+        self.assertIn('zero_division',next(v for v in ops['ml_metrics']['params'] if v['name']=='average')['description'])
+        self.assertIn('time_limit',{v['name'] for v in ops['stats_dist_to']['params']})
 
     def test_density_envelope_and_param_status(self):
         z=call('stats_dist',dict(dist='norm',fn='cdf',x=[0.],params={}))
