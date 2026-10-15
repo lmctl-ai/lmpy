@@ -318,7 +318,14 @@ def sm_robust_f(np, res):
         return math.nan, math.nan
     beta = np.asarray(res.params, dtype=float)[keep]
     cov = np.asarray(res.cov_params(), dtype=float)[np.ix_(keep, keep)]
-    statistic = float(beta @ np.linalg.solve(cov, beta)) / len(keep)
+    # A covariance of effective rank below the number of restrictions (rank-deficient design, or fewer clusters than coefficients)
+    # has no valid Wald F with len(keep) numerator degrees of freedom: report it as unavailable instead of dividing by the wrong df.
+    if not np.isfinite(cov).all() or np.linalg.matrix_rank(cov) < len(keep):
+        return math.nan, math.nan
+    try:
+        statistic = float(beta @ np.linalg.solve(cov, beta)) / len(keep)
+    except np.linalg.LinAlgError:
+        return math.nan, math.nan
     return statistic, float(stats.f.sf(statistic, len(keep), res.df_resid))
 
 
@@ -370,12 +377,21 @@ def sm_ols(p):
     if no_dof:
         result['no_dof'] = True
     with np.errstate(all='ignore'):
-        f_statistic, f_p_value = (float(res.fvalue), float(res.f_pvalue)) if cov_type == 'nonrobust' else sm_robust_f(np, res)
+        if cov_type == 'nonrobust':
+            f_statistic, f_p_value = float(res.fvalue), float(res.f_pvalue)
+        elif rank < k:
+            f_statistic, f_p_value = math.nan, math.nan
+        else:
+            f_statistic, f_p_value = sm_robust_f(np, res)
         result.update({'r2': float(res.rsquared), 'r2_adj': float(res.rsquared_adj), 'f_statistic': f_statistic, 'f_p_value': f_p_value, 'k_params': k,
                        'llf': float(res.llf), 'aic': float(res.aic), 'bic': float(res.bic), 'ssr': float(res.ssr),
                        'sigma': float(math.sqrt(res.mse_resid)) if res.df_resid > 0 else math.nan,
                        'condition_number': float(res.condition_number), 'durbin_watson': float(durbin_watson(res.resid))})
     fitted, resid = np.asarray(res.fittedvalues, dtype=float), np.asarray(res.resid, dtype=float)
+    if usable and not (math.isfinite(result['ssr']) and math.isfinite(result['llf']) and np.isfinite(np.asarray(res.bse, dtype=float)).all()):
+        usable = False  # overflowing sums of squares: standard errors would be Inf/NaN, so they are NA and the status says so
+        result['status'] = 'NUMERICAL_FAILURE'
+        result['message'] = 'the sums of squares overflowed; rescale the response and the regressors'
     return sm_regression_output(np, p, names, res, usable, 0, fitted, resid, keep, dropped, coding, result)
 
 
@@ -410,7 +426,8 @@ def sm_glm(p):
                 raise BadData('%s must be positive and finite' % key, 'BAD_WEIGHTS')
             options[option] = values
     cov_type = p['cov_type']
-    use_t = bool(p.get('use_t', False))
+    # t reference distribution when the scale is estimated (gaussian, gamma) and the covariance is the model-based one, as R's summary.glm
+    use_t = bool(p['use_t']) if 'use_t' in p else (family_name in ('gaussian', 'gamma') and cov_type == 'nonrobust')
     kwargs = {'maxiter': p['maxiter'], 'tol': p['tol'], 'use_t': use_t}
     if cov_type == 'cluster':
         groups = np.unique(df[p['cluster']].astype(object).to_numpy()[keep].astype(str), return_inverse=True)[1]
@@ -452,17 +469,24 @@ def sm_glm(p):
     elif not converged:
         result['status'] = 'NO_CONVERGENCE'
     if rank < k:
-        result['status'] = 'RANK_DEFICIENT'
+        result['rank_deficient'] = True
+        if result['status'] == 'OK':  # the more severe statuses (separation, non-convergence) are never masked by collinearity
+            result['status'] = 'RANK_DEFICIENT'
     params = np.asarray(res.params, dtype=float)
-    if not np.isfinite(params).all():
+    mu = np.asarray(res.fittedvalues, dtype=float)
+    support = {'poisson': lambda m: m > 0, 'gamma': lambda m: m > 0, 'binomial': lambda m: (m >= 0) & (m <= 1)}.get(family_name, lambda m: np.isfinite(m))
+    invalid_mean = not (np.isfinite(mu).all() and support(mu).all())
+    if not np.isfinite(params).all() or invalid_mean or not (math.isfinite(float(res.llf)) and math.isfinite(float(res.deviance))):
         result['status'] = 'NUMERICAL_FAILURE'
+        if invalid_mean:
+            result['message'] = 'a fitted mean lies outside the support of the %s family (choose the canonical link or a different model)' % family_name
     parameters = rank  # statsmodels' convention: the scale of gaussian/gamma is not counted (R adds 1; see docs/oracle-findings.md)
     llf = float(res.llf)
     with np.errstate(all='ignore'):
         result.update({'df_model': int(res.df_model), 'df_resid': int(res.df_resid), 'deviance': float(res.deviance), 'null_deviance': float(res.null_deviance),
                        'pearson_chi2': float(res.pearson_chi2), 'scale': float(res.scale), 'llf': llf, 'k_params': parameters, 'aic': -2 * llf + 2 * parameters,
                        'bic': -2 * llf + math.log(n) * parameters})
-    usable = rank == k and np.isfinite(np.asarray(res.bse, dtype=float)).all()
+    usable = rank == k and result['status'] != 'NUMERICAL_FAILURE' and np.isfinite(np.asarray(res.bse, dtype=float)).all()
     fitted, resid = np.asarray(res.fittedvalues, dtype=float), np.asarray(res.resid_response, dtype=float)
     return sm_regression_output(np, p, names, res, usable, 0, fitted, resid, keep, dropped, coding, result)
 
@@ -479,6 +503,9 @@ def sm_series(np, p, df, meta, masks, name, allow_missing):
     return values, int(missing.sum())
 
 
+SM_ARIMA_STATE_CELLS = 25000000
+
+
 def sm_arima(p):
     np, df, meta, masks = sm_load(p)
     import warnings
@@ -489,6 +516,10 @@ def sm_arima(p):
         raise BadData('the series needs at least 10 observations (5 non-missing)', 'BAD_DATA')
     if n > 20000:
         raise BadData('SARIMAX series are limited to 20000 observations', 'INPUT_TOO_LARGE')
+    order, seasonal_order = p['order'], (p.get('seasonal_order') or [0, 0, 0, 0])
+    states = max(order[0] + seasonal_order[3] * seasonal_order[0], order[2] + seasonal_order[3] * seasonal_order[2] + 1) + order[1] + seasonal_order[3] * seasonal_order[1]
+    if n * states * states > SM_ARIMA_STATE_CELLS:  # the fitted results keep several n x states x states covariance arrays
+        raise BadData('ARIMA with %d states on %d observations needs about %d state-covariance cells (limit %d); shorten the series or reduce the orders' % (states, n, n * states * states, SM_ARIMA_STATE_CELLS), 'INPUT_TOO_LARGE')
     exog_names = list(p.get('exog', []))
     exog = None
     if exog_names:
@@ -517,11 +548,26 @@ def sm_arima(p):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')  # statsmodels' own convergence warnings: the verdict is read from mle_retvals
             with np.errstate(all='ignore'):
-                return model.fit(**kwargs)
+                fitted_model = model.fit(**kwargs)
+                # statsmodels' default score is a finite-difference gradient, so L-BFGS stops on the flat ridge of the likelihood well short of the
+                # optimum (REVIEW-S5-Fable 2: 3e-5 in an MA coefficient against lmstats/R). A short derivative-free polish from the converged
+                # point removes that; it is kept only when it raises the log-likelihood, and a time-budget alarm during it keeps the L-BFGS fit.
+                if p['method'] == 'lbfgs' and fitted_model.mle_retvals.get('converged', True) and len(names) <= 8 and n * states * states <= 2000000:
+                    try:
+                        better = model.fit(**dict(kwargs, start_params=np.asarray(fitted_model.params, dtype=float), method='nm', maxiter=400, xtol=1e-9, ftol=1e-13))
+                        if math.isfinite(float(better.llf)) and float(better.llf) > float(fitted_model.llf) and better.mle_retvals.get('converged', True):
+                            polished.append(True)
+                            return better
+                    except _SmAlarm:
+                        pass
+                return fitted_model
+    polished = []
     res = sm_fit_guard(p, body)
     if res is None:
         result['status'] = 'TIME_LIMIT'
         return result
+    if polished:
+        result['polished'] = 'nelder-mead'
     retvals = res.mle_retvals or {}
     converged = bool(retvals.get('converged', True))
     result['converged'] = converged
@@ -572,6 +618,7 @@ def sm_tsa_acf(p):
     limit = n // 2 if p['kind'] == 'pacf' else n
     if nlags >= limit:
         raise BadData('nlags %d must be below %d for a series of length %d' % (nlags, limit, n), 'BAD_PARAM')
+    y = y / float(np.max(np.abs(y)))  # correlations are scale-free; this keeps the covariance products away from overflow/underflow
     with np.errstate(all='ignore'):
         if p['kind'] == 'acf':
             values, ci = acf(y, nlags=nlags, adjusted=p['adjusted'], alpha=p['alpha'], fft=False)
@@ -579,6 +626,8 @@ def sm_tsa_acf(p):
             values, ci = pacf(y, nlags=nlags, method=p['method'], alpha=p['alpha'])
     values = np.asarray(values, dtype=float)
     ci = np.asarray(ci, dtype=float)
+    if not (np.isfinite(values).all() and np.isfinite(ci).all()):
+        return {'status': 'NUMERICAL_FAILURE', 'kind': p['kind'], 'n': n, 'message': 'the correlations are undefined for this series'}
     return {'status': 'OK', 'kind': p['kind'], 'n': n, 'lags': list(range(nlags + 1)), 'values': [float(v) for v in values],
             'ci_lower': [float(v) for v in ci[:, 0]], 'ci_upper': [float(v) for v in ci[:, 1]], 'alpha': p['alpha']}
 

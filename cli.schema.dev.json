@@ -1451,7 +1451,7 @@
       "name": "sm_ols",
       "access": "read",
       "returns": "object",
-      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT; coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form.",
+      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE (overflowing sums of squares; standard errors NA); coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form.",
       "params": [
         {
           "name": "columns",
@@ -1515,7 +1515,7 @@
           "name": "use_t",
           "type": "boolean",
           "occurs": "?",
-          "description": "Use t instead of normal reference distributions."
+          "description": "Use t instead of normal reference distributions. Defaults: sm_ols true for nonrobust; sm_glm true for gaussian/gamma with nonrobust covariance (as R summary.glm), false otherwise."
         },
         {
           "name": "alpha",
@@ -1552,7 +1552,7 @@
       "name": "sm_ols_to",
       "access": "write",
       "returns": "object",
-      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT; coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
+      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE (overflowing sums of squares; standard errors NA); coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
       "params": [
         {
           "name": "columns",
@@ -1616,7 +1616,7 @@
           "name": "use_t",
           "type": "boolean",
           "occurs": "?",
-          "description": "Use t instead of normal reference distributions."
+          "description": "Use t instead of normal reference distributions. Defaults: sm_ols true for nonrobust; sm_glm true for gaussian/gamma with nonrobust covariance (as R summary.glm), false otherwise."
         },
         {
           "name": "alpha",
@@ -1648,7 +1648,7 @@
       "name": "sm_glm",
       "access": "read",
       "returns": "object",
-      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE; coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter.",
+      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA; never masks the more severe statuses, see rank_deficient), TIME_LIMIT, NUMERICAL_FAILURE (non-finite output or a fitted mean outside the family support); coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter.",
       "params": [
         {
           "name": "columns",
@@ -1765,7 +1765,7 @@
           "name": "use_t",
           "type": "boolean",
           "occurs": "?",
-          "description": "Use t instead of normal reference distributions."
+          "description": "Use t instead of normal reference distributions. Defaults: sm_ols true for nonrobust; sm_glm true for gaussian/gamma with nonrobust covariance (as R summary.glm), false otherwise."
         },
         {
           "name": "alpha",
@@ -1802,7 +1802,7 @@
       "name": "sm_glm_to",
       "access": "write",
       "returns": "object",
-      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE; coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
+      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA; never masks the more severe statuses, see rank_deficient), TIME_LIMIT, NUMERICAL_FAILURE (non-finite output or a fitted mean outside the family support); coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
       "params": [
         {
           "name": "columns",
@@ -1919,7 +1919,7 @@
           "name": "use_t",
           "type": "boolean",
           "occurs": "?",
-          "description": "Use t instead of normal reference distributions."
+          "description": "Use t instead of normal reference distributions. Defaults: sm_ols true for nonrobust; sm_glm true for gaussian/gamma with nonrobust covariance (as R summary.glm), false otherwise."
         },
         {
           "name": "alpha",

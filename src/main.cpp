@@ -778,14 +778,14 @@ int main(int argc,char** argv){
         }
         params.push_back(Param{"cov_type",Type::String,false,"nonrobust",{"nonrobust","HC0","HC1","HC2","HC3","cluster"},"Covariance estimator. use_t defaults to true for nonrobust (OLS) and false otherwise, as in statsmodels."});
         params.push_back(Param{"cluster",Type::String,false,nullptr,{},"Cluster column for cov_type cluster."});
-        params.push_back(Param{"use_t",Type::Boolean,false,nullptr,{},"Use t instead of normal reference distributions."});
+        params.push_back(Param{"use_t",Type::Boolean,false,nullptr,{},"Use t instead of normal reference distributions. Defaults: sm_ols true for nonrobust; sm_glm true for gaussian/gamma with nonrobust covariance (as R summary.glm), false otherwise."});
         params.push_back(Param{"alpha",Type::Number,false,0.05,{},"Confidence-interval level is 1-alpha."});
         params.push_back(Param{"na_action",Type::String,false,"error",{"error","drop"},"Missing (null/NaN) values in used columns: error (MISSING_VALUES) or drop the rows and report n_dropped. Infinities are always errors."});
         if(!write)params.push_back(Param{"include",Type::Array,false,nullptr,{},"fitted and/or residuals inline (counted against the 1000-number rule).","",false,false,false,{},Type::String});
         else params.push_back(Param{"out",Type::String,true,nullptr,{},"New .safetensors artifact with coef (p x 6: estimate, std_err, statistic, p_value, ci_lower, ci_upper), fitted and residuals (and row_index when rows were dropped)."});
         if(!write)params.back().enum_values={"fitted","residuals"};
         std::string title=glm?"Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list.":"Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list.";
-        std::string statuses=glm?" Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE; coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter.":" Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT; coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form.";
+        std::string statuses=glm?" Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA; never masks the more severe statuses, see rank_deficient), TIME_LIMIT, NUMERICAL_FAILURE (non-finite output or a fitted mean outside the family support); coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter.":" Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE (overflowing sums of squares; standard errors NA); coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form.";
         return Operation{name,write?Access::Write:Access::Read,title+statuses+(write?" Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).":""),"object",params};
     };
     spec.operations.push_back(regression("sm_ols",false,false));spec.operations.push_back(regression("sm_ols_to",true,false));

@@ -903,7 +903,7 @@ class ReviewS5(Base):
 
     def test_patsy_licence_label(self):  # Astra 3
         text = (ROOT / 'THIRD_PARTY_NOTICES.md').read_text()
-        line = next(l for l in text.splitlines() if 'Patsy' in l and 'BSD' in l)
+        line = next(l for l in text.splitlines() if 'patsy 1.0.3 (' in l)
         self.assertIn('BSD-2-Clause', line)
         self.assertNotIn('BSD-3-Clause', line)
 

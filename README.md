@@ -491,19 +491,29 @@ status is `OK` or `RANK_DEFICIENT`. Domain errors are exit 2: `BAD_TERMS`, `BAD_
 `TOO_MANY_COLUMNS`, `MISSING_VALUES`, `NONFINITE_DATA`, `BAD_START_PARAMS`, `CONSTANT_SERIES`.
 
 OLS: `cov_type` nonrobust|HC0..HC3|cluster (`use_t` defaults to true for nonrobust, false otherwise, as in statsmodels); the robust overall F is
-computed on the array API (statsmodels' own `fvalue` path needs patsy) and tested against it. `aic`/`bic` count `k_params` = number of design
+computed on the array API (statsmodels' own `fvalue` path needs patsy) and tested against it; it is `NaN` when the design is rank deficient
+or the robust covariance has fewer effective dimensions than coefficients (e.g. fewer clusters than coefficients). Overflowing sums of squares
+give `NUMERICAL_FAILURE`. `aic`/`bic` count `k_params` = number of design
 columns, statsmodels' (and lmstats') convention; R counts one more (the error variance), so R's AIC = aic + 2 and BIC = bic + ln(n)
 (recorded in docs/oracle-findings.md). GLM links: gaussian identity|log|inverse_power, poisson log|identity|sqrt, binomial
 logit|probit|cloglog, gamma inverse_power|log|identity (first is the default); `exposure` needs the log link; `weights` are variance
 weights; `maxiter` <= 100 (`n_iter` is reported), `tol` is the IRLS deviance tolerance; gaussian/gamma use the Pearson-based scale. GLM
-standard errors are z-based (`use_t` false) like R's `summary.glm` for families with a fixed or Pearson-estimated scale.
+inference follows R's `summary.glm`: t with `df_resid` for gaussian and gamma (estimated scale; `sm_glm` gaussian equals `sm_ols`), z for poisson
+and binomial, and z for every robust `cov_type`; `use_t` overrides. `n_iter` counts IRLS updates (R's `iter` for the same fit is one higher: it
+counts the final evaluation). A fitted mean outside the family support (e.g. a negative Poisson mean with the identity link) is `NUMERICAL_FAILURE`
+with `NA` uncertainty; `rank_deficient: true` is reported next to the more severe status instead of replacing it. Gamma `llf` is evaluated at
+statsmodels' Pearson scale, whereas R's `logLik` uses deviance/n, and R's AIC counts the dispersion as a parameter (see docs/oracle-findings.md).
+There is no prediction operation: `fitted`/`residuals` cover the training rows only; rebuild the design from `coefficients.names` and `coding`.
 
 ARIMA: `order` p,q <= 5, d <= 2; `seasonal_order` P,Q <= 2, D <= 1, s in 2..24; state dimension <= 64 and <= 24 parameters; series <= 20000
-observations. Parameter names are statsmodels' (`intercept`/`drift`, exog names, `ar.L1`, `ma.L1`, `ar.S.L12`, ..., `sigma2` last). The `c` trend
+observations and observations x states^2 <= 2.5e7 (the fitted results keep several n x states x states covariance arrays; the worker rejects
+larger models with `INPUT_TOO_LARGE` before fitting). The default `lbfgs` fit is followed by a short Nelder-Mead polish for models with at most
+8 parameters (`polished` reports it): statsmodels' finite-difference score stalls L-BFGS on the flat likelihood ridge. Parameter names are statsmodels' (`intercept`/`drift`, exog names, `ar.L1`, `ma.L1`, `ar.S.L12`, ..., `sigma2` last). The `c` trend
 is the regression intercept, so an AR model's mean is `c / (1 - sum phi)`, whereas R's `arima` reports the mean itself. `cov_type`: `opg`
 (statsmodels default), `oim`, or `approx` (numerical Hessian: what R reports). `nobs_effective` excludes the diffuse observations of
 differencing (`aic`/`bic` use it). Forecast intervals are normal: `mean +- z(1-alpha/2) * se`. `start_params` must have the model's exact
 parameter count.
 
 ACF/PACF: `acf` is the biased (divide by n) estimate like R unless `adjusted`; confidence intervals are Bartlett's for the ACF and
-`+-z/sqrt(n)` for the PACF; PACF methods `ywm` (R's), `ywadjusted`, `ols`, `ldb`; `nlags` < n (PACF: < n/2). Constant series are `CONSTANT_SERIES`.
+`+-z/sqrt(n)` for the PACF; PACF methods `ywm` (R's), `ywadjusted`, `ols`, `ldb`; `nlags` < n (PACF: < n/2). Constant series are `CONSTANT_SERIES`. The series is rescaled by its largest magnitude first, so
+the correlations are exact for any finite scale (1e-300 .. 1e300); undefined results are `NUMERICAL_FAILURE`.
