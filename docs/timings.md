@@ -554,3 +554,43 @@ operations now share time_limit seconds (default10, >0..30); a historical native
 case taking >10 seconds may now return TIME_LIMIT unless given a larger explicit
 budget. The independent <=50-second whole-child limit still includes imports.
 No amd64 execution is claimed.
+
+## S8a: bridge, mutate, merge, rolling, metrics, sampling (aarch64, 2026-10-15)
+
+Runtime image **634 MB** on disk (unchanged), `inspect .Size` **136,575,889** bytes (**+62,175** over the S7 review figure 136,513,714: worker and front-end source only; no
+wheel or package was added, so there is no notices change).
+
+**Import cost.** None of the new operations imports pandas, scipy.stats, scikit-learn or statsmodels (tests assert `meta.pandas == "unloaded"`). Worker import phase, p50 of 10 fresh
+calls through the production shim (`docs/measurement-s8-shim.json`, `scripts/measure-s8.py`; shared host, so p95 is noisy):
+
+| Operation | Imports | Worker import p50 | Call p50 wall | p95 wall |
+|---|---|---|---|---|
+| `py_info` (reference) | numpy + scipy | 0.11 s | 0.80 s | 1.02 s |
+| `frame_to_array`, `frame_to_array_to`, `array_to_frame`, `frame_merge`, `frame_rolling`, `ml_metrics`, `stats_dist` rvs | numpy only | 0.10 s | 0.64-0.77 s | 0.78-1.10 s |
+| `frame_mutate` | numpy + `scipy.special` (expression functions) | 0.34 s | 0.99 s | 1.12 s |
+
+For comparison the pandas-based table operations of S2 import for about 1.0 s, so the bridge ops are about 0.3 s faster per call and `frame_mutate` about 0.7 s faster than a
+pandas path would be. No split worker is proposed (all far below the 3 s threshold).
+
+**Caps measured in the hardened container** (2 CPUs, 4 GiB, read-only root, `scripts/measure-s8-caps.py`, raw output `docs/measurement-s8-caps.txt`; cgroup peak over the whole probe
+**0.25 GB**), every case at its cap:
+
+| Case | Result |
+|---|---|
+| `frame_mutate`, 200000 rows, one 512-node expression / a transcendental expression | 0.6 s each |
+| `frame_mutate`, 32 assignments on 15000 rows (495000 cells) | 0.7 s |
+| `frame_to_array_to` 200000 values; `array_to_frame` 100000 x 2 | 0.3 s; 0.4 s |
+| `frame_merge` 100000 x 100000 rows, 50000 matches, inner / outer (one_to_one validated) | 0.7 s / 0.8 s |
+| `frame_merge` 2000 x 2000 rows over 400 keys, 10000 result rows / the same with `max_rows` 9999 | 0.4 s / `ROW_EXPLOSION` in 0.4 s |
+| `frame_merge` 5000 x 5000 rows with one shared key (25,000,000 rows) | `ROW_EXPLOSION` in 0.3 s, nothing allocated |
+| `frame_rolling` 200000 rows, window 500 mean (work 1e8) / median | 1.4 s / 7.9 s |
+| `frame_rolling` 80000 rows window 100 x 5 functions / window 1000 mean / window 1001 x 2 (work above 1e8) | 0.6 s / 1.1 s / `INPUT_TOO_LARGE` before spawn |
+| `frame_rolling` time window 600 s over 80000 rows | 0.8 s |
+| `ml_metrics` 200000 rows with 30 classes and a confusion matrix / ROC AUC + log loss + Brier | 0.6 s / 0.5 s |
+| `stats_dist_to` rvs 1,000,000 values (norm, gamma, binom, poisson) | 0.3-0.6 s each |
+
+The table-size cap is what binds most calls: a 200000-row table can carry 2 columns and a 3-column one is already refused at import (`INPUT_TOO_LARGE`), so mutate/rolling at 200000 rows work on
+1-column tables and the 32-assignment case uses 15000 rows.
+
+Acceptance: `./scripts/build.sh test` 0; `docker run --rm --pull=never --network=none pycli:test` 31/31 groups exit 0 (1924 s with four groups in parallel and a concurrent runtime build);
+runtime rebuild 0; all 24 recipes passed real, `--check` and `--dry-run` through the host shim, 72/72 exit 0 (lmda, rcli and statsrust on PATH).

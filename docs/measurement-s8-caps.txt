@@ -1,0 +1,32 @@
+frame_import 200000 x 3 (600000 cells -> refused) rc 2 INPUT_TOO_LARGE       0.0 s  peak 0.04 GB
+frame_import 200000 x 1                        rc 0 OK                    1.8 s  peak 0.13 GB
+frame_mutate 512-node expression x 200000 rows rc 0 OK                    0.7 s  peak 0.13 GB
+frame_mutate transcendental x 200000 rows      rc 0 OK                    0.7 s  peak 0.13 GB
+import 15000 x 1                               rc 0 OK                    0.8 s  peak 0.13 GB
+frame_mutate 32 assignments x 15000 rows (495000 cells) rc 0 OK                    0.8 s  peak 0.13 GB
+frame_to_array_to 200000 values                rc 0 OK                    0.3 s  peak 0.13 GB
+array_to_frame 100000 x 2                      rc 0 OK                    0.3 s  peak 0.13 GB
+import left                                    rc 0 OK                    1.5 s  peak 0.14 GB
+import right                                   rc 0 OK                    1.6 s  peak 0.14 GB
+frame_merge inner 100000 x 100000, 50000 matches rc 0 OK                    0.7 s  peak 0.16 GB
+frame_merge outer 100000 x 100000, 50000 matches rc 0 OK                    0.8 s  peak 0.17 GB
+import dup left                                rc 0 OK                    0.7 s  peak 0.17 GB
+import dup right                               rc 0 OK                    0.6 s  peak 0.17 GB
+frame_merge many-to-many 2000 x 2000 -> 10000 rows rc 0 OK                    0.4 s  peak 0.17 GB
+frame_merge many-to-many 2000 x 2000 -> row cap rc 2 ROW_EXPLOSION         0.4 s  peak 0.17 GB
+import same-key table                          rc 0 OK                    0.9 s  peak 0.17 GB
+frame_merge 5000 x 5000 same key (25M rows refused) rc 2 ROW_EXPLOSION         0.3 s  peak 0.17 GB
+frame_rolling 200000 rows window 500 (work 1e8) rc 0 OK                    1.3 s  peak 0.21 GB
+frame_rolling 200000 rows window 500 median (cells ok, work 1e8) rc 0 OK                    7.8 s  peak 0.25 GB
+import 80000 x 1                               rc 0 OK                    1.1 s  peak 0.25 GB
+frame_rolling 80000 rows window 100 x 5 functions rc 0 OK                    0.6 s  peak 0.25 GB
+frame_rolling 80000 rows window 1000 mean (work 8e7) rc 0 OK                    1.1 s  peak 0.25 GB
+frame_rolling 80000 rows window 1001 x 2 (refused work) rc 2 INPUT_TOO_LARGE       0.0 s  peak 0.25 GB
+import timestamps 80000                        rc 0 OK                    1.5 s  peak 0.25 GB
+frame_rolling time window 600s over 80000 rows rc 0 OK                    0.8 s  peak 0.25 GB
+ml_metrics 200000 rows, 30 classes, confusion  rc 0 OK                    0.5 s  peak 0.25 GB
+ml_metrics roc_auc/log_loss/brier 200000       rc 0 OK                    0.4 s  peak 0.25 GB
+stats_dist_to rvs 1,000,000 norm               rc 0 OK                    0.4 s  peak 0.25 GB
+stats_dist_to rvs 1,000,000 gamma              rc 0 OK                    0.5 s  peak 0.25 GB
+stats_dist_to rvs 1,000,000 binom              rc 0 OK                    0.6 s  peak 0.25 GB
+stats_dist_to rvs 1,000,000 poisson            rc 0 OK                    0.5 s  peak 0.25 GB

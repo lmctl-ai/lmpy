@@ -85,3 +85,26 @@ lmda commit 36e5285, `cargo build --release --offline`). Both exit 0 in real, `-
 5. **QHull degenerate and worst-case inputs.** Collinear/coplanar/duplicate/too-few points raise `QhullError` (or are pre-checked) and become `DEGENERATE`. Cyclic
    polytopes (moment-curve points) are the worst case: d=4 with n=5000 and d=6 with n=300 ran past the 50 s kill and d=5 with n=1000 crashed the output
    limit, which is why the point caps shrink with the dimension (README, docs/timings.md).
+
+## S8a (table/array bridge, joins, rolling windows, metrics, seeded sampling; lmda commit 36e5285, R 4.3.3, 2026-10-15)
+
+Recipes: `oracle-metrics.lms`, `oracle-frame.lms` (lmda), `oracle-rvs.lms` (rcli `dist_quantile`). All exit 0 in real, `--check` and `--dry-run` modes. lmda was built once with
+`cargo build --release --offline` (15 minutes on the shared host).
+
+| Comparison | Result | Tolerance |
+|---|---|---|
+| accuracy, balanced accuracy, precision, recall, F1, ROC AUC, Brier vs the hand values (TP 3, FP 2, FN 1, TN 2) and vs lmda `eval_classify` / `eval_roc` | difference < 1e-15 (all ratios of small integers) | 1e-12 |
+| tied scores: ROC AUC 0.75 and Brier 0.1975 vs lmda | identical | 1e-12 |
+| outer join with duplicate keys on both sides vs lmda `table_join` | the same 6 rows in the same order | exact |
+| 3-row rolling mean, sum, std, min, max, median over 9 rows vs lmda `series_rolling` | largest difference 1e-15; the same two leading missing values | 1e-12 |
+| seeded samples (norm, gamma, beta, chi2, t; 1000 draws each) vs R's quantile function at p = 0.1 ... 0.9 | largest deviation 2.85 binomial standard errors (limit 4.5) | 4.5 SE |
+
+1. **No discrepancy was found between pycli, lmda and the hand values.** Conventions that coincide by design and were checked: NA keys never match in either join
+   (a left row with an NA key stays unmatched; an unmatched right row with an NA key is appended), duplicate-key matches come in right-row order, the outer join appends
+   the unmatched right rows last, rolling std uses ddof = 1, balanced accuracy is the mean recall of the classes present in the truth, and tied scores count 1/2.
+2. **pandas differs on NA keys, pycli deliberately does not follow it.** `pandas.merge` matches NaN keys with each other; pycli (like lmda and SQL) never matches a missing key.
+   The test oracle is a nested-loop join, not pandas, so the choice is explicit.
+3. **lmda `series_rolling` skips blank CSV rows** instead of treating them as missing observations; the recipe uses complete data, so the comparison is unaffected. pycli keeps a
+   masked missing value as a row and skips it inside the window.
+4. **PCG64 and R's Mersenne-Twister streams differ**, so samples are never compared value by value; the recipe compares each family's empirical CDF with R's quantile
+   function instead. rcli's `rng_draw` has no PCG64 option.
