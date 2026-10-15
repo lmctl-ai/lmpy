@@ -76,6 +76,13 @@ class ML(unittest.TestCase):
    self.call('ml_fit',family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},predict_frame='test.npz',predict_out='tree.npz');self.assertTrue((self.cwd/'tree.npz').exists());(self.cwd/'tree.npz').unlink()
    self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},out='no.safetensors',predict_frame='test.npz',predict_out='tree.npz')
   r=self.fit('logistic',{'x':list(range(20)),'y':[0]*10+[1]*10},['x'],'y',params={'max_iter':1},rc=1);self.assertEqual(r['error']['data']['tool_code'],'NO_CONVERGENCE')
+ def test_expanded_prediction_caps_before_spawn(self):
+  self.fit('gaussian_nb',{'x':[i%2 for i in range(64)],'y':[i//2 for i in range(64)]},['x'],'y')
+  (self.cwd/'query.csv').write_text('x\n'+'1\n'*10000)
+  self.call('ml_predict',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),model='gaussian_nb.safetensors',csv='query.csv',kind='predict_proba',out='bad.npz')
+  self.fit('ridge',{'g':['a'+str(i) for i in range(64)],'y':list(range(64))},['g'],'y',preprocess={'scale':False,'one_hot':['g']})
+  (self.cwd/'onehot.csv').write_text('g\n'+'a0\n'*4000)
+  self.call('ml_predict',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),model='ridge.safetensors',csv='onehot.csv',out='bad2.npz')
  def test_wide_preview_budget(self):
   cols={"f"+str(i):list(range(15)) for i in range(64)}
   r=self.fit('standard_scaler',cols,list(cols));self.assertLess(len(json.dumps(r)),65536)
