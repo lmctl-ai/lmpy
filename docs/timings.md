@@ -447,3 +447,40 @@ Final acceptance: test build **0**; offline `docker run --rm --pull=never --netw
 original S6 **19 methods /124.17 s**, S6 review **19 methods /179.77 s**; runtime build **0**. All **13 recipes x real/check/dry-run =39**
 invocations exited **0**. Final runtime and acceptance binary SHA256:
 `6e75fcabcb74d634035700e881d0f74e3eb5e124e07f0bf8ed19ab297c1ec246`.
+
+## S7: interpolation, signal, spatial (aarch64, 2026-10-15)
+
+Runtime image **634 MB** on disk (unchanged), `inspect .Size` **136,507,587** bytes (+39,800 over the S6 review figure 136,467,787: the worker source only;
+no wheel or package was added, so there is no notices change).
+
+**Import cost per op group** (worker import phase, p50 of 10 fresh calls through the production shim; `docs/measurement-s7-shim.json`, `scripts/measure-s7.py`).
+No group approaches the 3 s split-worker threshold, so no split worker is proposed.
+
+| Group | Imports | Worker import p50 | Call p50 wall | p95 wall |
+|---|---|---|---|---|
+| `py_info` (reference) | scipy | 0.10 s | 0.65 s | 0.67 s |
+| `interp_*` | `scipy.interpolate` (+ spatial) | 0.42 s | 1.03-1.04 s | 1.14 s |
+| `spatial_*` | `scipy.spatial`, `.distance` | 0.35-0.36 s | 0.94-0.96 s | 1.00 s |
+| `sig_*` | `scipy.signal` (+ interpolate, spatial, stats) | 0.71 s | 1.36 s | 1.40 s |
+
+(40-node PCHIP and RBF, 8th-order Butterworth + filtfilt on 400 samples, Welch on 400 samples, 400-sample peak search, k=5 neighbours of 60 points, Delaunay of 30
+points, 20 x 20 distance matrix. Computation itself is below 10 ms in every case; the wall time is the interpreter, the scipy subpackage and docker.)
+
+**Caps measured in the hardened container** (2 CPUs, 4 GiB, read-only root, `scripts/measure-s7-caps.py`, raw output `docs/measurement-s7-caps.txt`; cgroup peak
+over the whole probe **0.39 GB**). Worst cases are cyclic polytopes (points on the moment curve), which maximise the facet and simplex counts:
+
+| Case | Result |
+|---|---|
+| RBF 5000 nodes, 2-D and 8-D, thin plate and gaussian, 1000 evaluation points | 6.9-7.2 s, 0.28 GB; interpolation error 3e-14..7e-7 (gaussian eps 2, 2-D, the most ill-conditioned) |
+| convex hull d=2/3, 20000 points (sphere and moment curve) | 0.7 s |
+| convex hull moment curve d=4 n=800 / d=5 n=400 / d=6 n=100 | 1.6 s (318,800 facets) / 1.1 s (157,212) / 1.2 s (152,000) |
+| Delaunay moment curve d=3 n=800 / d=4 n=300 / d=5 n=100 / d=6 n=50 | 1.7 s (318,003 simplices) / 0.8 s / 1.3 s (147,440) / 0.7 s |
+| Voronoi moment curve d=3 n=800, d=5 n=100 | `OUTPUT_TOO_LARGE` after 12.2 s / 3.0 s (the ridge lists exceed the 1.9 M-number artifact budget; clean status, no crash) |
+| Delaunay / Voronoi uniform 20000 points, 2-D | 0.7 s / 0.9 s |
+| 60000 x 3 k=10 neighbours with exclude_self / radius search with up to 1 M pairs | 1.0 s / 2.3 s |
+| 1000 x 1000 Mahalanobis matrix; Welch on 200000 samples (nperseg 65536); 20th-order elliptic bandpass filtfilt on 200000 samples; peaks and PCHIP on 200000 samples | 0.7-1.1 s each |
+
+How the hull caps were chosen: with the first draft caps (convex hull d=4 n=5000, d=5 n=1000, d=6 n=300; Delaunay d=3 n=5000) the moment-curve inputs ran past the 50 s kill
+(`TIMEOUT`) or died on the 2 M-number output limit. The caps now in force (README) keep every measured worst case under 13 s, and the worker fails cleanly with
+`OUTPUT_TOO_LARGE` above 1.9 M numbers. The probe script still lists the old sizes for the point-cap groups `hull` and `tri`; they now print `INPUT_TOO_LARGE`, which
+is the proof that the front end refuses them before any process starts.

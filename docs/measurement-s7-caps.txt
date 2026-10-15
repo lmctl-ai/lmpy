@@ -1,0 +1,49 @@
+rbf n=5000 d=2 thin_plate_spline rc 0 OK 7.0 s peak 0.28 GB {'interpolation_error': 2.7922109069322687e-14}
+rbf n=5000 d=2 gaussian rc 0 OK 7.0 s peak 0.28 GB {'interpolation_error': 7.075383725574369e-07}
+rbf n=5000 d=8 thin_plate_spline rc 0 OK 6.9 s peak 0.28 GB {'interpolation_error': 8.903988657493755e-14}
+rbf n=5000 d=8 gaussian rc 0 OK 7.2 s peak 0.28 GB {'interpolation_error': 1.3969381207346032e-13}
+rbf n=2000 d=3 thin_plate_spline rc 0 OK 1.3 s peak 0.28 GB {'interpolation_error': 1.1657341758564144e-14}
+rbf n=2000 d=3 gaussian rc 0 OK 1.2 s peak 0.28 GB {'interpolation_error': 1.6123616330965262e-07}
+hull sphere d=2 n=20000 rc 0 OK 0.7 s peak 0.28 GB {'n_simplices': 20000, 'n_vertices': 20000}
+hull moment d=2 n=20000 rc 0 OK 0.7 s peak 0.28 GB {'n_simplices': 20000, 'n_vertices': 20000}
+hull sphere d=3 n=20000 rc 0 OK 0.7 s peak 0.28 GB {'n_simplices': 39996, 'n_vertices': 20000}
+hull moment d=3 n=20000 rc 0 OK 0.7 s peak 0.28 GB {'n_simplices': 39996, 'n_vertices': 20000}
+hull sphere d=4 n=5000 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+hull moment d=4 n=5000 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+hull sphere d=5 n=1000 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+hull moment d=5 n=1000 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+hull sphere d=6 n=300 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+hull moment d=6 n=300 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+delaunay uniform d=2 n=20000 rc 0 OK 0.7 s peak 0.28 GB {'n_simplices': 39978}
+voronoi uniform d=2 n=20000 rc 0 OK 0.9 s peak 0.28 GB {'n_vertices': 39978, 'n_ridges': 59977}
+delaunay moment d=2 n=20000 rc 0 OK 2.4 s peak 0.28 GB {'n_simplices': 19998}
+delaunay uniform d=3 n=5000 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+voronoi uniform d=3 n=5000 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+delaunay moment d=3 n=5000 rc 2 INPUT_TOO_LARGE 0.0 s peak 0.28 GB {}
+delaunay uniform d=4 n=300 rc 0 OK 0.6 s peak 0.28 GB {'n_simplices': 6551}
+voronoi uniform d=4 n=300 rc 0 OK 0.7 s peak 0.28 GB {'n_vertices': 6551, 'n_ridges': 4309}
+delaunay moment d=4 n=300 rc 0 OK 0.8 s peak 0.28 GB {'n_simplices': 43956}
+delaunay uniform d=5 n=100 rc 0 OK 0.6 s peak 0.28 GB {'n_simplices': 5672}
+voronoi uniform d=5 n=100 rc 0 OK 0.7 s peak 0.28 GB {'n_vertices': 5672, 'n_ridges': 1902}
+delaunay moment d=5 n=100 rc 0 OK 1.3 s peak 0.28 GB {'n_simplices': 147440}
+delaunay uniform d=6 n=50 rc 0 OK 0.6 s peak 0.28 GB {'n_simplices': 5047}
+voronoi uniform d=6 n=50 rc 0 OK 0.7 s peak 0.28 GB {'n_vertices': 5047, 'n_ridges': 915}
+delaunay moment d=6 n=50 rc 0 OK 0.7 s peak 0.28 GB {'n_simplices': 15180}
+convex_hull moment d=4 n=800 rc 0 OK 1.6 s peak 0.28 GB {'n_simplices': 318800, 'n_vertices': 800}
+convex_hull moment d=5 n=400 rc 0 OK 1.1 s peak 0.28 GB {'n_simplices': 157212, 'n_vertices': 400}
+convex_hull moment d=6 n=100 rc 0 OK 1.2 s peak 0.28 GB {'n_simplices': 152000, 'n_vertices': 100}
+delaunay moment d=3 n=800 rc 0 OK 1.7 s peak 0.28 GB {'n_simplices': 318003}
+delaunay moment d=4 n=300 rc 0 OK 0.8 s peak 0.28 GB {'n_simplices': 43956}
+delaunay moment d=5 n=100 rc 0 OK 1.3 s peak 0.28 GB {'n_simplices': 147440}
+voronoi moment d=3 n=800 rc 1 OUTPUT_TOO_LARGE 12.2 s peak 0.39 GB {}
+voronoi moment d=4 n=300 rc 0 OK 1.5 s peak 0.39 GB {'n_vertices': 43956, 'n_ridges': 44257}
+voronoi moment d=5 n=100 rc 1 OUTPUT_TOO_LARGE 3.0 s peak 0.39 GB {}
+voronoi moment d=6 n=50 rc 0 OK 1.0 s peak 0.39 GB {'n_vertices': 15180, 'n_ridges': 1225}
+delaunay moment d=6 n=50 rc 0 OK 0.7 s peak 0.39 GB {'n_simplices': 15180}
+knn 60000x3 k=10 rc 0 OK 1.0 s peak 0.39 GB {}
+knn radius rc 0 OK 2.3 s peak 0.39 GB {}
+dist 1000x1000 rc 0 OK 0.8 s peak 0.39 GB {}
+welch 200000 rc 0 OK 1.1 s peak 0.39 GB {}
+filter 200000 rc 0 OK 1.1 s peak 0.39 GB {}
+peaks 200000 rc 0 OK 1.0 s peak 0.39 GB {}
+interp pchip 200000 rc 0 OK 0.7 s peak 0.39 GB {}
