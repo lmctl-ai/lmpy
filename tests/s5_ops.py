@@ -616,7 +616,7 @@ class Arima(Base):
         close(self, r['bic'], k * math.log(r['nobs_effective']) - 2 * r['llf'], 1e-12)
         self.assertEqual((r['nobs'], r['nobs_effective']), (n, n))
 
-    def test_ar1_agrees_with_yule_walker(self):
+    def test_ar1_sanity_check_near_yule_walker(self):
         y = np.array(D['series'])
         r = call('sm_arima', {'columns': {'s': D['series']}, 'series': 's', 'order': [1, 0, 0], 'trend': 'n'})
         yd = y - y.mean()
@@ -814,6 +814,98 @@ class Schema(unittest.TestCase):
         for name in ('sm_ols', 'sm_glm', 'sm_arima'):
             self.assertIn('NO_CONVERGENCE' if name != 'sm_ols' else 'RANK_DEFICIENT', ops[name]['description'])
         self.assertNotIn('formula', json.dumps({k: v for k, v in ops.items() if k.startswith('sm_')}).replace('no formula', '').replace('formula strings', ''))
+
+
+class ReviewS5(Base):
+    """Regressions for the S5 review findings (REVIEW-S5-{Opus,Fable,Astra}.md)."""
+    def run_raw(self, op, params):
+        p = subprocess.run([BIN, '--input-json', json.dumps({'op': op, 'params': params})], capture_output=True, text=True)
+        return p.returncode, json.loads(p.stdout)
+
+    def test_arima_state_memory_is_bounded_before_the_fit(self):  # Opus 1
+        rng = np.random.default_rng(3)
+        path = self.dir / 'ts.csv'
+        path.write_text('s\n' + '\n'.join('%.6f' % v for v in np.cumsum(rng.normal(size=20000))) + '\n')
+        rc, r = self.run_raw('sm_arima', {'csv': str(path), 'series': 's', 'order': [5, 2, 5], 'seasonal_order': [2, 0, 0, 24], 'method': 'nm', 'maxiter': 1})
+        self.assertEqual(rc, 2, r)
+        self.assertEqual(r['error']['data']['tool_code'], 'INPUT_TOO_LARGE')
+        self.assertIn('states', r['error']['message'])
+
+    def test_glm_invalid_fitted_mean_is_not_ok(self):  # Opus 2
+        r = call('sm_glm', {'columns': {'y': [0, 0, 0, 5, 9, 0, 0], 'x': [1, 2, 3, 4, 5, 6, 7]}, 'y': 'y', 'terms': [{'const': True}, {'var': 'x'}], 'family': 'poisson', 'link': 'identity'})
+        self.assertEqual(r['status'], 'NUMERICAL_FAILURE', r)
+        self.assertEqual(r['coefficients']['std_err'], ['NA', 'NA'])
+
+    def test_ols_overflowing_sums_of_squares_are_not_ok(self):  # Opus 3
+        r = call('sm_ols', {'columns': {'y': [1e200, 2e200, 3e200, 5e200, 4e200], 'x': [1, 2, 3, 4, 5]}, 'y': 'y', 'terms': [{'const': True}, {'var': 'x'}]})
+        self.assertEqual(r['status'], 'NUMERICAL_FAILURE', r)
+        self.assertEqual(r['coefficients']['std_err'], ['NA', 'NA'])
+
+    def test_glm_rank_deficiency_does_not_mask_non_convergence_and_nothing_is_written(self):  # Opus 4
+        x = [float(v) for v in range(1, 21)]
+        y = [2, 1, 4, 3, 7, 5, 9, 8, 12, 10, 15, 11, 18, 14, 22, 17, 27, 20, 30, 24]
+        params = {'columns': {'y': y, 'x': x, 'z': x}, 'y': 'y', 'terms': [{'const': True}, {'var': 'x'}, {'var': 'z'}], 'family': 'poisson', 'maxiter': 1}
+        r = call('sm_glm', params)
+        self.assertEqual((r['status'], r['converged'], r['rank_deficient']), ('NO_CONVERGENCE', False, True), r)
+        out = self.dir / 'g.safetensors'
+        rc, w = self.run_raw('sm_glm_to', dict(params, out=str(out)))
+        self.assertFalse(out.exists(), w)
+
+    def test_gaussian_glm_matches_ols_inference_and_gamma_uses_t(self):  # Fable 1
+        terms = [{'const': True}, {'var': 'x1'}, {'var': 'x2'}]
+        a = table(call('sm_ols', {'columns': s5.columns('y', 'x1', 'x2'), 'y': 'y', 'terms': terms}))
+        glm = call('sm_glm', {'columns': s5.columns('y', 'x1', 'x2'), 'y': 'y', 'terms': terms, 'family': 'gaussian'})
+        b = table(glm)
+        self.assertTrue(glm['use_t'])
+        for key in ('estimate', 'std_err', 'statistic', 'p_value', 'ci_lower', 'ci_upper'):
+            close(self, b[key], a[key], 1e-8, 1e-300, key)
+        g = call('sm_glm', {'columns': s5.columns('gam', 'x1'), 'y': 'gam', 'terms': [{'var': 'x1'}], 'family': 'gamma', 'link': 'log'})
+        want = 2 * stats.t.sf(np.abs(np.array(R['gamma.coef']) / np.array(R['gamma.se'])), g['df_resid'])
+        close(self, table(g)['p_value'], want, 1e-5)
+        pois = call('sm_glm', {'columns': s5.columns('count', 'x1'), 'y': 'count', 'terms': [{'var': 'x1'}], 'family': 'poisson'})
+        self.assertFalse(pois['use_t'])
+
+    def test_arima_default_optimizer_reaches_the_reference_likelihood(self):  # Fable 2
+        r = call('sm_arima', {'columns': {'s': D['series']}, 'series': 's', 'order': [1, 0, 1], 'trend': 'n', 'cov_type': 'approx'})
+        self.assertGreaterEqual(r['llf'], R['arma11.loglik'][0] - 2e-9)
+        close(self, table(r)['estimate'][:2], R['arma11.coef'][:2], 1e-4, 1e-5)
+
+    def test_robust_f_with_singular_covariance_is_unavailable_not_a_crash(self):  # Astra 1
+        zero = call('sm_ols', {'columns': {'x': [0, 1, 2, 3, 4, 5], 'z': [0] * 6, 'y': [1, 2, 2, 4, 4, 7]}, 'y': 'y', 'terms': [{'var': 'x'}, {'var': 'z'}], 'cov_type': 'HC0'})
+        self.assertEqual(zero['status'], 'RANK_DEFICIENT')
+        self.assertEqual(zero['f_statistic'], 'NaN')
+        dup = call('sm_ols', {'columns': {'x': [0, 1, 2, 3, 4, 5], 'z': [0, 1, 2, 3, 4, 5], 'y': [1, 2, 2, 4, 4, 7]}, 'y': 'y', 'terms': [{'var': 'x'}, {'var': 'z'}], 'cov_type': 'HC0'})
+        self.assertEqual((dup['status'], dup['f_statistic'], dup['f_p_value']), ('RANK_DEFICIENT', 'NaN', 'NaN'))
+        # full-rank design but only two clusters: the clustered covariance has rank <= 1 < 2 restrictions
+        rng = np.random.default_rng(8)
+        n = 12
+        cols = {'x1': rng.normal(size=n).tolist(), 'x2': rng.normal(size=n).tolist(), 'g': [i % 2 for i in range(n)]}
+        cols['y'] = (np.array(cols['x1']) + rng.normal(size=n)).tolist()
+        c = call('sm_ols', {'columns': cols, 'y': 'y', 'terms': [{'const': True}, {'var': 'x1'}, {'var': 'x2'}], 'cov_type': 'cluster', 'cluster': 'g'})
+        self.assertEqual(c['status'], 'OK')
+        self.assertEqual(c['f_statistic'], 'NaN')
+        # the full-rank robust F still equals the independent single-regressor Wald statistic
+        ok = call('sm_ols', {'columns': {'x': [0, 1, 2, 3, 4, 5], 'y': [1, 2, 2, 4, 4, 7]}, 'y': 'y', 'terms': [{'var': 'x'}], 'cov_type': 'HC0'})
+        self.assertAlmostEqual(ok['f_statistic'], 40.04895400436704, delta=1e-9)
+
+    def test_acf_is_scale_invariant(self):  # Astra 2
+        rng = np.random.default_rng(1)
+        y = rng.integers(-3, 4, 30).astype(float)
+        v = y - y.mean()
+        want = [float(v[:30 - i] @ v[i:] / (v @ v)) for i in range(6)]
+        for scale in (1.0, 1e-160, 1e160, 1e-300, 1e300):
+            r = call('sm_tsa_acf', {'columns': {'y': (y * scale).tolist()}, 'series': 'y', 'kind': 'acf', 'nlags': 5})
+            self.assertEqual(r['status'], 'OK', (scale, r))
+            close(self, r['values'], want, 1e-12, 1e-14, 'scale %g' % scale)
+            q = call('sm_tsa_acf', {'columns': {'y': (y * scale).tolist()}, 'series': 'y', 'kind': 'pacf', 'nlags': 5})
+            ref = call('sm_tsa_acf', {'columns': {'y': y.tolist()}, 'series': 'y', 'kind': 'pacf', 'nlags': 5})
+            close(self, q['values'], ref['values'], 1e-12, 1e-14, 'pacf scale %g' % scale)
+
+    def test_patsy_licence_label(self):  # Astra 3
+        text = (ROOT / 'THIRD_PARTY_NOTICES.md').read_text()
+        line = next(l for l in text.splitlines() if 'Patsy' in l and 'BSD' in l)
+        self.assertIn('BSD-2-Clause', line)
+        self.assertNotIn('BSD-3-Clause', line)
 
 
 if __name__ == '__main__':
