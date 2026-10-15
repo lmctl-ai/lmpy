@@ -479,6 +479,7 @@ Json prepare_root(const Params& in){
     return request;
 }
 #include "s4.hpp"
+#include "s5.hpp"
 int expr_check_cli(){
     try{
         std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
@@ -495,9 +496,10 @@ Json call(const std::string& op,const Params& input){
     if(op=="array_import")return array_import(input);
     if(op=="array_inspect")return array_inspect(input);
     Params p=input;std::map<std::string,Array> arrays;
-    bool frame=op.rfind("frame_",0)==0;std::string table_input,table_bytes,table_output;
+    const bool sm=op.rfind("sm_",0)==0;const bool sm_twin=sm&&op.size()>3&&op.compare(op.size()-3,3,"_to")==0;
+    bool frame=op.rfind("frame_",0)==0||sm;std::string table_input,table_bytes,table_output;
     if(frame){
-        if(op=="frame_import"){
+        if(op=="frame_import"||sm){
             size_t sources=p.count("columns")+p.count("records")+p.count("csv")+p.count("frame");if(sources!=1)invalid("provide exactly one of columns, records, csv, frame");
         }else if(p.contains("columns")){p["select_columns"]=p["columns"];p.erase("columns");}
         if(p.contains("columns")||p.contains("records")){
@@ -516,7 +518,7 @@ Json call(const std::string& op,const Params& input){
         for(const char* key:{"head","tail"})if(p.contains(key)&&(p[key].get<int64_t>()<0||p[key].get<int64_t>()>1000))invalid("preview rows must be 0..1000");
         if(p.contains("aggs")){auto& a=p["aggs"];std::set<std::string> allowed={"sum","mean","min","max","count","std","var","median","nunique","first","last"};uint64_t count=0;if(!a.is_object()||a.empty())invalid("aggs must be nonempty column map");for(auto it=a.begin();it!=a.end();++it){if(!it.value().is_array()||it.value().empty())invalid("aggregation list required");std::set<std::string> seen;for(auto& v:it.value()){if(!v.is_string()||!allowed.count(v.get<std::string>())||!seen.insert(v.get<std::string>()).second)invalid("invalid or duplicate aggregation");if(++count>256)invalid("aggregation column cap");}}}
         if(p.contains("sort_by")){if(!p["sort_by"].is_array()||p["sort_by"].size()>256)invalid("invalid sort_by");for(auto& item:p["sort_by"]){if(!item.is_object()||!item.contains("col")||!item["col"].is_string()||item.size()>(item.contains("desc")?2:1)||(item.contains("desc")&&!item["desc"].is_boolean()))invalid("sort_by requires {col,desc?}");}}
-        if(p.contains("out")){table_output=confined(p["out"],true);auto ext=fs::path(table_output).extension();if(op!="frame_export"&&ext!=".npz")invalid("table out must end in .npz");p.erase("out");}
+        if(!sm&&p.contains("out")){table_output=confined(p["out"],true);auto ext=fs::path(table_output).extension();if(op!="frame_export"&&ext!=".npz")invalid("table out must end in .npz");p.erase("out");}
     }
     if(op=="la_solve"||op=="la_solve_to"){
         arrays["a"]=load(p["a"]);arrays["b"]=load(p["b"]);auto& a=arrays["a"];auto& b=arrays["b"];
@@ -564,12 +566,14 @@ Json call(const std::string& op,const Params& input){
         if(params.contains("scale")&&params["scale"]<=0)invalid("scale must be positive");if(p["dist"]=="t"&&(!params.contains("df")||params["df"]<=0))invalid("t requires positive df");p["missing"]=arrays["x"].missing;
         if(p["fn"]=="ppf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid("ppf probabilities must lie in [0,1]","BAD_PROBABILITY");
     }
+    if(sm)p=prepare_sm(op,p);
     bool s4_write=op=="opt_linprog_to"||op=="ode_solve_to";bool s4=s4_write||op=="opt_linprog"||op=="ode_solve";std::string s4_out;
     bool numeric=s4||op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
     if(s4)p=(op=="opt_linprog"||op=="opt_linprog_to")?prepare_linprog(input,arrays):prepare_ode(input,arrays);
     else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
+    if(sm)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
     if(numeric){
         {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
         p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=s4?Json(std::max(0.01,double(seconds)-2.0)):Json(std::max(1,seconds-10));  // worker stops cooperatively before the hard kill
@@ -579,7 +583,7 @@ Json call(const std::string& op,const Params& input){
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");
     Json request=p;
     if(s4){if(s4_write)s4_out=p["out"].get<std::string>();request["force_artifact"]=s4_write;}
-    if(s4||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
+    if(s4||sm_twin||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
     {std::ofstream f(temp.file("req.json"));f<<Json{{"op",op},{"params",request}}.dump();if(!f)throw std::runtime_error("cannot write request");}
     {std::ofstream f(temp.file("worker.py"));f<<PYCLI_WORKER_SOURCE;if(!f)throw std::runtime_error("cannot write worker");}
     std::string python="python3";
@@ -608,9 +612,9 @@ Json call(const std::string& op,const Params& input){
         auto output=temp.file("output.bin");if(fs::file_size(output)!=n*8)throw std::runtime_error("worker output size mismatch");tensor.bytes.resize(n*8);std::ifstream f(output,std::ios::binary);f.read(reinterpret_cast<char*>(tensor.bytes.data()),n*8);
         pycli::TensorBundle bundle;bundle.tensors["x"]=tensor;auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);result.erase("shape");result["x"]=pycli::descriptor({path,"x"},tensor);
     }
-    if(op=="la_lstsq_to"||op=="la_decomp"){
+    if(op=="la_lstsq_to"||op=="la_decomp"||sm_twin){
         std::string status=result.value("status",std::string());
-        if(status!="OK"&&!(op=="la_lstsq_to"&&status=="RANK_DEFICIENT"))no_artifact(result,"no artifact was produced");
+        if(status!="OK"&&!((op=="la_lstsq_to"||sm_twin)&&status=="RANK_DEFICIENT"))no_artifact(result,"no artifact was produced");
         auto bundle=read_outputs(temp,result);auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);
         Json tensors=Json::object();
         for(const auto& entry:bundle.tensors)if(op!="la_lstsq_to"||entry.first!="x")tensors[entry.first]=pycli::descriptor({path,entry.first},entry.second);
@@ -753,6 +757,69 @@ int main(int argc,char** argv){
         Param{"lower",Type::Number,true,nullptr,{},"Bracket start (finite)."},Param{"upper",Type::Number,true,nullptr,{},"Bracket end (finite, > lower)."},
         Param{"method",Type::String,false,"brentq",{"brentq","bisect","ridder","toms748"},"Bracketing method."},
         num("xtol",2e-12,"Absolute tolerance on the bracket width (not on |f|): a loose xtol returns a root with f_root far from 0 and status OK. Must be > 0."),num("rtol",8.881784197001252e-16,"Relative x tolerance, >= 4*eps."),integer("maxiter",100,"Iterations, 1..1000."),integer("max_evals",500000,"Cap on expression evaluations.")}});
+    // S5: statsmodels. No formula strings: terms are a JSON list; the worker builds the design matrix and calls the array API.
+    auto sm_source=[](){return std::vector<Param>{
+        Param{"columns",Type::Object,false,nullptr,{},"Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."},
+        Param{"csv",Type::String,false,nullptr,{},"UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."},
+        Param{"frame",Type::String,false,nullptr,{},"Stored-only .npz table artifact from frame_import."}};};
+    const char* terms_text="Design terms (no formula strings): [{\"const\":true|false}, {\"var\":col}, {\"cat\":col,\"ref\":level}, {\"interact\":[col,col(,col)]}, {\"poly\":[col,degree 2..6]}], at most 64. An intercept named const is included unless {\"const\":false}; its position follows the list. cat uses treatment coding with the explicit reference level and columns named col[T.level]; interact multiplies the factors' columns (name a:b); poly adds raw powers named col, col^2, ...";
+    auto regression=[&](const char* name,bool write,bool glm){
+        std::vector<Param> params=sm_source();
+        params.push_back(Param{"y",Type::String,true,nullptr,{},"Response column."});
+        params.push_back(Param{"terms",Type::Array,true,nullptr,{},terms_text,"",false,false,false,{},Type::Object});
+        params.push_back(Param{"weights",Type::String,false,nullptr,{},glm?"Column of positive variance weights (var_weights).":"Column of positive weights: weighted least squares."});
+        if(glm){
+            params.push_back(Param{"family",Type::String,true,nullptr,{"gaussian","poisson","binomial","gamma"},"Exponential family. Links: gaussian identity|log|inverse_power; poisson log|identity|sqrt; binomial logit|probit|cloglog; gamma inverse_power|log|identity (first is the default)."});
+            params.push_back(Param{"link",Type::String,false,nullptr,{"identity","log","inverse_power","logit","probit","cloglog","sqrt"},"Link function; must be one of the family's links."});
+            params.push_back(Param{"offset",Type::String,false,nullptr,{},"Offset column added to the linear predictor."});
+            params.push_back(Param{"exposure",Type::String,false,nullptr,{},"Exposure column (log link only): offset = log(exposure)."});
+            params.push_back(Param{"maxiter",Type::Integer,false,100,{},"IRLS iterations, 1..100; NO_CONVERGENCE when exhausted."});
+            params.push_back(Param{"tol",Type::Number,false,1e-8,{},"IRLS deviance tolerance, 1e-12..1e-2."});
+        }
+        params.push_back(Param{"cov_type",Type::String,false,"nonrobust",{"nonrobust","HC0","HC1","HC2","HC3","cluster"},"Covariance estimator. use_t defaults to true for nonrobust (OLS) and false otherwise, as in statsmodels."});
+        params.push_back(Param{"cluster",Type::String,false,nullptr,{},"Cluster column for cov_type cluster."});
+        params.push_back(Param{"use_t",Type::Boolean,false,nullptr,{},"Use t instead of normal reference distributions."});
+        params.push_back(Param{"alpha",Type::Number,false,0.05,{},"Confidence-interval level is 1-alpha."});
+        params.push_back(Param{"na_action",Type::String,false,"error",{"error","drop"},"Missing (null/NaN) values in used columns: error (MISSING_VALUES) or drop the rows and report n_dropped. Infinities are always errors."});
+        if(!write)params.push_back(Param{"include",Type::Array,false,nullptr,{},"fitted and/or residuals inline (counted against the 1000-number rule).","",false,false,false,{},Type::String});
+        else params.push_back(Param{"out",Type::String,true,nullptr,{},"New .safetensors artifact with coef (p x 6: estimate, std_err, statistic, p_value, ci_lower, ci_upper), fitted and residuals (and row_index when rows were dropped)."});
+        if(!write)params.back().enum_values={"fitted","residuals"};
+        std::string title=glm?"Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list.":"Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list.";
+        std::string statuses=glm?" Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE; coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter.":" Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT; coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form.";
+        return Operation{name,write?Access::Write:Access::Read,title+statuses+(write?" Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).":""),"object",params};
+    };
+    spec.operations.push_back(regression("sm_ols",false,false));spec.operations.push_back(regression("sm_ols_to",true,false));
+    spec.operations.push_back(regression("sm_glm",false,true));spec.operations.push_back(regression("sm_glm_to",true,true));
+    auto arima=[&](const char* name,bool write){
+        std::vector<Param> params=sm_source();
+        params.push_back(Param{"series",Type::String,true,nullptr,{},"Time-ordered series column; missing values are modelled by the state-space filter (n_missing reported)."});
+        params.push_back(Param{"order",Type::Array,true,nullptr,{},"[p, d, q]: p,q <= 5, d <= 2.","",false,false,false,{},Type::Integer});
+        params.push_back(Param{"seasonal_order",Type::Array,false,nullptr,{},"[P, D, Q, s]: P,Q <= 2, D <= 1, s in 2..24; state dimension <= 64, <= 24 parameters.","",false,false,false,{},Type::Integer});
+        params.push_back(Param{"trend",Type::String,false,"n",{"n","c","t","ct"},"Deterministic trend; c is the regression intercept (mean = c / (1 - sum phi) for AR models), not R's mean."});
+        params.push_back(Param{"exog",Type::Array,false,nullptr,{},"Up to 8 regressor columns.","",false,false,false,{},Type::String});
+        params.push_back(Param{"exog_future",Type::Object,false,nullptr,{},"{exog column: forecast_steps values} when forecasting with exog."});
+        params.push_back(Param{"enforce_stationarity",Type::Boolean,false,true,{},"Constrain AR parameters to the stationary region."});
+        params.push_back(Param{"enforce_invertibility",Type::Boolean,false,true,{},"Constrain MA parameters to the invertible region."});
+        params.push_back(Param{"method",Type::String,false,"lbfgs",{"lbfgs","bfgs","nm","powell"},"Optimizer for the exact Gaussian likelihood."});
+        params.push_back(Param{"maxiter",Type::Integer,false,200,{},"Optimizer iterations, 1..1000; NO_CONVERGENCE when the optimizer reports failure."});
+        params.push_back(Param{"start_params",Type::Array,false,nullptr,{},"Optional starting parameters in statsmodels order (trend, exog, ar, ma, seasonal ar, seasonal ma, sigma2); the count is checked against the model.","",false,false,false,{},Type::Number});
+        params.push_back(Param{"cov_type",Type::String,false,"opg",{"opg","oim","approx"},"Parameter covariance: opg (outer product of gradients, statsmodels default), oim (observed information) or approx (numerical Hessian of the likelihood, what R's arima reports)."});
+        params.push_back(Param{"forecast_steps",Type::Integer,false,0,{},write?"Forecast horizon 0..1000 (artifact).":"Forecast horizon 0..100 (inline: mean, lower, upper)."});
+        params.push_back(Param{"alpha",Type::Number,false,0.05,{},"Forecast interval and parameter CI level is 1-alpha."});
+        if(write)params.push_back(Param{"out",Type::String,true,nullptr,{},"New .safetensors artifact with residuals and forecast (3 x h: mean, lower, upper)."});
+        return Operation{name,write?Access::Write:Access::Read,std::string("SARIMAX exact maximum likelihood (statsmodels) on a numeric series. Statuses OK, NO_CONVERGENCE, TIME_LIMIT, NUMERICAL_FAILURE; params table (statsmodels names), sigma2, llf, aic, bic, hqic, nobs_effective, converged, forecast with normal intervals.")+(write?" Writes residuals and the forecast to an exclusive safetensors artifact.":""),"object",params};
+    };
+    spec.operations.push_back(arima("sm_arima",false));spec.operations.push_back(arima("sm_arima_to",true));
+    {
+        std::vector<Param> params=sm_source();
+        params.push_back(Param{"series",Type::String,true,nullptr,{},"Series column (no missing values)."});
+        params.push_back(Param{"kind",Type::String,true,nullptr,{"acf","pacf"},"Autocorrelation or partial autocorrelation."});
+        params.push_back(Param{"nlags",Type::Integer,false,20,{},"1..100 and below the series length (pacf: below half of it)."});
+        params.push_back(Param{"alpha",Type::Number,false,0.05,{},"Confidence level 1-alpha: Bartlett intervals for acf, +-z/sqrt(n) for pacf."});
+        params.push_back(Param{"adjusted",Type::Boolean,false,false,{},"acf only: divide autocovariances by n-k instead of n (default matches R)."});
+        params.push_back(Param{"method",Type::String,false,"ywm",{"ywm","ywadjusted","ols","ldb"},"pacf only: ywm (Yule-Walker with n denominator, R's pacf), ywadjusted, ols, ldb."});
+        spec.operations.push_back(Operation{"sm_tsa_acf",Access::Read,"Sample autocorrelation or partial autocorrelation with confidence intervals (statsmodels.tsa.stattools); lags 0..nlags. Constant series are CONSTANT_SERIES.","object",params});
+    }
     for(auto& op:spec.operations){std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }

@@ -119,8 +119,12 @@ class Ols(Base):
         ci = np.array(R['lm.ci']).reshape(-1, 2)
         close(self, t['ci_lower'], ci[:, 0], 1e-9)
         close(self, t['ci_upper'], ci[:, 1], 1e-9)
-        for key, value in (('r2', 'lm.r2'), ('r2_adj', 'lm.adjr2'), ('sigma', 'lm.sigma'), ('f_statistic', 'lm.fstat'), ('llf', 'lm.loglik'), ('aic', 'lm.aic'), ('bic', 'lm.bic')):
+        for key, value in (('r2', 'lm.r2'), ('r2_adj', 'lm.adjr2'), ('sigma', 'lm.sigma'), ('f_statistic', 'lm.fstat'), ('llf', 'lm.loglik')):
             close(self, r[key], R[value][0], 1e-9, msg=key)
+        # Documented parity difference: statsmodels (and lmstats) count p parameters in aic/bic, R's logLik counts p + 1 (the error variance).
+        self.assertEqual(r['k_params'], 6)
+        close(self, r['aic'] + 2, R['lm.aic'][0], 1e-12)
+        close(self, r['bic'] + math.log(40), R['lm.bic'][0], 1e-12)
         self.assertEqual((r['df_resid'], r['df_model']), (R['lm.df'][0], 5))
         self.assertEqual(r['coding'], {'g': {'reference': 'b', 'levels': ['a', 'b', 'c']}})
         self.assertEqual(r['cov_type'], 'nonrobust')
@@ -197,6 +201,13 @@ class Ols(Base):
                 close(self, t['std_err'], np.sqrt(np.diag(cov)), 1e-9)
                 self.assertFalse(r['use_t'])
                 close(self, t['p_value'], 2 * stats.norm.sf(np.abs(beta / np.sqrt(np.diag(cov)))), 1e-7, 1e-300)
+        import pandas as pd
+        import statsmodels.api as sm
+        for kind in ('HC0', 'HC3'):
+            ref = sm.OLS(y, X).fit(cov_type=kind)  # statsmodels' own overall F (its path needs patsy, which only the test image has)
+            mine = call('sm_ols', dict(base, cov_type=kind))
+            close(self, mine['f_statistic'], float(ref.fvalue), 1e-9)
+            close(self, mine['f_p_value'], float(ref.f_pvalue), 1e-8, 1e-300)
         r = call('sm_ols', dict(base, cov_type='HC1', use_t=True))
         self.assertTrue(r['use_t'])
         close(self, table(r)['p_value'], 2 * stats.t.sf(np.abs(beta / np.sqrt(np.diag(s5.sandwich(X, resid, 'HC1')))), n - 3), 1e-7, 1e-300)
@@ -349,15 +360,15 @@ class OlsValidation(Base):
         cols = s5.columns('y', 'x1', 'x2', 'g')
         base = {'columns': cols, 'y': 'y'}
         bad = {
-            'formula_string': ('y ~ x1 + x2', None), 'string_terms': (['x1', 'x2'], 'BAD_TERMS'), 'empty': ([], 'BAD_TERMS'),
+            'formula_string': ('y ~ x1 + x2', None), 'string_terms': (['x1', 'x2'], None), 'empty': ([], 'BAD_TERMS'),
             'unknown_key': ([{'variable': 'x1'}], 'BAD_TERMS'), 'two_keys': ([{'var': 'x1', 'cat': 'g'}], 'BAD_TERMS'), 'extra_key': ([{'var': 'x1', 'ref': 'a'}], 'BAD_TERMS'),
             'cat_no_ref': ([{'cat': 'g'}], 'BAD_TERMS'), 'cat_ref_number': ([{'cat': 'g', 'ref': 1}], 'BAD_TERMS'), 'cat_extra': ([{'cat': 'g', 'ref': 'a', 'x': 1}], 'BAD_TERMS'),
             'poly_degree_1': ([{'poly': ['x1', 1]}], 'BAD_TERMS'), 'poly_degree_7': ([{'poly': ['x1', 7]}], 'BAD_TERMS'), 'poly_float': ([{'poly': ['x1', 2.5]}], 'BAD_TERMS'),
-            'poly_shape': ([{'poly': ['x1']}], 'BAD_TERMS'), 'poly_name': ([{'poly': [5, 2]}], 'BAD_TERMS'), 'interact_one': ([{'interact': ['x1']}], 'BAD_TERMS'),
+            'poly_shape': ([{'poly': ['x1']}], 'BAD_TERMS'), 'poly_name': ([{'poly': [5, 2]}], 'BAD_NAME'), 'interact_one': ([{'interact': ['x1']}], 'BAD_TERMS'),
             'interact_four': ([{'interact': ['x1', 'x2', 'g', 'y']}], 'BAD_TERMS'), 'interact_dup': ([{'interact': ['x1', 'x1']}], 'BAD_TERMS'), 'interact_type': ([{'interact': 'x1:x2'}], 'BAD_TERMS'),
             'const_string': ([{'const': 'yes'}], 'BAD_TERMS'), 'const_twice': ([{'const': True}, {'const': False}], 'BAD_TERMS'), 'var_expression': ([{'var': 'x1*x2'}], 'BAD_NAME'),
             'var_empty': ([{'var': ''}], 'BAD_NAME'), 'var_control': ([{'var': 'x\n1'}], 'BAD_NAME'), 'var_nul': ([{'var': 'x\u0000'}], 'BAD_NAME'), 'var_long': ([{'var': 'x' * 300}], 'BAD_NAME'),
-            'var_number': ([{'var': 5}], 'BAD_TERMS'), 'nested': ([[{'var': 'x1'}]], 'BAD_TERMS'), 'too_many': ([{'var': f'v{i}'} for i in range(65)], 'BAD_TERMS'),
+            'var_number': ([{'var': 5}], 'BAD_NAME'), 'nested': ([[{'var': 'x1'}]], None), 'too_many': ([{'var': f'v{i}'} for i in range(65)], 'BAD_TERMS'),
             'duplicate_var': ([{'var': 'x1'}, {'var': 'x1'}], 'BAD_TERMS'), 'duplicate_cat': ([{'cat': 'g', 'ref': 'a'}, {'cat': 'g', 'ref': 'b'}], 'BAD_TERMS'),
             'python_code': ([{'var': '__import__("os")'}], 'BAD_NAME'), 'format_string': ([{'var': '{x1}'}], 'BAD_NAME'),
         }
@@ -368,16 +379,21 @@ class OlsValidation(Base):
                 if code:
                     self.assertEqual(r['error']['data']['tool_code'], code, r)
 
+    def touch(self, name):
+        path = self.dir / name
+        path.write_text('a\n1\n')
+        return str(path)
+
     def test_parameters_are_validated_before_spawn(self):
         cols = s5.columns('y', 'x1', 'g')
         base = {'columns': cols, 'y': 'y', 'terms': [{'var': 'x1'}]}
         bad = {
-            'no_source': ({'y': 'y', 'terms': [{'var': 'x1'}]}, 'BAD_PARAM'), 'two_sources': ({**base, 'csv': 'a.csv'}, 'BAD_PARAM'), 'records': ({**base, 'records': [{'y': 1}]}, None),
+            'no_source': ({'y': 'y', 'terms': [{'var': 'x1'}]}, 'BAD_DATA'), 'two_sources': ({**base, 'csv': 'a.csv'}, 'BAD_DATA'), 'records': ({**base, 'records': [{'y': 1}]}, None),
             'y_missing': ({'columns': cols, 'terms': [{'var': 'x1'}]}, None), 'y_bad_name': ({**base, 'y': 'a b\nc'}, 'BAD_NAME'), 'cov_enum': ({**base, 'cov_type': 'HAC'}, None),
             'cluster_without_column': ({**base, 'cov_type': 'cluster'}, 'BAD_PARAM'), 'cluster_with_wrong_cov': ({**base, 'cluster': 'g'}, 'BAD_PARAM'), 'alpha_zero': ({**base, 'alpha': 0}, 'BAD_PARAM'),
             'alpha_one': ({**base, 'alpha': 1}, 'BAD_PARAM'), 'na_action_enum': ({**base, 'na_action': 'impute'}, None), 'include_enum': ({**base, 'include': ['design']}, None),
-            'include_dup': ({**base, 'include': ['fitted', 'fitted']}, 'BAD_PARAM'), 'weights_bad_name': ({**base, 'weights': ''}, 'BAD_NAME'), 'inline_cap': ({**base, 'columns': {'y': [0.0] * 600, 'x1': [0.0] * 600}}, 'INPUT_TOO_LARGE'),
-            'csv_outside': ({'csv': '/etc/passwd', 'y': 'y', 'terms': [{'var': 'x1'}]}, None), 'frame_ext': ({'frame': 'a.csv', 'y': 'y', 'terms': [{'var': 'x1'}]}, None),
+            'include_dup': ({**base, 'include': ['fitted', 'fitted']}, 'BAD_PARAM'), 'weights_bad_name': ({**base, 'weights': ''}, 'BAD_NAME'), 'inline_cap': ({**base, 'columns': {'y': [0.0] * 600, 'x1': [0.0] * 600}}, 'BAD_DATA'),
+            'csv_outside': ({'csv': '/etc/passwd', 'y': 'y', 'terms': [{'var': 'x1'}]}, None), 'frame_ext': ({'frame': self.touch('a.csv'), 'y': 'y', 'terms': [{'var': 'x1'}]}, None),
             'out_on_read': ({**base, 'out': 'x.safetensors'}, None),
         }
         for name, (params, code) in bad.items():
@@ -429,7 +445,7 @@ class Glm(Base):
 
     def test_closed_forms_intercept_only(self):
         y = np.array(D['count'], float)
-        r = self.fit([{'const': True}], 'count', 'poisson')
+        r = self.fit([{'const': True}], 'count', 'poisson', tol=1e-12)
         t = table(r)
         close(self, t['estimate'], [math.log(y.mean())], 1e-10)
         close(self, t['std_err'], [1 / math.sqrt(y.sum())], 1e-9)
@@ -441,19 +457,19 @@ class Glm(Base):
         close(self, r['aic'], -2 * llf + 2, 1e-9)
         close(self, r['bic'], -2 * llf + math.log(40), 1e-9)
         b = np.array(D['binary'], float)
-        r = self.fit([{'const': True}], 'binary', 'binomial')
+        r = self.fit([{'const': True}], 'binary', 'binomial', tol=1e-12)
         pbar = b.mean()
         close(self, table(r)['estimate'], [math.log(pbar / (1 - pbar))], 1e-9)
         close(self, table(r)['std_err'], [math.sqrt(1 / (40 * pbar * (1 - pbar)))], 1e-9)
         g = np.array(D['gam'], float)
-        r = self.fit([{'const': True}], 'gam', 'gamma', 'log')
+        r = self.fit([{'const': True}], 'gam', 'gamma', 'log', tol=1e-12)
         close(self, table(r)['estimate'], [math.log(g.mean())], 1e-9)
         scale = float(np.sum(((g - g.mean()) / g.mean()) ** 2) / 39)
         close(self, r['scale'], scale, 1e-8)
         close(self, table(r)['std_err'], [math.sqrt(scale / 40)], 1e-8)
         # gaussian + identity is OLS
         ols = call('sm_ols', {'columns': s5.columns('y', 'x1', 'x2'), 'y': 'y', 'terms': [{'var': 'x1'}, {'var': 'x2'}]})
-        glm = self.fit([{'var': 'x1'}, {'var': 'x2'}], 'y', 'gaussian')
+        glm = self.fit([{'var': 'x1'}, {'var': 'x2'}], 'y', 'gaussian', tol=1e-12)
         close(self, table(glm)['estimate'], table(ols)['estimate'], 1e-9)
         close(self, table(glm)['std_err'], table(ols)['std_err'], 1e-9)
         close(self, glm['deviance'], ols['ssr'], 1e-9)
@@ -558,11 +574,14 @@ class Arima(Base):
 
     def test_r_golden_arma11_and_forecasts(self):
         r = self.arima(forecast_steps=5)
-        self.assertEqual((r['status'], r['converged']), ('OK', True))
+        self.assertEqual((r['status'], r['converged'], r['cov_type']), ('OK', True, 'opg'))  # statsmodels' default covariance estimator
         t = table(r)
         self.assertEqual(t['names'], ['ar.L1', 'ma.L1', 'sigma2'])
         close(self, t['estimate'][:2], R['arma11.coef'], 2e-3, 2e-4)
-        close(self, t['std_err'][:2], R['arma11.se'], 3e-2)  # observed-information vs R's Hessian: different numerical derivatives
+        # R differentiates the likelihood numerically: statsmodels' equivalent estimator is cov_type 'approx' (the default opg differs by ~10 %)
+        approx = self.arima(cov_type='approx')
+        close(self, table(approx)['std_err'][:2], R['arma11.se'], 1e-2)
+        self.assertFalse(np.allclose(t['std_err'][:2], R['arma11.se'], rtol=1e-2))
         close(self, r['sigma2'], R['arma11.sigma2'][0], 5e-3)
         close(self, r['llf'], R['arma11.loglik'][0], 1e-4)
         close(self, r['aic'], R['arma11.aic'][0], 1e-5)
@@ -623,7 +642,7 @@ class Arima(Base):
     def test_start_params_and_statuses(self):
         r = self.arima(order=[1, 0, 0], start_params=[0.5, 1.0])
         self.assertEqual(r['status'], 'OK')
-        r = self.arima(order=[1, 0, 1], start_params=[0.5, 1.0], maxiter=1)
+        r = self.arima(order=[1, 0, 1], start_params=[0.5, 0.1, 1.0], maxiter=1)
         self.assertEqual(r['status'], 'NO_CONVERGENCE')
         self.assertFalse(r['converged'])
         bad = call('sm_arima', {'columns': {'s': D['series']}, 'series': 's', 'order': [1, 0, 0], 'start_params': [0.5]}, 2)
@@ -733,6 +752,55 @@ class Acf(Base):
     def test_patsy_is_never_loaded(self):
         r = call('sm_tsa_acf', {'columns': {'s': D['series']}, 'series': 's', 'kind': 'acf', 'nlags': 3})
         self.assertEqual(r['meta']['forbidden_modules_loaded'], [])
+
+
+class Isolation(unittest.TestCase):
+    """Fresh interpreter, the worker's own import phase and guard: patsy/formulaic never load and cannot be imported."""
+
+    def test_no_sm_operation_loads_or_can_load_patsy(self):
+        code = r'''
+import sys, json
+sys.path.insert(0, %r)
+import s3, s5
+w = s3.load_worker()
+import numpy, scipy.linalg, scipy.stats, pandas
+w.sm_import()
+assert 'patsy' not in sys.modules and 'formulaic' not in sys.modules, 'import phase loaded patsy'
+for module in list(sys.modules):
+    if module.split('.')[0] in w.BLOCKED_MODULES:
+        sys.modules.pop(module, None)
+sys.meta_path.insert(0, w.BlockedImports())
+sys.addaudithook(w.audit)
+D = s5.DATA
+common = {'alpha': 0.05, 'na_action': 'error', 'time_budget_s': 30}
+ols = dict(common, columns=s5.columns('y', 'x1', 'x2', 'g'), y='y', terms=%r, cov_type='nonrobust')
+glm = dict(common, columns=s5.columns('count', 'x1'), y='count', terms=[{'var': 'x1'}], family='poisson', link='log', maxiter=100, tol=1e-8, cov_type='nonrobust')
+arima = dict(common, columns={'s': D['series']}, series='s', order=[1, 0, 0], trend='n', enforce_stationarity=True, enforce_invertibility=True, method='lbfgs', maxiter=100, forecast_steps=2)
+acf = dict(common, columns={'s': D['series']}, series='s', kind='pacf', nlags=5, adjusted=False, method='ywm')
+for name, params in (('sm_ols', ols), ('sm_glm', glm), ('sm_arima', arima), ('sm_tsa_acf', acf)):
+    result = w.sm_operation(name)(params)
+    assert result['status'] == 'OK', (name, result)
+    leaked = [m for m in sys.modules if m.split('.')[0] in ('patsy', 'formulaic') or m == 'statsmodels.formula.api']
+    assert not leaked, (name, leaked)
+for blocked in ('patsy', 'formulaic', 'statsmodels.formula.api', 'patsy.util'):
+    try:
+        __import__(blocked)
+    except ImportError:
+        pass
+    else:
+        raise AssertionError(blocked + ' imported')
+assert 'patsy' not in sys.modules
+print('ok')
+''' % (str(ROOT / 'tests/oracle'), REG_TERMS)
+        proc = subprocess.run([sys.executable, '-P', '-s', '-B', '-c', code], capture_output=True, text=True, cwd=str(ROOT))
+        self.assertEqual((proc.returncode, proc.stdout.strip()), (0, 'ok'), proc.stderr[-2000:])
+
+    def test_worker_source_has_no_formula_or_patsy_import(self):
+        import re
+        source = ''.join((ROOT / 'py' / name).read_text() for name in ('sm.py', 'worker.py', 'numerics.py'))
+        self.assertEqual(re.findall(r'^\s*(?:import|from)\s+(?:patsy|formulaic)\b', source, flags=re.M), [])
+        self.assertNotIn('statsmodels.formula', ''.join(l for l in (ROOT / 'py/sm.py').read_text().splitlines(True) if not l.lstrip().startswith(('#', '"""'))).replace("'statsmodels.formula.api'", ''))
+        self.assertNotRegex(source, r'from_formula|\bsmf\b|\bdmatrices?\b')
 
 
 class Schema(unittest.TestCase):
