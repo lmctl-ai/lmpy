@@ -21,6 +21,8 @@ The first red review suite against the original test-image binary exited 1: 14 m
 
 The batch regression additionally exposed rank-reduced LDA with requested two axes but one actual SVD axis: the old persistence shape check rejected its own model. A separate red reproducer (exit 1) precedes the fix; effective axes are now persisted and flagged, with both one- and two-axis fixtures.
 
+A further red fixture (exit 1) catches CV folds containing only the numeric-looking subset of otherwise textual class identifiers. The full dataset fixes the label policy once; folds never infer a different type.
+
 Compatibility: new strict KNN classifier v1 files persist classes_. S6 prototype KNN models missing that tensor fail BAD_MODEL and need refitting. Other family attribute tables and wheel locks are unchanged. Canonical numeric string class labels now return integers; prefix them when textual identity is required. No new dependencies or relaxed resource caps.
 
 Acceptance and measurements are recorded below after final builds.

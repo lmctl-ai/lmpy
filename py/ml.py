@@ -77,7 +77,7 @@ def ml_target(df,p,task):
         return a,[]
     values=col.tolist()
     # Match the C++ source-independent policy; leading zeros and '+' stay strings.
-    if all(isinstance(v,str) and re.fullmatch(r'0|-?[1-9][0-9]*',v) and len(v)<=11 and abs(int(v))<=10**9 for v in values):values=[int(v) for v in values]
+    if not p.get('_ml_labels_normalized',False) and all(isinstance(v,str) and re.fullmatch(r'0|-?[1-9][0-9]*',v) and len(v)<=11 and abs(int(v))<=10**9 for v in values):values=[int(v) for v in values]
     labels=sorted(set(values))
     if len(labels)<2 or len(labels)>32: raise BadData('classification needs 2..32 classes')
     codes={label:i for i,label in enumerate(labels)}
@@ -267,7 +267,8 @@ def ml_cv(p):
     import numpy as np
     import sklearn.model_selection as split,sklearn.metrics as metric,hashlib
     df,_,_,_=frame_load(p);task=p['ml_spec']['families'][p['family']]['task'];y,labels=ml_target(df,p,task)
-    if task=='classification':df=df.copy();df[p['target']]=[labels[int(code)] for code in y]
+    if task=='classification':
+        df=df.copy();df[p['target']]=[labels[int(code)] for code in y];p=dict(p,_ml_labels_normalized=True)
     n=p['n_splits'];shuffle=p['shuffle'];seed=p['seed'];cv=p['cv'];groups=df[p['groups']].to_numpy() if cv=='group' else None
     if cv=='timeseries':splitter=split.TimeSeriesSplit(n_splits=n)
     elif cv=='group':splitter=split.GroupKFold(n_splits=n,shuffle=shuffle,random_state=seed if shuffle else None)
