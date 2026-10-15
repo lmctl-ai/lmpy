@@ -360,86 +360,81 @@ Conversion of already typed float artifacts remains explicit and range-checked.
 
 | Operation | Access | Contract |
 |---|---|---|
-| `opt_linprog` | write | HiGHS dense LP / mixed-integer LP; `c`, optional paired `a_ub/b_ub`, `a_eq/b_eq`, per-variable `bounds`, `integrality` (continuous/integer/binary), `maximize`, time/node/iteration caps |
-| `ode_solve` | write | Closed-expression RHS in `y[i]`, `t`, finite named `params`; optional named states, events, six solve_ivp methods, per-expression/time/step budgets |
+| `opt_linprog` | read | HiGHS dense LP/MILP; bounded inline x, slack and LP duals; never writes |
+| `opt_linprog_to` | write | Same solve, all nonempty vectors in exclusive `out` safetensors |
+| `ode_solve` | read | Closed-expression solve_ivp RHS/events; bounded inline trajectory; never writes |
+| `ode_solve_to` | write | Same integration, time/state/event arrays in exclusive `out` safetensors |
 
-Both ops are statically **write**, including inline computations, so readonly blocks
-and dryrun simulates them. `out` optionally forces a new exclusive `.safetensors`;
-otherwise results exceeding the inline budget automatically create a unique
-`pycli-result-pycli-*.safetensors` in cwd and return refs. No overwrite. An explicit
-LP `out` without a primal solution fails (exit 1, domain status as tool_code);
-without explicit out, infeasible/unbounded/limit statuses are ordinary domain
-results (exit 0). A stopped ODE can persist its accepted partial state with the
-non-OK domain status. There is no claim that a successful protocol envelope means
-an optimal LP or a completed integration: inspect `result.status`.
+These follow S1's read / `_to` pattern. Read forms work under `--readonly`; results
+above the conservative inline budget (850 vector numbers or 24KiB vector JSON,
+with room for metadata under the overall 1000-number /64KiB cap) fail with
+`OUTPUT_TOO_LARGE` and recommend `_to`. They never create an automatic artifact.
+Write forms require `out`, honor readonly/dryrun, and fail without an artifact.
+`outputs_in_artifact` is explicit: false for inline, true for descriptors in x,
+slack, duals.*, t, y or events. Read descriptors with `array_inspect` (limit<=1000).
+An LP write without a primal fails; a partial ODE can still be saved with its
+non-OK domain status. Inspect `result.status`, not just the protocol envelope.
 
-LP limits: 512 variables, 4096 combined constraint rows, 200000 combined dense
-matrix entries; at n variables, rows are also bounded by floor(200000/n). Inputs
-use the S1 inline/NPY/safetensors-ref grammar. Matrices and RHS/c must be finite.
-Bounds default to `[0,null]` (nonnegative); null or signed `-Inf`/`Inf` tokens open
-the corresponding endpoint. Equal endpoints fix a variable. Binary integrality
-intersects bounds with [0,1]; no semi-continuous/semi-integer modes. `time_limit`
-is >0..30 seconds (default 10), `node_limit` 0..100000 (default 10000), LP `maxiter`
-1..100000, `mip_rel_gap` 0..0.1 (default 0). Native HiGHS threads fixed to one.
+LP: `c`, paired `a_ub/b_ub`, `a_eq/b_eq`, per-variable `bounds`, `integrality`
+(continuous/integer/binary), `maximize`; 512 variables, 4096 combined rows and
+200000 combined dense matrix entries. S1 inline/NPY/safetensors-ref inputs.
+All finite input magnitudes, including bounds, are <=1e15; null or signed
+`-Inf` / `Inf` tokens open bounds. Defaults [0,null]; equal bounds fix variables;
+binary intersects [0,1]. Larger finite values fail validation before spawn with
+`VALUE_EXCEEDS_SOLVER_LIMIT`, rather than becoming HiGHS infinity or model errors.
 
-LP statuses: OK, INFEASIBLE, UNBOUNDED, TIME_LIMIT, NODE_LIMIT, ITERATION_LIMIT,
-NUMERICAL_FAILURE. The original SciPy message/status remain visible. HiGHS' native
-solution-limit stop (SciPy currently calls it status 4) maps to NODE_LIMIT;
-negative/unavailable iteration counts are omitted. Available primal solutions
-include `objective`, `x`, `slack`, equality residuals and an independent feasibility
-check. LP `duals.ub/eq/lower/upper` are derivatives of the **original** objective
-(including maximize sign). MILP reports available `mip_gap`, `mip_node_count`, `mip_dual_bound`,
-no LP duals; an incumbent within a nonzero requested gap is labelled `incumbent`,
-not proven optimal. In degenerate problems compare feasibility/objective, not x.
+Rows are divided by their largest nonzero coefficient; the objective likewise.
+Nonzero coefficient ratios per row/objective must be >=1e-9; scaled RHS magnitude
+must be <=1e15. Unsafe ranges fail before spawn (`UNSAFE_COEFFICIENT_RANGE`).
+The native small-coefficient cutoff is fixed at 1e-12. Marginals and objective/MIP
+bounds are restored to original units. Original-data checks use per-row relative
+residuals with no unit-sized absolute floor, bounds, integrality, LP dual signs,
+stationarity, complementarity and primal/dual objective agreement (tolerance1e-7).
+A failed check returns NUMERICAL_FAILURE, never OK. `primal_feasible`,
+`primal_relative_violation`, `dual_feasible`, `dual_relative_violation`,
+`relative_duality_gap` and `optimality_verified` expose the checks. MILP optimality
+uses native gap/bound metadata, not an independently checked integer certificate.
+Integer components within 1e-6 are rounded, signed zero normalized, and feasibility
+rechecked on the returned x; `integrality_error` retains the pre-rounding error.
 
-ODE: `y0` array with one RHS expression per component, or named y0/RHS objects
-(sorted by name). Array y0 can give `states` aliases. At most 32 states /16 named
-parameters, with the S3 name/collision rules; e.g. use `b` instead of the reserved
-function name `beta`. Methods: RK45, RK23, DOP853, Radau, BDF, LSODA. rtol is
-1e-13..0.1; atol scalar/per-state is 1e-15..0.1. Finite t_span endpoints have
-absolute value <=1e12, and may run backwards. `max_step` is positive finite.
-Default output is 101 uniform samples, **not** the adaptive step mesh;
-`max_output_points` selects 2..10000 samples. Explicit ordered `t_eval` accepts
-inline/NPY/safetensors vectors; missing span endpoints are added and reported.
-Potential trajectory + events + final state are bounded before spawn to 200000
-numbers. Failed/terminated integrations can append one accepted/terminal endpoint.
+LP statuses derive from the preserved `highs_model_status`, not SciPy's ambiguous
+status alone: OK, INFEASIBLE, UNBOUNDED, INFEASIBLE_OR_UNBOUNDED, MODEL_ERROR,
+TIME_LIMIT, NODE_LIMIT, ITERATION_LIMIT, NUMERICAL_FAILURE. Unknown native statuses
+fail conservatively. Original SciPy message/status remain. LP duals follow the
+original objective, including maximize. MILP exposes available `mip_gap`,
+`mip_node_count`, `mip_dual_bound`; nonzero requested-gap incumbents are labeled
+incumbent. Limits: time >0..30s (default10), node 0..100000 (default10000),
+iterations1..100000; mip_rel_gap0..0.1 (default0); one native thread.
 
-Every RHS component and event expression shares `max_evals` (default/cap 200000);
-finite-difference Jacobian RHS calls are counted too. `rhs_calls`, `event_calls`
-and SciPy nfev/njev/nlu are distinct metrics. `max_steps` default 10000, cap 20000;
-wall budget defaults to 10 s, max 30, with import time deducted from the process
-budget and a two-second hard-kill margin. At most four `{expr,direction,terminal}`
-events; direction -1/0/1, terminal defaults false. Each nonterminal event caps at
-32 roots and stops with EVENT_LIMIT. The state at a terminal root is the final
-state, even when the last requested sample precedes it. `event_t/event_y/event_index`
-use event index order. A requested terminal event is OK with `termination:event`.
-Other domain statuses: EVAL_LIMIT, TIME_LIMIT, STEP_LIMIT, EVENT_LIMIT, NON_FINITE,
-STEP_SIZE_TOO_SMALL, NO_CONVERGENCE. On callback interruption, `partial_trajectory`
-returns initial + last **accepted** state, not rejected trial states; earlier
-sample/event history is unavailable, so zero event counts are incomplete in that
-case. Large trajectory/event arrays share the artifact, small final state stays
-inline. Whole summary <=32KiB / final response <=64KiB, and <=1000 inline numbers.
+ODE: one RHS per component in `y[i]`, `t`, optional named params/states; named y0
+and RHS objects are sorted by name. At most32 states /16 parameters; S3 reserved
+name rules apply (use b instead of beta). Methods RK45, RK23, DOP853, Radau, BDF,
+LSODA; **stiff problems: use BDF/Radau/LSODA**. Default RK45 on stiff Robertson
+can spend its full10s budget and return TIME_LIMIT/STEP_LIMIT/EVAL_LIMIT with an
+accepted partial state. Tolerances are local solver controls, not global bounds.
+rtol1e-13..0.1; scalar/per-state atol1e-15..0.1; optional positive max_step<=1e12.
+Distinct finite t_span endpoints have abs<=1e12; forward/reverse supported.
 
-Examples: `examples/lp-plan.lms` (CSV demand/capacity to a hand-checked cost-4 plan)
-and `examples/ode-sir.lms` (population conservation and the infected peak event).
-HiGHS MIT text is already in the shipped SciPy source-notice inventory; S4 adds
-no wheel. Robertson source/tolerances, oracle independence and composition gaps
-are recorded in docs/s4.md. Current timings are in docs/timings.md.
+Default101 uniform samples, max_output_points2..10000; timestamp duplicates due
+to floating resolution are removed, preserving endpoints. `effective_output_points`
+reports the grid size. Explicit ordered t_eval accepts inline/refs, with missing
+endpoints added/reported. Potential trajectory/event/final output <=200000 numbers
+is checked before spawn. Every RHS component, Jacobian RHS and event evaluation
+shares max_evals (default/cap200000). Accepted max_steps default10000/cap20000;
+wall default10s/cap30, bounded by the process budget with a two-second kill margin.
 
-S4 aarch64 runtime: **527 MB** on disk / **115241534 content bytes**; test image
-1.05 GB. No wheel was added. Ten sequential production-shim calls per workload
-on the shared, loaded host (p95 is the maximum of ten):
+Up to4 events {expr,direction:-1/0/1,terminal:false}; roots exactly at the initial
+time are excluded, including terminal events. Actual NaN/Inf expressions still
+stop NON_FINITE. Per-event32-root cap gives EVENT_LIMIT; event_index is integer
+(I64 in artifacts), grouped by event. A terminal event returns its localized root
+state and time, including with coarse t_eval. Every non-OK result has
+`termination:failed`, `partial_trajectory:true`; statuses include EVAL_LIMIT,
+TIME_LIMIT, STEP_LIMIT, EVENT_LIMIT, NON_FINITE, STEP_SIZE_TOO_SMALL, NO_CONVERGENCE.
+Callback interruption returns initial + last accepted state, never rejected trial
+states; earlier samples/events are unavailable, so zero event counts are incomplete.
 
-| Workload | Wall p50 ms | Wall p95 ms |
-|---|---:|---:|
-| Hand-solved Wyndor LP | 1020 | 1060 |
-| Four-item binary knapsack MILP | 996 | 1086 |
-| Exponential decay, RK45 | 1002 | 1009 |
-| Robertson to t=40, BDF | 1240 | 1297 |
-
-Final acceptance: both image builds exit 0; CTest **23/23**, exit 0 (532.30 s),
-including 16 S4 test groups; all seven recipes pass real execution through the
-host shim, `--check` and `--dry-run` (21 exits 0). Hardened cap probes exit 0
-with a 98.56 MiB cgroup peak including the harness. Measurements, load telemetry,
-source-qualified Robertson tolerances and deliberate gaps are in docs/s4.md and
-docs/timings.md. amd64 execution remains unverified.
+Examples: lp-plan.lms (CSV to hand-checked cost4 plan), ode-sir.lms (population
+conservation and infected-peak event); both remain inline and use read operations.
+HiGHS MIT is covered by the shipped SciPy notices. No new wheel.
+See [docs/s4.md](docs/s4.md), [review fixes](docs/review-s4-fixes.md) and
+[measurements](docs/timings.md). amd64 execution remains unverified.
