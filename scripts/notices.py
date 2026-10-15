@@ -42,7 +42,7 @@ by the GCC Runtime Library Exception; the amd64 wheels ship it, arm64 does not.
 Static libstdc++/libgcc use GCC licensing with the Runtime Library Exception.
 S2 adds pandas 2.3.3, python-dateutil 2.9.0.post0, pytz 2025.2, tzdata 2025.2 and six 1.17.0, with full source inventories and wheel notices below.
 S5 adds statsmodels 0.14.6 (BSD-3-Clause, with bundled third-party notices for libqsturng, factor_rotation and the state-space
-test data), patsy 1.0.3 (BSD-3-Clause; a hard dependency of statsmodels that pycli never imports) and packaging 26.3
+test data), patsy 1.0.3 (BSD-2-Clause, with PSF-2.0 terms for the patsy.compat code; a hard dependency of statsmodels that pycli never imports) and packaging 26.3
 (Apache-2.0 OR BSD-2-Clause), with source inventories and wheel notices below.
 S1 adds no shipped component. Its ASan/UBSan test binaries statically link GCC's sanitizer
 runtimes (same Runtime Library Exception) and exist only in the test image, never in runtime.
