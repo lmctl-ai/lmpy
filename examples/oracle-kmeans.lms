@@ -1,0 +1,22 @@
+// access: write
+// Separated blobs; pairwise co-membership identity proves ARI=1 despite label permutation.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+work="."; x=[-11,-10,-9,9,10,11]; z=[0,1,0,0,1,0]; truth=[0,0,0,1,1,1];
+f=pycli.ml_fit({family:"kmeans",columns:{x:x,z:z},features:["x","z"],seed:42,params:{n_clusters:2},preprocess:{scale:false,one_hot:[]},out:work+"/km.safetensors"});
+if(f.status=="simulated"){println("kmeans oracle simulated");exit(0);}
+if(f.status!="ok"||f.result.status!="OK"){println(json_stringify(f));exit(1);}
+a=f.result.prediction_preview.prediction;
+for(i=0;i<6;i=i+1){for(j=0;j<6;j=j+1){if((a[i]==a[j])!=(truth[i]==truth[j])){println("hand blobs mismatch");exit(1);}}}
+println("pycli vs hand blobs: ARI=1");
+if(which("rcli")==null){println("rcli skipped: add ~/repos/lmctlhq/rcli/bin to PATH");}
+else{
+ r=rcli.cluster_kmeans({data:{x:x,z:z},k:2,seed:42,nstart:10,iter_max:100,algorithm:"Lloyd"});
+ if(r.status!="ok"){println(json_stringify(r));exit(1);}
+ b=r.result.cluster;
+ for(i=0;i<6;i=i+1){for(j=0;j<6;j=j+1){if((a[i]==a[j])!=(b[i]==b[j])){println("rcli cluster mismatch");exit(1);}}}
+ println("pycli vs rcli Lloyd: ARI=1");
+}
+println("lmda cluster_kmeans deferred: no prebuilt binary; install one to add an optional leg");
+
+delete_file(work+"/km.safetensors");

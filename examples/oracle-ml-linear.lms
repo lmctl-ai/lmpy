@@ -1,0 +1,30 @@
+// access: write
+// OLS y=1+2*x: exact hand optimum, optional rcli and lmstats legs. No lmda build required.
+// Setup optional tools: examples/schemas/README.md; lmda absent => its leg is deferred.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+import "schemas/statsrust.cli.schema.v1.json" as lmstats;
+work = ".";
+x = [-3,-2,-1,0,1,2,3]; y = [-5,-3,-1,1,3,5,7];
+f = pycli.ml_fit({family:"linear",columns:{x:x,y:y},features:["x"],target:"y",preprocess:{scale:false,one_hot:[]},out:work+"/ols.safetensors"});
+if (f.status == "simulated") { println("ML linear oracle simulated"); exit(0); }
+if (f.status != "ok" || f.result.status != "OK") { println(json_stringify(f)); exit(1); }
+c = pycli.array_inspect({ref:work+"/ols.safetensors#coef_"});
+a = pycli.array_inspect({ref:work+"/ols.safetensors#intercept_"});
+if (abs(c.result.preview[0]-2)>0.000000001 || abs(a.result.preview[0]-1)>0.000000001) { println("hand optimum mismatch"); exit(1); }
+println("pycli OLS intercept=",a.result.preview[0],"slope=",c.result.preview[0]);
+if (which("rcli") == null) { println("rcli leg skipped: add ~/repos/lmctlhq/rcli/bin to PATH"); }
+else {
+ r=rcli.fit_lm({formula:"y ~ x",data:{x:x,y:y}});
+ if(r.status!="ok" || abs(r.result.estimate[0]-1)>0.000000001 || abs(r.result.estimate[1]-2)>0.000000001){println(json_stringify(r));exit(1);}
+ println("rcli OLS=",json_stringify(r.result.estimate));
+}
+if (which("statsrust") == null) { println("lmstats leg skipped: install prebuilt statsrust; see examples/schemas/README.md"); }
+else {
+ s=lmstats.regression({endog:y,exog:[[-3],[-2],[-1],[0],[1],[2],[3]],add_const:true,method:"ols"});
+ if(s.status!="ok" || abs(s.result.params.values[0]-1)>0.000000001 || abs(s.result.params.values[1]-2)>0.000000001){println(json_stringify(s));exit(1);}
+ println("lmstats OLS=",json_stringify(s.result.params.values));
+}
+println("lmda leg deferred: no prebuilt binary at the requested checkout");
+
+delete_file(work+"/ols.safetensors");

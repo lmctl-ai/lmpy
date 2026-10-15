@@ -517,3 +517,17 @@ parameter count.
 ACF/PACF: `acf` is the biased (divide by n) estimate like R unless `adjusted`; confidence intervals are Bartlett's for the ACF and
 `+-z/sqrt(n)` for the PACF; PACF methods `ywm` (R's), `ywadjusted`, `ols`, `ldb`; `nlags` < n (PACF: < n/2). Constant series are `CONSTANT_SERIES`. The series is rescaled by its largest magnitude first, so
 the correlations are exact for any finite scale (1e-300 .. 1e300); undefined results are `NUMERICAL_FAILURE`.
+
+## S6 machine learning
+
+| Op | Access | Result |
+|---|---|---|
+| `ml_fit` | write | 13 closed numeric model families to exclusive safetensors; four forest/boosting families fit+predict to NPZ without a model |
+| `ml_predict` | write | Version/attribute-checked model to NPZ: predict / predict_proba / decision_function / transform; bounded preview |
+| `ml_cv` | read | Kfold/stratified/group/timeseries supervised CV, fold scores and population mean/std |
+
+Pinned sklearn 1.7.2, joblib 1.5.2, threadpoolctl 3.6.0. `features` and `{scale,one_hot}` preprocessing are explicit; no missing/NaN/Inf input, unknown features, caller code or executable model state. Seeds required for stochastic families and all CV (sklearn MT19937, echoed). All worker pools and n_jobs are fixed at one.
+
+ML caps checked before spawn: 20000 rows, 64 encoded features, 200000 cells, 32 classes/clusters/components (KNN k<=128), 200M work product across folds, <=20 folds, <=64 trees/depth12, <=5M KNN query pairs. Defaults/ranges and model v1 contract: [docs/s6.md](docs/s6.md), [ml-spec.json](ml-spec.json). CSV <=16MiB, model/NPZ <=32MiB; outputs <=1000 array entries/64KiB inline. Large predictions are artifact refs; previews <=800 cells/24KiB. Models reject version skew unless explicitly accepted. Nonconvergence/timeouts never produce a successful model.
+
+Recipes: `oracle-ml-linear.lms`, `oracle-kmeans.lms`, `ml-classify-cv.lms`; optional rcli/lmstats legs give setup hints. Timing and image growth measurements are in [docs/timings.md](docs/timings.md).

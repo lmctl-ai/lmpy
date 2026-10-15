@@ -63,3 +63,8 @@ rounded choose through RHS/events. Hand LP optima, exhaustive integer enumeratio
 analytic/conserved ODE quantities and the primary ODEPACK Robertson example are
 the independent solver oracles. This is new capability, not claimed rcli solver
 parity. See docs/s4.md for the explicit nested-ODE least-squares composition gap.
+
+S6 ML: OLS overlaps rcli `fit_lm` / lmstats `regression`; kmeans overlaps rcli `cluster_kmeans` and lmda `cluster_kmeans`.
+`oracle-ml-linear.lms` and `oracle-kmeans.lms` compare hand optima/partitions and optional prebuilt tools. The requested
+`~/repos/lmctl-ai/lmda` checkout/prebuilt binary is absent here; no lmda build was attempted. Tree models are deliberately
+not portable serialized estimator objects. Numerical model arrays and prediction tables are the cross-tool interchange.

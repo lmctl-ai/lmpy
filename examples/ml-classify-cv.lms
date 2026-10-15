@@ -1,0 +1,19 @@
+// access: write
+// Generate labelled data, stratified CV, save a logistic model, reload it and report probabilities.
+import "../cli.schema.dev.json" as pycli;
+work="."; x=[];y=[];
+for(i=0;i<40;i=i+1){v=(i-20)/5;x=concat(x,[v]);y=concat(y,[v>0?1:0]);}
+cv=pycli.ml_cv({family:"logistic",columns:{x:x,y:y},features:["x"],target:"y",preprocess:{scale:true,one_hot:[]},cv:"stratified",n_splits:4,shuffle:true,seed:42,metrics:["accuracy","log_loss"]});
+if(cv.status=="simulated"){println("classification CV simulated");exit(0);}
+if(cv.status!="ok"||cv.result.status!="OK"){println(json_stringify(cv));exit(1);}
+println("4-fold mean scores:",json_stringify(cv.result.mean));
+if(cv.result.mean.accuracy<0.8){println("unexpected classification accuracy");exit(1);}
+f=pycli.ml_fit({family:"logistic",columns:{x:x,y:y},features:["x"],target:"y",preprocess:{scale:true,one_hot:[]},seed:42,out:work+"/classifier.safetensors"});
+if(f.status!="ok"){println(json_stringify(f));exit(1);}
+p=pycli.ml_predict({model:work+"/classifier.safetensors",columns:{x:[-2,0,2]},kind:"predict_proba",out:work+"/probabilities.npz"});
+if(p.status!="ok"){println(json_stringify(p));exit(1);}
+println("Reloaded probabilities:",json_stringify(p.result.prediction_preview));
+println("Model:",f.result.model.ref);
+
+delete_file(work+"/classifier.safetensors");
+delete_file(work+"/probabilities.npz");
