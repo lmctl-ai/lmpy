@@ -474,7 +474,7 @@ class Signal(Base):
         rejected('sig_spectrum', dict(base, y=x), 'BAD_PARAM')  # y only for csd / coherence
         rejected('sig_spectrum', dict(base, fs=0.0), 'BAD_PARAM')
         rejected('sig_spectrum', dict(base, nfft=1 << 18), 'INPUT_TOO_LARGE')
-        rejected('sig_spectrum', dict(base, nperseg=70000), 'BAD_PARAM')
+        rejected('sig_spectrum', dict(base, nperseg=70000), 'INPUT_TOO_LARGE')
         rejected('sig_spectrum', dict(base, window='kaiser'), None)
         rejected('sig_spectrum', dict(x=x + ["NaN"], method='welch'), 'BAD_DATA')
         long = self.npy(np.sin(np.arange(2000)))
