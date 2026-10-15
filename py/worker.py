@@ -184,7 +184,7 @@ def matrix(p, key):
     return a
 
 
-def save_outputs(p, items):
+def save_outputs(p, items, nan_masks=None):
     """Raw little-endian tensors, one file per entry; C++ validates sizes and writes the safetensors."""
     import numpy as np
     outputs = []
@@ -192,7 +192,9 @@ def save_outputs(p, items):
         dtype = '<i8' if np.issubdtype(value.dtype, np.integer) else '<f8'
         value = np.ascontiguousarray(value, dtype=dtype)
         if value.dtype.kind == 'f' and not np.isfinite(value).all():
-            raise NumericalFailure('non-finite values in ' + key)
+            mask=None if nan_masks is None else nan_masks.get(key)
+            if mask is None or np.shape(mask)!=value.shape or np.isinf(value).any() or not np.array_equal(np.isnan(value),np.asarray(mask,dtype=bool)):
+                raise NumericalFailure('non-finite values in ' + key)
         value.tofile(p['output_prefix'] + str(i) + '.bin')
         outputs.append({'key': key, 'dtype': 'I64' if dtype == '<i8' else 'F64', 'shape': list(value.shape)})
     return outputs

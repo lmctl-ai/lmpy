@@ -12,7 +12,7 @@ def s7_vector(np, p, key):
     return np.asarray(array(p, key), dtype=float)
 
 
-def s7_emit(np, p, result, named, op):
+def s7_emit(np, p, result, named, op, nan_masks=None):
     """Inline arrays (<= 900 numbers in total) or, for the _to twins, raw tensors for the C++ side to store; empty arrays are never stored."""
     if p.get('output_prefix'):
         stored = [(key, np.asarray(value)) for key, value in named if np.size(value)]
@@ -21,7 +21,7 @@ def s7_emit(np, p, result, named, op):
             raise OutputTooLarge('the %s result holds %d numbers (artifact limit %d): use fewer points or a smaller problem' % (op, total, S7_ARTIFACT_NUMBERS))
         result['empty_outputs'] = [key for key, value in named if not np.size(value)]
         if stored:
-            result['outputs'] = save_outputs(p, stored)
+            result['outputs'] = save_outputs(p, stored, nan_masks=nan_masks)
         return result
     total = sum(int(np.size(value)) for _, value in named)
     if total > S7_INLINE:
@@ -39,7 +39,7 @@ def s7_cap(ok, what):
 
 def s7_guard(p, body):
     """Cooperative wall budget (SIGALRM) around one library call; None means the budget expired."""
-    return sm_fit_guard(p, body)
+    return sm_fit_guard(dict(p,time_budget_s=min(p.get('time_budget_s',40),p.get('time_limit',10))), body)
 
 
 def interp_eval(p):
@@ -85,7 +85,7 @@ def interp_eval(p):
                 rbf = itp.RBFInterpolator(pts, y, **options)
                 fit = float(np.max(np.abs(rbf(pts) - y))) if p['smoothing'] == 0 else None
                 out = rbf(q.reshape(len(q), -1)) if q is not None else None
-            except np.linalg.LinAlgError:
+            except (ValueError,np.linalg.LinAlgError):
                 return 'SINGULAR'
             return rbf, fit, out
         got = s7_guard(p, body)
@@ -101,15 +101,13 @@ def interp_eval(p):
                 result.update(status='ILL_CONDITIONED', message='the RBF system is too ill-conditioned: the fit misses its own nodes by %.3g' % fit)
                 return result
         if values is not None:
-            if not np.isfinite(values).all():
-                result['status'] = 'NUMERICAL_FAILURE'
-                return result
             lo_box, hi_box = pts.min(axis=0), pts.max(axis=0)
             outside = ~((q.reshape(len(q), -1) >= lo_box) & (q.reshape(len(q), -1) <= hi_box)).all(axis=1)
             result['n_extrapolated'] = int(outside.sum())
+            if not np.isfinite(values[~outside] if extrapolate=='nan' else values).all():return dict(result,status='NUMERICAL_FAILURE')
             if extrapolate == 'nan':
                 values = np.where(outside, np.nan, values)
-            return s7_emit(np, p, result, [('values', values)], 'interp_eval')
+            return s7_emit(np, p, result, [('values', values)], 'interp_eval', {'values':outside} if extrapolate=='nan' else None)
         return result
 
     def body():
@@ -134,18 +132,17 @@ def interp_eval(p):
     if 'values' in got:
         values, outside = got['values'], got['outside']
         result['n_extrapolated'] = int(outside.sum())
-        if extrapolate == 'nan':
-            values = np.where(outside, np.nan, values)
-        elif not np.isfinite(values).all():
+        if not np.isfinite(values[~outside] if extrapolate=='nan' else values).all():
             result['status'] = 'NUMERICAL_FAILURE'
             return result
+        if extrapolate=='nan':values=np.where(outside,np.nan,values)
         named.append(('values', values))
     if 'integral' in got:
         if not math.isfinite(got['integral']):
             result['status'] = 'NUMERICAL_FAILURE'
             return result
         result['integral'] = got['integral']
-    return s7_emit(np, p, result, named, 'interp_eval')
+    return s7_emit(np, p, result, named, 'interp_eval', {'values':got['outside']} if extrapolate=='nan' and 'values' in got else None)
 
 
 def sig_filter(p):
@@ -164,9 +161,13 @@ def sig_filter(p):
         return {'status': 'NUMERICAL_FAILURE', 'family': family, 'message': 'the design produced non-finite second-order sections'}
     radius = 0.0
     for row in sos:
-        roots = np.roots(row[3:6])
-        if len(roots):
-            radius = max(radius, float(np.max(np.abs(roots))))
+        a,b,c=np.asarray(row[3:6],dtype=np.longdouble)
+        disc=b*b-4*a*c
+        if disc<0:section=np.sqrt(c/a)
+        else:
+            q=-np.longdouble(.5)*(b+np.copysign(np.sqrt(disc),b))
+            section=max(abs(q/a),abs(c/q)) if q else np.longdouble(0)
+        radius=max(radius,float(section))
     result['max_pole_radius'] = radius
     result['stable'] = radius < 1.0
     # Stable but resonant: poles within 1e-6 of the unit circle ring for more than a million samples; flagged, not refused.
@@ -235,7 +236,10 @@ def sig_spectrum(p):
         magnitude = np.asarray(pxx, dtype=float)
         named.append(('pxx', magnitude))
         # Rectangle-rule integral of the one-sided estimate: the Parseval quantity (mean square of the detrended signal for boxcar windows).
-        result['total_power'] = float(np.sum(magnitude) * (result['df'] if p['scaling'] == 'density' else 1.0))
+        window_values=signal.get_window(window,n if method=='periodogram' else nperseg)
+        enbw=fs*float(np.sum(window_values**2))/float(abs(np.sum(window_values))**2)
+        result['total_power']=float(np.sum(magnitude)*result['df']/(enbw if p['scaling']=='spectrum' else 1.0))
+        result['enbw']=enbw
     if not all(np.isfinite(np.asarray(v)).all() for _, v in named):
         return {'status': 'NUMERICAL_FAILURE', 'method': method, 'message': 'the spectral estimate is not finite'}
     k = int(np.argmax(magnitude))
@@ -246,22 +250,115 @@ def sig_spectrum(p):
 def sig_peaks(p):
     import numpy as np
     from scipy import signal
-    x = s7_vector(np, p, 'x')
-    options = {key: (tuple(p[key]) if isinstance(p[key], list) else p[key]) for key in ('height', 'threshold', 'distance', 'prominence', 'width', 'wlen') if p.get(key) is not None}
-    if 'width' in options:
-        options['rel_height'] = p['rel_height']
-    with np.errstate(all='ignore'):
-        peaks, _ = signal.find_peaks(x, **options)
-        if len(peaks):
-            prominences, left, right = signal.peak_prominences(x, peaks, wlen=p.get('wlen'))
-            widths = signal.peak_widths(x, peaks, rel_height=p['rel_height'], prominence_data=(prominences, left, right))[0]
+    x=s7_vector(np,p,'x')
+    cheap={key:(tuple(p[key]) if isinstance(p[key],list) else p[key]) for key in ('height','threshold','distance') if p.get(key) is not None}
+    peaks,_=signal.find_peaks(x,**cheap)
+    count=len(peaks)
+    if not p.get('output_prefix') and 4*count>S7_INLINE:raise OutputTooLarge('peak candidates exceed inline output budget; use sig_peaks_to')
+    if 4*count>S7_ARTIFACT_NUMBERS:raise OutputTooLarge('peak candidates exceed artifact output budget')
+    wlen=p.get('wlen');used=min(len(x),int(wlen)|1) if wlen is not None else len(x)
+    if count*used>20000000:raise BadData('prominence search exceeds 20000000 candidate*window work; specify a smaller wlen','BAD_PARAM')
+    if count:
+        prominences,left,right=signal.peak_prominences(x,peaks,wlen=wlen)
+        widths=signal.peak_widths(x,peaks,rel_height=p['rel_height'],prominence_data=(prominences,left,right))[0]
+        keep=np.ones(count,dtype=bool)
+        for key,values in [('prominence',prominences),('width',widths)]:
+            bounds=p.get(key)
+            if bounds is None:continue
+            lo,hi=bounds if isinstance(bounds,list) else (bounds,None)
+            if lo is not None:keep &= values>=lo
+            if hi is not None:keep &= values<=hi
+        peaks,prominences,widths=peaks[keep],prominences[keep],widths[keep]
+    else:prominences=widths=np.zeros(0)
+    result={'status':'OK','n_peaks':len(peaks),'n_candidates':count,'n_samples':len(x),'rel_height':p['rel_height'],'wlen_used':used}
+    if not len(peaks) and p.get('output_prefix'):return dict(result,status='NO_PEAKS')
+    return s7_emit(np,p,result,[('indices',peaks.astype(np.int64)),('heights',x[peaks]),('prominences',prominences),('widths',widths)],'sig_peaks')
+
+
+def s7_stable_distances(np,points,point,norm):
+    delta=np.abs(points.astype(np.longdouble)-np.asarray(point,dtype=np.longdouble))
+    maximum=delta.max(axis=-1)
+    if norm==np.inf:out=maximum
+    else:
+        scaled=delta/np.where(maximum==0,1,maximum)[...,None]
+        out=maximum*np.sum(scaled**norm,axis=-1)**(1/norm)
+    out=np.asarray(out,dtype=float)
+    if not np.isfinite(out).all():raise NumericalFailure('distances exceed finite binary64 range')
+    return out
+
+
+def spatial_knn(p):
+    import numpy as np
+    from scipy.spatial import cKDTree
+    points=s7_vector(np,p,'points');q=s7_vector(np,p,'queries') if 'queries_file' in p else points
+    n,m=len(points),len(q);norm=np.inf if p['p']=='inf' else float(p['p']);exclude=p['exclude_self']
+    s7_cap(points.shape[1]<=S7_KNN_DIM and p.get('k',1)<=S7_KNN_K,'knn dimensions / k')
+    brute=norm>2 and norm!=np.inf
+    if brute:s7_cap(n*m*points.shape[1]<=20000000,'stable p-norm work')
+    tree=None;scale=1.
+    if not brute:
+        scale=max(float(np.max(np.abs(points))),float(np.max(np.abs(q)))) or 1.
+        pts=points/scale;qq=q/scale
+        # Refuse unsafe dynamic ranges rather than merge points or underflow powers.
+        for original,scaled in [(points,pts),(q,qq)]:
+            nz=original!=0
+            if (scaled[nz]==0).any() or (np.abs(scaled[nz])<1e-140).any():raise NumericalFailure('unsafe dynamic range for exact tree search')
+            for j in range(original.shape[1]):
+                if len(np.unique(original[:,j]))!=len(np.unique(scaled[:,j])):raise NumericalFailure('tree scaling loses distinct coordinates')
+        tree=cKDTree(pts)
+    result={'status':'OK','n_points':n,'n_queries':m,'p':p['p'],'search':'stable_brute' if brute else 'scaled_tree'}
+    def nearest(row,want,radius=np.inf):
+        if brute:
+            distances=s7_stable_distances(np,points,q[row],norm);ids=np.arange(n)
+            if exclude:distances[row]=np.inf
+            ids=ids[distances<=radius];order=np.lexsort((ids,distances[ids]));ids=ids[order[:want]]
+            return distances[ids],ids
+        upper=np.nextafter(radius/scale,np.inf) if math.isfinite(radius) else np.inf
+        distances,ids=getattr(tree,'qu'+'ery')(qq[row],k=want,p=norm,distance_upper_bound=upper,workers=1)
+        distances,ids=np.atleast_1d(distances),np.atleast_1d(ids)
+        valid=np.isfinite(distances)&(ids>=0)&(ids<n)
+        ids=ids[valid]
+        if exclude:ids=ids[ids!=row]
+        actual=s7_stable_distances(np,points[ids],q[row],norm) if len(ids) else np.zeros(0)
+        valid=actual<=radius;ids,actual=ids[valid],actual[valid];order=np.lexsort((ids,actual))
+        return actual[order],ids[order]
+    if 'k' in p:
+        k=p['k'];s7_cap(2*m*(k+int(exclude))<=S7_ARTIFACT_NUMBERS,'knn query allocation')
+        all_i=np.empty((m,k),dtype=np.int64);all_d=np.empty((m,k))
+        if not brute:
+            want=k+int(exclude);batch=max(1,min(1024,16384//(want*points.shape[1])))
+            for start in range(0,m,batch):
+                end=min(m,start+batch)
+                raw,idx=getattr(tree,'qu'+'ery')(qq[start:end],k=want,p=norm,workers=1)
+                raw,idx=raw.reshape(-1,want),idx.reshape(-1,want)
+                if not (np.isfinite(raw).all() and ((idx>=0)&(idx<n)).all()):raise NumericalFailure('tree returned missing/out-of-range nearest indices')
+                dist=s7_stable_distances(np,points[idx],q[start:end,None,:],norm)
+                if exclude:
+                    own=idx==np.arange(start,end)[:,None];keep=~own;keep[~own.any(axis=1),-1]=False
+                    idx,dist=idx[keep].reshape(-1,k),dist[keep].reshape(-1,k)
+                order=np.lexsort((idx,dist),axis=1)
+                all_i[start:end],all_d[start:end]=np.take_along_axis(idx,order,1),np.take_along_axis(dist,order,1)
         else:
-            prominences = widths = np.zeros(0)
-    result = {'status': 'OK', 'n_peaks': int(len(peaks)), 'n_samples': len(x), 'rel_height': p['rel_height']}
-    if not len(peaks) and p.get('output_prefix'):
-        return {'status': 'NO_PEAKS', 'n_peaks': 0, 'n_samples': len(x)}
-    named = [('indices', peaks.astype(np.int64)), ('heights', x[peaks]), ('prominences', prominences), ('widths', widths)]
-    return s7_emit(np, p, result, named, 'sig_peaks')
+            for i in range(m):
+                dist,idx=nearest(i,k)
+                if len(idx)<k:raise NumericalFailure('missing nearest indices')
+                all_i[i],all_d[i]=idx[:k],dist[:k]
+        return s7_emit(np,p,dict(result,k=k),[('indices',all_i),('distances',all_d)],'spatial_knn')
+    radius=p['radius'];limit=min(p['max_pairs'],(S7_ARTIFACT_NUMBERS-m)//2)
+    if not p.get('output_prefix'):limit=min(limit,(S7_INLINE-m)//2)
+    counts=np.empty(m,dtype=np.int64);all_i=[];all_d=[];total=0
+    for i in range(m):
+        room=limit-total
+        if room<0:raise OutputTooLarge('radius output exceeds pair budget')
+        want=min(n,32,room+1+int(exclude))
+        while True:
+            dist,idx=nearest(i,want,radius)
+            if len(idx)>room:raise OutputTooLarge('radius exceeds max_pairs/output budget (stopped early)')
+            if brute or want==n or len(idx)<want-int(exclude):break
+            want=min(n,want*2,room+1+int(exclude))
+        counts[i]=len(idx);total+=len(idx);all_i.append(idx);all_d.append(dist)
+    result.update(radius=radius,n_pairs=total)
+    return s7_emit(np,p,result,[('counts',counts),('indices',np.concatenate(all_i).astype(np.int64)),('distances',np.concatenate(all_d))],'spatial_knn')
 
 
 def spatial_knn(p):
@@ -384,13 +481,18 @@ def spatial_dist(p):
         return {'status': 'TIME_LIMIT', 'metric': metric}
     undefined = int((~np.isfinite(d)).sum())
     if undefined:
-        return {'status': 'UNDEFINED', 'metric': metric, 'shape': list(d.shape), 'n_undefined': undefined,
+        return {'status': 'UNDEFINED', 'metric': metric, 'shape': list(d.shape), 'n_undefined': undefined, 'undefined_a_rows':np.flatnonzero((np.ptp(a,axis=1)==0) if metric=='correlation' else np.all(a==0,axis=1))[:100].tolist(), 'undefined_b_rows':np.flatnonzero((np.ptp(b,axis=1)==0) if metric=='correlation' else np.all(b==0,axis=1))[:100].tolist(),
                 'message': 'the metric is undefined for some pairs (zero vectors for cosine/correlation, an indefinite VI, or overflow)'}
-    result = {'status': 'OK', 'metric': metric, 'shape': list(d.shape)}
+    result = {'status': 'OK', 'metric': metric, 'shape': list(d.shape),'vi_symmetrised':p.get('vi_symmetrised',False)}
     return s7_emit(np, p, result, [('distances', d)], 'spatial_dist')
 
 
 def s7_operation(name):
     base = name[:-3] if name.endswith('_to') else name
-    return {'interp_eval': interp_eval, 'sig_filter': sig_filter, 'sig_spectrum': sig_spectrum, 'sig_peaks': sig_peaks,
-            'spatial_knn': spatial_knn, 'spatial_hull': spatial_hull, 'spatial_dist': spatial_dist}[base]
+    operation={'interp_eval':interp_eval,'sig_filter':sig_filter,'sig_spectrum':sig_spectrum,'sig_peaks':sig_peaks,'spatial_knn':spatial_knn,'spatial_hull':spatial_hull,'spatial_dist':spatial_dist}[base]
+    def guarded(p):
+        try:
+            result=s7_guard(p,lambda:operation(p)) if base in ('sig_filter','sig_spectrum','sig_peaks','spatial_knn') else operation(p)
+            return {'status':'TIME_LIMIT'} if result is None else result
+        except NumericalFailure as exc:return {'status':'NUMERICAL_FAILURE','message':str(exc)}
+    return guarded

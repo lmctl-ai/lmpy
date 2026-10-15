@@ -585,7 +585,7 @@ Json call(const std::string& op,const Params& input){
         {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
         p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=s4?Json(std::max(0.01,double(seconds)-2.0)):Json(std::max(1,seconds-10));  // worker stops cooperatively before the hard kill
     }
-    if(sm||ml||s7||numeric)p["time_budget_s"]=std::min(p["time_budget_s"].get<double>(),p["time_limit"].get<double>());
+    if(numeric&&!s4)p["time_budget_s"]=std::min(p["time_budget_s"].get<double>(),p["time_limit"].get<double>());
     if(frame){if(!table_input.empty()){auto file=temp.file(table_input.c_str());std::ofstream f(file,std::ios::binary);f.write(table_bytes.data(),table_bytes.size());if(!f)throw std::runtime_error("cannot copy table input");p[table_input=="frame.npz"?"frame_file":"csv_file"]=file;table_bytes.clear();}if(!table_output.empty())p["output_file"]=temp.file(op=="frame_export"?"export.bin":"table.npz");}
     for(const auto& entry:arrays){auto file=temp.file((entry.first+".npy").c_str());write_npy(entry.second,file);p.erase(entry.first);p[entry.first+"_file"]=file;}
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");

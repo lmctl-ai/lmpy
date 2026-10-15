@@ -264,7 +264,7 @@ def sm_table(np, names, params, bse, stat, pvalues, ci, usable):
 def sm_fit_guard(p, body):
     """Run body() under the cooperative time budget; returns its result or a TIME_LIMIT shell."""
     try:
-        with sm_time_budget(p['time_budget_s']):
+        with sm_time_budget(min(p['time_budget_s'],p.get('time_limit',10))):
             return body()
     except _SmAlarm:
         return None
