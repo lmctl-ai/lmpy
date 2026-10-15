@@ -350,7 +350,7 @@ def spatial_knn(p):
     for i in range(m):
         room=limit-total
         if room<0:raise OutputTooLarge('radius output exceeds pair budget')
-        want=min(n,32,room+1+int(exclude))
+        want=min(n,room+1+int(exclude)) if brute else min(n,32,room+1+int(exclude))
         while True:
             dist,idx=nearest(i,want,radius)
             if len(idx)>room:raise OutputTooLarge('radius exceeds max_pairs/output budget (stopped early)')
