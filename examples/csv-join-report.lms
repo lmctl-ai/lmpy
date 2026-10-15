@@ -1,0 +1,46 @@
+// access: write
+// What it does: two CSV files (orders and customers) -> frame_import -> frame_merge (left join on the customer, validated many_to_one) ->
+//   frame_mutate (revenue and a volume discount with the safe expression grammar) -> frame_groupby per region -> frame_export, then checks
+//   every total against sums computed here from the literal data. Customer 9 has no master record and stays in the report as a masked region.
+// Tolerance: exact (all values are small decimals; sums compared within 1e-9).
+// How to run: from a writable directory below HOME with the pycli bin directory on PATH: lmscript examples/csv-join-report.lms. Files are removed.
+import "../cli.schema.dev.json" as pycli;
+
+orders = "order_id,cust,qty,unit_price\n1,1,4,2.5\n2,2,12,1.0\n3,1,10,3.0\n4,3,1,40.0\n5,9,6,5.0\n6,2,2,10.0\n7,3,20,0.5\n";
+customers = "cust,region,tier\n1,North,gold\n2,South,silver\n3,North,silver\n4,East,gold\n";
+write_file("orders-s8.csv", orders);
+write_file("customers-s8.csv", customers);
+o = pycli.frame_import({csv: "orders-s8.csv", out: "orders-s8.npz"});
+if (o.status == "simulated") { println("Join report simulated."); exit(0); }
+if (o.status != "ok") { println(json_stringify(o)); exit(1); }
+c = pycli.frame_import({csv: "customers-s8.csv", out: "customers-s8.npz"});
+if (c.status != "ok") { println(json_stringify(c)); exit(1); }
+j = pycli.frame_merge({left: "orders-s8.npz", right: "customers-s8.npz", on: ["cust"], how: "left", validate: "many_to_one", out: "joined-s8.npz"});
+if (j.status != "ok" || j.result.status != "OK") { println("merge failed:", json_stringify(j)); exit(1); }
+println(sprintf("joined: %d rows, %d matched pairs, %d orders without a customer record, %d customers without orders", j.result.shape[0], j.result.n_pairs, j.result.n_left_only, j.result.n_right_only));
+m = pycli.frame_mutate({frame: "joined-s8.npz", assign: [{name: "revenue", expr: "qty * unit_price"}, {name: "net", expr: "ifelse(qty >= 10, revenue * 0.9, revenue)"}], out: "revenue-s8.npz"});
+if (m.status != "ok" || m.result.status != "OK") { println("mutate failed:", json_stringify(m)); exit(1); }
+g = pycli.frame_groupby({frame: "revenue-s8.npz", keys: ["region"], aggs: {net: ["sum", "count"]}, out: "regions-s8.npz"});
+if (g.status != "ok") { println("groupby failed:", json_stringify(g)); exit(1); }
+e = pycli.frame_export({frame: "regions-s8.npz", format: "csv", out: "report-s8.csv"});
+if (e.status != "ok") { println("export failed:", json_stringify(e)); exit(1); }
+println("report.csv:");
+println(read_file("report-s8.csv"));
+// hand totals from the literal rows: North = customers 1 and 3, South = customer 2, order 5 (customer 9) has no region
+// order 1: 4*2.5 = 10; order 3: 10*3 = 30 -> 27 after the 10% discount; order 4: 40; order 7: 20*0.5 = 10 -> 9
+north = 10 + 27 + 40 + 9;
+// order 2: 12*1 = 12 -> 10.8; order 6: 2*10 = 20
+south = 10.8 + 20;
+// order 5: 6*5 = 30, no discount (qty < 10), region missing
+missing_region = 30;
+view = pycli.frame_inspect({frame: "regions-s8.npz", head: 10});
+if (view.status != "ok") { println(json_stringify(view)); exit(1); }
+data = view.result.head.data;
+found = {};
+for (i = 0; i < len(data.region); i = i + 1) { key = data.region[i]; if (key == null) { key = "(none)"; } found[key] = data.net__sum[i]; }
+if (abs(found["North"] - north) > 0.000000001 || abs(found["South"] - south) > 0.000000001 || abs(found["(none)"] - missing_region) > 0.000000001) {
+  println("region totals differ from the hand computation:", json_stringify(found)); exit(1);
+}
+if (j.result.n_left_only != 1 || j.result.n_right_only != 1 || j.result.n_pairs != 6) { println("join counts differ"); exit(1); }
+for (path in ["orders-s8.csv", "customers-s8.csv", "orders-s8.npz", "customers-s8.npz", "joined-s8.npz", "revenue-s8.npz", "regions-s8.npz", "report-s8.csv"]) { delete_file(path); }
+println("CSV join report passed.");

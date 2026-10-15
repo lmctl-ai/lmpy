@@ -1,0 +1,38 @@
+// access: write
+// What it does: the table/array bridge end to end. frame_import (a CSV) -> frame_mutate (adds the intercept column) -> frame_to_array_to
+//   (design matrix and target as safetensors tensors) -> la_lstsq on the tensor refs -> array_to_frame (coefficients back into a table
+//   with named columns) -> frame_export. The fit recovers the generating coefficients (2, 3, -0.5) within the injected noise.
+// Tolerance: coefficients within 0.05 of the generating values; the table round trip is exact.
+// How to run: from a writable directory below HOME with the pycli bin directory on PATH: lmscript examples/bridge-ml.lms. Files are removed.
+import "../cli.schema.dev.json" as pycli;
+
+text = "x1,x2,y\n";
+for (i = 0; i < 40; i = i + 1) {
+  x1 = i / 4;
+  x2 = (i * 7) % 11 - 5;
+  noise = ((i * 37 + 11) % 17 - 8) / 400;
+  text = text + sprintf("%.6f,%.6f,%.9f\n", x1, x2, 2 + 3 * x1 - 0.5 * x2 + noise);
+}
+write_file("bridge-s8.csv", text);
+t = pycli.frame_import({csv: "bridge-s8.csv", out: "bridge-s8.npz"});
+if (t.status == "simulated") { println("Bridge simulated."); exit(0); }
+if (t.status != "ok") { println(json_stringify(t)); exit(1); }
+m = pycli.frame_mutate({frame: "bridge-s8.npz", assign: [{name: "one", expr: "1"}], out: "bridge-one-s8.npz"});
+if (m.status != "ok" || m.result.status != "OK") { println(json_stringify(m)); exit(1); }
+a = pycli.frame_to_array_to({frame: "bridge-one-s8.npz", columns: ["one", "x1", "x2"], out: "design-s8.safetensors", key: "a"});
+b = pycli.frame_to_array_to({frame: "bridge-one-s8.npz", columns: ["y"], squeeze: true, out: "target-s8.safetensors", key: "b"});
+if (a.status != "ok" || b.status != "ok") { println(json_stringify(a), json_stringify(b)); exit(1); }
+println(sprintf("design %s (%d values), target %s", json_stringify(a.result.artifacts.a.shape), a.result.shape[0] * a.result.shape[1], json_stringify(b.result.artifacts.b.shape)));
+fit = pycli.la_lstsq({a: a.result.artifacts.a.ref, b: b.result.artifacts.b.ref});
+if (fit.status != "ok" || fit.result.status != "OK") { println(json_stringify(fit)); exit(1); }
+coef = fit.result.x;
+println(sprintf("coefficients %.4f %.4f %.4f", coef[0], coef[1], coef[2]));
+truth = [2, 3, -0.5];
+for (k = 0; k < 3; k = k + 1) { if (abs(coef[k] - truth[k]) > 0.05) { println("coefficient", k, "is off"); exit(1); } }
+back = pycli.array_to_frame({ref: [[coef[0], coef[1], coef[2]]], columns: ["intercept", "slope_x1", "slope_x2"], out: "coef-s8.npz"});
+if (back.status != "ok") { println(json_stringify(back)); exit(1); }
+view = pycli.frame_inspect({frame: "coef-s8.npz", head: 1});
+if (view.status != "ok" || abs(view.result.head.data.slope_x1[0] - coef[1]) > 0.0000000000001) { println("round trip differs"); exit(1); }
+println("coefficient table:", json_stringify(view.result.head.data));
+for (path in ["bridge-s8.csv", "bridge-s8.npz", "bridge-one-s8.npz", "design-s8.safetensors", "target-s8.safetensors", "coef-s8.npz"]) { delete_file(path); }
+println("Bridge pipeline passed.");

@@ -1,0 +1,43 @@
+// access: write
+// What it does: a sensor record sampled every 5 s (three smooth bursts plus deterministic pseudo-random noise) is loaded from CSV, averaged to
+//   one-minute bins with frame_resample, bridged to an array (frame_to_array_to), low-pass filtered with a zero-phase Butterworth (sig_filter_to)
+//   and searched for peaks (sig_peaks on the filtered tensor). The three bursts must come back within one minute of the truth.
+// Tolerance: peak minutes within 1 of the true burst centres (minute 20, 50 and 80).
+// How to run: from a writable directory below HOME with the pycli bin directory on PATH: lmscript examples/sensor-pipeline.lms. Files are removed.
+import "../cli.schema.dev.json" as pycli;
+
+centres = [20, 50, 80];
+heights = [4.0, 6.0, 5.0];
+seed = 777;
+text = "ts,value\n";
+for (i = 0; i < 1200; i = i + 1) {
+  minutes = i / 12;
+  v = 1;
+  for (k = 0; k < 3; k = k + 1) {
+    u = (minutes - centres[k]) / 6;
+    if (abs(u) < 1) { v = v + heights[k] * (1 - u * u) * (1 - u * u); }
+  }
+  seed = (75 * seed + 74) % 65537;
+  v = v + (seed / 65537 - 0.5) * 2.4;
+  secs = i * 5;
+  text = text + sprintf("2026-02-01T%02d:%02d:%02dZ,%.6f\n", floor(secs / 3600), floor((secs % 3600) / 60), secs % 60, v);
+}
+write_file("sensor-s8.csv", text);
+t = pycli.frame_import({csv: "sensor-s8.csv", dtypes: {ts: {dtype: "datetime64[ns]", tz: "UTC"}}, out: "sensor-s8.npz"});
+if (t.status == "simulated") { println("Sensor pipeline simulated."); exit(0); }
+if (t.status != "ok") { println(json_stringify(t)); exit(1); }
+r = pycli.frame_resample({frame: "sensor-s8.npz", time: "ts", rule: "1min", aggs: {value: ["mean"]}, out: "minutes-s8.npz"});
+if (r.status != "ok") { println("resample failed:", json_stringify(r)); exit(1); }
+println(sprintf("resampled to %d one-minute means", r.result.shape[0]));
+a = pycli.frame_to_array_to({frame: "minutes-s8.npz", columns: ["value__mean"], squeeze: true, out: "minutes-s8.safetensors", key: "v"});
+if (a.status != "ok") { println(json_stringify(a)); exit(1); }
+f = pycli.sig_filter_to({family: "butter", order: 4, btype: "lowpass", wn: 0.08, x: a.result.artifacts.v.ref, mode: "sosfiltfilt", out: "smooth-s8.safetensors"});
+if (f.status != "ok" || f.result.status != "OK") { println("filter failed:", json_stringify(f)); exit(1); }
+println(sprintf("filter: %d sections, stable %s", f.result.n_sections, json_stringify(f.result.stable)));
+p = pycli.sig_peaks({x: f.result.artifacts.y.ref, height: 2.5, distance: 15});
+if (p.status != "ok" || p.result.status != "OK") { println("peaks failed:", json_stringify(p)); exit(1); }
+println(sprintf("%d peaks at minutes %s with heights %s", p.result.n_peaks, json_stringify(p.result.indices), json_stringify(p.result.heights)));
+if (p.result.n_peaks != 3) { println("expected three bursts"); exit(1); }
+for (k = 0; k < 3; k = k + 1) { if (abs(p.result.indices[k] - centres[k]) > 1) { println("burst", k, "is off target"); exit(1); } }
+for (path in ["sensor-s8.csv", "sensor-s8.npz", "minutes-s8.npz", "minutes-s8.safetensors", "smooth-s8.safetensors"]) { delete_file(path); }
+println("Sensor pipeline passed.");

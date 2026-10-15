@@ -1663,6 +1663,13 @@
           "description": "Maximum rows to convert from offset, >=1 (default: all)."
         },
         {
+          "name": "squeeze",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Exactly one column: return/store a vector of shape [rows] instead of a [rows, 1] matrix (the form sig_*, interp_* and spatial_* operations take)."
+        },
+        {
           "name": "allow_lossy_int",
           "type": "boolean",
           "occurs": "?",
@@ -1713,6 +1720,13 @@
           "type": "number",
           "occurs": "?",
           "description": "Maximum rows to convert from offset, >=1 (default: all)."
+        },
+        {
+          "name": "squeeze",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Exactly one column: return/store a vector of shape [rows] instead of a [rows, 1] matrix (the form sig_*, interp_* and spatial_* operations take)."
         },
         {
           "name": "allow_lossy_int",

@@ -1,0 +1,73 @@
+// access: write
+// What it does: runs the same outer join and the same rolling windows through pycli (frame_merge, frame_rolling) and lmda (table_join,
+//   series_rolling) and compares row by row. The join uses duplicate keys on both sides and keys present on one side only; the rolling
+//   windows are 3-row trailing windows (mean, sum, std, min, max, median). Both tools list the first two rolling rows as missing.
+// Tolerance: 1e-12 absolute; joins compared cell by cell in output order. Hand-computed expectations are asserted without lmda too.
+// Setup: lmda is built from lmctlhq/lmda (cargo build --release); put target/release on PATH. The leg is skipped with a hint when it is absent.
+//   Run from a writable directory below HOME; files are removed.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/lmda.cli.schema.v1.json" as lmda;
+
+write_file("left-s8.csv", "id,a\n1,x\n2,y\n2,z\n3,w\n");
+write_file("right-s8.csv", "id,b\n2,B\n3,C\n3,D\n4,E\n");
+l = pycli.frame_import({csv: "left-s8.csv", out: "left-s8.npz"});
+if (l.status == "simulated") { println("Frame comparison simulated."); exit(0); }
+r = pycli.frame_import({csv: "right-s8.csv", out: "right-s8.npz"});
+j = pycli.frame_merge({left: "left-s8.npz", right: "right-s8.npz", on: ["id"], how: "outer", out: "joined-s8.npz"});
+if (l.status != "ok" || r.status != "ok" || j.status != "ok" || j.result.status != "OK") { println(json_stringify(j)); exit(1); }
+view = pycli.frame_inspect({frame: "joined-s8.npz", head: 20});
+mine = view.result.head.data;
+// hand join (left rows in order, matches in right order, then right-only rows): 1/x/-, 2/y/B, 2/z/B, 3/w/C, 3/w/D, 4/-/E
+ids = [1, 2, 2, 3, 3, 4];
+a = ["x", "y", "z", "w", "w", null];
+b = [null, "B", "B", "C", "D", "E"];
+for (k = 0; k < 6; k = k + 1) {
+  if (mine.id[k] != ids[k] || mine.a[k] != a[k] || mine.b[k] != b[k]) { println("pycli join differs from the hand join at row", k, json_stringify(mine)); exit(1); }
+}
+println(sprintf("outer join: %d rows, %d matched pairs, %d left-only, %d right-only", j.result.shape[0], j.result.n_pairs, j.result.n_left_only, j.result.n_right_only));
+legs = 0;
+if (which("lmda") == null) { println("lmda legs skipped: lmda not on PATH (cargo build --release in lmctlhq/lmda; see examples/schemas/README.md)"); }
+else {
+  o = lmda.table_join({leftFile: "left-s8.csv", rightFile: "right-s8.csv", on: ["id"], how: "outer"});
+  if (o.status != "ok" || len(o.result) != 6) { println("lmda table_join failed:", json_stringify(o)); exit(1); }
+  for (k = 0; k < 6; k = k + 1) {
+    if (o.result[k].id != ids[k] || o.result[k].a != a[k] || o.result[k].b != b[k]) { println("lmda join differs at row", k); exit(1); }
+  }
+  println("leg 1: lmda table_join returns the same 6 rows in the same order");
+  legs = legs + 1;
+}
+vals = [3.0, 1.0, 4.0, 1.5, 9.0, 2.0, 6.0, 5.0, 3.5];
+text = "v\n";
+for (v in vals) { text = text + sprintf("%.1f\n", v); }
+write_file("series-s8.csv", text);
+s = pycli.frame_import({csv: "series-s8.csv", out: "series-s8.npz"});
+w = pycli.frame_rolling({frame: "series-s8.npz", columns: ["v"], window: 3, functions: ["mean", "sum", "std", "min", "max", "median"], out: "rolled-s8.npz"});
+if (s.status != "ok" || w.status != "ok" || w.result.status != "OK") { println(json_stringify(w)); exit(1); }
+rolled = pycli.frame_inspect({frame: "rolled-s8.npz", head: 20}).result.head.data;
+// hand check of row 4 (window 4.0 1.5 9.0): mean 4.8333333333333, sum 14.5, std sqrt(((4-4.8333)^2 + (1.5-4.8333)^2 + (9-4.8333)^2)/2), min 1.5, max 9, median 4
+mean4 = 14.5 / 3;
+sd4 = sqrt(((4.0 - mean4) * (4.0 - mean4) + (1.5 - mean4) * (1.5 - mean4) + (9.0 - mean4) * (9.0 - mean4)) / 2);
+if (abs(rolled.v__mean[4] - mean4) > 0.000000000001 || abs(rolled.v__sum[4] - 14.5) > 0.000000000001 || abs(rolled.v__std[4] - sd4) > 0.000000000001 || rolled.v__min[4] != 1.5 || rolled.v__max[4] != 9 || rolled.v__median[4] != 4) { println("rolling row 4 differs from the hand values"); exit(1); }
+if (rolled.v__mean[0] != null || rolled.v__mean[1] != null) { println("the first two windows should be missing"); exit(1); }
+worst = 0;
+if (which("lmda") != null) {
+  for (agg in ["mean", "sum", "std", "min", "max", "median"]) {
+    g = lmda.series_rolling({csv: text, column: "v", window: 3, agg: agg});
+    if (g.status != "ok") { println("lmda series_rolling failed:", json_stringify(g)); exit(1); }
+    key = "v_rolling_" + agg + "_3";
+    mine_col = rolled["v__" + agg];
+    for (k = 0; k < len(vals); k = k + 1) {
+      theirs = g.result[k]["v_rolling_" + agg + "_3"];
+      if (theirs == null && mine_col[k] == null) { continue; }
+      if (theirs == null || mine_col[k] == null) { println("missing-value pattern differs for", agg, "at row", k); exit(1); }
+      d = abs(theirs - mine_col[k]);
+      if (d > worst) { worst = d; }
+    }
+  }
+  println(sprintf("leg 2: lmda series_rolling, 6 functions x 9 rows: largest absolute difference %.15f", worst));
+  legs = legs + 1;
+  if (worst > 0.000000000001) { println("rolling mismatch above 1e-12"); exit(1); }
+}
+println(sprintf("%d lmda leg(s) compared.", legs));
+for (path in ["left-s8.csv", "right-s8.csv", "left-s8.npz", "right-s8.npz", "joined-s8.npz", "series-s8.csv", "series-s8.npz", "rolled-s8.npz"]) { delete_file(path); }
+println("Join and rolling windows agree.");

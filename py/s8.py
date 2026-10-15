@@ -139,7 +139,9 @@ def frame_to_array(p):
             values = np.where(mask, np.nan, values)
         nan_total += int(np.isnan(values[~mask]).sum())
         out[:, j] = values
-    result = {'status': 'OK', 'shape': [rows, len(selected)], 'columns': list(selected), 'source_dtypes': {c: cmeta[c]['dtype'] for c in selected},
+    if p['squeeze']:
+        out = out[:, 0]
+    result = {'status': 'OK', 'shape': list(out.shape), 'columns': list(selected), 'source_dtypes': {c: cmeta[c]['dtype'] for c in selected},
               'source_na_count': na_total, 'source_nan_count': nan_total, 'missing_mask_lost': bool(p['missing'] == 'nan' and na_total > 0),
               'n_rows_total': n, 'offset': offset}
     if p['allow_lossy_int']:

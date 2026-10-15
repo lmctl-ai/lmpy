@@ -1,0 +1,27 @@
+// access: write
+// What it does: simulate an SIR epidemic with ode_solve, add multiplicative measurement noise to the infected curve with seeded sampling
+//   (stats_dist fn rvs, PCG64 seed 2025: the same noise on every run), and recover the early exponential growth rate with opt_least_squares.
+//   The reference rate comes from fitting the noise-free trajectory with the same model, so the check does not depend on a textbook value.
+// Tolerance: noisy growth rate within 0.02 of the noise-free rate (about 0.2), amplitude within 25 %.
+// How to run: put the pycli bin directory on PATH, then run lmscript examples/ode-fit.lms
+import "../cli.schema.dev.json" as pycli;
+
+traj = pycli.ode_solve({rhs: ["-b*s*i/population", "b*s*i/population-g*i", "g*i"], y0: [999, 1, 0], states: ["s", "i", "r"], params: {b: 0.3, g: 0.1, population: 1000}, t_span: [0, 12], t_eval: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], method: "DOP853", rtol: 0.0000000001, atol: 0.000000000001});
+if (traj.status == "simulated") { println("ODE fit simulated."); exit(0); }
+if (traj.status != "ok" || traj.result.status != "OK") { println(json_stringify(traj)); exit(1); }
+t = traj.result.t;
+infected = [];
+for (row in traj.result.y) { infected = concat(infected, [row[1]]); }
+noise = pycli.stats_dist({dist: "lognorm", "fn": "rvs", params: {mu: 0, sigma: 0.05}, n: len(t), seed: 2025});
+if (noise.status != "ok" || noise.result.status != "OK" || noise.result.seed != 2025 || noise.result.generator != "PCG64") { println(json_stringify(noise)); exit(1); }
+again = pycli.stats_dist({dist: "lognorm", "fn": "rvs", params: {mu: 0, sigma: 0.05}, n: len(t), seed: 2025});
+for (k = 0; k < len(t); k = k + 1) { if (again.result.values[k] != noise.result.values[k]) { println("the seeded noise is not reproducible"); exit(1); } }
+observed = [];
+for (k = 0; k < len(t); k = k + 1) { observed = concat(observed, [infected[k] * noise.result.values[k]]); }
+reference = pycli.opt_least_squares({model: "a*exp(r*t)", response: "y", data: {t: t, y: infected}, x0: {a: 1, r: 0.1}});
+fit = pycli.opt_least_squares({model: "a*exp(r*t)", response: "y", data: {t: t, y: observed}, x0: {a: 1, r: 0.1}});
+if (reference.status != "ok" || reference.result.status != "OK" || fit.status != "ok" || fit.result.status != "OK") { println(json_stringify(reference), json_stringify(fit)); exit(1); }
+println(sprintf("noise-free growth rate %.5f (amplitude %.4f); noisy fit %.5f (amplitude %.4f), standard error of the rate %.5f", reference.result.par.r, reference.result.par.a, fit.result.par.r, fit.result.par.a, fit.result.std_err.r));
+if (abs(fit.result.par.r - reference.result.par.r) > 0.02 || abs(fit.result.par.a / reference.result.par.a - 1) > 0.25) { println("the noisy fit is too far from the reference"); exit(1); }
+if (reference.result.par.r < 0.18 || reference.result.par.r > 0.2) { println("the reference rate is not close to beta*S/N - gamma = 0.2"); exit(1); }
+println("ODE fit with seeded noise passed.");

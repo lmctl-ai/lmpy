@@ -72,6 +72,16 @@ class Bridge(Base):
         sub = call('frame_to_array', dict(frame=t, columns=['b'], offset=1, limit=1))
         self.assertEqual((sub['values'], sub['shape'], sub['offset']), ([[1.5]], [1, 1], 1))
 
+    def test_squeeze_gives_a_vector_for_single_columns(self):
+        t = self.table({'a': [1.5, 2.5, 3.5], 'b': [1, 2, 3]})
+        r = call('frame_to_array', dict(frame=t, columns=['a'], squeeze=True))
+        self.assertEqual((r['shape'], r['values']), ([3], [1.5, 2.5, 3.5]))
+        out = self.p('v.safetensors')
+        w = call('frame_to_array_to', dict(frame=t, columns=['b'], squeeze=True, out=out, key='v'))
+        self.assertEqual(w['artifacts']['v']['shape'], [3])
+        np.testing.assert_array_equal(read_safetensors(out)['v'], [1.0, 2.0, 3.0])
+        rejected('frame_to_array', dict(frame=t, columns=['a', 'b'], squeeze=True), 'BAD_PARAM')
+
     def test_missing_policy_is_explicit_and_loses_the_mask_only_when_asked(self):
         t = self.table({'x': [1.0, None, 3.0, 'NaN'], 'k': [1, 2, None, 4]}, dtypes={'x': 'float64', 'k': 'int64'})
         r = call('frame_to_array', dict(frame=t, columns=['x', 'k']), rc=2)

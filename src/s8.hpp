@@ -42,6 +42,7 @@ Json prepare_to_array(const Params& in,bool twin,S8Extra& x){
     Json p=in;S8Table t=s8_table(in,"frame");
     auto columns=s8_names(in.at("columns"),"columns");
     for(const auto& c:columns){s8_need_column(t,c);const std::string d=s8_dtype(t,c);if(!s8_numeric(d))invalid("column "+c+" has dtype "+d+": only int64, float64 and bool convert to an array","BAD_DTYPE");}
+    if(in["squeeze"]&&columns.size()!=1)bad_param("squeeze needs exactly one column");
     int64_t offset=in["offset"];if(offset<0)bad_param("offset must be >= 0");
     const uint64_t n=s8_rows(t);
     if(uint64_t(offset)>=n)invalid("offset "+std::to_string(offset)+" selects no rows (the table has "+std::to_string(n)+")","BAD_DATA");
@@ -307,6 +308,7 @@ void add_s8_ops(CliSpec& spec){
             str("missing",false,"error",{"error","nan"},"error (default): a masked missing value is NA_NOT_ALLOWED. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."),
             integer("offset",0,"First row to convert (0-based, default 0); selecting no rows is BAD_DATA."),
             integer("limit",nullptr,"Maximum rows to convert from offset, >=1 (default: all)."),
+            Param{"squeeze",Type::Boolean,false,false,{},"Exactly one column: return/store a vector of shape [rows] instead of a [rows, 1] matrix (the form sig_*, interp_* and spatial_* operations take)."},
             Param{"allow_lossy_int",Type::Boolean,false,false,{},"Convert int64 values beyond +-2^53 (not exactly representable in binary64) with rounding, counted in lossy_int_count; off by default (INT64_NOT_EXACT)."}};
         if(write){params.push_back(str("key",false,"x",{},"Tensor name in the artifact: [A-Za-z_][A-Za-z0-9_.-]{0,63}."));params.push_back(str("out",true,nullptr,{},tensor_out));}
         spec.operations.push_back(Operation{write?"frame_to_array_to":"frame_to_array",write?Access::Write:Access::Read,

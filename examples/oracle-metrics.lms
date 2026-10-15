@@ -1,0 +1,58 @@
+// access: write
+// What it does: scores one set of binary predictions (8 rows: label, hard prediction, probability) with pycli ml_metrics and checks every number
+//   against (1) values worked out by hand from the confusion counts in this file and (2) lmda eval_classify / eval_roc when the lmda binary is on PATH.
+//   Also scores a small regression and shows the UNDEFINED status for a constant target.
+// Tolerance: 1e-12 absolute against the hand values and lmda (all are ratios of small integers).
+// Setup: lmda is built from lmctlhq/lmda (cargo build --release); put target/release on PATH. The leg is skipped with a hint when it is absent.
+//   rcli has no classification metrics, so there is no R leg. Run from a writable directory below HOME; files are removed.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/lmda.cli.schema.v1.json" as lmda;
+
+csvtext = "y,p,s\n1,1,0.9\n0,0,0.2\n1,0,0.4\n1,1,0.8\n0,1,0.55\n0,1,0.1\n1,1,0.7\n0,0,0.3\n";
+write_file("metrics-s8.csv", csvtext);
+t = pycli.frame_import({csv: "metrics-s8.csv", out: "metrics-s8.npz"});
+if (t.status == "simulated") { println("Metrics comparison simulated."); exit(0); }
+if (t.status != "ok") { println(json_stringify(t)); exit(1); }
+m = pycli.ml_metrics({frame: "metrics-s8.npz", y_true: "y", y_pred: "p", y_score: "s", pos_label: 1, average: "binary", metrics: ["accuracy", "balanced_accuracy", "precision", "recall", "f1", "confusion_matrix", "roc_auc", "brier", "log_loss"]});
+if (m.status != "ok" || m.result.status != "OK") { println("ml_metrics failed:", json_stringify(m)); exit(1); }
+r = m.result.metrics;
+// hand values: TP = 3 (rows 1, 4, 7), FP = 2 (rows 5, 6), FN = 1 (row 3), TN = 2 (rows 2, 8)
+// positive scores 0.9 0.4 0.8 0.7, negative scores 0.2 0.55 0.1 0.3: 15 of the 16 pairs rank the positive higher (0.4 < 0.55)
+hand = {accuracy: 5 / 8, balanced_accuracy: (3 / 4 + 2 / 4) / 2, precision: 3 / 5, recall: 3 / 4, f1: 6 / 9, roc_auc: 15 / 16};
+brier = (0.01 + 0.04 + 0.36 + 0.04 + 0.3025 + 0.01 + 0.09 + 0.09) / 8;
+hand["brier"] = brier;
+worst = 0;
+println("quantity | pycli | hand");
+for (name in ["accuracy", "balanced_accuracy", "precision", "recall", "f1", "roc_auc", "brier"]) {
+  d = abs(r[name] - hand[name]);
+  println(sprintf("  %s | %.15f | %.15f", name, r[name], hand[name]));
+  if (d > worst) { worst = d; }
+}
+conf = m.result.confusion_matrix;
+if (conf[0][0] != 2 || conf[0][1] != 2 || conf[1][0] != 1 || conf[1][1] != 3) { println("confusion matrix differs:", json_stringify(conf)); exit(1); }
+legs = 1;
+if (which("lmda") == null) { println("lmda leg skipped: lmda not on PATH (cargo build --release in lmctlhq/lmda; see examples/schemas/README.md)"); }
+else {
+  c = lmda.eval_classify({csv: csvtext, actual: "y", predicted: "p", positive: "1"});
+  e = lmda.eval_roc({csv: csvtext, actual: "y", score: "s", positive: "1"});
+  if (c.status != "ok" || e.status != "ok") { println(json_stringify(c), json_stringify(e)); exit(1); }
+  println("lmda eval_classify / eval_roc:");
+  pairs = [["balanced_accuracy", c.result.balanced_accuracy], ["precision", c.result.precision], ["recall", c.result.sensitivity], ["f1", c.result.f1], ["roc_auc", e.result.roc_auc], ["brier", e.result.brier_score]];
+  for (pair in pairs) {
+    d = abs(r[pair[0]] - pair[1]);
+    println(sprintf("  %s | %.15f | %.15f", pair[0], r[pair[0]], pair[1]));
+    if (d > worst) { worst = d; }
+  }
+  if (c.result.confusion.true_positive != conf[1][1] || c.result.confusion.false_positive != conf[0][1] || c.result.confusion.false_negative != conf[1][0] || c.result.confusion.true_negative != conf[0][0]) { println("lmda confusion differs"); exit(1); }
+  legs = 2;
+}
+println(sprintf("%d comparison group(s); largest absolute difference %.15f", legs, worst));
+if (worst > 0.000000000001) { println("metric mismatch above 1e-12"); exit(1); }
+reg = pycli.ml_metrics({y_true: [3, -0.5, 2, 7], y_pred: [2.5, 0, 2, 8], metrics: ["mse", "mae", "r2"]});
+// errors 0.5 0.5 0 1: mse 1.5/4 = 0.375, mae 0.5, r2 = 1 - 1.5 / sum((y - 2.875)^2) = 1 - 1.5 / 29.1875
+if (reg.status != "ok" || abs(reg.result.metrics.mse - 0.375) > 0.000000000001 || abs(reg.result.metrics.mae - 0.5) > 0.000000000001 || abs(reg.result.metrics.r2 - (1 - 1.5 / 29.1875)) > 0.000000000001) { println("regression metrics differ:", json_stringify(reg)); exit(1); }
+flat = pycli.ml_metrics({y_true: [2, 2, 2], y_pred: [1, 2, 3], metrics: ["r2", "mse"]});
+if (flat.status != "ok" || flat.result.status != "UNDEFINED" || len(flat.result.undefined) != 1) { println("constant target should report r2 as undefined:", json_stringify(flat)); exit(1); }
+println("r2 for a constant target:", flat.result.undefined.r2);
+for (path in ["metrics-s8.csv", "metrics-s8.npz"]) { delete_file(path); }
+println("Metrics agree within 1e-12.");
