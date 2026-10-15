@@ -29,6 +29,13 @@ class Review(unittest.TestCase):
     self.predict(family+'.safetensors',{k:[v[i]] for k,v in cols.items()},kind);one=self.output('pred.npz');(self.cwd/'pred.npz').unlink()
     for k in parts:parts[k]+=one[k]
    for k in full:np.testing.assert_allclose(parts[k],full[k],rtol=1e-13,atol=1e-13)
+ def test_lda_effective_components(self):
+  r=self.fit('lda',{'x':[0,1,2,3,4,5],'z':[0,1,-1,2,0,1],'y':[0,0,1,1,2,2]},['x','z'],'y',params={'n_components':2})
+  self.assertEqual(r['components'],1);self.assertTrue(r['components_reduced'])
+  _,t=base.bundle(self.cwd/'lda.safetensors');self.assertEqual(t['scalings_'].shape,(2,1));(self.cwd/'lda.safetensors').unlink()
+  r=self.fit('lda',{'x':[0,1,2,3,4,5],'z':[0,1,-1,2,2,3],'y':[0,0,1,1,2,2]},['x','z'],'y',params={'n_components':2})
+  self.assertEqual(r['components'],2);self.assertFalse(r['components_reduced'])
+  self.predict('lda.safetensors',{'x':[1],'z':[1]},'transform');self.assertEqual(len(self.output('pred.npz')),2)
  def test_rank_deficient_model_is_preserved(self):
   r=self.fit('linear',{'a':[1,2,3,4,5,6],'b':[2,4,6,8,10,12],'y':[2,3,4,5,6,7]},['a','b'],'y')
   self.assertEqual(r['status'],'RANK_DEFICIENT');self.assertTrue((self.cwd/'linear.safetensors').exists());self.assertEqual(r['rank'],1)
