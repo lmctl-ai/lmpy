@@ -50,4 +50,30 @@ index and signed-zero failures. A first harness helper had duplicate kwargs;
 that helper was corrected before relying on its results. Source-worker fault
 injection passes independently of the C++ frontend; final image tests cover both.
 
-Final acceptance and measurements are recorded below after completion.
+## Final acceptance (unpiped commands)
+
+* ./scripts/build.sh test: exit0.
+* docker run --rm --network=none pycli:test: **24/24, exit0, 592.68s**.
+  New review suite:12 groups,52.65s; original S4:16 groups,37.39s. Parser ASan/UBSan,
+  all S0-S3 regressions,24-op schema/docs,notices and packaging gates pass.
+* ./scripts/build.sh runtime: exit0.
+* All seven recipes via production bin/pycli, each real/check/dry-run:21 exits0.
+* Production-shim readonly small solves exit0; read overflow exits1 with
+  OUTPUT_TOO_LARGE/no artifact; _to readonly exits6/no artifact. Event artifact
+  indices are I64 and the decay threshold time agrees with analytic log(2).
+* Hardened cap harness:exit0; all four calls domain OK, no crash/timeout; peak
+  **105209856 bytes (100.34MiB)** including probe arrays, responses below2KiB.
+* Final-runtime schema/docs check:exit0. Sequential timing probe:exit0,40 calls
+  domain OK,all exit0. Full raw samples and shared-host load telemetry retained.
+
+Runtime **527MB /115249079 content bytes**; test **1.06GB /222443444 content bytes**.
+No wheel/package was added. Image IDs/layers:measurement-s4-review-packaging.json;
+cap command/results:measurement-s4-review-caps.json; recipes:measurement-s4-review-
+recipes.json; policy/artifact checks:measurement-s4-review-policy.json; timing
+samples:measurement-s4-review-shim.json and timings.md. Measurements are for
+allocation fixtures and a shared host, not worst-case MILP complexity or global
+ODE accuracy guarantees. amd64 remains unverified.
+
+Temporary worker probes and copied development binaries were removed; superseded
+images and label-scoped disposable builder cache cleaned (exit0). Final runtime
+and test images retained. All findings fixed; no finding deferred/declined.

@@ -438,3 +438,9 @@ conservation and infected-peak event); both remain inline and use read operation
 HiGHS MIT is covered by the shipped SciPy notices. No new wheel.
 See [docs/s4.md](docs/s4.md), [review fixes](docs/review-s4-fixes.md) and
 [measurements](docs/timings.md). amd64 execution remains unverified.
+
+Review acceptance: both image builds exit0; CTest **24/24, exit0** (592.68s),
+including12 review and16 original S4 groups. Seven recipes pass real/check/dry-run
+(21 exits0). Hardened cap probes pass with100.34MiB cgroup peak, including the
+harness. Runtime527MB /115249079 content bytes; test1.06GB. Current image IDs,
+shared-host timing samples and per-finding dispositions are in the linked docs.
