@@ -159,6 +159,23 @@ def ml_save_table(data,p):
     return result
 
 
+def ml_inline_parameters(result,tensors):
+    # Training arrays/class codes are never echoed. A single small fitted table
+    # must fit both the parameter budget and the whole-response array budget.
+    eligible={k:v for k,v in tensors if k not in ('train_x_','train_y_','classes_','pp_mean_','pp_scale_')}
+    result['parameters_omitted']=True
+    if not eligible or sum(v.size for v in eligible.values())>100:return
+    candidate={k:v.tolist() for k,v in eligible.items()}
+    public={k:v for k,v in result.items() if k not in ('outputs','model_metadata')}
+    public['parameters']=candidate
+    def entries(value):
+        if isinstance(value,list):return sum(entries(v) if isinstance(v,(list,dict)) else 1 for v in value)
+        if isinstance(value,dict):return sum(entries(v) for v in value.values())
+        return 0
+    if entries(public)>980 or len(json.dumps(public,ensure_ascii=False).encode())>60000:return
+    result['parameters']=candidate;result['parameters_omitted']=False
+
+
 def ml_fit(p):
     import numpy as np
     import sklearn,hashlib
@@ -198,6 +215,7 @@ def ml_fit(p):
     metadata={k:json.dumps(v,separators=(',',':'),ensure_ascii=False) if not isinstance(v,str) else v for k,v in info.items()}
     if sum(len(k)+len(v) for k,v in metadata.items())>16384:raise BadData('model metadata exceeds 16KiB')
     result={'status':status,'rank':int(est.rank_) if family=='linear' else None,'rank_deficient':bool(est.rank_<x.shape[1]) if family=='linear' else False,'classes':labels,'features':p['features'],'family':family,'model_metadata':metadata,'outputs':save_outputs(p,tensors),'prediction_preview':ml_preview(prediction),'preview_truncated':len(x)>len(next(iter(ml_preview(prediction).values()))),'seed':p.get('seed'),'preprocess':p['preprocess']}
+    ml_inline_parameters(result,tensors)
     if p.get('seed') is None:result.pop('seed')
     if p['ml_spec']['families'][family]['stochastic']:result['generator']='sklearn RandomState(MT19937)'
     return result

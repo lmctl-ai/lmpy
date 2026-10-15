@@ -36,6 +36,7 @@ class Review(unittest.TestCase):
  def test_degenerate_cluster_and_lda_status(self):
   r=self.fit('kmeans',{'x':[1]*6},['x'],params={'n_clusters':2},rc=1)
   self.assertEqual(r['error']['data']['tool_code'],'DEGENERATE_CLUSTERS');self.assertFalse((self.cwd/'kmeans.safetensors').exists())
+ def test_degenerate_lda_status(self):
   r=self.fit('lda',{'x':[1]*6,'y':[0,0,0,1,1,1]},['x'],'y',rc=1)
   self.assertEqual(r['error']['data']['tool_code'],'DEGENERATE_DATA');self.assertFalse((self.cwd/'lda.safetensors').exists())
  def test_logistic_is_deterministic(self):
@@ -76,13 +77,14 @@ class Review(unittest.TestCase):
    self.assertLess(abs(res.mean()),1e-10)
    for a,b in zip(w,g):self.assertLess(abs(b+.2*ratio*np.sign(a)) if a else max(0,abs(b)-.2*ratio),1e-9)
   self.fit('pca',{'x':x[:,0].tolist(),'z':x[:,1].tolist()},['x','z'],params={'n_components':2});_,t=base.bundle(self.cwd/'pca.safetensors');_,s,v=np.linalg.svd(xc,full_matrices=False);v*=np.sign(v[np.arange(len(v)),np.abs(v).argmax(1)])[:,None];np.testing.assert_allclose(t['components_'],v,atol=1e-14)
- def test_schema_and_objective_contract(self):
+ def test_schema_contract(self):
   schema=json.loads(subprocess.run([base.BIN,'--schema'],capture_output=True,text=True,check=True).stdout)
   ops={o['name']:o for o in schema['operations']}
   params={p['name']:p for p in ops['ml_fit']['params']}
   self.assertIn('l1_ratio',params['params']['description']);self.assertIn('default',params['params']['description']);self.assertIn('one_hot',params['preprocess']['description'])
   for name in ['ml_fit','ml_predict','ml_cv']:
    for p in ops[name]['params']:self.assertNotIn('parameter for',p['description'])
+ def test_objective_contract(self):
   doc=(base.ROOT/'docs/s6.md').read_text()
   for phrase in ['1/(2n)','glmnet','population variance','kth','sorted label','max-absolute','C sum']:self.assertIn(phrase,doc)
 

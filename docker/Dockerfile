@@ -36,6 +36,7 @@ COPY bin /src/pycli/bin
 COPY docker /src/pycli/docker
 COPY scripts /src/pycli/scripts
 COPY examples /src/pycli/examples
+COPY docs /src/pycli/docs
 RUN cp /src/pycli/LICENSE /provenance/pycli-LICENSE \
  && cmake -S /src/pycli -B /build-pycli -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/lmcpp -DBUILD_TESTING=ON \
  && cmake --build /build-pycli --parallel 2

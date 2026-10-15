@@ -108,9 +108,38 @@ Json prepare_ml(const std::string& op,const Params& in,std::map<std::string,Arra
  if(op=="ml_cv"){if(folds<2)bad_param("CV needs 2..20 splits");if(p["cv"]=="group"&&groups.empty())bad_param("group CV requires groups column");if(p["cv"]!="group"&&!groups.empty())bad_param("groups only used for group CV");if(p["cv"]=="timeseries"&&p["shuffle"]==true)bad_param("timeseries cannot shuffle");if(p["cv"]=="stratified"&&task!="classification")bad_param("stratified requires classifier");if(!supervised)bad_param("S6 CV supports supervised families only");std::set<std::string> allowed=task=="classification"?std::set<std::string>{"accuracy","f1_macro","roc_auc","log_loss"}:std::set<std::string>{"mse","mae","r2"};if(!p["metrics"].is_array()||p["metrics"].empty()||p["metrics"].size()>4)bad_param("metrics needs 1..4 entries");std::set<std::string> seen;for(auto& m:p["metrics"])if(!m.is_string()||!allowed.count(m.get<std::string>())||!seen.insert(m.get<std::string>()).second)bad_param("invalid/duplicate metric");}
  double budget=p.value("time_limit",10.);if(!(budget>0&&budget<=30))bad_param("time_limit must be >0..30");p["ml_spec"]=ml_spec();return p;
 }
+std::string ml_parameter_description(){
+ std::string out="Closed per-family primitive parameter tables; unknown keys rejected before spawn. ";
+ for(auto f=ml_spec()["families"].begin();f!=ml_spec()["families"].end();++f){out+=f.key()+": ";if(f.value()["params"].empty())out+="no parameters";for(auto p=f.value()["params"].begin();p!=f.value()["params"].end();++p){auto v=p.value();out+=p.key()+" ("+v["type"].get<std::string>()+", default "+v["default"].dump();if(v.contains("min"))out+=", range ["+v["min"].dump()+","+v["max"].dump()+"]";if(v.contains("enum"))out+=", enum "+v["enum"].dump();out+="); ";}out+=". ";}return out;
+}
 void add_ml_ops(CliSpec& spec){
  std::vector<Json> families;for(auto i=ml_spec()["families"].begin();i!=ml_spec()["families"].end();++i)families.push_back(i.key());
  auto source=[](){return std::vector<Param>{Param{"columns",Type::Object,false},Param{"records",Type::Array,false,nullptr,{},"Inline records <=1000 cells","",false,false,false,{},Type::Object},Param{"csv",Type::String,false},Param{"frame",Type::String,false}};};
  for(const std::string op:{"ml_fit","ml_predict","ml_cv"}){auto p=source();if(op=="ml_predict"){p.emplace_back("model",Type::String,true);p.emplace_back("kind",Type::String,false,"predict",std::vector<Json>{"predict","predict_proba","decision_function","transform"});p.emplace_back("allow_version_skew",Type::Boolean,false,false);p.emplace_back("out",Type::String,true);}else{p.emplace_back("family",Type::String,true,nullptr,families);p.emplace_back("features",Type::Array,true,nullptr,std::vector<Json>{},"Ordered feature names","",false,false,false,std::vector<std::string>{},Type::String);p.emplace_back("target",Type::String,false);p.emplace_back("params",Type::Object,false,Json::object());p.emplace_back("preprocess",Type::Object,true);p.emplace_back("seed",Type::Integer,false);if(op=="ml_fit"){p.emplace_back("out",Type::String,false);p.emplace_back("predict_frame",Type::String,false);p.emplace_back("predict_out",Type::String,false);}else{p.emplace_back("cv",Type::String,false,"kfold",std::vector<Json>{"kfold","stratified","group","timeseries"});p.emplace_back("n_splits",Type::Integer,false,5);p.emplace_back("shuffle",Type::Boolean,false,false);p.emplace_back("groups",Type::String,false);p.emplace_back("metrics",Type::Array,true,nullptr,std::vector<Json>{},"Closed metrics by task","",false,false,false,std::vector<std::string>{},Type::String);}}
- p.emplace_back("time_limit",Type::Number,false,10.);spec.operations.push_back(Operation{op,op=="ml_cv"?Access::Read:Access::Write,"Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps.","object",p});}
+ p.emplace_back("time_limit",Type::Number,false,10.);
+ const std::map<std::string,std::string> descriptions={
+ {"columns","Exactly one source: inline column-name -> equal-length scalar arrays, <=1000 cells; no missing values. Canonical integer class strings become integers; leading zeros/+ remain identifiers."},
+ {"records","Exactly one source: inline record objects, <=1000 cells; identical columns per row; no missing values."},
+ {"csv","Exactly one source: confined UTF-8 header CSV path, <=16MiB /20000 rows /200000 cells. Numeric features typed float64, categorical features string; canonical decimal class labels typed int64."},
+ {"frame","Exactly one source: confined S2 table NPZ path <=32MiB /20000 rows /200000 cells; no datetime or missing values."},
+ {"model","Confined v1 safetensors model path <=32MiB; strict attribute shapes/types, class consistency, feature order and sklearn version checked before spawn."},
+ {"kind","predict: labels/values; predict_proba: columns in echoed class order; decision_function: binary positive for classes[1]; transform: PCA/scaler/kmeans/LDA. Family availability checked."},
+ {"allow_version_skew","Default false: require exact sklearn version; true explicitly accepts version skew without a compatibility guarantee."},
+ {"family","Closed estimator family enum. Trees fit-and-predict only (no persisted model); all n_jobs=1, no caller solvers/callables."},
+ {"features","Required ordered unique feature names, 1..64 raw/encoded; model preserves this order independently of column-map order."},
+ {"target","Required column name for classification/regression; forbidden for unsupervised fit. Class labels homogeneous string/integer, 2..32 classes; canonical decimal strings normalize to int64."},
+ {"params",ml_parameter_description()},
+ {"preprocess","Required exact object {scale:boolean, one_hot:[unique feature names]}; no defaults or extra keys. Sorted full one-hot encoding then optional training mean/population-variance scaling; <=64 encoded features; unseen levels rejected."},
+ {"seed","uint32 [0,4294967295], required for stochastic families (linear_svc/kmeans/trees) and every CV; optional for deterministic lbfgs logistic and other families. MT19937 echoed only when randomness is used."},
+ {"out","Exclusive atomic output path: ml_fit persistable model requires .safetensors; ml_predict requires table .npz. Readonly forbids writes; existing files conflict."},
+ {"predict_frame","Required only for nonpersistable tree fit: S2 table NPZ with matching features, <=200000 encoded cells; predictions performed in the same call."},
+ {"predict_out","Required exclusive .npz prediction artifact for tree fit; mutually exclusive with model out."},
+ {"cv","kfold/stratified/group/timeseries; supervised families only; preprocessing learned independently per fold. Stratified requires classification; timeseries cannot shuffle."},
+ {"n_splits","Integer 2..20, <= rows; default 5; group CV also needs at least n_splits distinct groups."},
+ {"shuffle","Default false; shuffle kfold/stratified/group with required seed; forbidden for timeseries."},
+ {"groups","Required group column for group CV; forbidden for other CV kinds; group identities never overlap train/test."},
+ {"metrics","Required unique metric names (1..4): regressors mse/mae/r2; classifiers accuracy/f1_macro/binary roc_auc/log_loss. Probability metrics unavailable for linear_svc; undefined folds return non-OK with diagnostics."},
+ {"time_limit","ML computation wall budget >0..30 seconds, default 10; imports excluded; Python signal boundaries plus hard child timeout and pre-spawn work caps."}};
+ for(auto& param:p)param.description=descriptions.at(param.name);
+ spec.operations.push_back(Operation{op,op=="ml_cv"?Access::Read:Access::Write,"Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps.","object",p});}
 }

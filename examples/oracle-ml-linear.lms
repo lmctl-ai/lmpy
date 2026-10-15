@@ -9,10 +9,10 @@ x = [-3,-2,-1,0,1,2,3]; y = [-5,-3,-1,1,3,5,7];
 f = pycli.ml_fit({family:"linear",columns:{x:x,y:y},features:["x"],target:"y",preprocess:{scale:false,one_hot:[]},out:work+"/ols.safetensors"});
 if (f.status == "simulated") { println("ML linear oracle simulated"); exit(0); }
 if (f.status != "ok" || f.result.status != "OK") { println(json_stringify(f)); exit(1); }
-c = pycli.array_inspect({ref:work+"/ols.safetensors#coef_"});
-a = pycli.array_inspect({ref:work+"/ols.safetensors#intercept_"});
-if (abs(c.result.preview[0]-2)>0.000000001 || abs(a.result.preview[0]-1)>0.000000001) { println("hand optimum mismatch"); exit(1); }
-println("pycli OLS intercept=",a.result.preview[0],"slope=",c.result.preview[0]);
+c = f.result.parameters.coef_;
+a = f.result.parameters.intercept_;
+if (abs(c[0]-2)>0.000000001 || abs(a[0]-1)>0.000000001) { println("hand optimum mismatch"); exit(1); }
+println("pycli OLS intercept=",a[0],"slope=",c[0]);
 if (which("rcli") == null) { println("rcli leg skipped: add ~/repos/lmctlhq/rcli/bin to PATH"); }
 else {
  r=rcli.fit_lm({formula:"y ~ x",data:{x:x,y:y}});
