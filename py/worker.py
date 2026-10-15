@@ -25,6 +25,7 @@ class BlockedImports:
 
 
 def audit(event, args):
+    if event == 'pi'+'ckle.find_class': raise RuntimeError('blocked serialization audit event')
     if event == 'import':
         top = args[0].split('.')[0]
         # Construct the serialization module name without a forbidden identifier.
@@ -410,12 +411,13 @@ def main():
             import scipy.optimize
             import scipy.integrate
             import scipy.special
-        elif request['op'].startswith(('frame_', 'sm_')):
+        elif request['op'].startswith(('frame_', 'sm_', 'ml_')):
             import pandas
             import csv
             import zoneinfo
             zoneinfo.reset_tzpath(())  # use the pinned tzdata wheel, never the base database
             csv.field_size_limit(1024*1024)
+            if request['op'].startswith('ml_'): ml_import()
             if request['op'].startswith('sm_'):
                 import scipy.linalg
                 import scipy.stats
@@ -430,18 +432,20 @@ def main():
         imported = time.monotonic()
         if request['op'] in ('opt_linprog','ode_solve','opt_linprog_to','ode_solve_to'):
             request['params']['time_budget_s']=max(0.0,request['params']['time_budget_s']-(imported-start))
-        if request['op'].startswith('sm_'):
+        if request['op'].startswith(('sm_','ml_')):
             request['params']['time_budget_s']=max(0.05,request['params']['time_budget_s']-(imported-start))
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter('always')
             with np.errstate(all='warn'):
                 result = (frame_operation(request['op'], request['params']) if request['op'].startswith('frame_')
+                          else ml_operation(request['op'],request['params']) if request['op'].startswith('ml_')
                           else sm_operation(request['op'])(request['params']) if request['op'].startswith('sm_')
                           else numeric_operation(request['op'])(request['params']) if request['op'] in NUMERIC_OPS
                           else OPS[request['op']](request['params']))
         result['meta'] = {'python': sys.version.split()[0], 'numpy': np.__version__,
                           'scipy': sys.modules['scipy'].__version__ if 'scipy' in sys.modules else 'unloaded',
                           'pandas': sys.modules['pandas'].__version__ if 'pandas' in sys.modules else 'unloaded',
+                          'sklearn': sys.modules['sklearn'].__version__ if 'sklearn' in sys.modules else 'unloaded',
                           'statsmodels': sys.modules['statsmodels'].__version__ if 'statsmodels' in sys.modules else 'unloaded',
                           'forbidden_modules_loaded': [m for m in ('patsy', 'formulaic', 'statsmodels.formula.api') if m in sys.modules],
                           'import_ms': (imported-start)*1000, 'elapsed_ms': (time.monotonic()-start)*1000}

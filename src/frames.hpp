@@ -53,20 +53,20 @@ inline Json npz(const std::string& b){
  if(metadata["n_rows"].get<uint64_t>()*metadata["columns"].size()>CELLS)bad("table exceeds 500000 cells");
  return metadata;
 }
-inline void csv(const std::string& b,const std::string& delimiter,uint64_t maxrows){
+inline void csv(const std::string& b,const std::string& delimiter,uint64_t maxrows,Json* decoded=nullptr){
  if(delimiter.size()!=1||delimiter[0]=='"'||delimiter[0]=='\r'||delimiter[0]=='\n'||delimiter[0]=='\0')bad("delimiter must be one non-control byte");
  if(b.size()>CSV_BYTES)invalid("CSV exceeds 16MiB byte budget","INPUT_TOO_LARGE");
  utf8(b);
- bool quoted=false,after=false,start=true;uint64_t field=0,fields=1,rows=0,expected=0;std::string value;Json header=Json::array();
- auto finishfield=[&]{if(rows==0)header.push_back(value);value.clear();field=0;start=true;after=false;};
- auto finishrow=[&]{if(rows&&start&&fields==1&&field==0){field=0;return;}finishfield();if(!rows){expected=fields;names(header);}else if(fields!=expected)bad("ragged CSV");if(rows++>maxrows)invalid("CSV row cap exceeded","INPUT_TOO_LARGE");if((rows-1)*expected>CELLS)invalid("CSV exceeds 500000 cell budget","INPUT_TOO_LARGE");fields=1;};
+ bool quoted=false,after=false,start=true;uint64_t field=0,fields=1,rows=0,expected=0;std::string value;Json header=Json::array(),row=Json::array();if(decoded)*decoded=Json::object();
+ auto finishfield=[&]{if(rows==0)header.push_back(value);else if(decoded)row.push_back(value);value.clear();field=0;start=true;after=false;};
+ auto finishrow=[&]{if(rows&&start&&fields==1&&field==0){field=0;return;}finishfield();if(!rows){expected=fields;names(header);if(decoded)for(auto& n:header)(*decoded)[n.get<std::string>()]=Json::array();}else if(fields!=expected)bad("ragged CSV");if(decoded&&rows)for(size_t c=0;c<header.size();++c)(*decoded)[header[c].get<std::string>()].push_back(row[c]);row=Json::array();if(rows++>maxrows)invalid("CSV row cap exceeded","INPUT_TOO_LARGE");if((rows-1)*expected>CELLS)invalid("CSV exceeds 500000 cell budget","INPUT_TOO_LARGE");fields=1;};
  auto cellbyte=[&]{if(++field>STRING_BYTES)invalid("CSV string width exceeds 65536 bytes","INPUT_TOO_LARGE");};
  size_t i=b.compare(0,3,"\xef\xbb\xbf")==0?3:0;bool pending=false;
  for(;i<b.size();++i){char c=b[i];if(c=='\0')bad("NUL in CSV");pending=true;
-  if(quoted){if(c=='"'){if(i+1<b.size()&&b[i+1]=='"'){cellbyte();if(!rows)value+='"';++i;}else{quoted=false;after=true;}}else{cellbyte();if(!rows)value+=c;}continue;}
+  if(quoted){if(c=='"'){if(i+1<b.size()&&b[i+1]=='"'){cellbyte();if(!rows||decoded)value+='"';++i;}else{quoted=false;after=true;}}else{cellbyte();if(!rows||decoded)value+=c;}continue;}
   if(c==delimiter[0]){finishfield();if(++fields>COLS)bad("CSV column cap exceeded");continue;}
   if(c=='\r'||c=='\n'){if(c=='\r'){if(i+1>=b.size()||b[i+1]!='\n')bad("CSV requires LF or CRLF");++i;}finishrow();pending=false;continue;}
-  if(after)bad("text after quoted CSV cell");if(c=='"'){if(!start)bad("quote in unquoted CSV field");quoted=true;start=false;continue;}start=false;cellbyte();if(!rows)value+=c;
+  if(after)bad("text after quoted CSV cell");if(c=='"'){if(!start)bad("quote in unquoted CSV field");quoted=true;start=false;continue;}start=false;cellbyte();if(!rows||decoded)value+=c;
  }
  if(quoted)bad("unterminated CSV quote");if(pending)finishrow();if(!rows)bad("CSV needs header");
 }

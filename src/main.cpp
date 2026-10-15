@@ -27,7 +27,7 @@ void cleanup_signal(int sig) {
     // All per-call filenames are fixed; signal cleanup uses POSIX-safe calls only.
     if(!active_dir[0])_exit(128+sig);
     char path[4096];
-    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","c.npy","a_ub.npy","b_ub.npy","a_eq.npy","b_eq.npy","x.npy","output.bin","expr_spec.json","d_0.npy","d_1.npy","d_2.npy","d_3.npy","d_4.npy","d_5.npy","d_6.npy","d_7.npy","d_8.npy","d_9.npy","d_10.npy","d_11.npy","d_12.npy","d_13.npy","d_14.npy","d_15.npy","d_16.npy","d_17.npy","d_18.npy","d_19.npy","d_20.npy","d_21.npy","d_22.npy","d_23.npy","d_24.npy","d_25.npy","d_26.npy","d_27.npy","d_28.npy","d_29.npy","d_30.npy","d_31.npy","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","frame.npz","input.csv","table.npz","export.bin"}){
+    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","c.npy","a_ub.npy","b_ub.npy","a_eq.npy","b_eq.npy","x.npy","output.bin","expr_spec.json","d_0.npy","d_1.npy","d_2.npy","d_3.npy","d_4.npy","d_5.npy","d_6.npy","d_7.npy","d_8.npy","d_9.npy","d_10.npy","d_11.npy","d_12.npy","d_13.npy","d_14.npy","d_15.npy","d_16.npy","d_17.npy","d_18.npy","d_19.npy","d_20.npy","d_21.npy","d_22.npy","d_23.npy","d_24.npy","d_25.npy","d_26.npy","d_27.npy","d_28.npy","d_29.npy","d_30.npy","d_31.npy","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","out_8.bin","out_9.bin","out_10.bin","out_11.bin","out_12.bin","out_13.bin","out_14.bin","out_15.bin","out_16.bin","out_17.bin","out_18.bin","out_19.bin","out_20.bin","out_21.bin","out_22.bin","out_23.bin","out_24.bin","out_25.bin","out_26.bin","out_27.bin","out_28.bin","out_29.bin","out_30.bin","out_31.bin","m_0.npy","m_1.npy","m_2.npy","m_3.npy","m_4.npy","m_5.npy","m_6.npy","m_7.npy","m_8.npy","m_9.npy","m_10.npy","m_11.npy","m_12.npy","m_13.npy","m_14.npy","m_15.npy","m_16.npy","m_17.npy","m_18.npy","m_19.npy","m_20.npy","m_21.npy","m_22.npy","m_23.npy","m_24.npy","m_25.npy","m_26.npy","m_27.npy","m_28.npy","m_29.npy","m_30.npy","m_31.npy","predict.npz","frame.npz","input.csv","table.npz","export.bin"}){
         size_t n=0;while(active_dir[n] && n<sizeof(path)-64){path[n]=active_dir[n];++n;}
         path[n++]='/';while(*file)path[n++]=*file++;path[n]=0;unlink(path);
     }
@@ -254,10 +254,10 @@ uint64_t decomp_numbers(const std::string& kind,uint64_t m,uint64_t n,bool full,
     if(kind=="cholesky")return n*n;
     return m*m+m*k+k*n;
 }
-pycli::TensorBundle read_outputs(TempDir& temp,Json& result){
+pycli::TensorBundle read_outputs(TempDir& temp,Json& result,size_t maximum=8){
     pycli::TensorBundle bundle;uint64_t total=0;
     const Json outputs=result.value("outputs",Json::array());
-    if(!outputs.is_array()||outputs.empty()||outputs.size()>8)throw std::runtime_error("worker output list invalid");
+    if(!outputs.is_array()||outputs.empty()||outputs.size()>maximum)throw std::runtime_error("worker output list invalid");
     for(size_t i=0;i<outputs.size();++i){
         std::string key=outputs[i].at("key"),dtype=outputs[i].at("dtype");auto shape=outputs[i].at("shape").get<std::vector<int64_t>>();check_key(key);
         if((dtype!="F64"&&dtype!="I64")||shape.empty()||shape.size()>2)throw std::runtime_error("worker output descriptor invalid");
@@ -480,6 +480,7 @@ Json prepare_root(const Params& in){
 }
 #include "s4.hpp"
 #include "s5.hpp"
+#include "ml.hpp"
 int expr_check_cli(){
     try{
         std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
@@ -496,10 +497,12 @@ Json call(const std::string& op,const Params& input){
     if(op=="array_import")return array_import(input);
     if(op=="array_inspect")return array_inspect(input);
     Params p=input;std::map<std::string,Array> arrays;
+    const bool ml=op.rfind("ml_",0)==0;std::string ml_future;
+    if(ml)p=prepare_ml(op,p,arrays,ml_future);
     const bool sm=op.rfind("sm_",0)==0;const bool sm_twin=sm&&op.size()>3&&op.compare(op.size()-3,3,"_to")==0;
-    bool frame=op.rfind("frame_",0)==0||sm;std::string table_input,table_bytes,table_output;
+    bool frame=op.rfind("frame_",0)==0||sm||ml;std::string table_input,table_bytes,table_output;
     if(frame){
-        if(op=="frame_import"||sm){
+        if(op=="frame_import"||sm||ml){
             size_t sources=p.count("columns")+p.count("records")+p.count("csv")+p.count("frame");if(sources!=1)invalid("provide exactly one of columns, records, csv, frame");
         }else if(p.contains("columns")){p["select_columns"]=p["columns"];p.erase("columns");}
         if(p.contains("columns")||p.contains("records")){
@@ -518,7 +521,7 @@ Json call(const std::string& op,const Params& input){
         for(const char* key:{"head","tail"})if(p.contains(key)&&(p[key].get<int64_t>()<0||p[key].get<int64_t>()>1000))invalid("preview rows must be 0..1000");
         if(p.contains("aggs")){auto& a=p["aggs"];std::set<std::string> allowed={"sum","mean","min","max","count","std","var","median","nunique","first","last"};uint64_t count=0;if(!a.is_object()||a.empty())invalid("aggs must be nonempty column map");for(auto it=a.begin();it!=a.end();++it){if(!it.value().is_array()||it.value().empty())invalid("aggregation list required");std::set<std::string> seen;for(auto& v:it.value()){if(!v.is_string()||!allowed.count(v.get<std::string>())||!seen.insert(v.get<std::string>()).second)invalid("invalid or duplicate aggregation");if(++count>256)invalid("aggregation column cap");}}}
         if(p.contains("sort_by")){if(!p["sort_by"].is_array()||p["sort_by"].size()>256)invalid("invalid sort_by");for(auto& item:p["sort_by"]){if(!item.is_object()||!item.contains("col")||!item["col"].is_string()||item.size()>(item.contains("desc")?2:1)||(item.contains("desc")&&!item["desc"].is_boolean()))invalid("sort_by requires {col,desc?}");}}
-        if(!sm&&p.contains("out")){table_output=confined(p["out"],true);auto ext=fs::path(table_output).extension();if(op!="frame_export"&&ext!=".npz")invalid("table out must end in .npz");p.erase("out");}
+        if(!sm&&!ml&&p.contains("out")){table_output=confined(p["out"],true);auto ext=fs::path(table_output).extension();if(op!="frame_export"&&ext!=".npz")invalid("table out must end in .npz");p.erase("out");}
     }
     if(op=="la_solve"||op=="la_solve_to"){
         arrays["a"]=load(p["a"]);arrays["b"]=load(p["b"]);auto& a=arrays["a"];auto& b=arrays["b"];
@@ -573,7 +576,7 @@ Json call(const std::string& op,const Params& input){
     else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
-    if(sm)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
+    if(sm||ml)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
     if(numeric){
         {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
         p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=s4?Json(std::max(0.01,double(seconds)-2.0)):Json(std::max(1,seconds-10));  // worker stops cooperatively before the hard kill
@@ -581,7 +584,12 @@ Json call(const std::string& op,const Params& input){
     if(frame){if(!table_input.empty()){auto file=temp.file(table_input.c_str());std::ofstream f(file,std::ios::binary);f.write(table_bytes.data(),table_bytes.size());if(!f)throw std::runtime_error("cannot copy table input");p[table_input=="frame.npz"?"frame_file":"csv_file"]=file;table_bytes.clear();}if(!table_output.empty())p["output_file"]=temp.file(op=="frame_export"?"export.bin":"table.npz");}
     for(const auto& entry:arrays){auto file=temp.file((entry.first+".npy").c_str());write_npy(entry.second,file);p.erase(entry.first);p[entry.first+"_file"]=file;}
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");
-    Json request=p;
+    if(ml){
+        p["output_file"]=temp.file("table.npz");p["output_prefix"]=temp.file("out_");
+        if(!ml_future.empty()){std::ofstream f(temp.file("predict.npz"),std::ios::binary);f.write(ml_future.data(),ml_future.size());p["predict_file"]=temp.file("predict.npz");}
+        p["lock_id"]=PYCLI_ML_LOCK_SHA256;
+    }
+    Json request=p;if(ml)request.erase("out");
     if(s4){if(s4_write)s4_out=p["out"].get<std::string>();request["force_artifact"]=s4_write;}
     if(s4||sm_twin||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
     {std::ofstream f(temp.file("req.json"));f<<Json{{"op",op},{"params",request}}.dump();if(!f)throw std::runtime_error("cannot write request");}
@@ -605,6 +613,19 @@ Json call(const std::string& op,const Params& input){
     auto response=read_result_file(temp.file("resp.json"),"json");
     if(!response.value("ok",false)){auto code=response.value("tool_code",std::string("PY_ERROR"));auto kind=response.value("error_class",std::string());throw Error{(code=="BAD_DATA"||kind=="validation")?ErrorCode::ValidationError:kind=="internal"?ErrorCode::InternalError:ErrorCode::CommandFailed,response.value("message",std::string("worker failure")),{{"tool_code",code},{"exception",response.value("exception",std::string())},{"warnings",response.value("warnings",Json::array())}}};}
     Json result=response["result"];
+    if(ml&&op!="ml_cv"){
+        if(result.value("status",std::string())!="OK")no_artifact(result,"ML operation produced no artifact");
+        auto path=p["out"].get<std::string>();
+        if(op=="ml_fit"&&result.contains("model_metadata")){
+            auto bundle=read_outputs(temp,result,32);bundle.metadata=result["model_metadata"].get<std::map<std::string,std::string>>();ml_model_info(bundle,false);result.erase("model_metadata");
+            if(inline_numbers(result)>MAX_INLINE||result.dump().size()>65536)output_too_large("ML summary exceeds budget");
+            pycli::write_bundle(path,bundle);result["model"]={{"ref",path},{"nbytes",fs::file_size(path)}};
+        }else{
+            auto output=temp.file("table.npz");if(!fs::is_regular_file(output))no_artifact(result,"ML operation produced no prediction artifact");frames::npz(frames::bounded_read(output));
+            if(inline_numbers(result)>MAX_INLINE||result.dump().size()>65536)output_too_large("ML summary exceeds budget");
+            frames::install(output,path);result["artifact"]={{"ref",path},{"path",path},{"nbytes",fs::file_size(path)}};
+        }
+    }
     if(op=="py_info")result["worker_sha256"]=PYCLI_WORKER_SHA256;
     if(op=="la_solve_to"&&result.value("status",std::string())!="OK")throw Error{ErrorCode::CommandFailed,"solve produced no artifact",{{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}}};
     if(op=="la_solve_to"){
@@ -820,6 +841,7 @@ int main(int argc,char** argv){
         params.push_back(Param{"method",Type::String,false,"ywm",{"ywm","ywadjusted","ols","ldb"},"pacf only: ywm (Yule-Walker with n denominator, R's pacf), ywadjusted, ols, ldb."});
         spec.operations.push_back(Operation{"sm_tsa_acf",Access::Read,"Sample autocorrelation or partial autocorrelation with confidence intervals (statsmodels.tsa.stattools); lags 0..nlags. Constant series are CONSTANT_SERIES.","object",params});
     }
+    add_ml_ops(spec);
     for(auto& op:spec.operations){std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }

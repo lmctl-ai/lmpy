@@ -2306,6 +2306,330 @@
           "description": "pacf only: ywm (Yule-Walker with n denominator, R's pacf), ywadjusted, ols, ldb."
         }
       ]
+    },
+    {
+      "name": "ml_fit",
+      "access": "write",
+      "returns": "object",
+      "description": "Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "columns input; see README for shapes and limits."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline records <=1000 cells",
+          "items": "object"
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "csv input; see README for shapes and limits."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "frame input; see README for shapes and limits."
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "linear",
+            "ridge",
+            "lasso",
+            "elastic_net",
+            "logistic",
+            "linear_svc",
+            "gaussian_nb",
+            "lda",
+            "knn_classifier",
+            "knn_regressor",
+            "kmeans",
+            "pca",
+            "standard_scaler",
+            "random_forest_classifier",
+            "hist_gradient_boosting_classifier",
+            "random_forest_regressor",
+            "hist_gradient_boosting_regressor"
+          ],
+          "description": "family input; see README for shapes and limits."
+        },
+        {
+          "name": "features",
+          "type": "array",
+          "occurs": "1",
+          "description": "Ordered feature names",
+          "items": "string"
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "occurs": "?",
+          "description": "target input; see README for shapes and limits."
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "occurs": "?",
+          "default": {},
+          "description": "params input; see README for shapes and limits."
+        },
+        {
+          "name": "preprocess",
+          "type": "object",
+          "occurs": "1",
+          "description": "preprocess input; see README for shapes and limits."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "seed input; see README for shapes and limits."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "?",
+          "description": "out input; see README for shapes and limits."
+        },
+        {
+          "name": "predict_frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "predict_frame input; see README for shapes and limits."
+        },
+        {
+          "name": "predict_out",
+          "type": "string",
+          "occurs": "?",
+          "description": "predict_out input; see README for shapes and limits."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "time_limit input; see README for shapes and limits."
+        }
+      ]
+    },
+    {
+      "name": "ml_predict",
+      "access": "write",
+      "returns": "object",
+      "description": "Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "columns input; see README for shapes and limits."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline records <=1000 cells",
+          "items": "object"
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "csv input; see README for shapes and limits."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "frame input; see README for shapes and limits."
+        },
+        {
+          "name": "model",
+          "type": "string",
+          "occurs": "1",
+          "description": "model input; see README for shapes and limits."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "?",
+          "default": "predict",
+          "enum": [
+            "predict",
+            "predict_proba",
+            "decision_function",
+            "transform"
+          ],
+          "description": "kind input; see README for shapes and limits."
+        },
+        {
+          "name": "allow_version_skew",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "allow_version_skew input; see README for shapes and limits."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "out input; see README for shapes and limits."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "time_limit input; see README for shapes and limits."
+        }
+      ]
+    },
+    {
+      "name": "ml_cv",
+      "access": "read",
+      "returns": "object",
+      "description": "Bounded scikit-learn: explicit preprocessing, strict v1 safetensors, single-thread sequential execution; no missing values. See docs/s6.md for family parameters and caps.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "columns input; see README for shapes and limits."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline records <=1000 cells",
+          "items": "object"
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "csv input; see README for shapes and limits."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "frame input; see README for shapes and limits."
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "linear",
+            "ridge",
+            "lasso",
+            "elastic_net",
+            "logistic",
+            "linear_svc",
+            "gaussian_nb",
+            "lda",
+            "knn_classifier",
+            "knn_regressor",
+            "kmeans",
+            "pca",
+            "standard_scaler",
+            "random_forest_classifier",
+            "hist_gradient_boosting_classifier",
+            "random_forest_regressor",
+            "hist_gradient_boosting_regressor"
+          ],
+          "description": "family input; see README for shapes and limits."
+        },
+        {
+          "name": "features",
+          "type": "array",
+          "occurs": "1",
+          "description": "Ordered feature names",
+          "items": "string"
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "occurs": "?",
+          "description": "target input; see README for shapes and limits."
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "occurs": "?",
+          "default": {},
+          "description": "params input; see README for shapes and limits."
+        },
+        {
+          "name": "preprocess",
+          "type": "object",
+          "occurs": "1",
+          "description": "preprocess input; see README for shapes and limits."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "seed input; see README for shapes and limits."
+        },
+        {
+          "name": "cv",
+          "type": "string",
+          "occurs": "?",
+          "default": "kfold",
+          "enum": [
+            "kfold",
+            "stratified",
+            "group",
+            "timeseries"
+          ],
+          "description": "cv input; see README for shapes and limits."
+        },
+        {
+          "name": "n_splits",
+          "type": "number",
+          "occurs": "?",
+          "default": 5,
+          "description": "n_splits input; see README for shapes and limits."
+        },
+        {
+          "name": "shuffle",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "shuffle input; see README for shapes and limits."
+        },
+        {
+          "name": "groups",
+          "type": "string",
+          "occurs": "?",
+          "description": "groups input; see README for shapes and limits."
+        },
+        {
+          "name": "metrics",
+          "type": "array",
+          "occurs": "1",
+          "description": "Closed metrics by task",
+          "items": "string"
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "time_limit input; see README for shapes and limits."
+        }
+      ]
     }
   ]
 }

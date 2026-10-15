@@ -25,3 +25,5 @@
 !examples/
 !examples/**
 !cli.schema.dev.json
+
+!ml-spec.json

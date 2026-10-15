@@ -1,0 +1,518 @@
+{
+  "version": 1,
+  "sklearn_version": "1.7.2",
+  "caps": {
+    "rows": 20000,
+    "features": 64,
+    "cells": 200000,
+    "classes": 32,
+    "cost": 200000000,
+    "knn_pairs": 5000000
+  },
+  "families": {
+    "linear": {
+      "task": "regression",
+      "params": {
+        "fit_intercept": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "coef_": "p",
+        "intercept_": "one"
+      }
+    },
+    "ridge": {
+      "task": "regression",
+      "params": {
+        "fit_intercept": {
+          "type": "boolean",
+          "default": true
+        },
+        "alpha": {
+          "type": "number",
+          "default": 1,
+          "min": 1e-12,
+          "max": 1000000.0
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "coef_": "p",
+        "intercept_": "one"
+      }
+    },
+    "lasso": {
+      "task": "regression",
+      "params": {
+        "fit_intercept": {
+          "type": "boolean",
+          "default": true
+        },
+        "alpha": {
+          "type": "number",
+          "default": 1.0,
+          "min": 1e-12,
+          "max": 1000000.0
+        },
+        "max_iter": {
+          "type": "integer",
+          "default": 1000,
+          "min": 1,
+          "max": 1000
+        },
+        "tol": {
+          "type": "number",
+          "default": 1e-08,
+          "min": 1e-12,
+          "max": 0.01
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "coef_": "p",
+        "intercept_": "one"
+      }
+    },
+    "elastic_net": {
+      "task": "regression",
+      "params": {
+        "fit_intercept": {
+          "type": "boolean",
+          "default": true
+        },
+        "alpha": {
+          "type": "number",
+          "default": 1.0,
+          "min": 1e-12,
+          "max": 1000000.0
+        },
+        "max_iter": {
+          "type": "integer",
+          "default": 1000,
+          "min": 1,
+          "max": 1000
+        },
+        "tol": {
+          "type": "number",
+          "default": 1e-08,
+          "min": 1e-12,
+          "max": 0.01
+        },
+        "l1_ratio": {
+          "type": "number",
+          "default": 0.5,
+          "min": 0,
+          "max": 1
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "coef_": "p",
+        "intercept_": "one"
+      }
+    },
+    "logistic": {
+      "task": "classification",
+      "params": {
+        "fit_intercept": {
+          "type": "boolean",
+          "default": true
+        },
+        "C": {
+          "type": "number",
+          "default": 1.0,
+          "min": 1e-06,
+          "max": 1000000.0
+        },
+        "max_iter": {
+          "type": "integer",
+          "default": 1000,
+          "min": 1,
+          "max": 2000
+        },
+        "tol": {
+          "type": "number",
+          "default": 1e-08,
+          "min": 1e-12,
+          "max": 0.01
+        },
+        "class_weight": {
+          "type": "string",
+          "default": "none",
+          "enum": [
+            "none",
+            "balanced"
+          ]
+        }
+      },
+      "stochastic": true,
+      "attributes": {
+        "coef_": "decision",
+        "intercept_": "decision_rows",
+        "classes_": "classes"
+      }
+    },
+    "linear_svc": {
+      "task": "classification",
+      "params": {
+        "fit_intercept": {
+          "type": "boolean",
+          "default": true
+        },
+        "C": {
+          "type": "number",
+          "default": 1.0,
+          "min": 1e-06,
+          "max": 1000000.0
+        },
+        "max_iter": {
+          "type": "integer",
+          "default": 1000,
+          "min": 1,
+          "max": 2000
+        },
+        "tol": {
+          "type": "number",
+          "default": 1e-08,
+          "min": 1e-12,
+          "max": 0.01
+        },
+        "class_weight": {
+          "type": "string",
+          "default": "none",
+          "enum": [
+            "none",
+            "balanced"
+          ]
+        }
+      },
+      "stochastic": true,
+      "attributes": {
+        "coef_": "decision",
+        "intercept_": "decision_rows",
+        "classes_": "classes"
+      }
+    },
+    "gaussian_nb": {
+      "task": "classification",
+      "params": {
+        "var_smoothing": {
+          "type": "number",
+          "default": 1e-09,
+          "min": 1e-12,
+          "max": 0.01
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "theta_": "cp",
+        "var_": "cp",
+        "class_prior_": "classes",
+        "class_count_": "classes",
+        "classes_": "classes"
+      }
+    },
+    "lda": {
+      "task": "classification",
+      "params": {
+        "n_components": {
+          "type": "integer",
+          "default": 0,
+          "min": 0,
+          "max": 32
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "coef_": "decision",
+        "intercept_": "decision_rows",
+        "classes_": "classes",
+        "means_": "cp",
+        "priors_": "classes",
+        "scalings_": "scalings",
+        "xbar_": "p",
+        "explained_variance_ratio_": "lda_components"
+      }
+    },
+    "knn_classifier": {
+      "task": "classification",
+      "params": {
+        "n_neighbors": {
+          "type": "integer",
+          "default": 5,
+          "min": 1,
+          "max": 128
+        },
+        "weights": {
+          "type": "string",
+          "default": "uniform",
+          "enum": [
+            "uniform",
+            "distance"
+          ]
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "train_x_": "np",
+        "train_y_": "n"
+      }
+    },
+    "knn_regressor": {
+      "task": "regression",
+      "params": {
+        "n_neighbors": {
+          "type": "integer",
+          "default": 5,
+          "min": 1,
+          "max": 128
+        },
+        "weights": {
+          "type": "string",
+          "default": "uniform",
+          "enum": [
+            "uniform",
+            "distance"
+          ]
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "train_x_": "np",
+        "train_y_": "n"
+      }
+    },
+    "kmeans": {
+      "task": "clustering",
+      "params": {
+        "n_clusters": {
+          "type": "integer",
+          "default": 2,
+          "min": 2,
+          "max": 32
+        },
+        "n_init": {
+          "type": "integer",
+          "default": 10,
+          "min": 1,
+          "max": 10
+        },
+        "max_iter": {
+          "type": "integer",
+          "default": 300,
+          "min": 1,
+          "max": 300
+        },
+        "tol": {
+          "type": "number",
+          "default": 1e-08,
+          "min": 1e-12,
+          "max": 0.01
+        }
+      },
+      "stochastic": true,
+      "attributes": {
+        "cluster_centers_": "kp"
+      }
+    },
+    "pca": {
+      "task": "decomposition",
+      "params": {
+        "n_components": {
+          "type": "integer",
+          "default": 2,
+          "min": 1,
+          "max": 32
+        },
+        "whiten": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "stochastic": false,
+      "attributes": {
+        "components_": "rp",
+        "mean_": "p",
+        "explained_variance_": "r",
+        "explained_variance_ratio_": "r",
+        "singular_values_": "r",
+        "noise_variance_": "one"
+      }
+    },
+    "standard_scaler": {
+      "task": "scaling",
+      "params": {},
+      "stochastic": false,
+      "attributes": {
+        "mean_": "p",
+        "scale_": "p",
+        "var_": "p"
+      }
+    },
+    "random_forest_classifier": {
+      "task": "classification",
+      "params": {
+        "n_estimators": {
+          "type": "integer",
+          "default": 32,
+          "min": 1,
+          "max": 64
+        },
+        "max_depth": {
+          "type": "integer",
+          "default": 8,
+          "min": 1,
+          "max": 12
+        },
+        "min_samples_leaf": {
+          "type": "integer",
+          "default": 1,
+          "min": 1,
+          "max": 64
+        },
+        "max_features": {
+          "type": "string",
+          "default": "sqrt",
+          "enum": [
+            "sqrt",
+            "log2",
+            "all"
+          ]
+        },
+        "bootstrap": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "stochastic": true,
+      "attributes": {}
+    },
+    "hist_gradient_boosting_classifier": {
+      "task": "classification",
+      "params": {
+        "max_iter": {
+          "type": "integer",
+          "default": 100,
+          "min": 1,
+          "max": 100
+        },
+        "max_depth": {
+          "type": "integer",
+          "default": 8,
+          "min": 1,
+          "max": 12
+        },
+        "max_leaf_nodes": {
+          "type": "integer",
+          "default": 31,
+          "min": 2,
+          "max": 31
+        },
+        "min_samples_leaf": {
+          "type": "integer",
+          "default": 20,
+          "min": 1,
+          "max": 128
+        },
+        "learning_rate": {
+          "type": "number",
+          "default": 0.1,
+          "min": 0.01,
+          "max": 1
+        },
+        "l2_regularization": {
+          "type": "number",
+          "default": 0,
+          "min": 0,
+          "max": 10000
+        }
+      },
+      "stochastic": true,
+      "attributes": {}
+    },
+    "random_forest_regressor": {
+      "task": "regression",
+      "params": {
+        "n_estimators": {
+          "type": "integer",
+          "default": 32,
+          "min": 1,
+          "max": 64
+        },
+        "max_depth": {
+          "type": "integer",
+          "default": 8,
+          "min": 1,
+          "max": 12
+        },
+        "min_samples_leaf": {
+          "type": "integer",
+          "default": 1,
+          "min": 1,
+          "max": 64
+        },
+        "max_features": {
+          "type": "string",
+          "default": "all",
+          "enum": [
+            "sqrt",
+            "log2",
+            "all"
+          ]
+        },
+        "bootstrap": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "stochastic": true,
+      "attributes": {}
+    },
+    "hist_gradient_boosting_regressor": {
+      "task": "regression",
+      "params": {
+        "max_iter": {
+          "type": "integer",
+          "default": 100,
+          "min": 1,
+          "max": 100
+        },
+        "max_depth": {
+          "type": "integer",
+          "default": 8,
+          "min": 1,
+          "max": 12
+        },
+        "max_leaf_nodes": {
+          "type": "integer",
+          "default": 31,
+          "min": 2,
+          "max": 31
+        },
+        "min_samples_leaf": {
+          "type": "integer",
+          "default": 20,
+          "min": 1,
+          "max": 128
+        },
+        "learning_rate": {
+          "type": "number",
+          "default": 0.1,
+          "min": 0.01,
+          "max": 1
+        },
+        "l2_regularization": {
+          "type": "number",
+          "default": 0,
+          "min": 0,
+          "max": 10000
+        }
+      },
+      "stochastic": true,
+      "attributes": {}
+    }
+  }
+}

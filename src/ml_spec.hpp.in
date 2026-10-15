@@ -1,0 +1,4 @@
+#pragma once
+inline constexpr const char* PYCLI_ML_SPEC=R"ML_SPEC(@PYCLI_ML_SPEC_JSON@)ML_SPEC";
+
+inline constexpr const char* PYCLI_ML_LOCK_SHA256="@PYCLI_ML_LOCK_SHA256@";
