@@ -163,7 +163,7 @@ def ml_fit(p):
         xx,_=ml_matrix(future,p['features'],p['preprocess'],prep)
         if scaler is not None:xx=scaler.transform(xx)
         result=ml_save_table(ml_result(est,xx,'predict',family,labels),p)
-        result['model_persisted']=False;result['seed']=p['seed'];result['generator']='sklearn RandomState(MT19937)';result['family']=family
+        result['classes']=labels;result['features']=p['features'];result['model_persisted']=False;result['seed']=p['seed'];result['generator']='sklearn RandomState(MT19937)';result['family']=family
         return result
     tensors=[]
     for name in attrs:
@@ -187,7 +187,7 @@ def ml_fit(p):
     info={'pycli_model':'1','family':family,'sklearn_version':sklearn.__version__,'features':p['features'],'feature_dtypes':{f:'string' if f in prep['one_hot'] else 'numeric-f64' for f in p['features']},'preprocess':prep,'params':p['params'],'labels':labels,'width':x.shape[1],'train_rows':len(x),'seed':p.get('seed'),'components':int(r),'target':p.get('target',''),'train_sha256':digest.hexdigest(),'lock_id':p['lock_id']}
     metadata={k:json.dumps(v,separators=(',',':'),ensure_ascii=False) if not isinstance(v,str) else v for k,v in info.items()}
     if sum(len(k)+len(v) for k,v in metadata.items())>16384:raise BadData('model metadata exceeds 16KiB')
-    return {'status':'OK','rank':int(est.rank_) if family=='linear' else None,'rank_deficient':bool(est.rank_<x.shape[1]) if family=='linear' else False,'family':family,'model_metadata':metadata,'outputs':save_outputs(p,tensors),'prediction_preview':ml_preview(prediction),'preview_truncated':len(x)>len(next(iter(ml_preview(prediction).values()))),'seed':p.get('seed'),'generator':'sklearn RandomState(MT19937)','preprocess':p['preprocess']}
+    return {'status':'OK','rank':int(est.rank_) if family=='linear' else None,'rank_deficient':bool(est.rank_<x.shape[1]) if family=='linear' else False,'classes':labels,'features':p['features'],'family':family,'model_metadata':metadata,'outputs':save_outputs(p,tensors),'prediction_preview':ml_preview(prediction),'preview_truncated':len(x)>len(next(iter(ml_preview(prediction).values()))),'seed':p.get('seed'),'generator':'sklearn RandomState(MT19937)','preprocess':p['preprocess']}
 
 
 def ml_load(p):
@@ -223,6 +223,7 @@ def ml_predict(p):
     if scaler is not None:x=scaler.transform(x)
     result=ml_save_table(ml_result(est,x,p['kind'],m['family'],m['labels']),p)
     result['version_skew_accepted']=m['sklearn_version']!='1.7.2'
+    result['classes']=m['labels'];result['features']=m['features'];result['family']=m['family']
     return result
 
 
