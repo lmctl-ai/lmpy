@@ -101,14 +101,22 @@ nested calls) in rcli's grammar: numbers, declared names, `+ - * / ^`, unary min
 log2 log10 sqrt abs sin cos tan asin acos atan sinh cosh tanh floor ceiling trunc round sign gamma lgamma digamma pnorm dnorm
 qnorm plogis atan2 pmin pmax beta lbeta choose lchoose`; reducers `sum mean prod min max` only where data columns
 exist). The spec file and the shared accept/reject corpus (13/57) are byte-identical copies of rcli's (SHA-256 pinned in
-the tests); the C++ parser is a copy with one extension: a variable declared as a vector (`x0: {"v": [1, 2]}`) may be used
+the tests); the C++ parser is a copy with one extension: a variable declared as a vector (`x0: {"v": [1, 2]}`; bounds `{"v": [[0, 2], [0, 5]]}` per component or one pair for all) may be used
 only as `v[0]`, `v[1]` with an integer literal below its length, and a scalar may not be indexed. Rejections happen in
 C++ before any process starts (`EXPR_SYNTAX`, `EXPR_BAD_BYTE`, `EXPR_UNKNOWN_IDENT`, `EXPR_UNKNOWN_FUNCTION`, `EXPR_ARITY`,
 `EXPR_TOO_LONG`, `EXPR_TOO_DEEP`, `EXPR_TOO_MANY_NODES`, `EXPR_NAME_COLLISION`, `EXPR_NOT_SCALAR`, `EXPR_INDEX`,
 `EXPR_VECTOR_INDEX`, with `position` and `near`). Python receives only the JSON AST and compiles it iteratively
 (no recursion, no `eval`/`exec`/`compile`/`getattr` on caller data) into a postfix program of numpy/scipy function *objects*
 from a closed table, re-checking node kinds, arities, names and indices (`INTERNAL_ERROR`/`EXPR_SPEC_MISMATCH` otherwise).
-`^` is `numpy.power` on float64 (so `(-8)^(1/3)` is NaN as in R); `ifelse` evaluates both branches (`numpy.where`).
+Functions and operators follow **R's semantics** where rcli claims interchangeability: comparisons and `& |` are three-valued
+(a NaN operand gives NA; `NA & FALSE` is FALSE, `NA | TRUE` is TRUE; numbers are true if nonzero), `ifelse` with an NA/NaN test
+returns NaN (it does not take the else branch) and evaluates both branches, `^` follows R_pow (`(-8)^(1/3)` is NaN, a negative base
+with an infinite exponent is NaN), `choose`/`lchoose` round `k` half-to-even with a one-time `NumericalWarning` and accept negative
+`n`, `lchoose` works in the log domain (`lchoose(2000,1000)` = 1382.268 instead of an overflow), `beta`/`lbeta` are NaN for negative
+arguments, `gamma(0)` and `digamma(0)` are NaN. `tests/expr-semantics-golden.json` holds R's answers for all 59 shared expressions on
+a 20 x 19 grid of edge values (0, negative, non-integer, huge, +-Inf, NaN) and `tests/s3_semantics.py` requires pycli to reproduce
+every cell; `scripts/expr-semantics-diff.py [--regen] [--rcli rcli]` regenerates the table from Rscript and runs spot cases through
+the real rcli runtime. One known numerical difference: `choose`/`lchoose` with `|k| >= 1e9` agree on finite/non-finite class only.
 
 Unknowns are scalars or vectors of at most 64 components in total; they are ordered by name (vector components by index),
 which fixes the order of `gradient` expressions and of the flat vector. Data columns (`data`) are finite vectors from inline
@@ -118,9 +126,9 @@ constants or each other (`BAD_NAME`, `EXPR_NAME_COLLISION`).
 
 Statuses (exit 0): `OK`, `NO_CONVERGENCE` (the solver's own verdict, with its message, including "precision loss"),
 `EVAL_LIMIT` (`max_evals`, default 500000, cap 2,000,000, counting every objective, gradient, constraint and residual
-call), `TIME_LIMIT` (a wall-clock budget of the call timeout minus 10 s, so the worker stops before the hard kill) and
-`NON_FINITE`. `EVAL_LIMIT`/`TIME_LIMIT`/`NON_FINITE` return the best point found so far. A non-finite objective at `x0`
-is `NONFINITE_OBJECTIVE` (exit 2); later non-finite objectives count as +Inf (`nonfinite: "inf"`, reported as
+call), `TIME_LIMIT` (a wall-clock budget of the call timeout minus 10 s, checked before every evaluation including the gradient check, the final residual and the standard-error steps, so the worker stops before the hard kill) and
+`NON_FINITE`. `EVAL_LIMIT`/`TIME_LIMIT`/`NON_FINITE` return the best point found so far by objective value; with constraints that point can be infeasible (read `constraint_violation`). A non-finite objective at `x0`
+is `NONFINITE_OBJECTIVE` (exit 2; a non-finite analytic gradient at `x0` is `NONFINITE_GRADIENT`); later non-finite objectives count as +Inf (`nonfinite: "inf"`, reported as
 `nonfinite_evals` plus a warning) or stop the run (`nonfinite: "error"`). Constraint violation above 1e-6 turns a solver
 success into `NO_CONVERGENCE`. Gradient expressions are compared with finite differences at `x0` and a mismatch is a
 `NumericalWarning`. Method rules are validated up front: bounds not for BFGS, constraints only SLSQP/trust-constr,
@@ -129,15 +137,24 @@ gradients not for Nelder-Mead/Powell; the default method is SLSQP with constrain
 `opt_least_squares` fits `model` against the `response` column (residual = (model - response)/sigma, `sigma` a positive
 number or data column) or minimises concatenated `residuals` expressions. Standard errors: with the central-difference
 Jacobian J at the solution (scipy's own 2-point Jacobian is only first-order accurate with an absolute step and was off in the
-5th digit for NIST Misra1a), `cov = (J'J)^-1`, columns equilibrated, rank decided at 1e-8, multiplied by `2*cost/(m-n)`
-(`curve_fit` convention) unless `absolute_sigma`. `cov_status` is `OK`, `SINGULAR_JACOBIAN` or `NO_DOF` (standard errors are
-then `"NA"`). With a robust `loss` scipy's loss-modified Jacobian is used and `std_err` is approximate. The solver runs
+5th digit for NIST Misra1a), `cov = (J'J)^-1`, multiplied by `2*cost/(m-n)` (`curve_fit` convention) unless `absolute_sigma`. Each
+column uses a ladder of nine central-difference steps around `eps^(1/3) * max(|x_j|, 1e-4 * rho/||J_j||)` (rho the residual scale,
+J_j the solver's column) and keeps the step whose neighbours agree best, so a parameter that is ~0 at the solution or a response of
+magnitude 1e6 still gives standard errors accurate to ~1e-6 (closed-form OLS fixtures for y = 1000x, 1e6 x, 1e-3 x; Misra1a). Columns
+are equilibrated and the Jacobian is declared singular below a **1e-8 relative singular value** (`SINGULAR_JACOBIAN`, standard errors
+`"NA"`): legitimately worse-conditioned fits such as high-degree polynomials land here, and `jacobian_condition` (of the equilibrated
+Jacobian) lets you judge; above 1e6 a `NumericalWarning` says the errors may be inaccurate, and `JACOBIAN_UNCERTAIN` means the
+finite-difference and solver Jacobians disagree by more than 0.1 % on some column. `cov_status` is `OK`, `SINGULAR_JACOBIAN`,
+`NO_DOF` or `UNAVAILABLE_BUDGET` (standard errors are then `"NA"`). The residual count times the number of unknowns is capped at
+20,000,000 before spawn (vector residual expressions count `rows` each): `INPUT_TOO_LARGE`. With a robust `loss` scipy's loss-modified Jacobian is used and `std_err` is approximate. The solver runs
 with `x_scale="jac"` and `tol` (default 1e-10) for ftol/xtol/gtol.
 
 `num_quad` is QUADPACK (`scipy.integrate.quad`, `full_output`): a warning-level failure (oscillatory or divergent integrand,
 `limit` exhausted) is `NO_CONVERGENCE` with the QUADPACK message and the unreliable `value`/`abserr`; a non-finite integrand
 value (e.g. a pole on a Gauss-Kronrod node) is `NON_FINITE`. `num_root` needs finite `f(lower)`, `f(upper)` of opposite
-sign (`NONFINITE_BRACKET`, `BAD_INTERVAL`, exit 2).
+sign (`NONFINITE_BRACKET`, `BAD_INTERVAL`, exit 2); an exactly-zero end is returned at once with 0 iterations. `xtol` is a bracket
+width, not an `|f|` target. A singularity on the midpoint node of a symmetric interval (`1/sqrt(abs(x))` on [-1, 1]) is `NON_FINITE`;
+the message suggests `points`.
 
 S3 latency through the shim is about 1.0-1.1 s per call (p50), of which ~0.43 s is the worker's NumPy/SciPy import; runtime image
 unchanged at 527 MB on disk. Details: [docs/s3.md](docs/s3.md), [docs/timings.md](docs/timings.md).
