@@ -110,7 +110,7 @@ class ML(unittest.TestCase):
  def test_proba_decision_transform_and_skew(self):
   cols={'x':[-3,-2,-1,1,2,3],'y':[0,0,0,1,1,1]};self.fit('logistic',cols,['x'],'y')
   for kind in ['predict_proba','decision_function']:
-   r=self.predict('logistic.safetensors',cols,kind);self.assertTrue(all(t['num_threads']==1 for t in r['threads']));data=self.output('pred.npz');(self.cwd/'pred.npz').unlink()
+   r=self.predict('logistic.safetensors',cols,kind);self.assertTrue(all(t['num_threads']==1 for t in r['threads']));self.assertEqual(r['classes'],[0,1]);self.assertEqual(r['features'],['x']);data=self.output('pred.npz');(self.cwd/'pred.npz').unlink()
    if kind=='predict_proba':
     np.testing.assert_allclose(np.array(list(data.values())).sum(0),1,atol=1e-15);_,t=bundle(self.cwd/'logistic.safetensors');want=1/(1+np.exp(-(np.array(cols['x'])*t['coef_'].item()+t['intercept_'].item())));np.testing.assert_allclose(data['probability_1'],want,rtol=1e-14)
   tamper(self.cwd/'logistic.safetensors',self.cwd/'old.safetensors',lambda h:h['__metadata__'].update(sklearn_version='0.0.0'))
