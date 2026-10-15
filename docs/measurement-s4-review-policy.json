@@ -1,0 +1,760 @@
+[
+  {
+    "op": "opt_linprog",
+    "readonly": true,
+    "params": {
+      "c": [
+        -1
+      ],
+      "a_ub": [
+        [
+          1e-10
+        ]
+      ],
+      "b_ub": [
+        1e-10
+      ]
+    },
+    "exit_code": 0,
+    "result": {
+      "status": "OK",
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "scipy_status": 0,
+      "highs_model_status": 7,
+      "iterations_available": true,
+      "has_primal": true,
+      "highs_threads": 1,
+      "outputs_in_artifact": false,
+      "row_scaling": true,
+      "certificate_tolerance": 1e-07,
+      "iterations": 0,
+      "primal_relative_violation": 0.0,
+      "primal_violation": 0.0,
+      "dual_relative_violation": 1.821609865774887e-17,
+      "relative_duality_gap": 1.821609865774887e-17,
+      "dual_feasible": true,
+      "objective": -1.0,
+      "integrality_error": 0.0,
+      "primal_feasible": true,
+      "solution_kind": "optimal",
+      "optimality_verified": true,
+      "x": [
+        1.0
+      ],
+      "slack": [
+        0.0
+      ],
+      "equality_residual": [],
+      "meta": {
+        "python": "3.12.15",
+        "numpy": "2.3.3",
+        "scipy": "1.16.2",
+        "pandas": "unloaded",
+        "import_ms": 508.11928500479553,
+        "elapsed_ms": 513.0067380086984
+      },
+      "warnings": [],
+      "warnings_truncated": false,
+      "duals": {
+        "ub": [
+          -10000000000.0
+        ],
+        "eq": [],
+        "lower": [
+          0.0
+        ],
+        "upper": [
+          0.0
+        ]
+      }
+    }
+  },
+  {
+    "op": "ode_solve",
+    "readonly": true,
+    "params": {
+      "rhs": [
+        "-y[0]"
+      ],
+      "y0": [
+        1
+      ],
+      "t_span": [
+        0,
+        1
+      ]
+    },
+    "exit_code": 0,
+    "result": {
+      "status": "OK",
+      "message": "The solver successfully reached the end of the integration interval.",
+      "termination": "end",
+      "final_time": 1.0,
+      "final_state": [
+        0.3678795361496677
+      ],
+      "state_names": [],
+      "nfev": 38,
+      "njev": 0,
+      "nlu": 0,
+      "rhs_calls": 38,
+      "event_calls": 0,
+      "evals": 38,
+      "nonfinite_evals": 0,
+      "steps": 6,
+      "partial_trajectory": false,
+      "event_counts": [],
+      "effective_output_points": 101,
+      "endpoints_added": [],
+      "expr_spec_sha256": "f0b596000cc99b796a9d5bb2e3a39f8fdc39d2794812bc189e9b1800418e01a4",
+      "outputs_in_artifact": false,
+      "t": [
+        0.0,
+        0.01,
+        0.02,
+        0.03,
+        0.04,
+        0.05,
+        0.06,
+        0.07,
+        0.08,
+        0.09,
+        0.1,
+        0.11,
+        0.12,
+        0.13,
+        0.14,
+        0.15,
+        0.16,
+        0.17,
+        0.18,
+        0.19,
+        0.2,
+        0.21,
+        0.22,
+        0.23,
+        0.24,
+        0.25,
+        0.26,
+        0.27,
+        0.28,
+        0.29,
+        0.3,
+        0.31,
+        0.32,
+        0.33,
+        0.34,
+        0.35,
+        0.36,
+        0.37,
+        0.38,
+        0.39,
+        0.4,
+        0.41,
+        0.42,
+        0.43,
+        0.44,
+        0.45,
+        0.46,
+        0.47,
+        0.48,
+        0.49,
+        0.5,
+        0.51,
+        0.52,
+        0.53,
+        0.54,
+        0.55,
+        0.56,
+        0.57,
+        0.58,
+        0.59,
+        0.6,
+        0.61,
+        0.62,
+        0.63,
+        0.64,
+        0.65,
+        0.66,
+        0.67,
+        0.68,
+        0.69,
+        0.7,
+        0.71,
+        0.72,
+        0.73,
+        0.74,
+        0.75,
+        0.76,
+        0.77,
+        0.78,
+        0.79,
+        0.8,
+        0.81,
+        0.82,
+        0.83,
+        0.84,
+        0.85,
+        0.86,
+        0.87,
+        0.88,
+        0.89,
+        0.9,
+        0.91,
+        0.92,
+        0.93,
+        0.94,
+        0.95,
+        0.96,
+        0.97,
+        0.98,
+        0.99,
+        1.0
+      ],
+      "y": [
+        [
+          1.0
+        ],
+        [
+          0.9900498337459812
+        ],
+        [
+          0.9801986733062079
+        ],
+        [
+          0.9704455306258668
+        ],
+        [
+          0.9607894151023412
+        ],
+        [
+          0.9512293653658186
+        ],
+        [
+          0.9417644319857407
+        ],
+        [
+          0.9323936738390999
+        ],
+        [
+          0.9231161581104388
+        ],
+        [
+          0.9139309602918511
+        ],
+        [
+          0.9048371641829807
+        ],
+        [
+          0.8958338618910221
+        ],
+        [
+          0.8869201538307204
+        ],
+        [
+          0.8780951487243716
+        ],
+        [
+          0.8693579636018217
+        ],
+        [
+          0.8607077238004678
+        ],
+        [
+          0.8521435629652572
+        ],
+        [
+          0.843664623048688
+        ],
+        [
+          0.8352700543108087
+        ],
+        [
+          0.8269590153192187
+        ],
+        [
+          0.8187306729490675
+        ],
+        [
+          0.8105842023830556
+        ],
+        [
+          0.8025187871114339
+        ],
+        [
+          0.7945336189320038
+        ],
+        [
+          0.7866278979501173
+        ],
+        [
+          0.7788008325786773
+        ],
+        [
+          0.7710516395381368
+        ],
+        [
+          0.7633795398499248
+        ],
+        [
+          0.7557837652956855
+        ],
+        [
+          0.7482635618023223
+        ],
+        [
+          0.7408181819006185
+        ],
+        [
+          0.7334468847055046
+        ],
+        [
+          0.7261489359160584
+        ],
+        [
+          0.718923607815505
+        ],
+        [
+          0.711770179271217
+        ],
+        [
+          0.704687935734714
+        ],
+        [
+          0.6976761692416632
+        ],
+        [
+          0.6907341784118789
+        ],
+        [
+          0.6838612684493228
+        ],
+        [
+          0.6770567511421041
+        ],
+        [
+          0.6703199448624788
+        ],
+        [
+          0.6636501745668507
+        ],
+        [
+          0.6570467717957708
+        ],
+        [
+          0.6505090746739373
+        ],
+        [
+          0.6440364279101957
+        ],
+        [
+          0.6376281827975389
+        ],
+        [
+          0.6312836972131072
+        ],
+        [
+          0.625002335618188
+        ],
+        [
+          0.6187834690582161
+        ],
+        [
+          0.6126264751627737
+        ],
+        [
+          0.6065307357321902
+        ],
+        [
+          0.6004956386319964
+        ],
+        [
+          0.5945205846360512
+        ],
+        [
+          0.5886049799718163
+        ],
+        [
+          0.5827482360894111
+        ],
+        [
+          0.576949769661613
+        ],
+        [
+          0.5712090025838578
+        ],
+        [
+          0.5655253619742389
+        ],
+        [
+          0.5598982801735075
+        ],
+        [
+          0.5543271947450734
+        ],
+        [
+          0.548811548475004
+        ],
+        [
+          0.5433507893720245
+        ],
+        [
+          0.5379443706675185
+        ],
+        [
+          0.5325917508155275
+        ],
+        [
+          0.5272923934927507
+        ],
+        [
+          0.5220457675985455
+        ],
+        [
+          0.5168513472549273
+        ],
+        [
+          0.5117086118065696
+        ],
+        [
+          0.5066170458208035
+        ],
+        [
+          0.5015761390876183
+        ],
+        [
+          0.4965853866196616
+        ],
+        [
+          0.4916442886522384
+        ],
+        [
+          0.4867523506433122
+        ],
+        [
+          0.4819090820534385
+        ],
+        [
+          0.4771139955898046
+        ],
+        [
+          0.47236661484420145
+        ],
+        [
+          0.46766646814066976
+        ],
+        [
+          0.4630130879458265
+        ],
+        [
+          0.4584060108688651
+        ],
+        [
+          0.4538447776615551
+        ],
+        [
+          0.4493289332182426
+        ],
+        [
+          0.44485802657584983
+        ],
+        [
+          0.44043161091387545
+        ],
+        [
+          0.4360492435543944
+        ],
+        [
+          0.43171048596205797
+        ],
+        [
+          0.4274149037440937
+        ],
+        [
+          0.42316206665030554
+        ],
+        [
+          0.4189515485730738
+        ],
+        [
+          0.414782927547355
+        ],
+        [
+          0.410655785750682
+        ],
+        [
+          0.40656970950316407
+        ],
+        [
+          0.40252428926748673
+        ],
+        [
+          0.3985191196489118
+        ],
+        [
+          0.3945537993952775
+        ],
+        [
+          0.39062793139699836
+        ],
+        [
+          0.38674112268706506
+        ],
+        [
+          0.38289298482419626
+        ],
+        [
+          0.37908313595312015
+        ],
+        [
+          0.3753111957295157
+        ],
+        [
+          0.37157678694926843
+        ],
+        [
+          0.3678795361496677
+        ]
+      ],
+      "meta": {
+        "python": "3.12.15",
+        "numpy": "2.3.3",
+        "scipy": "1.16.2",
+        "pandas": "unloaded",
+        "import_ms": 549.1212339984486,
+        "elapsed_ms": 552.5142739934381
+      },
+      "warnings": [],
+      "warnings_truncated": false
+    }
+  },
+  {
+    "op": "ode_solve",
+    "readonly": true,
+    "params": {
+      "rhs": [
+        "-y[0]"
+      ],
+      "y0": [
+        1
+      ],
+      "t_span": [
+        0,
+        1
+      ],
+      "max_output_points": 1000
+    },
+    "exit_code": 1,
+    "result": {
+      "success": false,
+      "error": {
+        "code": "COMMAND_FAILED",
+        "message": "use the _to operation with out for large S4 results",
+        "data": {
+          "tool_code": "OUTPUT_TOO_LARGE",
+          "exception": "OutputTooLarge",
+          "warnings": []
+        }
+      }
+    }
+  },
+  {
+    "op": "ode_solve_to",
+    "readonly": true,
+    "params": {
+      "rhs": [
+        "-y[0]"
+      ],
+      "y0": [
+        1
+      ],
+      "t_span": [
+        0,
+        1
+      ],
+      "out": "blocked.safetensors"
+    },
+    "exit_code": 6,
+    "result": {
+      "success": false,
+      "error": {
+        "code": "READONLY_VIOLATION",
+        "message": "Operation \"ode_solve_to\" is a write operation and this tool is running in read-only mode.",
+        "data": {
+          "operation": "ode_solve_to"
+        }
+      }
+    }
+  },
+  {
+    "op": "ode_solve_to",
+    "readonly": false,
+    "params": {
+      "rhs": [
+        "-y[0]"
+      ],
+      "y0": [
+        1
+      ],
+      "t_span": [
+        0,
+        1
+      ],
+      "events": [
+        {
+          "expr": "y[0]-0.5",
+          "direction": -1
+        }
+      ],
+      "out": "events.safetensors"
+    },
+    "exit_code": 0,
+    "result": {
+      "status": "OK",
+      "message": "The solver successfully reached the end of the integration interval.",
+      "termination": "end",
+      "final_time": 1.0,
+      "final_state": [
+        0.3678795361496677
+      ],
+      "state_names": [],
+      "nfev": 38,
+      "njev": 0,
+      "nlu": 0,
+      "rhs_calls": 38,
+      "event_calls": 14,
+      "evals": 52,
+      "nonfinite_evals": 0,
+      "steps": 6,
+      "partial_trajectory": false,
+      "event_counts": [
+        1
+      ],
+      "effective_output_points": 101,
+      "endpoints_added": [],
+      "expr_spec_sha256": "f0b596000cc99b796a9d5bb2e3a39f8fdc39d2794812bc189e9b1800418e01a4",
+      "outputs_in_artifact": true,
+      "t": {
+        "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors#t",
+        "path": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors",
+        "key": "t",
+        "dtype": "F64",
+        "shape": [
+          101
+        ],
+        "nbytes": 808
+      },
+      "y": {
+        "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors#y",
+        "path": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors",
+        "key": "y",
+        "dtype": "F64",
+        "shape": [
+          101,
+          1
+        ],
+        "nbytes": 808
+      },
+      "event_t": {
+        "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors#event_t",
+        "path": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors",
+        "key": "event_t",
+        "dtype": "F64",
+        "shape": [
+          1
+        ],
+        "nbytes": 8
+      },
+      "event_y": {
+        "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors#event_y",
+        "path": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors",
+        "key": "event_y",
+        "dtype": "F64",
+        "shape": [
+          1,
+          1
+        ],
+        "nbytes": 8
+      },
+      "event_index": {
+        "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors#event_index",
+        "path": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors",
+        "key": "event_index",
+        "dtype": "I64",
+        "shape": [
+          1
+        ],
+        "nbytes": 8
+      },
+      "meta": {
+        "python": "3.12.15",
+        "numpy": "2.3.3",
+        "scipy": "1.16.2",
+        "pandas": "unloaded",
+        "import_ms": 556.1636540078325,
+        "elapsed_ms": 560.5697209975915
+      },
+      "warnings": [],
+      "warnings_truncated": false,
+      "artifact": {
+        "path": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors",
+        "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors",
+        "nbytes": 1960
+      }
+    }
+  },
+  {
+    "op": "array_inspect",
+    "readonly": false,
+    "params": {
+      "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors#event_index"
+    },
+    "exit_code": 0,
+    "result": {
+      "finite_count": 1,
+      "nan_count": 0,
+      "posinf_count": 0,
+      "neginf_count": 0,
+      "min": 0.0,
+      "max": 0.0,
+      "norm": 0.0,
+      "source": "safetensors",
+      "dtype": "I64",
+      "shape": [
+        1
+      ],
+      "size": 1,
+      "preview": [
+        0.0
+      ],
+      "preview_truncated": false
+    }
+  },
+  {
+    "op": "array_inspect",
+    "readonly": false,
+    "params": {
+      "ref": "/home/ubuntu/pycli-s4-review-policy-4ckvl9uj/events.safetensors#event_t"
+    },
+    "exit_code": 0,
+    "result": {
+      "finite_count": 1,
+      "nan_count": 0,
+      "posinf_count": 0,
+      "neginf_count": 0,
+      "min": 0.6931473295491368,
+      "max": 0.6931473295491368,
+      "norm": 0.6931473295491368,
+      "source": "safetensors",
+      "dtype": "F64",
+      "shape": [
+        1
+      ],
+      "size": 1,
+      "preview": [
+        0.6931473295491368
+      ],
+      "preview_truncated": false
+    }
+  }
+]
