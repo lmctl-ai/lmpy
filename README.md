@@ -355,3 +355,73 @@ Explicit int64 JSON columns accept integer tokens or decimal strings, not
 floating tokens: lmcpp can promote an out-of-range JSON integer to a rounded
 float. This prevents a value below INT64_MIN from silently becoming INT64_MIN.
 Conversion of already typed float artifacts remains explicit and range-checked.
+
+### S4: LP/MILP and ODE
+
+| Operation | Access | Contract |
+|---|---|---|
+| `opt_linprog` | write | HiGHS dense LP / mixed-integer LP; `c`, optional paired `a_ub/b_ub`, `a_eq/b_eq`, per-variable `bounds`, `integrality` (continuous/integer/binary), `maximize`, time/node/iteration caps |
+| `ode_solve` | write | Closed-expression RHS in `y[i]`, `t`, finite named `params`; optional named states, events, six solve_ivp methods, per-expression/time/step budgets |
+
+Both ops are statically **write**, including inline computations, so readonly blocks
+and dryrun simulates them. `out` optionally forces a new exclusive `.safetensors`;
+otherwise results exceeding the inline budget automatically create a unique
+`pycli-result-pycli-*.safetensors` in cwd and return refs. No overwrite. An explicit
+LP `out` without a primal solution fails (exit 1, domain status as tool_code);
+without explicit out, infeasible/unbounded/limit statuses are ordinary domain
+results (exit 0). A stopped ODE can persist its accepted partial state with the
+non-OK domain status. There is no claim that a successful protocol envelope means
+an optimal LP or a completed integration: inspect `result.status`.
+
+LP limits: 512 variables, 4096 combined constraint rows, 200000 combined dense
+matrix entries; at n variables, rows are also bounded by floor(200000/n). Inputs
+use the S1 inline/NPY/safetensors-ref grammar. Matrices and RHS/c must be finite.
+Bounds default to `[0,null]` (nonnegative); null or signed `-Inf`/`Inf` tokens open
+the corresponding endpoint. Equal endpoints fix a variable. Binary integrality
+intersects bounds with [0,1]; no semi-continuous/semi-integer modes. `time_limit`
+is >0..30 seconds (default 10), `node_limit` 0..100000 (default 10000), LP `maxiter`
+1..100000, `mip_rel_gap` 0..0.1 (default 0). Native HiGHS threads fixed to one.
+
+LP statuses: OK, INFEASIBLE, UNBOUNDED, TIME_LIMIT, NODE_LIMIT, ITERATION_LIMIT,
+NUMERICAL_FAILURE. The original SciPy message/status remain visible. HiGHS' native
+solution-limit stop (SciPy currently calls it status 4) maps to NODE_LIMIT;
+negative/unavailable iteration counts are omitted. Available primal solutions
+include `objective`, `x`, `slack`, equality residuals and an independent feasibility
+check. LP `duals.ub/eq/lower/upper` are derivatives of the **original** objective
+(including maximize sign). MILP reports available mip_gap/node_count/dual_bound,
+no LP duals; an incumbent within a nonzero requested gap is labelled `incumbent`,
+not proven optimal. In degenerate problems compare feasibility/objective, not x.
+
+ODE: `y0` array with one RHS expression per component, or named y0/RHS objects
+(sorted by name). Array y0 can give `states` aliases. At most 32 states /16 named
+parameters, with the S3 name/collision rules; e.g. use `b` instead of the reserved
+function name `beta`. Methods: RK45, RK23, DOP853, Radau, BDF, LSODA. rtol is
+1e-13..0.1; atol scalar/per-state is 1e-15..0.1. Finite t_span endpoints have
+absolute value <=1e12, and may run backwards. `max_step` is positive finite.
+Default output is 101 uniform samples, **not** the adaptive step mesh;
+`max_output_points` selects 2..10000 samples. Explicit ordered `t_eval` accepts
+inline/NPY/safetensors vectors; missing span endpoints are added and reported.
+Potential trajectory + events + final state are bounded before spawn to 200000
+numbers. Failed/terminated integrations can append one accepted/terminal endpoint.
+
+Every RHS component and event expression shares `max_evals` (default/cap 200000);
+finite-difference Jacobian RHS calls are counted too. `rhs_calls`, `event_calls`
+and SciPy nfev/njev/nlu are distinct metrics. `max_steps` default 10000, cap 20000;
+wall budget defaults to 10 s, max 30, with import time deducted from the process
+budget and a two-second hard-kill margin. At most four `{expr,direction,terminal}`
+events; direction -1/0/1, terminal defaults false. Each nonterminal event caps at
+32 roots and stops with EVENT_LIMIT. The state at a terminal root is the final
+state, even when the last requested sample precedes it. `event_t/event_y/event_index`
+use event index order. A requested terminal event is OK with `termination:event`.
+Other domain statuses: EVAL_LIMIT, TIME_LIMIT, STEP_LIMIT, EVENT_LIMIT, NON_FINITE,
+STEP_SIZE_TOO_SMALL, NO_CONVERGENCE. On callback interruption, `partial_trajectory`
+returns initial + last **accepted** state, not rejected trial states; earlier
+sample/event history is unavailable, so zero event counts are incomplete in that
+case. Large trajectory/event arrays share the artifact, small final state stays
+inline. Whole summary <=32KiB / final response <=64KiB, and <=1000 inline numbers.
+
+Examples: `examples/lp-plan.lms` (CSV demand/capacity to a hand-checked cost-4 plan)
+and `examples/ode-sir.lms` (population conservation and the infected peak event).
+HiGHS MIT text is already in the shipped SciPy source-notice inventory; S4 adds
+no wheel. Robertson source/tolerances, oracle independence and composition gaps
+are recorded in docs/s4.md. Current timings are in docs/timings.md.

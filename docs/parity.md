@@ -53,3 +53,13 @@ no lmda build was attempted. A future oracle recipe can export the four-row
 region/sales fixture, compare group sums E=40/W=60 against lmda's table_groupby,
 and compare CSV selection order; timezone/category identity remains a direct
 pandas + hand-fixture oracle. No cross-tool parity is claimed.
+
+S4 adds generic HiGHS LP/MILP and ODE solvers. The prebuilt rcli schema inspected
+for this slice exposes num_fft, opt_minimize, opt_optimize, num_root and
+num_integrate, with no LP/MILP or generic ODE operation. No extra R packages are
+installed to manufacture a same-solver comparison. RHS/events reuse S3's closed
+builder and R-generated edge-semantics corpus; S4 also checks NaN-ifelse and
+rounded choose through RHS/events. Hand LP optima, exhaustive integer enumeration,
+analytic/conserved ODE quantities and the primary ODEPACK Robertson example are
+the independent solver oracles. This is new capability, not claimed rcli solver
+parity. See docs/s4.md for the explicit nested-ODE least-squares composition gap.

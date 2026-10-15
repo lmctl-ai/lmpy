@@ -1,0 +1,15 @@
+// access: write
+import "../cli.schema.dev.json" as pycli;
+trajectory=pycli.ode_solve({rhs:["-b*s*i/population","b*s*i/population-g*i","g*i"],y0:[999,1,0],states:["s","i","r"],params:{b:0.3,g:0.1,population:1000},t_span:[0,160],max_output_points:161,method:"DOP853",rtol:0.0000000001,atol:0.000000000001,events:[{expr:"b*s*i/population-g*i",direction:-1,terminal:false}]});
+if (trajectory.status=="simulated") { println("SIR trajectory simulated."); exit(0); }
+if (trajectory.status!="ok" || trajectory.result.status!="OK") { println(json_stringify(trajectory)); exit(1); }
+data=trajectory.result;
+for (row in data.y) {
+  total=row[0]+row[1]+row[2];
+  if (abs(total-1000)>0.000001) { println("Population conservation failed"); exit(1); }
+}
+if (data.event_counts[0]!=1) { println("Expected one infected peak"); exit(1); }
+peak=data.event_t[0]; state=data.event_y[0];
+// At I'=0, S=g*N/b=1000/3; dS/dt<0 gives the unique infection peak.
+if (peak<30 || peak>50 || abs(state[0]-1000/3)>0.00001) { println("SIR peak check failed"); exit(1); }
+println(sprintf("peak_day=%.6f peak_infected=%.6f population=%.6f",peak,state[1],data.final_state[0]+data.final_state[1]+data.final_state[2]));
