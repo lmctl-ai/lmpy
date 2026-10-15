@@ -368,3 +368,10 @@ Caps probe in the hardened container (2 CPU, 4 GiB, read-only; `docs/measurement
 OLS 200000 x 50 (10M design cells) 5.2 s (HC3 5.7 s); binomial GLM 7.5 s; Poisson `sm_glm_to` 7.9 s; ARIMA(2,0,1) n=2000 1.5 s;
 seasonal (1,1,1)(1,1,1,12) 10.0 s; state-cap ARIMA(5,0,5)(2,0,2,12) 13.8 s -> `NO_CONVERGENCE` at maxiter 50 (a status, not an error).
 Cgroup peak memory over the whole probe: 1.0 GB (OLS alone 0.50 GB, GLM 1.0 GB), far below the 4 GiB limit.
+
+### S5 review fixes (2026-10-15)
+
+Re-measured (`scripts/measure-s5.py`, p50 wall): sm_ols 1.74 s, sm_ols_to 1.80 s, sm_glm 1.77 s, sm_arima ARMA(1,1) 1.88 s (was 1.78 s: the
+Nelder-Mead polish adds ~0.05 s), sm_tsa_acf 1.80 s; import still ~1.0 s. New ARIMA bound (observations x states^2 <= 2.5e7), measured in the
+hardened container (4 GiB): states 55 / n 8264 and states 30 / n 20000 both complete with a cgroup peak of 2.59 GB.
+Acceptance: `./scripts/build.sh test` 0, `docker run --rm --pull=never --network=none pycli:test` 25/25 exit 0 (819 s), all 10 examples exit 0.
