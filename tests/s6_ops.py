@@ -79,7 +79,7 @@ class ML(unittest.TestCase):
   train={'x':[-3,-2,-1,1,2,3],'y':[0,0,0,1,1,1]};self.call('frame_import',columns={'x':[-2,2]},out='test.npz')
   for f in ['random_forest_classifier','random_forest_regressor','hist_gradient_boosting_classifier','hist_gradient_boosting_regressor']:
    self.call('ml_fit',family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},predict_frame='test.npz',predict_out='tree.npz');self.assertTrue((self.cwd/'tree.npz').exists());(self.cwd/'tree.npz').unlink()
-   self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},out='no.safetensors',predict_frame='test.npz',predict_out='tree.npz')
+   rejected=self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},out='no.safetensors',predict_frame='test.npz',predict_out='tree.npz');self.assertEqual(rejected['error']['data']['tool_code'],'MODEL_NOT_PERSISTABLE')
   r=self.fit('logistic',{'x':list(range(20)),'y':[0]*10+[1]*10},['x'],'y',params={'max_iter':1},rc=1);self.assertEqual(r['error']['data']['tool_code'],'NO_CONVERGENCE')
  def test_expanded_prediction_caps_before_spawn(self):
   self.fit('gaussian_nb',{'x':[i%2 for i in range(64)],'y':[i//2 for i in range(64)]},['x'],'y')
