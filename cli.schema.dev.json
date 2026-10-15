@@ -698,7 +698,7 @@
       "name": "opt_minimize",
       "access": "read",
       "returns": "object",
-      "description": "Minimise a scalar expression with scipy.optimize.minimize (closed method list). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE; gradients by finite differences unless gradient expressions are given. Result: par, fun, nit, nfev, evals, nonfinite_evals, constraint_violation",
+      "description": "Minimise a scalar expression with scipy.optimize.minimize (closed method list). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE; EVAL_LIMIT/TIME_LIMIT/NON_FINITE return the best point so far by objective value, which can be infeasible when constraints exist (see constraint_violation); gradients by finite differences unless gradient expressions are given (checked at x0, every evaluation counted). Result: par, fun, nit, nfev, evals, nonfinite_evals, constraint_violation",
       "params": [
         {
           "name": "objective",
@@ -730,7 +730,7 @@
           "name": "bounds",
           "type": "object",
           "occurs": "?",
-          "description": "{name: [lower, upper]} with null/\"-Inf\"/\"Inf\" for open ends, applied to every component; lower < upper and x0 inside."
+          "description": "{name: [lower, upper]} with null/\"-Inf\"/\"Inf\" for open ends; for a vector unknown one pair is applied to every component, or give per-component pairs [[lo0, hi0], [lo1, hi1], ...] (exactly one per component). lower < upper and x0 inside."
         },
         {
           "name": "constraints",
@@ -789,7 +789,7 @@
       "name": "opt_least_squares",
       "access": "read",
       "returns": "object",
-      "description": "Nonlinear least squares with scipy.optimize.least_squares (trf/dogbox/lm): model y ~ f(data; params) or a residual expression list. Result: par, std_err (from the Jacobian: cov = (J'J)^-1 times 2*cost/(m-n) unless absolute_sigma), cost, rss, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE, cov_status",
+      "description": "Nonlinear least squares with scipy.optimize.least_squares (trf/dogbox/lm): model y ~ f(data; params) or a residual expression list. Result: par, std_err (central-difference Jacobian with adaptive per-parameter steps: cov = (J'J)^-1 times 2*cost/(m-n) unless absolute_sigma; columns equilibrated and the Jacobian declared singular below a 1e-8 relative singular value, reported as cov_status SINGULAR_JACOBIAN with jacobian_condition), cost, rss, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE, cov_status",
       "params": [
         {
           "name": "model",
@@ -1000,7 +1000,7 @@
           "type": "number",
           "occurs": "?",
           "default": 2e-12,
-          "description": "Absolute x tolerance, > 0."
+          "description": "Absolute tolerance on the bracket width (not on |f|): a loose xtol returns a root with f_root far from 0 and status OK. Must be > 0."
         },
         {
           "name": "rtol",
