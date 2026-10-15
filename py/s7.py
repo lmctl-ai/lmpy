@@ -3,6 +3,8 @@ Every enum, option string and cap was validated by the C++ front end; the checks
 Assembled after ml.py (shares codec/array/save_outputs/BadData/OutputTooLarge and the SIGALRM budget helpers of sm.py)."""
 S7_INLINE = 900
 S7_ARTIFACT_NUMBERS = 1900000  # the C++ side refuses worker outputs above 2M numbers; fail cleanly first
+S7_RBF_POINTS, S7_RBF_DIM, S7_ORDER, S7_NPERSEG, S7_NFFT, S7_KNN_DIM, S7_KNN_K, S7_DIST_PAIRS = 5000, 8, 20, 65536, 131072, 32, 1000, 1000000
+S7_HULL_CAP = {'convex_hull': {2: 20000, 3: 20000, 4: 800, 5: 400, 6: 100}, 'delaunay': {2: 20000, 3: 800, 4: 300, 5: 100, 6: 50}, 'voronoi': {2: 20000, 3: 800, 4: 300, 5: 100, 6: 50}}
 S7_WINDOWS = ('hann', 'hamming', 'blackman', 'boxcar', 'bartlett', 'flattop', 'parzen', 'bohman', 'blackmanharris', 'nuttall', 'barthann', 'cosine', 'triang')
 
 
@@ -29,6 +31,12 @@ def s7_emit(np, p, result, named, op):
     return result
 
 
+def s7_cap(ok, what):
+    """The C++ front end enforces every cap before spawn; a request that got here without that check is refused again, not computed."""
+    if not ok:
+        raise BadData('%s exceeds the operation cap (this request bypassed the front-end validation)' % what, 'INPUT_TOO_LARGE')
+
+
 def s7_guard(p, body):
     """Cooperative wall budget (SIGALRM) around one library call; None means the budget expired."""
     return sm_fit_guard(p, body)
@@ -41,6 +49,7 @@ def interp_eval(p):
     y = s7_vector(np, p, 'y')
     x = s7_vector(np, p, 'x')
     n = len(y)
+    s7_cap(kind != 'rbf' or (n <= S7_RBF_POINTS and x.size // max(n, 1) <= S7_RBF_DIM), 'rbf nodes x dimensions')
     q = s7_vector(np, p, 'x_new') if 'x_new_file' in p else None
     result = {'status': 'OK', 'kind': kind, 'n_nodes': n, 'nu': nu, 'extrapolate': extrapolate}
     lo = hi = None
@@ -143,6 +152,7 @@ def sig_filter(p):
     import numpy as np
     from scipy import signal
     family, order, btype = p['family'], p['order'], p['btype']
+    s7_cap(1 <= order <= S7_ORDER, 'filter order')
     wn = p['wn']
     kwargs = {'rp': p.get('rp'), 'rs': p.get('rs'), 'btype': btype, 'analog': False, 'ftype': family, 'output': 'sos'}
     if p.get('fs') is not None:
@@ -194,6 +204,7 @@ def sig_spectrum(p):
     n = len(x)
     nperseg = p.get('nperseg')
     nfft = p.get('nfft')
+    s7_cap((nperseg or 0) <= S7_NPERSEG and (nfft or 0) <= S7_NFFT, 'nperseg / nfft')
     common = {'window': window, 'detrend': detrend}
     with np.errstate(all='ignore'):
         if method == 'periodogram':
@@ -259,6 +270,7 @@ def spatial_knn(p):
     points = s7_vector(np, p, 'points')
     queries = s7_vector(np, p, 'queries') if 'queries_file' in p else None
     norm = np.inf if p['p'] == 'inf' else float(p['p'])
+    s7_cap(points.shape[1] <= S7_KNN_DIM and p.get('k', 1) <= S7_KNN_K, 'knn dimensions / k')
     tree = cKDTree(points)
     q = points if queries is None else queries
     m = len(q)
@@ -307,6 +319,7 @@ def spatial_hull(p):
     points = s7_vector(np, p, 'points')
     n, d = points.shape
     kind = p['kind']
+    s7_cap(2 <= d <= 6 and n <= S7_HULL_CAP[kind][d], 'hull points for this dimension')
     options = p['qhull_options']  # selected by the C++ table, never by the caller
     result = {'status': 'OK', 'kind': kind, 'n_points': n, 'dim': d, 'qhull_options': options}
     if n < d + 1:
@@ -359,6 +372,7 @@ def spatial_dist(p):
     a = s7_vector(np, p, 'a')
     b = s7_vector(np, p, 'b') if 'b_file' in p else a
     metric = p['metric']
+    s7_cap(a.shape[0] * b.shape[0] <= S7_DIST_PAIRS, 'distance pairs')
     kwargs = {'VI': s7_vector(np, p, 'vi')} if metric == 'mahalanobis' else {}
 
     def body():

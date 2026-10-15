@@ -777,6 +777,40 @@ class Budgets(Base):
         self.assertNotIn('values', r)
 
 
+class WorkerCaps(Base):
+    """The worker repeats the caps the front end enforces: a request that bypassed C++ is refused, never computed."""
+    @classmethod
+    def setUpClass(cls):
+        import s3
+        cls.w = s3.load_worker()
+        import numpy
+        numpy  # noqa: B018 - the assembled worker imports numpy lazily; make sure it is importable here
+        import scipy.interpolate, scipy.signal, scipy.spatial, scipy.spatial.distance  # noqa: F401
+
+    def files(self, **arrays):
+        out = {}
+        for name, value in arrays.items():
+            path = self.dir / (name + '.npy')
+            np.save(path, np.asarray(value, float))
+            out[name + '_file'] = str(path)
+        return out
+
+    def refuse(self, function, **params):
+        with self.assertRaises(self.w.BadData) as raised:
+            function(dict(params, time_budget_s=30))
+        self.assertEqual(raised.exception.code, 'INPUT_TOO_LARGE')
+
+    def test_caps(self):
+        w = self.w
+        pts = np.zeros((5001, 2))
+        self.refuse(w.interp_eval, kind='rbf', nu=0, extrapolate='extend', kernel='gaussian', epsilon=1.0, smoothing=0.0, **self.files(x=pts, y=np.zeros(5001)))
+        self.refuse(w.sig_filter, family='butter', order=21, btype='lowpass', wn=0.3, **self.files())
+        self.refuse(w.sig_spectrum, method='welch', fs=1.0, detrend='constant', scaling='density', average='mean', nperseg=70000, noverlap=0, **self.files(x=np.zeros(100)))
+        self.refuse(w.spatial_knn, k=2000, exclude_self=False, p=2, **self.files(points=np.zeros((5, 33))))
+        self.refuse(w.spatial_hull, kind='delaunay', qhull_options='Qbb Qc Qz Q12 Qt', **self.files(points=np.random.default_rng(0).uniform(size=(801, 3))))
+        self.refuse(w.spatial_dist, metric='euclidean', **self.files(a=np.zeros((1001, 2)), b=np.zeros((1001, 2))))
+
+
 class Schema(unittest.TestCase):
     def test_registration_access_and_documentation(self):
         schema = json.loads(subprocess.run([BIN, '--schema'], capture_output=True, text=True).stdout)
