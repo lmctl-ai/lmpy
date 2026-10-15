@@ -35,3 +35,5 @@ absent optional lmda/statsrust legs were skipped with their setup hints.
 Production timing, memory, image size and command evidence are in `timings.md` and `acceptance-s8a-review.json`.
 Runtime/test production binary hashes match. A superseded image build was deliberately stopped after the final cap-error regression was fixed;
 the final build and acceptance commands all succeeded. No architecture claim beyond aarch64.
+
+Cleanup complete: scratch builds and Python caches removed; superseded build container removed; project builder cache and unused dangling images pruned. Current runtime/test tags retained; unrelated stopped containers preserved.

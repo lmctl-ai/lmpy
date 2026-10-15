@@ -972,5 +972,14 @@
     "One superseded build was intentionally stopped with exit 137 when the final column-cap error regression was fixed; this was not an OOM or a failed acceptance build.",
     "No new wheels, dependencies or licence payloads. amd64 execution remains unverified.",
     "Optional lmda/statsrust legs printed setup hints when absent; available R/rcli legs ran."
-  ]
+  ],
+  "cleanup": {
+    "scratch_build_removed": true,
+    "python_caches_removed": true,
+    "superseded_builder_container_removed": true,
+    "project_builder_images_remaining": 0,
+    "dangling_image_prune_exit_code": 0,
+    "runtime_test_tags_retained": true,
+    "unrelated_stopped_containers_preserved": true
+  }
 }
