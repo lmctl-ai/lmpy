@@ -41,7 +41,7 @@ class Lstsq(Base):
         self.assertEqual((r['status'], r['rank']), ('OK', 3))
         np.testing.assert_allclose(r['x'], [2, 3, -1], rtol=1e-12, atol=1e-12)
         self.assertLess(r['residual_norm'], 1e-12)
-        self.assertEqual(r['artifacts']['residues']['shape'], [1])
+        self.assertEqual(len(r['residues']), 1)
         self.assertEqual(r['driver'], 'gelsd')
 
     def test_random_integer_problems_against_exact_rationals(self):
