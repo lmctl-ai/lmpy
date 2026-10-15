@@ -792,7 +792,7 @@ def opt_root(p):
             else:
                 res = optimize.root(fun, ctx.x0, method=p['method'], tol=p['xtol'], options={'maxfev': max(1, p['max_evals'] - guard.count)} if p['method'] == 'hybr' else {'maxiter': max(1, p['max_evals'] - guard.count)})
                 xv = np.asarray(res.x, dtype=float)
-                result['nfev'] = int(getattr(res, 'nfev', guard.count))
+                result['nfev'] = int(res['nfev']) if 'nfev' in res else guard.count
                 if not res.success:
                     status, message = 'NO_CONVERGENCE', str(res.message)
         except SolverStop as exc:

@@ -146,7 +146,7 @@ class Review(Base):
 
     def worker(self):
         ns={'__name__':'review_worker'}
-        source='\n'.join((pathlib.Path(os.environ['REVIEW_BASELINE_S8']) if name=='s8.py' and os.environ.get('REVIEW_BASELINE_S8') else ROOT/'py'/name).read_text() for name in ('frames.py','numerics.py','s4.py','sm.py','ml.py','s7.py','s8.py','worker.py'))
+        source='\n'.join((pathlib.Path(os.environ['REVIEW_BASELINE_S8']) if name=='s8.py' and os.environ.get('REVIEW_BASELINE_S8') else ROOT/'py'/name).read_text() for name in ('frames.py','numerics.py','s4.py','sm.py','ml.py','s7.py','s8.py','s8b.py','worker.py'))
         exec(compile(source,'embedded-worker','exec'),ns)
         return ns
 
