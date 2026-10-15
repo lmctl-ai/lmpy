@@ -101,7 +101,7 @@ def hand_rolling(values, fn, window, min_periods, center=False, times=None, span
         v = [values[j] for j in idx if values[j] is not None]
         c = len(v)
         if fn == 'count':
-            out.append(c if c >= min_periods else None)
+            out.append(c if len(idx) >= min_periods else None)
             continue
         need = max(min_periods, 2 if fn in ('std', 'var') else 1)
         if c < need or c == 0:

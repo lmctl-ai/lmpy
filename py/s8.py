@@ -79,7 +79,7 @@ def s8_datetime(value, tz):
     dt = dt.astimezone(ZoneInfo(tz)) if tz else dt.replace(tzinfo=None)
     text = dt.isoformat()
     if nanos:
-        suffix = ('.%09d' % nanos).rstrip('0')
+        suffix = ('.%09d' % nanos) if nanos % 1000 else ('.%06d' % (nanos // 1000))
         text = text[:19] + suffix + text[19:]
     return text
 
@@ -552,7 +552,7 @@ def frame_rolling(p):
                 out_names.append(name)
                 if f == 'count':
                     out_raw.append(counts.astype('<i8'))
-                    out_mask.append(counts < minimum)
+                    out_mask.append(widths < minimum)
                     out_meta[name] = {'dtype': 'int64'}
                 else:
                     r = results[f]
@@ -781,7 +781,7 @@ def stats_rvs(p):
         else:
             x = rng.binomial(int(prm['n']), prm['p'], n).astype(float)
     x = np.asarray(x, dtype=float)
-    base = {'dist': dist, 'params': prm, 'n': n, 'seed': p['seed'], 'generator': 'PCG64'}
+    base = {'dist': dist, 'fn': 'rvs', 'params': prm, 'n': n, 'seed': p['seed'], 'generator': 'PCG64'}
     if not np.isfinite(x).all():
         return dict(base, status='NUMERICAL_FAILURE', message='the sampler produced non-finite values for these parameters')
     result = dict(base, status='OK')
