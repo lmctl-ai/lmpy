@@ -1,0 +1,53 @@
+// access: read
+// What it does: draws 1000 seeded variates from five families with pycli (stats_dist fn rvs, PCG64) and compares the empirical distribution
+//   with R's own quantile function through rcli (dist_quantile): the fraction of the sample below R's p-quantile must be within 4.5 binomial
+//   standard errors of p, at p = 0.1, 0.25, 0.5, 0.75, 0.9. The streams of PCG64 and R's Mersenne-Twister differ, so values are never
+//   compared, only distributions. Reproducibility (same seed, same stream) is checked first and needs no other tool.
+// Tolerance: |empirical - p| <= 4.5 * sqrt(p (1 - p) / 1000) (a ~7e-6 two-sided miss rate per check; the seeds are fixed so the result is deterministic).
+// Setup: the rcli leg is skipped with a hint when rcli is not on PATH; run from a directory below HOME for rcli.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+first = pycli.stats_dist({dist: "norm", "fn": "rvs", params: {}, n: 1000, seed: 11});
+if (first.status == "simulated") { println("Sampling comparison simulated."); exit(0); }
+second = pycli.stats_dist({dist: "norm", "fn": "rvs", params: {}, n: 1000, seed: 11});
+third = pycli.stats_dist({dist: "norm", "fn": "rvs", params: {}, n: 1000, seed: 12});
+if (first.status != "ok" || first.result.status != "OK" || first.result.seed != 11 || first.result.generator != "PCG64") { println(json_stringify(first)); exit(1); }
+same = true; differs = false;
+for (k = 0; k < 1000; k = k + 1) {
+  if (first.result.values[k] != second.result.values[k]) { same = false; }
+  if (first.result.values[k] != third.result.values[k]) { differs = true; }
+}
+if (!same || !differs) { println("seed reproducibility check failed"); exit(1); }
+println("leg 0: seed 11 reproduces the identical 1000 values; seed 12 gives a different stream");
+if (which("rcli") == null) { println("R leg skipped: rcli not on PATH (see examples/schemas/README.md)"); exit(0); }
+levels = [0.1, 0.25, 0.5, 0.75, 0.9];
+cases = [
+  {name: "norm(0,1)", dist: "norm", params: {}, r: {dist: "norm", p: levels}},
+  {name: "gamma(shape 3, scale 2)", dist: "gamma", params: {shape: 3, scale: 2}, r: {dist: "gamma", p: levels, shape: 3, rate: 0.5}},
+  {name: "beta(2, 5)", dist: "beta", params: {a: 2, b: 5}, r: {dist: "beta", p: levels, a: 2, b: 5}},
+  {name: "chi2(4)", dist: "chi2", params: {df: 4}, r: {dist: "chisq", p: levels, df: 4}},
+  {name: "t(8)", dist: "t", params: {df: 8}, r: {dist: "t", p: levels, df: 8}}
+];
+worst = 0;
+seed = 100;
+for (c in cases) {
+  seed = seed + 1;
+  draw = pycli.stats_dist({dist: c.dist, "fn": "rvs", params: c.params, n: 1000, seed: seed});
+  q = rcli.dist_quantile(c.r);
+  if (draw.status != "ok" || draw.result.status != "OK") { println(json_stringify(draw)); exit(1); }
+  if (q.status != "ok") { println("rcli dist_quantile failed:", json_stringify(q)); exit(1); }
+  line = c.name + ":";
+  for (i = 0; i < 5; i = i + 1) {
+    below = 0;
+    for (v in draw.result.values) { if (v <= q.result.value[i]) { below = below + 1; } }
+    emp = below / 1000;
+    z = abs(emp - levels[i]) / sqrt(levels[i] * (1 - levels[i]) / 1000);
+    line = line + sprintf(" p=%.2f emp=%.3f (z %.2f)", levels[i], emp, z);
+    if (z > worst) { worst = z; }
+    if (z > 4.5) { println(line); println("sample is inconsistent with R's quantile function"); exit(1); }
+  }
+  println(line);
+}
+println(sprintf("leg 1: 5 families x 5 quantile levels agree with R; largest deviation %.2f standard errors", worst));
+println("Sampling agrees with R's distributions.");
