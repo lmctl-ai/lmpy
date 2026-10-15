@@ -1,0 +1,54 @@
+{
+  "cases": [
+    {
+      "op": "frame_import",
+      "exit_code": 0,
+      "seconds": 1.4759,
+      "status": "OK",
+      "peak_children_rss_kib": 96192
+    },
+    {
+      "op": "frame_import",
+      "exit_code": 0,
+      "seconds": 0.7183,
+      "status": "OK",
+      "peak_children_rss_kib": 96192
+    },
+    {
+      "op": "frame_merge",
+      "exit_code": 1,
+      "seconds": 0.7773,
+      "status": "OUTPUT_TOO_LARGE",
+      "peak_children_rss_kib": 96192
+    },
+    {
+      "op": "frame_merge",
+      "exit_code": 1,
+      "seconds": 0.8705,
+      "status": "OUTPUT_TOO_LARGE",
+      "peak_children_rss_kib": 96192
+    },
+    {
+      "op": "frame_merge",
+      "exit_code": 1,
+      "seconds": 0.8449,
+      "status": "OUTPUT_TOO_LARGE",
+      "peak_children_rss_kib": 96192
+    },
+    {
+      "op": "frame_import",
+      "exit_code": 0,
+      "seconds": 1.7053,
+      "status": "OK",
+      "peak_children_rss_kib": 112812
+    },
+    {
+      "op": "frame_rolling",
+      "exit_code": 0,
+      "seconds": 3.2497,
+      "status": "OK",
+      "peak_children_rss_kib": 202832
+    }
+  ],
+  "container_memory_peak_bytes": 213504000
+}

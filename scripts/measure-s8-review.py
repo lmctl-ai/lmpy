@@ -16,4 +16,5 @@ for how in ('left','right','outer'):
 pathlib.Path('roll.csv').write_text('x\n'+'1e200\n'*200000)
 call('frame_import',dict(csv='roll.csv',out='roll.npz'))
 call('frame_rolling',dict(frame='roll.npz',columns=['x'],window=500,functions=['mean'],out='rolled.npz',time_limit=30))
-print(json.dumps(results,indent=2))
+peak=pathlib.Path('/sys/fs/cgroup/memory.peak')
+print(json.dumps({'cases':results,'container_memory_peak_bytes':int(peak.read_text()) if peak.exists() else None},indent=2))

@@ -690,3 +690,7 @@ so numeric NaNs survive filtering with `not isnull`. Use `nan_policy=missing` de
 `frame_to_array` with `missing=error` refuses both masked cells and all numeric NaN/Inf, guaranteeing finite output; `missing=nan` explicitly permits nonfinite values
 and collapses masked NA to NaN (`missing_mask_lost`, `source_na_count`, `source_nan_count`). A reverse conversion cannot recover the original mask distinction;
 choose `nan_policy=value` to retain numeric NaNs or `missing` to mask all NaNs. `frame_mutate(nonfinite=mask|keep)` is similarly explicit and counts conversions.
+
+S8a review measurements: ordinary bridge/join/rolling/metrics/sampling calls had **0.69–0.78 s median** through the hardened shim;
+mutate **1.00 s**. The 13 GB projected string join is refused before allocation; the 1e8-element rolling cap completed in 3.25 s.
+[Current timings and resource measurements](docs/timings.md#s8a-review-fixes-aarch64-2026-10-15) include methodology and raw data.

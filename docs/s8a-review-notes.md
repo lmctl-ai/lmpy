@@ -25,3 +25,13 @@ Review baseline: 354b5be; Opus, Fable, Astra, Argon and Kimi. No ranked finding 
 Test-first evidence: initial 19-test reproducer run had 15 failures plus one error (exit 1); separate preallocation/budget sentinel baseline run failed both cases; schema baseline failed; missing-count fixture failed; real expired-budget baseline wrongly wrote an artifact and failed. Already-correct behaviours in Kimi's mutation audit are pinned by independent oracle tests rather than introducing defects into production.
 
 Compatibility changes are intentional: zero-row joins now succeed with artifacts, bridge missing=error is stricter, count leading windows can be missing, and uniqueness includes missing-key tuples. No wheels, image base or licences changed. amd64 execution remains unverified.
+
+
+Final verification: test/runtime builds exit 0; 32/32 ctest groups exit 0 (505.16 s), including 25 S8 review and 46 existing S8 tests;
+three additional ASan/UBSan preflight tests exit 0. All 24 recipes passed real/check/dry-run (72/72 exit 0).
+The five Kimi scratch mutants were each killed by the selected new test; expected failures and diagnostics are in
+`measurement-s8a-review-mutations.json`. The available R leg again agreed at 25 quantiles (worst 2.85 standard errors);
+absent optional lmda/statsrust legs were skipped with their setup hints.
+Production timing, memory, image size and command evidence are in `timings.md` and `acceptance-s8a-review.json`.
+Runtime/test production binary hashes match. A superseded image build was deliberately stopped after the final cap-error regression was fixed;
+the final build and acceptance commands all succeeded. No architecture claim beyond aarch64.

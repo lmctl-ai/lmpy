@@ -1,0 +1,173 @@
+{
+  "image_bytes": 136587173,
+  "py_info": {
+    "wall": {
+      "p50_ms": 681.374,
+      "p95_ms": 715.461,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 105.811,
+      "p95_ms": 112.911,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 110.382,
+      "p95_ms": 117.425,
+      "n": 10
+    }
+  },
+  "frame_to_array_100x2": {
+    "wall": {
+      "p50_ms": 685.851,
+      "p95_ms": 751.39,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 113.658,
+      "p95_ms": 116.385,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 116.169,
+      "p95_ms": 118.812,
+      "n": 10
+    }
+  },
+  "frame_to_array_to_200x3": {
+    "wall": {
+      "p50_ms": 712.463,
+      "p95_ms": 726.182,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 112.519,
+      "p95_ms": 118.397,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 115.077,
+      "p95_ms": 120.985,
+      "n": 10
+    }
+  },
+  "array_to_frame_100x2": {
+    "wall": {
+      "p50_ms": 711.633,
+      "p95_ms": 783.412,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 113.113,
+      "p95_ms": 140.74,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 115.734,
+      "p95_ms": 144.644,
+      "n": 10
+    }
+  },
+  "array_to_frame_append_200x1": {
+    "wall": {
+      "p50_ms": 719.66,
+      "p95_ms": 761.758,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 113.629,
+      "p95_ms": 145.277,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 117.771,
+      "p95_ms": 149.337,
+      "n": 10
+    }
+  },
+  "frame_mutate_2_expressions": {
+    "wall": {
+      "p50_ms": 1003.417,
+      "p95_ms": 1086.501,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 341.026,
+      "p95_ms": 444.697,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 345.167,
+      "p95_ms": 449.737,
+      "n": 10
+    }
+  },
+  "frame_merge_outer_40x40": {
+    "wall": {
+      "p50_ms": 721.549,
+      "p95_ms": 737.67,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 114.789,
+      "p95_ms": 120.264,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 119.605,
+      "p95_ms": 124.944,
+      "n": 10
+    }
+  },
+  "frame_rolling_window10_5_functions": {
+    "wall": {
+      "p50_ms": 721.547,
+      "p95_ms": 913.864,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 113.104,
+      "p95_ms": 117.53,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 126.929,
+      "p95_ms": 130.437,
+      "n": 10
+    }
+  },
+  "ml_metrics_binary_200": {
+    "wall": {
+      "p50_ms": 734.696,
+      "p95_ms": 812.557,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 113.768,
+      "p95_ms": 118.961,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 116.08,
+      "p95_ms": 121.232,
+      "n": 10
+    }
+  },
+  "stats_dist_rvs_1000": {
+    "wall": {
+      "p50_ms": 778.304,
+      "p95_ms": 796.743,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 115.203,
+      "p95_ms": 136.047,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 129.439,
+      "p95_ms": 152.241,
+      "n": 10
+    }
+  }
+}

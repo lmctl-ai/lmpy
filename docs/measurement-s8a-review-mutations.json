@@ -1,0 +1,37 @@
+[
+  {
+    "mutation": "rng",
+    "test": "Review.test_pinned_rng_and_nondefault_t",
+    "exit_code": 1,
+    "mutant_rejected": true,
+    "diagnostic": "F\n======================================================================\nFAIL: test_pinned_rng_and_nondefault_t (__main__.Review.test_pinned_rng_and_nondefault_t)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8_review.py\", line 133, in test_pinned_rng_and_nondefault_t\n    np.testing.assert_array_equal(call('stats_dist',p)['values'],expected)\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 1061, in assert_array_equal\n    assert_array_compare(operator.__eq__, actual, desired, err_msg=err_msg,\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 926, in assert_array_compare\n    raise AssertionError(msg)\nAssertionError: \nArrays are not equal\n\nMismatched elements: 5 / 5 (100%)\nMax absolute difference among violations: 1.44839947\nMax relative difference among violations: 308.20463057\n ACTUAL: array([ 0.380369,  0.069648, -1.118645,  0.557808,  0.992473])\n DESIRED: array([ 0.00123 ,  0.298746, -0.274138, -0.890592, -0.454671])\n\n----------------------------------------------------------------------\nRan 1 test in 0.346s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "mutation": "t_affine",
+    "test": "Review.test_pinned_rng_and_nondefault_t",
+    "exit_code": 1,
+    "mutant_rejected": true,
+    "diagnostic": "F\n======================================================================\nFAIL: test_pinned_rng_and_nondefault_t (__main__.Review.test_pinned_rng_and_nondefault_t)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8_review.py\", line 133, in test_pinned_rng_and_nondefault_t\n    np.testing.assert_array_equal(call('stats_dist',p)['values'],expected)\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 1061, in assert_array_equal\n    assert_array_compare(operator.__eq__, actual, desired, err_msg=err_msg,\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 926, in assert_array_compare\n    raise AssertionError(msg)\nAssertionError: \nArrays are not equal\n\nMismatched elements: 5 / 5 (100%)\nMax absolute difference among violations: 5.2870365\nMax relative difference among violations: 1.57147093\n ACTUAL: array([ 0.001191, -1.05266 ,  0.045865, -0.573207,  0.143518])\n DESIRED: array([5.003572, 1.842019, 5.137594, 3.280379, 5.430555])\n\n----------------------------------------------------------------------\nRan 1 test in 2.609s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "mutation": "time_units",
+    "test": "Review.test_time_units_and_balanced_accuracy",
+    "exit_code": 1,
+    "mutant_rejected": true,
+    "diagnostic": "F\n======================================================================\nFAIL: test_time_units_and_balanced_accuracy (__main__.Review.test_time_units_and_balanced_accuracy)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8_review.py\", line 142, in test_time_units_and_balanced_accuracy\n    z=call('frame_rolling',dict(frame=t,columns=['x'],time_window='1'+unit,on='t',functions=['sum'],out=self.p(unit+'-out.npz')))\n      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/src/pycli/tests/s8_ops.py\", line 18, in call\n    assert p.returncode == rc, (op, rc, p.returncode, p.stdout[:1500], p.stderr[:600])\n           ^^^^^^^^^^^^^^^^^^\nAssertionError: ('frame_rolling', 0, 2, '{\\n  \"success\": false,\\n  \"error\": {\\n    \"code\": \"VALIDATION_ERROR\",\\n    \"message\": \"mutant: seconds only\",\\n    \"data\": {\\n      \"tool_code\": \"BAD_DATA\",\\n      \"exception\": \"BadData\",\\n      \"warnings\": []\\n    }\\n  }\\n}\\n', '')\n\n----------------------------------------------------------------------\nRan 1 test in 1.004s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "mutation": "category_same_levels",
+    "test": "Review.test_category_union_preserves_dtype",
+    "exit_code": 1,
+    "mutant_rejected": true,
+    "diagnostic": "E\n======================================================================\nERROR: test_category_union_preserves_dtype (__main__.Review.test_category_union_preserves_dtype)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8_review.py\", line 82, in test_category_union_preserves_dtype\n    self.assertEqual(z['column_meta']['k']['categories'],['a','b','left_only'])\n                     ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'categories'\n\n----------------------------------------------------------------------\nRan 1 test in 1.961s\n\nFAILED (errors=1)\n"
+  },
+  {
+    "mutation": "balanced_accuracy",
+    "test": "Review.test_time_units_and_balanced_accuracy",
+    "exit_code": 1,
+    "mutant_rejected": true,
+    "diagnostic": "E\n======================================================================\nERROR: test_time_units_and_balanced_accuracy (__main__.Review.test_time_units_and_balanced_accuracy)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8_review.py\", line 145, in test_time_units_and_balanced_accuracy\n    self.assertEqual(z['metrics']['balanced_accuracy'],.5)\n                     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'balanced_accuracy'\n\n----------------------------------------------------------------------\nRan 1 test in 3.217s\n\nFAILED (errors=1)\n"
+  }
+]

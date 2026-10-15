@@ -557,7 +557,7 @@ No amd64 execution is claimed.
 
 ## S8a: bridge, mutate, merge, rolling, metrics, sampling (aarch64, 2026-10-15)
 
-Runtime image **634 MB** on disk (unchanged), `inspect .Size` **136,575,889** bytes (**+62,175** over the S7 review figure 136,513,714: worker and front-end source only; no
+Initial S8a image **634 MB** on disk (unchanged), `inspect .Size` **136,575,889** bytes (**+62,175** over the S7 review figure 136,513,714: worker and front-end source only; no
 wheel or package was added, so there is no notices change).
 
 **Import cost.** None of the new operations imports pandas, scipy.stats, scikit-learn or statsmodels (tests assert `meta.pandas == "unloaded"`). Worker import phase, p50 of 10 fresh
@@ -593,3 +593,49 @@ The table-size cap is what binds most calls: a 200000-row table can carry 2 colu
 
 Acceptance: `./scripts/build.sh test` 0; `docker run --rm --pull=never --network=none pycli:test` 31/31 groups exit 0 (1924 s with four groups in parallel and a concurrent runtime build);
 runtime rebuild 0; all 24 recipes passed real, `--check` and `--dry-run` through the host shim, 72/72 exit 0 (lmda, rcli and statsrust on PATH).
+
+
+## S8a review fixes (aarch64, 2026-10-15)
+
+Runtime `262a7a8c27d5`: **136,587,173 bytes** (`docker image inspect .Size`), **+9,635 bytes** over the actual reviewed runtime
+136,577,538 bytes. Docker still displays about **634 MB** on disk; these are different Docker accounting metrics.
+The earlier S8a section records the initial image (1,649 bytes below the reviewed image). No new wheels or packages were added.
+Runtime and test-image production binaries have identical SHA256 `2de98642052de6aa71d76e57c11fe03416eb0695f591e0d14ed25434aa6fdd94`.
+
+Fresh production-shim calls, ten sequential samples per case, warm filesystem, shared host idle of our builds/tests/recipes.
+No concurrent measurement phases. p95 is the largest sample for n=10. All processes remained offline; imports include interpreter boot.
+The S8 worker now also warms pinned stdlib ZoneInfo/tzdata resources before installing the import guard.
+These are current observations, not an attribution of historical differences to that warmup.
+Raw data: [measurement-s8a-review-shim.json](measurement-s8a-review-shim.json).
+
+| Operation | Import p50 ms | Shim wall p50 ms | Shim wall p95 ms |
+|---|---:|---:|---:|
+| py_info | 105.811 | 681.374 | 715.461 |
+| frame_to_array (100 x 2) | 113.658 | 685.851 | 751.390 |
+| frame_to_array_to (200 x 3) | 112.519 | 712.463 | 726.182 |
+| array_to_frame (100 x 2) | 113.113 | 711.633 | 783.412 |
+| array_to_frame append (200 x 1) | 113.629 | 719.660 | 761.758 |
+| frame_mutate (2 expressions) | 341.026 | 1003.417 | 1086.501 |
+| frame_merge outer (40 x 40) | 114.789 | 721.549 | 737.670 |
+| frame_rolling (window 10, 5 functions) | 113.104 | 721.547 | 913.864 |
+| ml_metrics (200 binary rows) | 113.768 | 734.696 | 812.557 |
+| stats_dist rvs (1000 gamma draws) | 115.203 | 778.304 | 796.743 |
+
+Hardened production-image probes (2 CPUs, 4 GiB, pids 128, read-only root, no capabilities, no-new-privileges,
+default seccomp, no network, caller UID/GID, /tmp tmpfs 512 MiB; only a private cwd writable):
+
+* The review's 200000-row repeated-key join with a 65000-byte string projects about **13.0 GB** of fixed-width output.
+  Left/right/outer each refused with OUTPUT_TOO_LARGE (expected exit 1) **before gathers**, in **0.777 / 0.871 / 0.845 s**.
+  The preallocation sentinel regression separately verifies no gather is reached.
+* Rolling **200000 rows x window 500 = 1e8 window-elements**, mean of finite `1e200`, succeeded (exit 0) in **3.250 s**.
+* Whole-probe cgroup `memory.peak`: **213,504,000 bytes (203.6 MiB)**. Cumulative waited-child peak RSS reached
+  **202,832 KiB (198.1 MiB)**. These are distinct metrics, and neither is an isolated per-operation allocation count.
+* Times above include CLI/Python startup inside the already-started container, excluding outer Docker startup.
+  Raw data and all exit codes: [measurement-s8a-review-resources.json](measurement-s8a-review-resources.json),
+  reproducer: `scripts/measure-s8-review.py` in a fresh scratch cwd.
+
+Acceptance: test build 0; runtime rebuild 0; **32/32 ctest groups**, exit **0**, **505.16 s**; new S8 review group **25 tests**,
+existing S8 group **46 tests**; additional **3 ASan/UBSan preflight tests**, exit 0. All **24 recipes x real/check/dry-run = 72 invocations** exited 0.
+The R sampler comparison again checked 25 quantiles, worst **2.85 standard errors**; optional absent lmda/statsrust legs printed setup hints.
+All **five requested scratch mutations were rejected** by the regression tests (expected test exit 1), not installed in production.
+Full command/result evidence: [acceptance-s8a-review.json](acceptance-s8a-review.json). amd64 execution remains unverified.
