@@ -49,10 +49,10 @@ class S4(unittest.TestCase):
   def h(y):return y[0]-3*math.log(y[0])+y[1]-1.5*math.log(y[1])
   self.assertLess(max(abs(h(y)-h([2,1])) for y in r['y']),1e-6)
  def test_robertson_primary_reference(self):
-  # ODEPACK DLSODA example, opkdmain.f: t=40, y=(.71583, .91855e-5, .28416), five printed significant digits.
+  # ODEPACK DLSODA example, opkdmain.f line3931, run at RTOL=1e-4. Its displayed digits are not certified accuracy.
   for method in ('BDF','Radau'):
    r=self.ode(rhs=['-0.04*y[0]+10000*y[1]*y[2]','0.04*y[0]-10000*y[1]*y[2]-30000000*y[1]^2','30000000*y[1]^2'],y0=[1,0,0],t_span=[0,40],method=method,rtol=1e-10,atol=1e-13)
-   self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['final_state'][0],.71583,delta=5e-6);self.assertAlmostEqual(r['final_state'][1],.91855e-5,delta=5e-11);self.assertAlmostEqual(r['final_state'][2],.28416,delta=5e-6);self.assertAlmostEqual(sum(r['final_state']),1,delta=1e-11)
+   self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['final_state'][0],.7158403,delta=3e-5);self.assertAlmostEqual(r['final_state'][1],.9186334e-5,delta=2e-9);self.assertAlmostEqual(r['final_state'][2],.2841505,delta=3e-5);self.assertAlmostEqual(sum(r['final_state']),1,delta=1e-11)
  def test_ball_event_and_event_limit(self):
   r=self.ode(rhs=['y[1]','-g'],params={'g':9.81},y0=[10,0],t_span=[0,5],events=[{'expr':'y[0]','direction':-1,'terminal':True}],rtol=1e-10,atol=1e-12)
   self.assertEqual(r['status'],'OK');self.assertEqual(r['termination'],'event');self.assertAlmostEqual(r['final_time'],math.sqrt(20/9.81),places=9);self.assertAlmostEqual(r['final_state'][0],0,delta=1e-9);self.assertEqual(r['event_counts'],[1])
