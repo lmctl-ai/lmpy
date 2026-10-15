@@ -543,3 +543,49 @@ S6 review-fix measurements (aarch64, ten sequential fresh calls through the shim
 Runtime **634 MB**, approximately **+61 MB** from S5. Original S6 hardened cap probes peak at **191 MiB** cgroup memory; the 64-tree/depth-12 forest
 probe takes 14.79 s with an explicit 30 s budget. Other recorded probes take 2.0–3.2 s. Default ML compute budget is 10 s; near-cap fits can
 need 30 s or report TIME_LIMIT. Full commands, raw data, p95 values and qualifications: [docs/timings.md](docs/timings.md).
+
+## S7: interpolation, signal processing, spatial
+
+Seven read operations and seven `_to` write twins. Arrays are inline JSON (<=1000 numbers), `.npy`, or `file.safetensors#key`; every array is loaded, shape-checked
+and finite-checked by the C++ front end (NaN/Inf/NA are `BAD_DATA`, never skipped). Read forms return at most ~900 numbers inline (`OUTPUT_TOO_LARGE`
+otherwise, naming the `_to` form); `_to` forms store the arrays in an exclusive `.safetensors` (descriptors under `tensors`; nothing is written unless the
+status is `OK`; a non-OK status of a write form is the error's `tool_code`). Each call imports only its scipy subpackage (`meta.scipy_subpackages`).
+
+| Operation | Access | Contract |
+|---|---|---|
+| `interp_eval` | read | `kind` linear / cubic (`bc_type` not-a-knot, natural, clamped, periodic) / pchip / akima / makima / smoothing (`lam`, default GCV) / rbf (`kernel`, `epsilon`, `smoothing`, `degree`; n-D, <=5000 nodes, <=8 dims); evaluate at `x_new`, derivative order `nu` (<=3; linear 1; rbf 0), definite integral `integrate: [a, b]`; `extrapolate` error (default, `BAD_RANGE`) / nan / extend |
+| `interp_eval_to` | write | Same, `values` in the artifact |
+| `sig_filter` | read | IIR design `family` butter / cheby1 / cheby2 / ellip / bessel, `order` 1..20, `btype`, `wn` (Hz with `fs`, else fraction of Nyquist), `rp`, `rs` -> second-order sections only (never `b`/`a`), `max_pole_radius`, `stable`, `marginal`; optional `freqs` -> `magnitude`, `phase`; optional `x` filtered with `sosfilt` (causal) or `sosfiltfilt` (zero phase) |
+| `sig_filter_to` | write | Same, filtered `y` in the artifact (`x` required) |
+| `sig_spectrum` | read | `welch` / `periodogram` / `csd` / `coherence` of `x` (and `y`): `fs`, `window` (13 names), `nperseg` <=65536, `noverlap`, `nfft` <=131072, `detrend`, `scaling` density/spectrum, `average`; `f` and `pxx` (`pxy_re`/`pxy_im`, `cxy`), `df`, `n_segments`, `peak_freq`, `total_power` |
+| `sig_spectrum_to` | write | Same, arrays in the artifact |
+| `sig_peaks` | read | `find_peaks` with `height`, `threshold`, `distance`, `prominence`, `width`, `wlen`, `rel_height`; `indices`, `heights`, `prominences`, `widths` (<=~225 peaks inline) |
+| `sig_peaks_to` | write | Same; status `NO_PEAKS` (no artifact) when nothing qualifies |
+| `spatial_knn` | read | cKDTree exact search: `k` (<=1000) or `radius`, Minkowski `p` in [1, 64] or `"inf"`, `queries` (default: the points themselves, `exclude_self`), `max_pairs`; k-mode `indices`/`distances` (m x k); radius mode CSR `counts`, `indices`, `distances` sorted by distance |
+| `spatial_knn_to` | write | Same, tensors in the artifact |
+| `spatial_hull` | read | QHull `convex_hull` / `delaunay` / `voronoi` in 2..6 dimensions with a fixed option table per kind (never caller-supplied); degenerate input is the status `DEGENERATE` |
+| `spatial_hull_to` | write | Same, simplices / vertices / ridges in the artifact |
+| `spatial_dist` | read | `cdist` between `a` and `b` (default `a` itself): euclidean, sqeuclidean, cityblock, chebyshev, cosine, correlation, mahalanobis (`vi`), jaccard, hamming; n*m <= 1,000,000 |
+| `spatial_dist_to` | write | Same, `distances` matrix in the artifact |
+
+Statuses: `OK`; `SINGULAR` / `ILL_CONDITIONED` (rbf system singular, or the fit misses its own nodes by >1e-6 of the data scale); `UNSTABLE` (a filter pole on or outside
+the unit circle: not applied); `DEGENERATE` (QHull cannot build the structure: collinear/coplanar/duplicate points, fewer than dim+1 points); `UNDEFINED` (a
+distance is NaN/Inf: zero or constant vectors for cosine/correlation, an indefinite `vi`, overflow; counted in `n_undefined`); `NO_PEAKS`; `NUMERICAL_FAILURE`
+(non-finite output); `TIME_LIMIT` (cooperative budget, call timeout minus 10 s). Pre-spawn errors (exit 2): `NOT_INCREASING`, `DUPLICATE_X`, `BAD_RANGE`,
+`BAD_DATA`, `BAD_PARAM`, `NOT_SYMMETRIC`, `INPUT_TOO_LARGE`.
+
+Conventions worth knowing:
+* **Interpolation.** Nodes must be strictly increasing (checked before any work). At a knot a piecewise interpolant's derivative takes the right-hand value.
+  `cubic` rings on step-like data; `pchip` preserves monotonicity; `akima`/`makima` do not overshoot. The smoothing spline's penalty is capped at
+  `lam / h^3 <= 1e11` (h = mean node spacing) because scipy's solver silently returns a wrong curve for larger values (docs/oracle-findings.md). RBF `thin_plate_spline`,
+  `cubic` and `quintic` reproduce low-degree polynomials exactly. R's `fmm` spline and `monoH.FC` are different interpolants from not-a-knot and PCHIP.
+* **Filters.** `wn` is the -3 dB point for butter, the ripple edge for cheby1 and ellip, the stopband edge for cheby2. `sosfiltfilt` needs more than 3*(2*sections+1)
+  samples and squares the magnitude response; `sosfilt` starts from zero state and lags in phase. `marginal: true` flags poles within 1e-6 of the unit circle.
+* **Spectra.** Real, one-sided estimates. `density` is power per Hz (`total_power` = sum x df, the Parseval integral); `spectrum` is power per bin, and an on-bin
+  sine of amplitude A peaks at A^2/2. lmda `series_spectrum` is the boxcar, fs = 1, no-detrend periodogram in density units (agreement 1e-9, docs/oracle-findings.md).
+* **Peaks.** First and last samples are never peaks; a flat top reports its middle sample; `distance` removes the lower of two close peaks.
+* **Neighbours.** Ties between equal distances return indices in an implementation-defined order: compare distances.
+* **Hulls.** In 2-D `volume` is the area and `area` the perimeter. Delaunay `volume` is the sum of simplex volumes (equals the hull volume). Voronoi
+  `regions` and `ridge_vertices` are flat arrays with `*_offsets` (-1 is the point at infinity). Point caps shrink with dimension (convex_hull 20000/20000/800/400/100
+  for d=2..6; delaunay and voronoi 20000/800/300/100/50), sized from the measured cyclic-polytope worst cases (docs/timings.md); results above 1.9 M numbers are
+  `OUTPUT_TOO_LARGE`.

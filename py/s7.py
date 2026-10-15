@@ -159,6 +159,8 @@ def sig_filter(p):
             radius = max(radius, float(np.max(np.abs(roots))))
     result['max_pole_radius'] = radius
     result['stable'] = radius < 1.0
+    # Stable but resonant: poles within 1e-6 of the unit circle ring for more than a million samples; flagged, not refused.
+    result['marginal'] = bool(radius >= 1.0 - 1e-6)
     if not result['stable']:
         result['status'] = 'UNSTABLE'
         result['message'] = 'a pole lies on or outside the unit circle: the filter is not applied (lower the order or widen the band)'

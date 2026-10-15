@@ -329,6 +329,13 @@ class Signal(Base):
         self.assertTrue(normal['stable'])
         self.assertLess(normal['max_pole_radius'], 1.0)
 
+    def test_marginal_designs_are_flagged_not_hidden(self):
+        extreme = call('sig_filter', dict(family='butter', order=20, btype='lowpass', wn=1e-6))
+        self.assertEqual((extreme['status'], extreme['stable'], extreme['marginal']), ('OK', True, True))
+        self.assertGreater(extreme['max_pole_radius'], 1 - 1e-6)
+        normal = call('sig_filter', dict(family='butter', order=4, btype='lowpass', wn=0.3))
+        self.assertFalse(normal['marginal'])
+
     def test_filter_validation_before_spawn(self):
         base = dict(family='butter', order=4, btype='lowpass', wn=0.3)
         rejected('sig_filter', dict(base, order=21), 'BAD_PARAM')
@@ -351,6 +358,7 @@ class Signal(Base):
         rejected('sig_filter', dict(base, freqs=[0.1, 1.5]), 'BAD_PARAM')
         too_large('sig_filter', dict(base, x=[0.5] * 1000, mode='sosfilt'))
         rejected('sig_filter', dict(base, family='bogus'), None)
+        rejected('sig_filter_to', dict(base, out=self.out()), 'BAD_PARAM')  # the write form needs a signal
 
     def test_filter_write_twin_matches_the_inline_result(self):
         x = list(self.tone(40.0, 600) + 0.1 * self.tone(300.0, 600))
@@ -529,6 +537,32 @@ class Spatial(Base):
         close(self, got['distances'], near, 1e-12)
         self.assertFalse((got['indices'] == np.arange(120)[:, None]).any())
         self.assertEqual(got['indices'].dtype, np.dtype('<i8'))
+
+    def test_radius_write_twin_layout(self):
+        rng = np.random.default_rng(13)
+        pts, qs = rng.uniform(size=(80, 2)), rng.uniform(size=(5, 2))
+        out = self.out()
+        r = call('spatial_knn_to', dict(points=pts.tolist(), queries=qs.tolist(), radius=0.3, out=out))
+        got = read_safetensors(out)
+        full, _ = brute_knn(pts, qs, 1, 2)
+        np.testing.assert_array_equal(got['counts'], (full <= 0.3).sum(axis=1))
+        self.assertEqual(len(got['indices']), int(got['counts'].sum()))
+        self.assertEqual(r['n_pairs'], int(got['counts'].sum()))
+        offset = 0
+        for qi, c in enumerate(got['counts']):
+            d = got['distances'][offset:offset + c]
+            self.assertTrue((np.diff(d) >= 0).all())  # sorted by distance within a query
+            close(self, d, full[qi][got['indices'][offset:offset + c]], 1e-12)
+            offset += c
+
+    def test_small_voronoi_inline(self):
+        pts = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0], [0.5, 0.4]]
+        r = call('spatial_hull', dict(points=pts, kind='voronoi'))
+        self.assertEqual(r['status'], 'OK')
+        self.assertEqual(len(r['point_region']), 5)
+        self.assertEqual(r['region_offsets'][-1], len(r['regions']))
+        self.assertEqual(r['ridge_offsets'][-1], len(r['ridge_vertices']))
+        self.assertGreaterEqual(r['n_unbounded_regions'], 4)  # the four corners of the square have open regions
 
     def test_knn_validation_and_caps_before_spawn(self):
         pts = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]

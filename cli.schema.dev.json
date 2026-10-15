@@ -408,6 +408,1032 @@
       ]
     },
     {
+      "name": "interp_eval",
+      "access": "read",
+      "returns": "object",
+      "description": "Evaluate, differentiate or integrate an interpolant (scipy.interpolate): linear, cubic spline, PCHIP (monotone), Akima, modified Akima, smoothing spline or n-D radial basis functions. Nodes must be finite and strictly increasing (NOT_INCREASING / DUPLICATE_X before any work); outside the node range the extrapolate policy decides (BAD_RANGE by default). Statuses OK, SINGULAR / ILL_CONDITIONED (rbf), NUMERICAL_FAILURE, TIME_LIMIT. Result: values, n_extrapolated, integral, interpolation_error (rbf). Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "linear",
+            "cubic",
+            "pchip",
+            "akima",
+            "makima",
+            "smoothing",
+            "rbf"
+          ],
+          "description": "Interpolant. linear/cubic/pchip/akima/makima need >= 2 nodes, smoothing >= 5, rbf at most 5000 nodes in at most 8 dimensions. pchip/akima/makima do not overshoot step-like data; cubic does."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "1",
+          "description": "Nodes: a strictly increasing vector (kinds other than rbf) or, for rbf, a matrix with one row per node. Finite; inline <=1000 numbers or .npy / .safetensors#key."
+        },
+        {
+          "name": "y",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite values at the nodes: a vector with one value per node."
+        },
+        {
+          "name": "x_new",
+          "type": "json",
+          "occurs": "?",
+          "description": "Evaluation points: a vector (a matrix with the node dimension for rbf). Give x_new, integrate or both. Read form: at most ~900 points."
+        },
+        {
+          "name": "bc_type",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "not-a-knot",
+            "natural",
+            "clamped",
+            "periodic"
+          ],
+          "description": "cubic only. Boundary condition (default not-a-knot): natural sets the second derivative to 0 at the ends, clamped the first derivative to 0, periodic needs y[0] == y[-1]."
+        },
+        {
+          "name": "lam",
+          "type": "number",
+          "occurs": "?",
+          "description": "smoothing only. Penalty weight >= 0; 0 interpolates (natural cubic spline), a large value tends to the least-squares line. Omitted: chosen by generalised cross-validation."
+        },
+        {
+          "name": "kernel",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "linear",
+            "thin_plate_spline",
+            "cubic",
+            "quintic",
+            "multiquadric",
+            "inverse_multiquadric",
+            "inverse_quadratic",
+            "gaussian"
+          ],
+          "description": "rbf only. Radial basis function (default thin_plate_spline). thin_plate_spline, cubic and quintic reproduce low-degree polynomials exactly."
+        },
+        {
+          "name": "epsilon",
+          "type": "number",
+          "occurs": "?",
+          "description": "rbf only. Shape parameter > 0 (default 1) used by multiquadric, inverse_multiquadric, inverse_quadratic and gaussian."
+        },
+        {
+          "name": "smoothing",
+          "type": "number",
+          "occurs": "?",
+          "description": "rbf only. Ridge term >= 0 (default 0 = interpolate the nodes)."
+        },
+        {
+          "name": "degree",
+          "type": "number",
+          "occurs": "?",
+          "description": "rbf only. Degree of the polynomial term, -1..3 (default: the kernel's minimum)."
+        },
+        {
+          "name": "nu",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Derivative order: 0..3 (linear: 0..1; rbf: 0). At knots a piecewise function takes its right-hand value."
+        },
+        {
+          "name": "integrate",
+          "type": "json",
+          "occurs": "?",
+          "description": "[a, b] with a < b: the definite integral of the interpolant (not for rbf). Bounds must lie in the node range unless extrapolate is extend."
+        },
+        {
+          "name": "extrapolate",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "nan",
+            "extend"
+          ],
+          "description": "Points outside the nodes: error (BAD_RANGE, the default), nan (NaN values, counted in n_extrapolated) or extend (the end polynomial; for rbf the bounding box of the nodes is the 'range')."
+        }
+      ]
+    },
+    {
+      "name": "sig_filter",
+      "access": "read",
+      "returns": "object",
+      "description": "Design an IIR filter as second-order sections (scipy.signal.iirfilter, output sos; never ba) and optionally apply it. Reports sos, max_pole_radius and stable; an unstable design returns status UNSTABLE and is not applied. Optional magnitude/phase at freqs. Statuses OK, UNSTABLE, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "butter",
+            "cheby1",
+            "cheby2",
+            "ellip",
+            "bessel"
+          ],
+          "description": "Prototype. cheby1 needs rp, cheby2 rs, ellip both."
+        },
+        {
+          "name": "order",
+          "type": "number",
+          "occurs": "1",
+          "description": "Prototype order 1..20 (band filters have 2*order poles)."
+        },
+        {
+          "name": "btype",
+          "type": "string",
+          "occurs": "?",
+          "default": "lowpass",
+          "enum": [
+            "lowpass",
+            "highpass",
+            "bandpass",
+            "bandstop"
+          ],
+          "description": "Band type."
+        },
+        {
+          "name": "wn",
+          "type": "json",
+          "occurs": "1",
+          "description": "Critical frequency: a number, or [low, high] for bandpass/bandstop. In Hz when fs is given, else as a fraction of the Nyquist frequency (0..1). Strictly inside (0, Nyquist). For butter/cheby1/ellip/bessel(phase-normalised) it is the -3 dB / ripple edge; for cheby2 the stopband edge."
+        },
+        {
+          "name": "fs",
+          "type": "number",
+          "occurs": "?",
+          "description": "Sampling frequency > 0; omit for normalised frequencies (1 = Nyquist)."
+        },
+        {
+          "name": "rp",
+          "type": "number",
+          "occurs": "?",
+          "description": "Passband ripple in dB, (0, 100]; cheby1 and ellip only."
+        },
+        {
+          "name": "rs",
+          "type": "number",
+          "occurs": "?",
+          "description": "Stopband attenuation in dB, (0, 200]; cheby2 and ellip only."
+        },
+        {
+          "name": "freqs",
+          "type": "json",
+          "occurs": "?",
+          "description": "Frequencies (<=200, in the units of wn) at which to report magnitude and phase (radians) of the filter response."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "?",
+          "description": "Finite signal to filter (vector). Required by the write form."
+        },
+        {
+          "name": "mode",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "sosfilt",
+            "sosfiltfilt"
+          ],
+          "description": "With x. sosfilt is causal (phase lag, zero initial state); sosfiltfilt (default) runs forward and backward: zero phase, squared magnitude, needs more than 3*(2*sections+1) samples."
+        }
+      ]
+    },
+    {
+      "name": "sig_spectrum",
+      "access": "read",
+      "returns": "object",
+      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals. Reports f and the estimate, n_segments, df, peak_freq and total_power (the Parseval integral). Statuses OK, NUMERICAL_FAILURE. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "welch",
+            "periodogram",
+            "csd",
+            "coherence"
+          ],
+          "description": "welch averages windowed segments; periodogram is one window over the whole signal; csd needs y and returns pxy_re / pxy_im; coherence needs y and returns cxy in [0, 1]."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite real signal (vector), at least 4 samples."
+        },
+        {
+          "name": "y",
+          "type": "json",
+          "occurs": "?",
+          "description": "Second signal of the same length (csd and coherence only)."
+        },
+        {
+          "name": "fs",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "Sampling frequency > 0 (default 1)."
+        },
+        {
+          "name": "window",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "hann",
+            "hamming",
+            "blackman",
+            "boxcar",
+            "bartlett",
+            "flattop",
+            "parzen",
+            "bohman",
+            "blackmanharris",
+            "nuttall",
+            "barthann",
+            "cosine",
+            "triang"
+          ],
+          "description": "Window (default hann; boxcar for periodogram)."
+        },
+        {
+          "name": "nperseg",
+          "type": "number",
+          "occurs": "?",
+          "description": "Segment length, 2..min(signal length, 65536) (default min(256, length)). Not for periodogram."
+        },
+        {
+          "name": "noverlap",
+          "type": "number",
+          "occurs": "?",
+          "description": "Overlap between segments, 0..nperseg-1 (default nperseg/2). Not for periodogram."
+        },
+        {
+          "name": "nfft",
+          "type": "number",
+          "occurs": "?",
+          "description": "FFT length (zero padding), >= nperseg (>= the signal length for periodogram), at most 131072."
+        },
+        {
+          "name": "detrend",
+          "type": "string",
+          "occurs": "?",
+          "default": "constant",
+          "enum": [
+            "constant",
+            "linear",
+            "none"
+          ],
+          "description": "Per-segment detrending."
+        },
+        {
+          "name": "scaling",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "density",
+            "spectrum"
+          ],
+          "description": "density (default): power per Hz; spectrum: power per bin (an on-bin sine of amplitude A peaks at A^2/2). Not for coherence."
+        },
+        {
+          "name": "average",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "mean",
+            "median"
+          ],
+          "description": "Segment averaging, welch and csd only (default mean)."
+        }
+      ]
+    },
+    {
+      "name": "sig_peaks",
+      "access": "read",
+      "returns": "object",
+      "description": "Local maxima of a finite signal (scipy.signal.find_peaks) with heights, prominences and widths at rel_height. Plateaus report their middle sample; the first and last sample are never peaks. Result: n_peaks, indices, heights, prominences, widths (read form: at most ~225 peaks). Use the _to form for more peaks.",
+      "params": [
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite signal (vector), at least 3 samples."
+        },
+        {
+          "name": "height",
+          "type": "json",
+          "occurs": "?",
+          "description": "Minimum height: a number or [min, max] (null for an open end)."
+        },
+        {
+          "name": "threshold",
+          "type": "json",
+          "occurs": "?",
+          "description": "Minimum vertical distance to both neighbours: a number or [min, max], >= 0."
+        },
+        {
+          "name": "distance",
+          "type": "number",
+          "occurs": "?",
+          "description": "Minimum horizontal distance between peaks in samples, >= 1; smaller peaks are removed first."
+        },
+        {
+          "name": "prominence",
+          "type": "json",
+          "occurs": "?",
+          "description": "Required prominence: a number or [min, max], >= 0."
+        },
+        {
+          "name": "width",
+          "type": "json",
+          "occurs": "?",
+          "description": "Required width at rel_height: a number or [min, max] in samples, >= 0."
+        },
+        {
+          "name": "wlen",
+          "type": "number",
+          "occurs": "?",
+          "description": "Window length in samples (>= 3) for the prominence base search."
+        },
+        {
+          "name": "rel_height",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.5,
+          "description": "Height fraction of the prominence at which widths are measured, in (0, 1] (0.5 = full width at half maximum)."
+        }
+      ]
+    },
+    {
+      "name": "spatial_knn",
+      "access": "read",
+      "returns": "object",
+      "description": "Nearest neighbours with a k-d tree (scipy.spatial.cKDTree), exact. k-nearest: indices and distances (rows sorted by distance; the index order of equal distances is implementation-defined, compare distances). Radius: counts per query plus flat indices and distances (CSR layout, sorted by distance within a query). Status OK. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "points",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite n x d matrix (a vector is one-dimensional), d <= 32."
+        },
+        {
+          "name": "queries",
+          "type": "json",
+          "occurs": "?",
+          "description": "Finite m x d query matrix; omit to query the points themselves (a point is then its own nearest neighbour unless exclude_self)."
+        },
+        {
+          "name": "k",
+          "type": "number",
+          "occurs": "?",
+          "description": "Number of neighbours, 1..1000 and <= n. Exactly one of k and radius."
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "occurs": "?",
+          "description": "Return every neighbour within this distance (inclusive), > 0. Exactly one of k and radius."
+        },
+        {
+          "name": "p",
+          "type": "json",
+          "occurs": "?",
+          "default": 2,
+          "description": "Minkowski norm: a number in [1, 64] (1 Manhattan, 2 Euclidean) or \"inf\" (Chebyshev). Default 2."
+        },
+        {
+          "name": "exclude_self",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Only without queries: drop each point from its own neighbour list."
+        },
+        {
+          "name": "max_pairs",
+          "type": "number",
+          "occurs": "?",
+          "default": 100000,
+          "description": "Radius mode: refuse (OUTPUT_TOO_LARGE) when more than this many neighbour pairs would result, 1..1000000."
+        }
+      ]
+    },
+    {
+      "name": "spatial_hull",
+      "access": "read",
+      "returns": "object",
+      "description": "Convex hull, Delaunay triangulation or Voronoi diagram with QHull (scipy.spatial). The QHull options are fixed per kind and never caller-supplied. Degenerate input (collinear/coplanar points, fewer than dim+1 points, duplicates only, a QHull error) is a domain status DEGENERATE with a message, not an error. Statuses OK, DEGENERATE, NUMERICAL_FAILURE, TIME_LIMIT. convex_hull: vertices, simplices, volume, area (in 2-D: area and perimeter); delaunay: simplices, volume, n_coplanar; voronoi: vertices, point_region, regions and ridge_vertices as flat arrays with offsets (-1 is the point at infinity), ridge_points. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "points",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite n x d matrix, 2 <= d <= 6. Point caps shrink with d (convex_hull: 20000/20000/800/400/100 for d=2..6; delaunay and voronoi: 20000/800/300/100/50)."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "convex_hull",
+            "delaunay",
+            "voronoi"
+          ],
+          "description": "Which QHull structure to compute."
+        }
+      ]
+    },
+    {
+      "name": "spatial_dist",
+      "access": "read",
+      "returns": "object",
+      "description": "Pairwise distance matrix (scipy.spatial.distance.cdist) between the rows of a and b (b omitted: a with itself, a symmetric matrix). Metrics come from a closed list. A pair for which the metric is undefined (cosine/correlation of a zero or constant vector, an indefinite VI, overflow) makes the status UNDEFINED with a count, and no matrix is returned. Statuses OK, UNDEFINED, TIME_LIMIT. Result: shape, distances (n x m). Inline results hold at most ~900 numbers; use the _to form for more.",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite n x d matrix."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "?",
+          "description": "Finite m x d matrix; omit to compare a with itself. n*m is limited to 1,000,000."
+        },
+        {
+          "name": "metric",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "euclidean",
+            "sqeuclidean",
+            "cityblock",
+            "chebyshev",
+            "cosine",
+            "correlation",
+            "mahalanobis",
+            "jaccard",
+            "hamming"
+          ],
+          "description": "Distance. jaccard treats non-zero as true; hamming is the fraction of differing coordinates; mahalanobis needs vi."
+        },
+        {
+          "name": "vi",
+          "type": "json",
+          "occurs": "?",
+          "description": "mahalanobis only: the d x d symmetric inverse covariance matrix."
+        }
+      ]
+    },
+    {
+      "name": "interp_eval_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Evaluate, differentiate or integrate an interpolant (scipy.interpolate): linear, cubic spline, PCHIP (monotone), Akima, modified Akima, smoothing spline or n-D radial basis functions. Nodes must be finite and strictly increasing (NOT_INCREASING / DUPLICATE_X before any work); outside the node range the extrapolate policy decides (BAD_RANGE by default). Statuses OK, SINGULAR / ILL_CONDITIONED (rbf), NUMERICAL_FAILURE, TIME_LIMIT. Result: values, n_extrapolated, integral, interpolation_error (rbf). Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "params": [
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "linear",
+            "cubic",
+            "pchip",
+            "akima",
+            "makima",
+            "smoothing",
+            "rbf"
+          ],
+          "description": "Interpolant. linear/cubic/pchip/akima/makima need >= 2 nodes, smoothing >= 5, rbf at most 5000 nodes in at most 8 dimensions. pchip/akima/makima do not overshoot step-like data; cubic does."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "1",
+          "description": "Nodes: a strictly increasing vector (kinds other than rbf) or, for rbf, a matrix with one row per node. Finite; inline <=1000 numbers or .npy / .safetensors#key."
+        },
+        {
+          "name": "y",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite values at the nodes: a vector with one value per node."
+        },
+        {
+          "name": "x_new",
+          "type": "json",
+          "occurs": "?",
+          "description": "Evaluation points: a vector (a matrix with the node dimension for rbf). Give x_new, integrate or both. Read form: at most ~900 points."
+        },
+        {
+          "name": "bc_type",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "not-a-knot",
+            "natural",
+            "clamped",
+            "periodic"
+          ],
+          "description": "cubic only. Boundary condition (default not-a-knot): natural sets the second derivative to 0 at the ends, clamped the first derivative to 0, periodic needs y[0] == y[-1]."
+        },
+        {
+          "name": "lam",
+          "type": "number",
+          "occurs": "?",
+          "description": "smoothing only. Penalty weight >= 0; 0 interpolates (natural cubic spline), a large value tends to the least-squares line. Omitted: chosen by generalised cross-validation."
+        },
+        {
+          "name": "kernel",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "linear",
+            "thin_plate_spline",
+            "cubic",
+            "quintic",
+            "multiquadric",
+            "inverse_multiquadric",
+            "inverse_quadratic",
+            "gaussian"
+          ],
+          "description": "rbf only. Radial basis function (default thin_plate_spline). thin_plate_spline, cubic and quintic reproduce low-degree polynomials exactly."
+        },
+        {
+          "name": "epsilon",
+          "type": "number",
+          "occurs": "?",
+          "description": "rbf only. Shape parameter > 0 (default 1) used by multiquadric, inverse_multiquadric, inverse_quadratic and gaussian."
+        },
+        {
+          "name": "smoothing",
+          "type": "number",
+          "occurs": "?",
+          "description": "rbf only. Ridge term >= 0 (default 0 = interpolate the nodes)."
+        },
+        {
+          "name": "degree",
+          "type": "number",
+          "occurs": "?",
+          "description": "rbf only. Degree of the polynomial term, -1..3 (default: the kernel's minimum)."
+        },
+        {
+          "name": "nu",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Derivative order: 0..3 (linear: 0..1; rbf: 0). At knots a piecewise function takes its right-hand value."
+        },
+        {
+          "name": "integrate",
+          "type": "json",
+          "occurs": "?",
+          "description": "[a, b] with a < b: the definite integral of the interpolant (not for rbf). Bounds must lie in the node range unless extrapolate is extend."
+        },
+        {
+          "name": "extrapolate",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "nan",
+            "extend"
+          ],
+          "description": "Points outside the nodes: error (BAD_RANGE, the default), nan (NaN values, counted in n_extrapolated) or extend (the end polynomial; for rbf the bounding box of the nodes is the 'range')."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+        }
+      ]
+    },
+    {
+      "name": "sig_filter_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Design an IIR filter as second-order sections (scipy.signal.iirfilter, output sos; never ba) and optionally apply it. Reports sos, max_pole_radius and stable; an unstable design returns status UNSTABLE and is not applied. Optional magnitude/phase at freqs. Statuses OK, UNSTABLE, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "params": [
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "butter",
+            "cheby1",
+            "cheby2",
+            "ellip",
+            "bessel"
+          ],
+          "description": "Prototype. cheby1 needs rp, cheby2 rs, ellip both."
+        },
+        {
+          "name": "order",
+          "type": "number",
+          "occurs": "1",
+          "description": "Prototype order 1..20 (band filters have 2*order poles)."
+        },
+        {
+          "name": "btype",
+          "type": "string",
+          "occurs": "?",
+          "default": "lowpass",
+          "enum": [
+            "lowpass",
+            "highpass",
+            "bandpass",
+            "bandstop"
+          ],
+          "description": "Band type."
+        },
+        {
+          "name": "wn",
+          "type": "json",
+          "occurs": "1",
+          "description": "Critical frequency: a number, or [low, high] for bandpass/bandstop. In Hz when fs is given, else as a fraction of the Nyquist frequency (0..1). Strictly inside (0, Nyquist). For butter/cheby1/ellip/bessel(phase-normalised) it is the -3 dB / ripple edge; for cheby2 the stopband edge."
+        },
+        {
+          "name": "fs",
+          "type": "number",
+          "occurs": "?",
+          "description": "Sampling frequency > 0; omit for normalised frequencies (1 = Nyquist)."
+        },
+        {
+          "name": "rp",
+          "type": "number",
+          "occurs": "?",
+          "description": "Passband ripple in dB, (0, 100]; cheby1 and ellip only."
+        },
+        {
+          "name": "rs",
+          "type": "number",
+          "occurs": "?",
+          "description": "Stopband attenuation in dB, (0, 200]; cheby2 and ellip only."
+        },
+        {
+          "name": "freqs",
+          "type": "json",
+          "occurs": "?",
+          "description": "Frequencies (<=200, in the units of wn) at which to report magnitude and phase (radians) of the filter response."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "?",
+          "description": "Finite signal to filter (vector). Required by the write form."
+        },
+        {
+          "name": "mode",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "sosfilt",
+            "sosfiltfilt"
+          ],
+          "description": "With x. sosfilt is causal (phase lag, zero initial state); sosfiltfilt (default) runs forward and backward: zero phase, squared magnitude, needs more than 3*(2*sections+1) samples."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+        }
+      ]
+    },
+    {
+      "name": "sig_spectrum_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Spectral estimates with scipy.signal: Welch / periodogram power spectral density (or spectrum), cross-spectral density and magnitude-squared coherence. One-sided, real signals. Reports f and the estimate, n_segments, df, peak_freq and total_power (the Parseval integral). Statuses OK, NUMERICAL_FAILURE. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "params": [
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "welch",
+            "periodogram",
+            "csd",
+            "coherence"
+          ],
+          "description": "welch averages windowed segments; periodogram is one window over the whole signal; csd needs y and returns pxy_re / pxy_im; coherence needs y and returns cxy in [0, 1]."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite real signal (vector), at least 4 samples."
+        },
+        {
+          "name": "y",
+          "type": "json",
+          "occurs": "?",
+          "description": "Second signal of the same length (csd and coherence only)."
+        },
+        {
+          "name": "fs",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "Sampling frequency > 0 (default 1)."
+        },
+        {
+          "name": "window",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "hann",
+            "hamming",
+            "blackman",
+            "boxcar",
+            "bartlett",
+            "flattop",
+            "parzen",
+            "bohman",
+            "blackmanharris",
+            "nuttall",
+            "barthann",
+            "cosine",
+            "triang"
+          ],
+          "description": "Window (default hann; boxcar for periodogram)."
+        },
+        {
+          "name": "nperseg",
+          "type": "number",
+          "occurs": "?",
+          "description": "Segment length, 2..min(signal length, 65536) (default min(256, length)). Not for periodogram."
+        },
+        {
+          "name": "noverlap",
+          "type": "number",
+          "occurs": "?",
+          "description": "Overlap between segments, 0..nperseg-1 (default nperseg/2). Not for periodogram."
+        },
+        {
+          "name": "nfft",
+          "type": "number",
+          "occurs": "?",
+          "description": "FFT length (zero padding), >= nperseg (>= the signal length for periodogram), at most 131072."
+        },
+        {
+          "name": "detrend",
+          "type": "string",
+          "occurs": "?",
+          "default": "constant",
+          "enum": [
+            "constant",
+            "linear",
+            "none"
+          ],
+          "description": "Per-segment detrending."
+        },
+        {
+          "name": "scaling",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "density",
+            "spectrum"
+          ],
+          "description": "density (default): power per Hz; spectrum: power per bin (an on-bin sine of amplitude A peaks at A^2/2). Not for coherence."
+        },
+        {
+          "name": "average",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "mean",
+            "median"
+          ],
+          "description": "Segment averaging, welch and csd only (default mean)."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+        }
+      ]
+    },
+    {
+      "name": "sig_peaks_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Local maxima of a finite signal (scipy.signal.find_peaks) with heights, prominences and widths at rel_height. Plateaus report their middle sample; the first and last sample are never peaks. Result: n_peaks, indices, heights, prominences, widths (read form: at most ~225 peaks). The write form stores them and answers NO_PEAKS (no artifact) when nothing qualifies.",
+      "params": [
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite signal (vector), at least 3 samples."
+        },
+        {
+          "name": "height",
+          "type": "json",
+          "occurs": "?",
+          "description": "Minimum height: a number or [min, max] (null for an open end)."
+        },
+        {
+          "name": "threshold",
+          "type": "json",
+          "occurs": "?",
+          "description": "Minimum vertical distance to both neighbours: a number or [min, max], >= 0."
+        },
+        {
+          "name": "distance",
+          "type": "number",
+          "occurs": "?",
+          "description": "Minimum horizontal distance between peaks in samples, >= 1; smaller peaks are removed first."
+        },
+        {
+          "name": "prominence",
+          "type": "json",
+          "occurs": "?",
+          "description": "Required prominence: a number or [min, max], >= 0."
+        },
+        {
+          "name": "width",
+          "type": "json",
+          "occurs": "?",
+          "description": "Required width at rel_height: a number or [min, max] in samples, >= 0."
+        },
+        {
+          "name": "wlen",
+          "type": "number",
+          "occurs": "?",
+          "description": "Window length in samples (>= 3) for the prominence base search."
+        },
+        {
+          "name": "rel_height",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.5,
+          "description": "Height fraction of the prominence at which widths are measured, in (0, 1] (0.5 = full width at half maximum)."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+        }
+      ]
+    },
+    {
+      "name": "spatial_knn_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Nearest neighbours with a k-d tree (scipy.spatial.cKDTree), exact. k-nearest: indices and distances (rows sorted by distance; the index order of equal distances is implementation-defined, compare distances). Radius: counts per query plus flat indices and distances (CSR layout, sorted by distance within a query). Status OK. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "params": [
+        {
+          "name": "points",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite n x d matrix (a vector is one-dimensional), d <= 32."
+        },
+        {
+          "name": "queries",
+          "type": "json",
+          "occurs": "?",
+          "description": "Finite m x d query matrix; omit to query the points themselves (a point is then its own nearest neighbour unless exclude_self)."
+        },
+        {
+          "name": "k",
+          "type": "number",
+          "occurs": "?",
+          "description": "Number of neighbours, 1..1000 and <= n. Exactly one of k and radius."
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "occurs": "?",
+          "description": "Return every neighbour within this distance (inclusive), > 0. Exactly one of k and radius."
+        },
+        {
+          "name": "p",
+          "type": "json",
+          "occurs": "?",
+          "default": 2,
+          "description": "Minkowski norm: a number in [1, 64] (1 Manhattan, 2 Euclidean) or \"inf\" (Chebyshev). Default 2."
+        },
+        {
+          "name": "exclude_self",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Only without queries: drop each point from its own neighbour list."
+        },
+        {
+          "name": "max_pairs",
+          "type": "number",
+          "occurs": "?",
+          "default": 100000,
+          "description": "Radius mode: refuse (OUTPUT_TOO_LARGE) when more than this many neighbour pairs would result, 1..1000000."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+        }
+      ]
+    },
+    {
+      "name": "spatial_hull_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Convex hull, Delaunay triangulation or Voronoi diagram with QHull (scipy.spatial). The QHull options are fixed per kind and never caller-supplied. Degenerate input (collinear/coplanar points, fewer than dim+1 points, duplicates only, a QHull error) is a domain status DEGENERATE with a message, not an error. Statuses OK, DEGENERATE, NUMERICAL_FAILURE, TIME_LIMIT. convex_hull: vertices, simplices, volume, area (in 2-D: area and perimeter); delaunay: simplices, volume, n_coplanar; voronoi: vertices, point_region, regions and ridge_vertices as flat arrays with offsets (-1 is the point at infinity), ridge_points. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "params": [
+        {
+          "name": "points",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite n x d matrix, 2 <= d <= 6. Point caps shrink with d (convex_hull: 20000/20000/800/400/100 for d=2..6; delaunay and voronoi: 20000/800/300/100/50)."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "convex_hull",
+            "delaunay",
+            "voronoi"
+          ],
+          "description": "Which QHull structure to compute."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+        }
+      ]
+    },
+    {
+      "name": "spatial_dist_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Pairwise distance matrix (scipy.spatial.distance.cdist) between the rows of a and b (b omitted: a with itself, a symmetric matrix). Metrics come from a closed list. A pair for which the metric is undefined (cosine/correlation of a zero or constant vector, an indefinite VI, overflow) makes the status UNDEFINED with a count, and no matrix is returned. Statuses OK, UNDEFINED, TIME_LIMIT. Result: shape, distances (n x m). Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).",
+      "params": [
+        {
+          "name": "a",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite n x d matrix."
+        },
+        {
+          "name": "b",
+          "type": "json",
+          "occurs": "?",
+          "description": "Finite m x d matrix; omit to compare a with itself. n*m is limited to 1,000,000."
+        },
+        {
+          "name": "metric",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "euclidean",
+            "sqeuclidean",
+            "cityblock",
+            "chebyshev",
+            "cosine",
+            "correlation",
+            "mahalanobis",
+            "jaccard",
+            "hamming"
+          ],
+          "description": "Distance. jaccard treats non-zero as true; hamming is the fraction of differing coordinates; mahalanobis needs vi."
+        },
+        {
+          "name": "vi",
+          "type": "json",
+          "occurs": "?",
+          "description": "mahalanobis only: the d x d symmetric inverse covariance matrix."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the large arrays there and returns descriptors under tensors."
+        }
+      ]
+    },
+    {
       "name": "frame_import",
       "access": "write",
       "returns": "object",
