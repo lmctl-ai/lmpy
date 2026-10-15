@@ -514,11 +514,13 @@ class SchemaAndLimits(Base):
         self.assertEqual(enum['method'], ['Nelder-Mead', 'Powell', 'BFGS', 'L-BFGS-B', 'SLSQP', 'trust-constr'])
 
     def test_results_are_small_and_leave_no_files(self):
-        before = sorted(p.name for p in pathlib.Path('.').iterdir())
+        # other test groups run in parallel and create their own temporary directories (tmpXXXXXXXX) in this working directory: only pycli's own files count
+        listing = lambda: sorted(p.name for p in pathlib.Path('.').iterdir() if not p.name.startswith('tmp'))
+        before = listing()
         r = call('opt_minimize', {'objective': '(a[0]-1)^2', 'x0': {'a': [0.0] * 64}, 'method': 'BFGS'}, 0, os.environ)
         self.assertEqual(len(r['par']['a']), 64)
         self.assertLess(len(json.dumps(r)), 8192)
-        self.assertEqual(sorted(p.name for p in pathlib.Path('.').iterdir()), before)
+        self.assertEqual(listing(), before)
 
     def test_readonly_policy_keeps_reads_allowed(self):
         r = call('num_quad', {'f': 'x', 'a': 0, 'b': 1}, 0, dict(os.environ, PYCLI_READONLY='1'))
