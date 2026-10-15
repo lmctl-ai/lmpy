@@ -11,7 +11,7 @@ pathlib.Path('left.csv').write_text('k\n'+'1\n'*200000)
 call('frame_import',dict(csv='left.csv',out='left.npz'))
 call('frame_import',dict(columns={'k':[1],'s':['x'*65000]},out='right.npz'))
 for how in ('left','right','outer'):
- call('frame_merge',dict(left='left.npz',right='right.npz',on=['k'],how=how,validate='many_to_one',out=how+'.npz'),1)
+ call('frame_merge',dict(left='left.npz',right='right.npz',on=['k'],how=how,validate='many_to_one',out='join-'+how+'.npz'),1)
 # Actual allowed work cap, with high-magnitude data and no float64 overflow.
 pathlib.Path('roll.csv').write_text('x\n'+'1e200\n'*200000)
 call('frame_import',dict(csv='roll.csv',out='roll.npz'))

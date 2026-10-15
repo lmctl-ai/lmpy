@@ -1,7 +1,7 @@
 // access: write
 // What it does: the table/array bridge end to end. frame_import (a CSV) -> frame_mutate (adds the intercept column) -> frame_to_array_to
 //   (design matrix and target as safetensors tensors) -> la_lstsq on the tensor refs -> array_to_frame (row-aligned predictions back onto the source table
-//   with named columns) -> frame_export. The fit recovers the generating coefficients (2, 3, -0.5) within the injected noise.
+//   with named columns) -> frame_inspect. The fit recovers the generating coefficients (2, 3, -0.5) within the injected noise.
 // Tolerance: coefficients within 0.05 of the generating values; the table round trip is exact.
 // How to run: from a writable directory below HOME with the pycli bin directory on PATH: lmscript examples/bridge-ml.lms. Files are removed.
 import "../cli.schema.dev.json" as pycli;

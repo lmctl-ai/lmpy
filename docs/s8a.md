@@ -5,7 +5,7 @@ the evidence behind them.
 
 ## Shape of the slice
 * `src/s8.hpp` validates in C++ and registers 9 operations (`frame_to_array`, `frame_to_array_to`, `array_to_frame`, `frame_mutate`, `frame_merge`, `frame_rolling`, `ml_metrics`,
-  and `stats_dist` with fn rvs plus its write twin `stats_dist_to`); `py/s8.py` (assembled after `s7.py`) is the worker. `stats_dist` keeps its norm/t density path unchanged.
+  and `stats_dist` with fn rvs plus its write twin `stats_dist_to`); `py/s8.py` (assembled after `s7.py`) is the worker. `stats_dist` retains its norm/t density math and now shares the status/dist/fn/params envelope with sampling.
 * **No pandas anywhere.** Tables are read and written member by member in the NPZ layout of `py/frames.py` (`c<i>` data, `m<i>` NA mask, `__pycli_table__` metadata), so a
   call pays only the numpy import, and a column's dtype, categories, timezone and NA mask survive untouched (a left join keeps an int64 column int64 with masked cells,
   where pandas would promote it to float). `meta.pandas`, `meta.sklearn` and `meta.scipy` (except `frame_mutate`, which needs `scipy.special` for the expression functions)

@@ -32,9 +32,10 @@ with tempfile.TemporaryDirectory(dir='.') as directory:
         counter[0] += 1
         return str(work / ('out%d.%s' % (counter[0], ext)))
     cases = [('py_info', 'py_info', {}),
-             ('frame_to_array_200x3', 'frame_to_array', lambda: {'frame': str(work / 't.npz'), 'columns': ['a', 'b'], 'limit': 100}),
+             ('frame_to_array_100x2', 'frame_to_array', lambda: {'frame': str(work / 't.npz'), 'columns': ['a', 'b'], 'limit': 100}),
              ('frame_to_array_to_200x3', 'frame_to_array_to', lambda: {'frame': str(work / 't.npz'), 'columns': ['a', 'b', 'k'], 'out': unique('safetensors')}),
              ('array_to_frame_100x2', 'array_to_frame', lambda: {'ref': [[float(i), float(2 * i)] for i in range(100)], 'columns': ['p', 'q'], 'out': unique('npz')}),
+             ('array_to_frame_append_200x1', 'array_to_frame', lambda: {'frame': str(work / 't.npz'), 'ref': [float(i) for i in range(n)], 'columns': ['prediction'], 'out': unique('npz')}),
              ('frame_mutate_2_expressions', 'frame_mutate', lambda: {'frame': str(work / 't.npz'), 'assign': [{'name': 'z', 'expr': 'a * 2 + b'}, {'name': 'w', 'expr': 'sqrt(abs(z)) - k'}], 'out': unique('npz')}),
              ('frame_merge_outer_40x40', 'frame_merge', lambda: {'left': str(work / 'l.npz'), 'right': str(work / 'r.npz'), 'on': ['k'], 'how': 'outer', 'out': unique('npz')}),
              ('frame_rolling_window10_5_functions', 'frame_rolling', lambda: {'frame': str(work / 't.npz'), 'columns': ['a'], 'window': 10, 'functions': ['mean', 'std', 'min', 'max', 'median'], 'out': unique('npz')}),
