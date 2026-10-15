@@ -37,6 +37,45 @@ bool s8_identifier(const std::string& name){
     try{check_variable_name(name,"column");return true;}catch(const Error&){return false;}
 }
 
+struct S8Member{size_t offset;uint64_t width,rows;std::string dtype;};
+S8Member s8_member(const S8Table& t,const std::string& name){
+    const auto& b=t.bytes;size_t p=frames::le(b,b.size()-6,4);auto count=frames::le(b,b.size()-12,2);
+    for(size_t i=0;i<count;++i){
+        auto nl=frames::le(b,p+28,2),local=frames::le(b,p+42,4);
+        if(b.substr(p+46,nl)==name+".npy"){
+            size_t data=local+30+nl+frames::le(b,local+28,2),h=frames::le(b,data+8,2);
+            auto parsed=parse_npy_header(b.substr(data+10,h));auto bytes=frames::le(b,p+24,4)-10-h;
+            uint64_t n=parsed.shape.at(0),width=n?bytes/n:0;
+            return {data+10+h,width,n,parsed.descr};
+        }
+        p+=46+nl;
+    }
+    invalid("missing table member","BAD_DATA");throw std::runtime_error("unreachable");
+}
+void s8_classes(const S8Table& t,const std::vector<std::string>& columns){
+    std::set<long double> numbers;std::set<std::string> strings;
+    for(const auto& c:columns){
+        size_t i=0;while(t.meta["columns"][i]!=c)++i;
+        auto raw=s8_member(t,"c"+std::to_string(i)),mask=s8_member(t,"m"+std::to_string(i));
+        auto dtype=s8_dtype(t,c);uint64_t n=s8_rows(t);
+        if(raw.rows!=n||mask.rows!=n||mask.dtype!="|b1")invalid("table column shape/mask mismatch","BAD_DATA");
+        if((dtype=="int64"||dtype=="category")&&raw.dtype!="<i8")invalid("table dtype mismatch","BAD_DATA");
+        if(dtype=="float64"&&raw.dtype!="<f8")invalid("table dtype mismatch","BAD_DATA");
+        if(dtype=="bool"&&raw.dtype!="|b1")invalid("table dtype mismatch","BAD_DATA");
+        if(dtype=="string"&&raw.dtype.rfind("|S",0)!=0)invalid("table dtype mismatch","BAD_DATA");
+        for(size_t r=0;r<n;++r){
+            if(t.bytes[mask.offset+r])continue;
+            const char* value=t.bytes.data()+raw.offset+r*raw.width;
+            if(dtype=="string"){std::string v(value,raw.width);auto z=v.find('\0');if(z!=std::string::npos)v.resize(z);strings.insert(v);}
+            else if(dtype=="category"){int64_t v;std::memcpy(&v,value,8);const auto& levels=t.meta["column_meta"][c]["categories"];if(v<0||uint64_t(v)>=levels.size())invalid("invalid category code","BAD_DATA");strings.insert(levels[v].get<std::string>());}
+            else if(dtype=="float64"){double v;std::memcpy(&v,value,8);if(std::isfinite(v))numbers.insert(v);}
+            else if(dtype=="bool")numbers.insert(*value!=0);
+            else{int64_t v;std::memcpy(&v,value,8);numbers.insert(v);}
+            if(numbers.size()+strings.size()>S8_CLASSES)invalid("classification metrics allow at most 30 distinct labels","INPUT_TOO_LARGE");
+        }
+    }
+}
+
 // ---- bridge ----
 Json prepare_to_array(const Params& in,bool twin,S8Extra& x){
     Json p=in;S8Table t=s8_table(in,"frame");
@@ -85,6 +124,19 @@ Json prepare_array_to_frame(const Params& in,std::map<std::string,Array>& arrays
             if(d=="bool"&&v!=0&&v!=1)invalid("column "+columns[j]+" is bool but row "+std::to_string(i)+" is not exactly 0 or 1","BAD_DATA");
             if(d=="int64"&&(v!=std::floor(v)||std::fabs(v)>S8_EXACT))invalid("column "+columns[j]+" is int64 but row "+std::to_string(i)+" is not an exactly representable integer","BAD_DATA");
         }
+    }
+    if(in.contains("frame")&&!in["frame"].is_null()){
+        S8Table t=s8_table(in,"frame");
+        if(s8_rows(t)!=rows)invalid("frame and ref need identical row counts","BAD_DATA");
+        Json names=t.meta["columns"];
+        for(const auto& c:columns){
+            if(s8_has(t,c)){if(!in["allow_replace"].get<bool>())bad_param("column "+c+" already exists: set allow_replace to overwrite it");}
+            else names.push_back(c);
+        }
+        frames::names(names);if(rows*names.size()>S8_CELLS)invalid("enriched table exceeds cell cap","INPUT_TOO_LARGE");
+        uint64_t bytes=t.bytes.size()+rows*cols*9+1024*1024;
+        if(bytes>frames::BYTES)output_too_large("enriched table exceeds 256MiB storage budget");
+        x.tables["frame"]=std::move(t.bytes);
     }
     p["dtypes"]=resolved;p["rows"]=rows;
     s8_table_out(in,x);arrays["ref"]=std::move(a);return p;
@@ -148,6 +200,7 @@ Json prepare_merge(const Params& in,S8Extra& x){
     std::vector<std::string> names;for(const auto& c:lcols)names.push_back(clash.count(c)?c+sl:c);for(const auto& c:rkept)names.push_back(clash.count(c)?c+sr:c);
     std::set<std::string> unique(names.begin(),names.end());
     if(unique.size()!=names.size())invalid("the merged table would hold duplicate column names; choose different suffixes","DUPLICATE_COLUMN");
+    frames::names(names);
     if(names.size()>S8_COLS)invalid("the merged table would hold "+std::to_string(names.size())+" columns (limit 256)","TOO_MANY_COLUMNS");
     int64_t max_rows=in["max_rows"];if(max_rows<1||max_rows>200000)bad_param("max_rows must be 1..200000");
     const std::string how=in["how"];if(how!="inner"&&how!="left"&&how!="right"&&how!="outer")bad_param("how must be inner, left, right or outer");
@@ -188,6 +241,7 @@ Json prepare_rolling(const Params& in,S8Extra& x){
     }
     std::set<std::string> existing;for(const auto& c:t.meta["columns"])existing.insert(c);size_t total=existing.size();
     for(const auto& c:columns)for(const auto& f:functions){if(!existing.insert(c+"__"+f).second)invalid("output column "+c+"__"+f+" already exists","DUPLICATE_COLUMN");++total;}
+    frames::names(Json(existing));
     if(total>S8_COLS)invalid("the result would hold "+std::to_string(total)+" columns (limit 256)","TOO_MANY_COLUMNS");
     if(rows*total>S8_CELLS)invalid("the result would hold "+std::to_string(rows*total)+" cells (limit 500000)","INPUT_TOO_LARGE");
     p["functions"]=functions;s8_table_out(in,x);x.tables["frame"]=std::move(t.bytes);return p;
@@ -212,6 +266,7 @@ Json prepare_metrics(const Params& in,std::map<std::string,Array>& arrays,S8Extr
     const std::string zd=in["zero_division"];if(zd!="undefined"&&zd!="0"&&zd!="1")bad_param("zero_division must be undefined, 0 or 1");
     const bool prf_binary=(wanted.count("precision")||wanted.count("recall")||wanted.count("f1"))&&average=="binary";
     if(given("pos_label")&&!(prf_binary||any(scored)))bad_param("pos_label is only used by binary precision/recall/f1, roc_auc, log_loss and brier");
+    if(given("pos_label")&&!(in["pos_label"].is_string()||in["pos_label"].is_boolean()||(in["pos_label"].is_number()&&std::isfinite(in["pos_label"].get<double>()))))bad_param("pos_label must be a finite scalar label");
     const bool framed=given("frame");
     if(framed){
         S8Table t=s8_table(in,"frame");
@@ -222,6 +277,7 @@ Json prepare_metrics(const Params& in,std::map<std::string,Array>& arrays,S8Extr
             if((std::string(k)=="y_score"||any(regression))&&!s8_numeric(d))invalid("column "+c+" has dtype "+d+" but a numeric score/target is needed","BAD_DTYPE");
         }
         if(s8_rows(t)<1)invalid("the table has no rows","BAD_DATA");
+        if(any(classification)){std::vector<std::string> cols={in["y_true"].get<std::string>(),in["y_pred"].get<std::string>()};s8_classes(t,cols);}
         x.tables["frame"]=std::move(t.bytes);
     }else{
         size_t n=0;
@@ -231,7 +287,7 @@ Json prepare_metrics(const Params& in,std::map<std::string,Array>& arrays,S8Extr
             if(std::string(k)=="y_score"&&(wanted.count("log_loss")||wanted.count("brier")))for(double v:a.data)if(v<0||v>1)invalid("y_score must be a probability in [0, 1] for log_loss and brier","BAD_DATA");
             arrays[k]=std::move(a);
         }
-        if(any(classification)&&!any(regression)){
+        if(any(classification)){
             std::set<double> labels;for(const char* k:{"y_true","y_pred"})if(arrays.count(k))for(double v:arrays[k].data)labels.insert(v);
             if(labels.size()>S8_CLASSES)invalid("classification metrics allow at most 30 distinct labels (found "+std::to_string(labels.size())+")","INPUT_TOO_LARGE");
         }
@@ -305,7 +361,7 @@ void add_s8_ops(CliSpec& spec){
         std::vector<Param> params={
             str("frame",true,nullptr,{},"Existing .npz table (frame_import / any table operation)."),
             strings("columns",true,"Ordered unique columns to convert; each must be int64, float64 or bool (bool maps to 0/1). Strings, categories and datetimes are refused (BAD_DTYPE): encode them first."),
-            str("missing",false,"error",{"error","nan"},"error (default): a masked missing value is NA_NOT_ALLOWED. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."),
+            str("missing",false,"error",{"error","nan"},"error (default): masked missing values and numeric NaN/Inf are NA_NOT_ALLOWED; output is guaranteed finite. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."),
             integer("offset",0,"First row to convert (0-based, default 0); selecting no rows is BAD_DATA."),
             integer("limit",nullptr,"Maximum rows to convert from offset, >=1 (default: all)."),
             Param{"squeeze",Type::Boolean,false,false,{},"Exactly one column: return/store a vector of shape [rows] instead of a [rows, 1] matrix (the form sig_*, interp_* and spatial_* operations take)."},
@@ -315,12 +371,14 @@ void add_s8_ops(CliSpec& spec){
             std::string("Table to rank-2 row-major F64 array (columns in the requested order). Result: shape, columns, source_dtypes, source_na_count, source_nan_count, missing_mask_lost, n_rows_total")+(write?"; the array is stored under artifacts[key] (<=200000 values)":", values (<=1000 values inline; use frame_to_array_to for more)")+"."+limits,"object",params});
     }
     spec.operations.push_back(Operation{"array_to_frame",Access::Write,std::string("Array (inline, .npy or safetensors#key) to a table: explicit unique column names for every column (a vector is one column), dtypes float64 / int64 / bool (default from the source dtype; bool needs exactly 0/1, int64 exact integers), no implicit index. NaN stays a numeric value unless nan_policy=missing. Result: shape, column_meta, na_counts, nan_count, preview, artifacts.table.")+limits,"object",{
+        str("frame",false,nullptr,{},"Optional source table: append ref columns by row position, requiring identical row counts; preserve source dtypes, masks and order."),
+        Param{"allow_replace",Type::Boolean,false,false,{},"With frame, explicitly allow replacing existing named columns (default false)."},
         json("ref",true,"Finite or NaN/Inf-containing vector or matrix, <=200000 numbers: inline JSON, file.npy or file.safetensors#key. Rows are table rows."),
         strings("columns",true,"One unique non-empty name (<=256 bytes UTF-8) per column of ref."),
-        Param{"dtypes",Type::Object,false,nullptr,{},"Optional {column: float64|int64|bool} overrides; others follow the source dtype (int -> int64, bool -> bool, float -> float64)."},
+        Param{"dtypes",Type::Object,false,nullptr,{},"Optional {column: float64|int64|bool} overrides; file sources I64/I32/U8 -> int64, BOOL -> bool; inline JSON numbers always arrive as float64. Set explicit overrides for inline integers."},
         str("nan_policy",false,"value",{"value","missing"},"value (default): NaN stays a float64 value. missing: NaN becomes a masked missing value (float64 columns only)."),
         str("out",true,nullptr,{},table_out)}});
-    spec.operations.push_back(Operation{"frame_mutate",Access::Write,std::string("New or replaced float64 columns from expressions in the existing safe grammar (arithmetic, comparisons, & |, ifelse, math functions; no reducers, no indexing, no eval path). Columns are int64/float64/bool with identifier-style names ([a-z][a-z0-9_]{0,31}); assignments run in order and may use earlier ones. A masked missing value in any referenced column makes the result missing. Comparison/logic results are 1/0 (NaN for NaN operands). nonfinite decides what to do with NaN/Inf results (error, mask or keep). Result: shape, assigned[{name, replaced, n_masked, n_nonfinite}], column_meta, preview, artifacts.table.")+limits,"object",{
+    spec.operations.push_back(Operation{"frame_mutate",Access::Write,std::string("New or replaced float64 columns from expressions in the existing safe grammar (arithmetic, ifelse with comparisons and & | only inside its condition, math functions; no reducers, no indexing, no eval path). Columns are int64/float64/bool with identifier-style names ([a-z][a-z0-9_]{0,31}); assignments run in order and may use earlier ones. A masked missing value in any referenced column makes the result missing. Bare comparison/logic expressions are EXPR_SYNTAX; use ifelse(condition,1,0). NaN conditions produce NaN. nonfinite decides what to do with NaN/Inf results (error, mask or keep). Result: shape, assigned[{name, replaced, n_masked, n_nonfinite}], column_meta, preview, artifacts.table.")+limits,"object",{
         str("frame",true,nullptr,{},"Existing .npz table."),
         Param{"assign",Type::Array,true,nullptr,{},"1..32 entries {name, expr}; expr <=2048 bytes / 512 nodes.","",false,false,false,{},Type::Object},
         Param{"allow_replace",Type::Boolean,false,false,{},"Allow an assignment to overwrite an existing column (default false: BAD_PARAM)."},
@@ -331,11 +389,11 @@ void add_s8_ops(CliSpec& spec){
         strings("on",false,"Key columns present in both tables (1..8). Give on, or left_on with right_on."),
         strings("left_on",false,"Key columns of the left table (with right_on)."),strings("right_on",false,"Key columns of the right table, same count as left_on."),
         str("how",false,"inner",{"inner","left","right","outer"},"Join type."),
-        str("validate",false,"many_to_many",{"one_to_one","one_to_many","many_to_one","many_to_many"},"Key uniqueness contract: one_to_one needs unique non-missing keys on both sides, one_to_many a unique left, many_to_one a unique right; a violation is MERGE_VALIDATION. many_to_many (default) checks nothing."),
+        str("validate",false,"many_to_many",{"one_to_one","one_to_many","many_to_one","many_to_many"},"Key uniqueness contract: one_to_one needs unique keys on both sides, including repeated missing-key rows, one_to_many a unique left, many_to_one a unique right; a violation is MERGE_VALIDATION. many_to_many (default) checks nothing."),
         Param{"suffixes",Type::Array,false,Json::array({"_x","_y"}),{},"Two different non-empty suffixes for colliding non-key names (default _x, _y); the result must still have unique names (DUPLICATE_COLUMN).","",false,false,false,{},Type::String},
         integer("max_rows",200000,"Cap on result rows, 1..200000 (also bounded by the 500000-cell table cap); exceeding it is ROW_EXPLOSION and reports the row count the join would have produced."),
         str("out",true,nullptr,{},table_out)}});
-    spec.operations.push_back(Operation{"frame_rolling",Access::Write,std::string("Rolling-window statistics of numeric columns appended as <column>__<function> (original columns kept). Count windows are trailing (window rows ending at the row, or centred with center: rows i-window/2 .. i+(window-1)/2); time windows (time_window, with an explicit sorted non-missing datetime column on) cover (t-window, t] over the rows up to and including the row. Missing values are skipped; a result needs min_periods observations (std/var also two; ddof=1), otherwise it is missing; count is always defined (int64). Work (rows x window x columns x functions) is capped at 1e8. Result: shape, columns_added, preview, artifacts.table.")+limits,"object",{
+    spec.operations.push_back(Operation{"frame_rolling",Access::Write,std::string("Rolling-window statistics of numeric columns appended as <column>__<function> (original columns kept). Count windows are trailing (window rows ending at the row, or centred with center: rows i-window/2 .. i+(window-1)/2); time windows (time_window, with an explicit sorted non-missing datetime column on) cover (t-window, t] over the rows up to and including the row. Missing values are skipped; a result needs min_periods observations (std/var also two; ddof=1), otherwise it is missing; count is nullable int64 and also needs min_periods non-missing observations. Work (rows x window x columns x functions) is capped at 1e8. Result: shape, columns_added, preview, artifacts.table.")+limits,"object",{
         str("frame",true,nullptr,{},"Existing .npz table."),
         strings("columns",true,"Numeric columns (int64, float64, bool) to roll, <=64."),
         strings("functions",true,"1..8 of sum, mean, std, var, min, max, median, count."),
@@ -351,7 +409,7 @@ void add_s8_ops(CliSpec& spec){
         json("y_true",true,"Column name (with frame) or numeric vector (inline <=1000, .npy, safetensors#key) of true labels/targets."),
         json("y_pred",false,"Column name or vector of predicted labels/values (classification and regression metrics)."),
         json("y_score",false,"Column name or vector of scores / probabilities of pos_label (roc_auc, log_loss, brier); log_loss and brier need values in [0, 1]."),
-        str("average",false,"binary",{"binary","macro","micro","weighted"},"Averaging for precision, recall and f1 (default binary, which uses pos_label)."),
+        str("average",false,"binary",{"binary","macro","micro","weighted"},"Averaging for precision, recall and f1 (default binary, which uses pos_label); see zero_division for undefined denominator handling."),
         json("pos_label",false,"Positive class for binary precision/recall/f1 and for roc_auc, log_loss, brier. Default 1 when the labels are 0/1 (or false/true); required otherwise."),
         str("zero_division",false,"undefined",{"undefined","0","1"},"Value for precision/recall/f1 terms with a zero denominator, or undefined (default: the metric is reported undefined)."),
         }});

@@ -71,6 +71,19 @@ def s8_cell(cmeta, raw, k):
     return float(raw[k])
 
 
+def s8_datetime(value, tz):
+    from datetime import datetime, timedelta, timezone
+    from zoneinfo import ZoneInfo
+    seconds, nanos = divmod(value, 1_000_000_000)
+    dt = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=seconds)
+    dt = dt.astimezone(ZoneInfo(tz)) if tz else dt.replace(tzinfo=None)
+    text = dt.isoformat()
+    if nanos:
+        suffix = ('.%09d' % nanos).rstrip('0')
+        text = text[:19] + suffix + text[19:]
+    return text
+
+
 def s8_summary(names, cmeta, n, raws, masks, extra):
     rows = min(n, 10, 1000 // max(len(names), 1))
     data = {}
@@ -82,8 +95,7 @@ def s8_summary(names, cmeta, n, raws, masks, extra):
                 continue
             value = s8_cell(cmeta[name], raws[i], k)
             if cmeta[name]['dtype'] == 'datetime64[ns]':
-                import numpy as np
-                value = str(np.datetime64(value, 'ns'))  # the UTC instant
+                value = s8_datetime(value, cmeta[name].get('tz'))
             column.append(value)
         data[name] = column
     result = {'status': 'OK', 'shape': [n, len(names)], 'column_meta': {c: cmeta[c] for c in names}, 'preview': {'columns': list(names), 'data': data, 'n_rows': rows}}
@@ -137,6 +149,8 @@ def frame_to_array(p):
                 raise BadData('column %s has %d masked missing value(s); pass missing=nan to convert them to NaN' % (column, int(mask.sum())), 'NA_NOT_ALLOWED')
             na_total += int(mask.sum())
             values = np.where(mask, np.nan, values)
+        if p['missing'] == 'error' and not np.isfinite(values).all():
+            raise BadData('column %s has numeric NaN/Inf; missing=error guarantees finite output; use missing=nan explicitly' % column, 'NA_NOT_ALLOWED')
         nan_total += int(np.isnan(values[~mask]).sum())
         out[:, j] = values
     if p['squeeze']:
@@ -184,8 +198,20 @@ def array_to_frame(p):
         raws.append(raw)
         masks.append(mask)
         na_counts[name] = int(mask.sum())
+    if 'frame_file' in p:
+        old_names, old_meta, old_n, old_raws, old_masks = s8_read(p['frame_file'])
+        if old_n != n:
+            raise BadData('frame and ref need identical row counts')
+        for j, name in enumerate(names):
+            if name in old_names:
+                i = old_names.index(name)
+                old_raws[i], old_masks[i] = raws[j], masks[j]
+            else:
+                old_names.append(name); old_raws.append(raws[j]); old_masks.append(masks[j])
+            old_meta[name] = cmeta[name]
+        names, cmeta, raws, masks = old_names, old_meta, old_raws, old_masks
     s8_write(p, names, cmeta, n, raws, masks)
-    return s8_summary(names, cmeta, n, raws, masks, {'dtypes': {c: cmeta[c]['dtype'] for c in names}, 'na_counts': na_counts, 'nan_count': nan_count})
+    return s8_summary(names, cmeta, n, raws, masks, {'nan_mask_changed': bool(p['nan_policy'] == 'missing' and any(na_counts.values())), 'dtypes': {c: cmeta[c]['dtype'] for c in names}, 'na_counts': na_counts, 'nan_count': nan_count})
 
 
 # ---------------------------------------------------------------------------------------------------------------- mutate
@@ -241,7 +267,7 @@ def frame_mutate(p):
 
 
 # ----------------------------------------------------------------------------------------------------------------- merge
-def s8_keys(np, cmeta, raws, masks, index, columns):
+def s8_keys(np, cmeta, raws, masks, index, columns, uniqueness=False):
     """Per-row key tuples (None where any key is missing). Strings and categories compare by label, everything else by integer value."""
     parts = []
     for c in columns:
@@ -257,6 +283,8 @@ def s8_keys(np, cmeta, raws, masks, index, columns):
     miss = np.zeros(len(masks[index[columns[0]]]), dtype=bool)
     for c in columns:
         miss |= masks[index[c]]
+    if uniqueness:
+        return [tuple(None if masks[index[c]][r] else parts[j][r] for j, c in enumerate(columns)) for r in range(len(miss))]
     keys = [None if miss[r] else tuple(part[r] for part in parts) for r in range(len(miss))]
     return keys
 
@@ -266,9 +294,13 @@ def s8_take(np, cmeta, raw, mask, take):
     absent = take < 0
     safe = np.where(absent, 0, take)
     if len(raw) == 0:
-        raise BadData('cannot join an empty table')
-    out = raw[safe]
-    out_mask = mask[safe] | absent
+        if not absent.all():
+            raise BadData('invalid row in an empty table')
+        out = np.zeros(len(take), dtype=raw.dtype)
+        out_mask = np.ones(len(take), dtype=bool)
+    else:
+        out = raw[safe]
+        out_mask = mask[safe] | absent
     dtype = cmeta['dtype']
     if dtype == 'category':
         out = np.where(out_mask, -1, out).astype('<i8')
@@ -300,8 +332,13 @@ def frame_merge(p):
             right_of.setdefault(key, []).append(j)
     # validation and the row count come from the key counts alone: nothing is built before the cap is checked
     mode = p['validate']
-    left_dup = sum(1 for v in left_of.values() if len(v) > 1)
-    right_dup = sum(1 for v in right_of.values() if len(v) > 1)
+    def duplicates(meta, raw, mask, index, columns):
+        counts = {}
+        for key in s8_keys(np, meta, raw, mask, index, columns, uniqueness=True):
+            counts[key] = counts.get(key, 0) + 1
+        return sum(count > 1 for count in counts.values())
+    left_dup = duplicates(lmeta, lraw, lmask, lindex, lk)
+    right_dup = duplicates(rmeta, rraw, rmask, rindex, rk)
     if mode in ('one_to_one', 'one_to_many') and left_dup:
         raise BadData('validate=%s: %d key value(s) are repeated in the left table' % (mode, left_dup), 'MERGE_VALIDATION')
     if mode in ('one_to_one', 'many_to_one') and right_dup:
@@ -315,8 +352,24 @@ def frame_merge(p):
         raise BadData('the join would produce %d rows (max_rows %d)' % (total, p['max_rows']), 'ROW_EXPLOSION')
     if total * len(names) > TABLE_CELLS:
         raise BadData('the join would produce %d cells (limit %d)' % (total * len(names), TABLE_CELLS), 'ROW_EXPLOSION')
-    if total == 0:
-        return {'status': 'EMPTY_RESULT', 'how': how, 'n_left': lrows, 'n_right': rrows, 'message': 'the join has no rows (no key matched); a table needs at least one row, so no artifact is written'}
+    # Account for fixed-width payloads before index lists, gathers or label unification.
+    projected = 1024 * 1024
+    for c in ln:
+        width = lraw[lindex[c]].dtype.itemsize
+        if p['key_shared'] and c in lk:
+            partner = rk[lk.index(c)]
+            lm, rm = lmeta[c], rmeta[partner]
+            width = max(width, rraw[rindex[partner]].dtype.itemsize)
+            if lm['dtype'] != rm['dtype'] and {lm['dtype'], rm['dtype']} <= {'category', 'string'}:
+                for meta in (lm, rm):
+                    if meta['dtype'] == 'category':
+                        width = max(width, max((len(v.encode('utf-8')) for v in meta['categories']), default=1))
+        projected += total * (width + 1)
+    for c in rn:
+        if not (p['key_shared'] and c in rk):
+            projected += total * (rraw[rindex[c]].dtype.itemsize + 1)
+    if projected > TABLE_BYTES:
+        raise OutputTooLarge('join fixed-width output would require %d bytes (limit 256MiB)' % projected)
     li, ri = [], []
 
     def left_driven(unmatched_left):
@@ -363,14 +416,25 @@ def frame_merge(p):
             lm, rm = lmeta[c], rmeta[partner]
             same_kind = lm['dtype'] == rm['dtype'] and (lm['dtype'] != 'category' or lm.get('categories') == rm.get('categories'))
             use_left = li >= 0
-            if same_kind and lm['dtype'] != 'string':
+            if lm['dtype'] == rm['dtype'] == 'category':
+                levels = list(lm['categories'])
+                seen = set(levels)
+                for level in rm['categories']:
+                    if level not in seen:
+                        seen.add(level); levels.append(level)
+                codes = {v: i for i, v in enumerate(levels)}
+                remap = np.asarray([codes[v] for v in rm['categories']], dtype=np.int64)
+                mapped = remap[np.maximum(rraw_c, 0)] if len(remap) else np.full(total, -1, dtype=np.int64)
+                raw = np.where(use_left, raw, mapped)
+                meta = dict(lm, categories=levels, ordered=bool(lm.get('ordered') and rm.get('ordered') and lm['categories'] == rm['categories']))
+            elif same_kind and lm['dtype'] != 'string':
                 raw = np.where(use_left, raw, rraw_c)
             else:
                 labels = []
                 for r in range(total):
                     side = (lm, raw, mask) if use_left[r] else (rm, rraw_c, rmask_c)
                     labels.append(b'' if side[2][r] else (side[0]['categories'][int(side[1][r])].encode('utf-8') if side[0]['dtype'] == 'category' else bytes(side[1][r])))
-                width = max(1, max(len(v) for v in labels))
+                width = max(1, max((len(v) for v in labels), default=1))
                 raw = np.asarray(labels, dtype='S%d' % width)
                 meta = {'dtype': 'string'}
             mask = np.where(use_left, mask, rmask_c)
@@ -402,10 +466,14 @@ def s8_windows(np, p, n, raws, masks, names, cmeta):
         if masks[on].any():
             raise BadData('the datetime column %s holds missing values' % p['on'])
         times = raws[on].astype(np.int64)
-        if (np.diff(times) < 0).any():
+        if (times[1:] < times[:-1]).any():
             raise BadData('the datetime column %s must be sorted ascending' % p['on'], 'NOT_SORTED')
         span = int(round(p['time_window_seconds'] * 1e9))
-        start = np.searchsorted(times, times - span, side='right')
+        lower = np.iinfo(np.int64).min
+        thresholds = np.asarray([max(lower, int(t) - span) for t in times], dtype=np.int64)
+        start = np.searchsorted(times, thresholds, side='right')
+        # NaT (INT64_MIN) cannot occur in this complete datetime column.
+        start = np.minimum(start, rows)
         return start.astype(np.int64), rows.astype(np.int64)
     w = p['window']
     if p['center']:
@@ -428,11 +496,13 @@ def frame_rolling(p):
     added = []
 
     def body():
-        wmax = int(widths.max())
+        wmax = max(1, int(widths.max()) if n else 1)
         step = max(1, 2_000_000 // wmax)
         for column in p['columns']:
             i = index[column]
             values, _ = s8_float_column(np, cmeta[column], raws[i], masks[i], column)
+            if np.isinf(values[~masks[i]]).any():
+                raise BadData('rolling refuses unmasked infinite values', 'NON_FINITE')
             values = np.where(masks[i] | np.isnan(values), np.nan, values)  # a missing value and a NaN are both skipped
             padded = np.concatenate([values, [np.nan]])
             results = {f: np.full(n, np.nan) for f in functions}
@@ -448,7 +518,7 @@ def frame_rolling(p):
                 c = present.sum(axis=1)
                 counts[a:b] = c
                 with np.errstate(all='ignore'):
-                    zero = np.where(present, window, 0.0)
+                    zero = np.where(present, window, 0.0).astype(np.longdouble)
                     total = zero.sum(axis=1)
                     mean = total / np.maximum(c, 1)
                     for f in functions:
@@ -457,7 +527,7 @@ def frame_rolling(p):
                         elif f == 'mean':
                             r = mean
                         elif f in ('std', 'var'):
-                            dev = np.where(present, window - mean[:, None], 0.0)
+                            dev = np.where(present, window.astype(np.longdouble) - mean[:, None], 0.0)
                             var = (dev * dev).sum(axis=1) / np.maximum(c - 1, 1)
                             r = np.sqrt(var) if f == 'std' else var
                         elif f == 'min':
@@ -472,14 +542,17 @@ def frame_rolling(p):
                         else:
                             continue
                         need = max(minimum, 2 if f in ('std', 'var') else 1)
-                        results[f][a:b] = np.where(c >= need, r, np.nan)
+                        valid_result = c >= need
+                        if not np.isfinite(np.asarray(r[valid_result], dtype=float)).all():
+                            raise BadData('rolling %s exceeds representable float64 range' % f, 'NON_FINITE')
+                        results[f][a:b] = np.where(valid_result, r, np.nan)
             for f in functions:
                 name = '%s__%s' % (column, f)
                 added.append(name)
                 out_names.append(name)
                 if f == 'count':
                     out_raw.append(counts.astype('<i8'))
-                    out_mask.append(np.zeros(n, dtype=bool))
+                    out_mask.append(counts < minimum)
                     out_meta[name] = {'dtype': 'int64'}
                 else:
                     r = results[f]
@@ -606,9 +679,15 @@ def ml_metrics(p):
     if scored:
         yt, score = cols['y_true'], np.asarray(cols['y_score'], dtype=float)
         classes = s8_order(yt)
+        if not np.isfinite(score).all():
+            raise BadData('y_score must contain only finite values', 'BAD_DATA')
+        if ('log_loss' in scored or 'brier' in scored) and ((score < 0) | (score > 1)).any():
+            raise BadData('y_score must be a probability in [0,1]', 'BAD_DATA')
         pos = p.get('pos_label')
+        if pos is not None and pos not in classes:
+            raise BadData('explicit pos_label does not occur among true labels', 'BAD_PARAM')
         if pos is None:
-            if not set(classes) <= {0, 1}:
+            if len(classes) <= 2 and not set(classes) <= {0, 1}:
                 raise BadData('scored metrics need pos_label for labels other than 0/1', 'BAD_PARAM')
             pos = 1
         result['pos_label'] = pos
@@ -637,26 +716,37 @@ def ml_metrics(p):
             if 'brier' in scored:
                 metrics['brier'] = float(np.mean((score - target) ** 2))
     if regression:
-        yt = np.asarray(cols['y_true'], dtype=float)
-        yp = np.asarray(cols['y_pred'], dtype=float)
+        if 'frame_file' in p:
+            for key in ('y_true', 'y_pred'):
+                c, i = p[key], index[p[key]]
+                s8_float_column(np, cmeta[c], raws[i], masks[i], c)
+        yt = np.asarray(cols['y_true'], dtype=np.longdouble)
+        yp = np.asarray(cols['y_pred'], dtype=np.longdouble)
         if not (np.isfinite(yt).all() and np.isfinite(yp).all()):
             raise BadData('regression metrics need finite values', 'NA_NOT_ALLOWED')
         error = yt - yp
         if 'mse' in regression:
-            metrics['mse'] = float(np.mean(error * error))
+            metrics['mse'] = np.mean(error * error)
         if 'mae' in regression:
-            metrics['mae'] = float(np.mean(np.abs(error)))
+            metrics['mae'] = np.mean(np.abs(error))
         if 'r2' in regression:
-            total = float(np.sum((yt - yt.mean()) ** 2))
-            if total == 0:
+            total = np.sum((yt - yt.mean()) ** 2)
+            if (yt == yt[0]).all():
                 undefined['r2'] = 'y_true is constant (zero total variance)'
             else:
-                metrics['r2'] = 1.0 - float(np.sum(error * error)) / total
+                metrics['r2'] = 1.0 - np.sum(error * error) / total
         if 'mape' in regression:
             if (yt == 0).any():
                 undefined['mape'] = 'y_true contains %d zero(s)' % int((yt == 0).sum())
             else:
-                metrics['mape'] = float(np.mean(np.abs(error / yt)))
+                metrics['mape'] = np.mean(np.abs(error / yt))
+    for name, value in list(metrics.items()):
+        converted = float(value)
+        if not np.isfinite(converted) or (converted == 0 and value != 0):
+            undefined[name] = 'result is outside representable float64 range'
+            del metrics[name]
+        else:
+            metrics[name] = converted
     result['metrics'] = {m: metrics[m] for m in wanted if m in metrics and m != 'confusion_matrix'}
     result['undefined'] = {m: undefined[m] for m in wanted if m in undefined}
     result['status'] = 'UNDEFINED' if undefined else 'OK'
@@ -704,5 +794,15 @@ def stats_rvs(p):
 
 
 def s8_operation(name):
-    return {'frame_to_array': frame_to_array, 'frame_to_array_to': frame_to_array, 'array_to_frame': array_to_frame, 'frame_mutate': frame_mutate,
+    operation = {'frame_to_array': frame_to_array, 'frame_to_array_to': frame_to_array, 'array_to_frame': array_to_frame, 'frame_mutate': frame_mutate,
             'frame_merge': frame_merge, 'frame_rolling': frame_rolling, 'ml_metrics': ml_metrics, 'stats_dist': stats_rvs, 'stats_dist_to': stats_rvs}[name]
+    if name in ('frame_mutate', 'frame_rolling'):
+        return operation  # these bodies already establish the budget once
+    def guarded(p):
+        result = s7_guard(p, lambda: operation(p))
+        if result is None:
+            if p.get('output_file') and os.path.exists(p['output_file']):
+                os.unlink(p['output_file'])
+            return {'status': 'TIME_LIMIT'}
+        return result
+    return guarded
