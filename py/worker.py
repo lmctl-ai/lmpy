@@ -229,15 +229,9 @@ def lstsq(p):
               'singular_values': [float(v) for v in singular], 'residues': [float(v) for v in residues],
               'residual_norm': float(np.linalg.norm(residual)), 'driver': driver}
     if p.get('output_prefix'):
-        items = [('x', x)]
-        # <=1000 numbers inline: when the vectors do not fit, they go into the artifact and only a summary stays inline.
-        if len(result['residues']) + len(result['singular_values']) > 1000:
-            result['residues_count'] = len(residues)
-            result['residues_sum'] = float(residues.sum())
-            result['residues_max'] = float(residues.max())
-            result['singular_values_count'] = len(singular)
-            items += [('residues', residues), ('singular_values', np.asarray(singular, dtype=float))]
-            del result['residues'], result['singular_values']
+        items=[('x',x),('residues',residues),('singular_values',np.asarray(singular,dtype=float))]
+        result.update(residues_count=len(residues),residues_sum=float(residues.sum()),residues_max=float(residues.max()),singular_values_count=len(singular))
+        del result['residues'],result['singular_values']
         result['outputs'] = save_outputs(p, items)
     elif x.size <= 1000:
         result['x'] = x.tolist()

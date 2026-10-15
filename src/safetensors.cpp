@@ -123,5 +123,5 @@ std::string write_bundle(const std::string&path,const TensorBundle&bundle){
 
 }
 std::string write_tensor(const std::string&path,const TensorData&t){TensorBundle b;b.tensors.emplace("tensor",t);return write_bundle(path,b);}
-lmcpp::Json descriptor(const TensorRef&ref,const TensorData&t){return{{"ref",ref.path+"#"+ref.key},{"path",ref.path},{"key",ref.key},{"dtype",t.dtype},{"shape",t.shape},{"nbytes",t.bytes.size()}};}
+lmcpp::Json descriptor(const TensorRef&ref,const TensorData&t){return{{"format","safetensors"},{"ref",ref.path+"#"+ref.key},{"path",ref.path},{"key",ref.key},{"dtype",t.dtype},{"shape",t.shape},{"nbytes",t.bytes.size()}};}
 }

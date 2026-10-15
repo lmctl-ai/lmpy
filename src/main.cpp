@@ -215,14 +215,15 @@ void check_key(const std::string& key){
     if(!ok||key.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-")!=std::string::npos)invalid("key must match [A-Za-z_][A-Za-z0-9_.-]{0,63}","BAD_KEY");
 }
 std::string output_path(const Params& p){auto out=confined(p["out"],true);if(fs::path(out).extension()!=".safetensors")invalid("out must end in .safetensors","BAD_REF");return out;}
+Json file_descriptor(const std::string& path,const std::string& format){return {{"ref",path},{"path",path},{"format",format},{"key",nullptr},{"dtype",nullptr},{"shape",nullptr},{"nbytes",fs::file_size(path)}};}
+void artifact_tensors(Json& result,const std::string& path,const pycli::TensorBundle& bundle){Json descriptors=Json::object();for(const auto& entry:bundle.tensors){descriptors[entry.first]=pycli::descriptor({path,entry.first},entry.second);result.erase(entry.first);}result["artifacts"]=descriptors;result["outputs_in_artifact"]=true;}
 Json array_import(const Params& p){
     std::string key=p["key"];check_key(key);if(key=="__metadata__")invalid("reserved key","BAD_KEY");
     auto out=output_path(p);auto a=import_source(p);
     if(p["na"]=="error"&&!a.missing.empty())invalid("input contains "+std::to_string(a.missing.size())+" missing (NA/null/empty) values; use na=nan to store NaN","NA_NOT_ALLOWED");
     pycli::TensorData tensor;tensor.dtype="F64";tensor.shape=a.shape;tensor.bytes.resize(a.data.size()*8);std::memcpy(tensor.bytes.data(),a.data.data(),tensor.bytes.size());
     pycli::TensorBundle bundle;bundle.tensors[key]=tensor;pycli::write_bundle(out,bundle);
-    Json result=pycli::descriptor({out,key},tensor);auto summary=summarize(a);
-    for(auto it=summary.begin();it!=summary.end();++it)result[it.key()]=it.value();
+    Json result=summarize(a);result["artifacts"]={{key,pycli::descriptor({out,key},tensor)}};result["outputs_in_artifact"]=true;
     result["source_dtype"]=a.dtype;result["na_count"]=a.missing.size();return result;
 }
 Json array_inspect(const Params& p){
@@ -269,11 +270,17 @@ pycli::TensorBundle read_outputs(TempDir& temp,Json& result,size_t maximum=8){
     }
     result.erase("outputs");return bundle;
 }
+Json diagnostic_value(const Json& value,size_t& left,int depth=0){
+ if(depth>12)return {{"omitted",true}};
+ if(value.is_string()){std::string text=value;return text.size()>4096?Json(text.substr(0,4096)+" [truncated]"):value;}
+ if(value.is_array()){if(value.size()>256||value.size()>left)return {{"omitted",true},{"count",value.size()}};left-=value.size();Json out=Json::array();for(auto& item:value)out.push_back(diagnostic_value(item,left,depth+1));return out;}
+ if(value.is_object()){Json out=Json::object();for(auto it=value.begin();it!=value.end();++it)out[it.key()]=diagnostic_value(it.value(),left,depth+1);return out;}
+ return value;
+}
 [[noreturn]] void no_artifact(const Json& result,const char* message){
-    Json data={{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}};
-    // Keep whatever the worker measured so a caller can tell 1e-8 from 0.9.
-    for(const char* field:{"kind","driver","message","reconstruction_error","rank","residual_norm","scipy_status","highs_model_status","has_primal","iterations_available","iterations"})if(result.contains(field))data[field]=result[field];
-    throw Error{ErrorCode::CommandFailed,message,data};
+ Json data={{"tool_code",result.value("status",std::string("PY_ERROR"))}};size_t elements=900,bytes=0;
+ for(auto it=result.begin();it!=result.end();++it){if(it.key()=="outputs"||it.key()=="model_metadata"||it.key()=="artifacts"||it.key()=="tensors")continue;auto value=diagnostic_value(it.value(),elements);size_t count=value.dump().size();if(bytes+count>48000)value={{"omitted",true}};else bytes+=count;data[it.key()]=value;}
+ throw Error{ErrorCode::CommandFailed,result.value("message",std::string(message)),data};
 }
 // The binding rule is <=1000 numbers inline per result: count every array element (shapes, meta and warnings aside).
 size_t inline_numbers(const Json& v,const std::string& key=""){
@@ -624,39 +631,41 @@ Json call(const std::string& op,const Params& input){
         if(op=="ml_fit"&&result.contains("model_metadata")){
             auto bundle=read_outputs(temp,result,32);bundle.metadata=result["model_metadata"].get<std::map<std::string,std::string>>();ml_model_info(bundle,false);result.erase("model_metadata");
             if(inline_numbers(result)>MAX_INLINE||result.dump().size()>65536)output_too_large("ML summary exceeds budget");
-            pycli::write_bundle(path,bundle);result["model"]={{"ref",path},{"nbytes",fs::file_size(path)}};
+            pycli::write_bundle(path,bundle);result["artifacts"]={{"model",file_descriptor(path,"safetensors")}};result["outputs_in_artifact"]=true;
         }else{
             auto output=temp.file("table.npz");if(!fs::is_regular_file(output))no_artifact(result,"ML operation produced no prediction artifact");frames::npz(frames::bounded_read(output));
             if(inline_numbers(result)>MAX_INLINE||result.dump().size()>65536)output_too_large("ML summary exceeds budget");
-            frames::install(output,path);result["artifact"]={{"ref",path},{"path",path},{"nbytes",fs::file_size(path)}};
+            frames::install(output,path);result["artifacts"]={{"table",file_descriptor(path,"npz")}};result["outputs_in_artifact"]=true;
         }
     }
     if(op=="py_info")result["worker_sha256"]=PYCLI_WORKER_SHA256;
-    if(op=="la_solve_to"&&result.value("status",std::string())!="OK")throw Error{ErrorCode::CommandFailed,"solve produced no artifact",{{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}}};
+    if(op=="la_solve_to"&&result.value("status",std::string())!="OK")no_artifact(result,"solve produced no artifact");
     if(op=="la_solve_to"){
         pycli::TensorData tensor;tensor.dtype="F64";tensor.shape=result["shape"].get<std::vector<int64_t>>();size_t n=1;for(auto d:tensor.shape){if(d<=0||static_cast<uint64_t>(d)>MAX_NUMBERS||n>MAX_NUMBERS/d)throw std::runtime_error("worker output shape exceeds limit");n*=d;}
         auto output=temp.file("output.bin");if(fs::file_size(output)!=n*8)throw std::runtime_error("worker output size mismatch");tensor.bytes.resize(n*8);std::ifstream f(output,std::ios::binary);f.read(reinterpret_cast<char*>(tensor.bytes.data()),n*8);
-        pycli::TensorBundle bundle;bundle.tensors["x"]=tensor;auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);result.erase("shape");result["x"]=pycli::descriptor({path,"x"},tensor);
+        pycli::TensorBundle bundle;bundle.tensors["x"]=tensor;auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);result.erase("shape");artifact_tensors(result,path,bundle);
     }
     if(op=="la_lstsq_to"||op=="la_decomp"||sm_twin||s7_write){
         std::string status=result.value("status",std::string());
         if(status!="OK"&&!((op=="la_lstsq_to"||sm_twin)&&status=="RANK_DEFICIENT"))no_artifact(result,"no artifact was produced");
-        auto bundle=read_outputs(temp,result);auto path=p["out"].get<std::string>();pycli::write_bundle(path,bundle);
-        Json tensors=Json::object();
-        for(const auto& entry:bundle.tensors)if(op!="la_lstsq_to"||entry.first!="x")tensors[entry.first]=pycli::descriptor({path,entry.first},entry.second);
-        if(op=="la_lstsq_to")result["x"]=pycli::descriptor({path,"x"},bundle.tensors.at("x"));
-        if(op=="la_decomp"||!tensors.empty())result["tensors"]=tensors;
+        auto bundle=read_outputs(temp,result);auto path=p["out"].get<std::string>();
+        if(op=="interp_eval_to"&&input["extrapolate"]=="nan"){
+            const auto& x=arrays.at("x");const auto& q=arrays.at("x_new");size_t dim=input["kind"]=="rbf"?size_t(x.shape[1]):1,n=x.data.size()/dim,m=q.data.size()/dim;
+            std::vector<double> lo(dim,INFINITY),hi(dim,-INFINITY);for(size_t i=0;i<n;++i)for(size_t j=0;j<dim;++j){lo[j]=std::min(lo[j],x.data[i*dim+j]);hi[j]=std::max(hi[j],x.data[i*dim+j]);}
+            const auto& values=bundle.tensors.at("values");if(values.dtype!="F64"||values.shape!=std::vector<int64_t>{int64_t(m)})throw std::runtime_error("invalid interpolation output shape");
+            for(size_t i=0;i<m;++i){bool outside=false;for(size_t j=0;j<dim;++j)outside=outside||q.data[i*dim+j]<lo[j]||q.data[i*dim+j]>hi[j];double v;std::memcpy(&v,values.bytes.data()+8*i,8);if(outside?!std::isnan(v):!std::isfinite(v))throw std::runtime_error("invalid interpolation extrapolation mask");}
+        }
+        pycli::write_bundle(path,bundle);
+        artifact_tensors(result,path,bundle);
     }
     if(s4){
-        if(result.contains("dual_keys")){Json duals=Json::object();for(const auto& k:result["dual_keys"]){auto key=k.get<std::string>();duals[key]=result["dual_"+key];result.erase("dual_"+key);}result.erase("dual_keys");result["duals"]=duals;}
+        if(result.contains("dual_keys")&&!s4_write){Json duals=Json::object();for(const auto& k:result["dual_keys"]){auto key=k.get<std::string>();duals[key]=result["dual_"+key];result.erase("dual_"+key);}result.erase("dual_keys");result["duals"]=duals;}
         if(result.contains("outputs")){
             if(!s4_write)output_too_large("use the _to operation for S4 artifact output");
-            auto bundle=read_outputs(temp,result);Json descriptors=Json::object();for(const auto& item:bundle.tensors)descriptors[item.first]=pycli::descriptor({s4_out,item.first},item.second);
-            auto replace=[&](Json& value){if(value.is_object()&&value.size()==1&&value.contains("tensor")){auto key=value["tensor"].get<std::string>();if(!descriptors.contains(key))throw std::runtime_error("missing S4 output tensor");value=descriptors[key];}};
-            for(auto it=result.begin();it!=result.end();++it){replace(it.value());if(it.key()=="duals")for(auto d=it.value().begin();d!=it.value().end();++d)replace(d.value());}
-            result["artifact"]={{"path",s4_out},{"ref",s4_out}};
+            auto bundle=read_outputs(temp,result);
+            for(auto it=result.begin();it!=result.end();){if(it.value().is_object()&&it.value().contains("tensor"))it=result.erase(it);else ++it;}
+            result.erase("duals");result.erase("dual_keys");pycli::write_bundle(s4_out,bundle);artifact_tensors(result,s4_out,bundle);
             if(inline_numbers(result)>MAX_INLINE||result.dump().size()>65536)output_too_large("S4 inline result exceeds budget");
-            pycli::write_bundle(s4_out,bundle);result["artifact"]["nbytes"]=fs::file_size(s4_out);
         }else if(s4_write)no_artifact(result,"no primal/artifact was produced");
         if(result.dump().size()>65536)output_too_large("S4 inline response exceeds 64KiB");
     }
@@ -664,7 +673,7 @@ Json call(const std::string& op,const Params& input){
         auto output=p["output_file"].get<std::string>();if(!fs::is_regular_file(output))no_artifact(result,"frame operation produced no artifact");
         if(op!="frame_export"){try{frames::npz(frames::bounded_read(output));}catch(const Error&){throw Error{ErrorCode::InternalError,"worker produced invalid table artifact",{{"tool_code","BAD_TABLE_OUTPUT"}}};}}
         size_t shown=inline_numbers(result);if(shown>MAX_INLINE)output_too_large("table summary exceeds 1000 cells");
-        frames::install(output,table_output);result["artifact"]={{"ref",table_output},{"path",table_output},{"nbytes",fs::file_size(table_output)}};
+        frames::install(output,table_output);result["artifacts"]={{op=="frame_export"?"export":"table",file_descriptor(table_output,op=="frame_export"?p["format"].get<std::string>():"npz")}};result["outputs_in_artifact"]=true;
     }
     if(frame&&result.dump().size()>65536)output_too_large("inline frame response exceeds 64KiB");
     size_t shown=inline_numbers(result);
