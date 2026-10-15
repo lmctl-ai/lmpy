@@ -88,6 +88,10 @@ class ML(unittest.TestCase):
   self.fit('ridge',{'g':['a'+str(i) for i in range(64)],'y':list(range(64))},['g'],'y',preprocess={'scale':False,'one_hot':['g']})
   (self.cwd/'onehot.csv').write_text('g\n'+'a0\n'*4000)
   self.call('ml_predict',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),model='ridge.safetensors',csv='onehot.csv',out='bad2.npz')
+ def test_classification_score_overflow_is_not_a_label(self):
+  self.fit('gaussian_nb',{'x':[-2e-150,-1e-150,1e-150,2e-150],'y':[0,0,1,1]},['x'],'y')
+  r=self.predict('gaussian_nb.safetensors',{'x':[1e12]},rc=1)
+  self.assertEqual(r['error']['data']['tool_code'],'NUMERICAL_FAILURE');self.assertFalse((self.cwd/'pred.npz').exists())
  def test_wide_preview_budget(self):
   cols={"f"+str(i):list(range(15)) for i in range(64)}
   r=self.fit('standard_scaler',cols,list(cols));self.assertLess(len(json.dumps(r)),65536)
