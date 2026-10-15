@@ -1,7 +1,7 @@
 // S4 closed validators. Caller expressions are parsed here; no caller source crosses the child boundary.
 #pragma once
 constexpr size_t LP_VARIABLES=512, LP_ROWS=4096, LP_ENTRIES=200000, ODE_STATES=32, ODE_POINTS=10000, S4_OUTPUT_NUMBERS=200000;
-double s4_number(const Json& p,const char* key,double low,double high){double x=p.at(key).get<double>();if(!std::isfinite(x)||x<low||x>high)bad_param(std::string(key)+" out of range");return x;}
+double s4_number(const Json& p,const char* key,double low,double high){if(!p.at(key).is_number())bad_param(std::string(key)+" must be a number");double x=p.at(key).get<double>();if(!std::isfinite(x)||x<low||x>high)bad_param(std::string(key)+" out of range");return x;}
 Json prepare_linprog(const Params& in,std::map<std::string,Array>& arrays){
  Json p=in;arrays["c"]=load(in.at("c"));const auto& c=arrays["c"];if(c.shape.size()!=1||c.data.size()>LP_VARIABLES)invalid("LP needs 1..512 variables","INPUT_TOO_LARGE");need_finite(c,"c");size_t n=c.data.size(),entries=0,rows=0;
  for(auto suffix:{"ub","eq"}){std::string a="a_"+std::string(suffix),b="b_"+std::string(suffix);if(in.contains(a)!=in.contains(b))bad_param(a+" and "+b+" must be supplied together");if(!in.contains(a))continue;
