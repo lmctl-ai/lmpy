@@ -484,3 +484,73 @@ How the hull caps were chosen: with the first draft caps (convex hull d=4 n=5000
 (`TIMEOUT`) or died on the 2 M-number output limit. The caps now in force (README) keep every measured worst case under 13 s, and the worker fails cleanly with
 `OUTPUT_TOO_LARGE` above 1.9 M numbers. The probe script still lists the old sizes for the point-cap groups `hull` and `tri`; they now print `INPUT_TOO_LARGE`, which
 is the proof that the front end refuses them before any process starts.
+
+
+## S7 review fixes: sequential measurements, 2026-10-15
+
+AArch64 runtime `sha256:91704d190d8992b8831320d840f0c258fc7519df30790f30b227bbafdb2ca630`:
+Docker inspect `.Size` **136,513,714 bytes**, **+6,014 bytes** over the reviewed S7
+image's measured 136,507,700 (the old document's 136,507,587 was 113 bytes stale).
+No wheels or runtime dependencies changed. Import groups remain lazy.
+
+`scripts/measure-s7.py pycli:runtime` ran sequentially, ten fresh shim/container
+calls per case, with no concurrent build, test or recipe workloads. Host filesystem
+cache was warm. Production shim: 2 CPUs, 4 GiB, pids128, init, network none,
+read-only rootfs, all caps dropped, no-new-privileges, default seccomp, private
+512 MiB tmpfs, one BLAS thread. p95 here is the largest of ten observations,
+not a population-tail estimate. These are fresh measurements, not a controlled
+before/after speed comparison. Raw: `measurement-s7-review-shim.json`.
+
+| Case | Complete shim wall p50 / p95 (ms) | Worker import p50 (ms) |
+|---|---:|---:|
+| py_info | 641.832 / 666.792 | 111.035 |
+| interp_eval_pchip_40 | 1064.698 / 1118.450 | 460.972 |
+| interp_eval_rbf_40 | 1049.591 / 1060.993 | 448.768 |
+| sig_filter_butter8_400 | 1420.173 / 1593.414 | 759.648 |
+| sig_spectrum_welch_400 | 1411.521 / 1469.043 | 759.853 |
+| sig_peaks_400 | 1407.857 / 1430.057 | 757.591 |
+| spatial_knn_60 | 963.852 / 1118.274 | 385.457 |
+| spatial_hull_delaunay_60 (30 points) | 978.194 / 1318.746 | 378.505 |
+| spatial_dist_60 (20 x 20 pairs) | 942.463 / 966.787 | 375.945 |
+
+Resource regressions ran separately in fresh containers with the same hardening.
+`scripts/measure-s7-review.py CASE` creates its inputs, times the CLI inside the
+container (includes child imports; **excludes Docker startup**), then removes inputs
+and output. Child RSS is Linux RUSAGE_CHILDREN high-water KiB, including process
+startup; it is not total cgroup memory. Raw: `measurement-s7-review-resources.json`.
+
+| Case | Direct CLI seconds | Exit / result | Child max RSS (KiB) |
+|---|---:|---|---:|
+| knn_preflight | 0.007399 | 1 / OUTPUT_TOO_LARGE | 27740 |
+| knn_at_output_cap | 1.177887 | 0 / OK | 93336 |
+| peaks_inline | 1.138658 | 1 / OUTPUT_TOO_LARGE | 113912 |
+| peaks_write | 1.178034 | 2 / BAD_PARAM | 113916 |
+| peaks_windowed | 1.209331 | 0 / OK | 117908 |
+| radius_dense | 0.751389 | 1 / OUTPUT_TOO_LARGE | 94452 |
+
+`knn_preflight` is the 200000-point, k1000 former-OOM request; it is refused before
+Python. The accepted boundary is 950 queries x k1000 x two arrays = 1.9M numbers
+(15.2 MB payload). The 200000-sample monotone saw has 99999 candidates: inline
+refuses before prominence work, write without wlen refuses its work budget, while
+explicit wlen199 performs <=19.9M candidate-window work and writes all properties.
+`radius_dense` uses 200000 coincident points, radius1, max_pairs100000 in write mode:
+it stops on the first query once the cap is exceeded, without counting all pairs.
+No resource probe crashed or timed out; every container completed within its enforced
+4 GiB limit. RSS samples do not measure aggregate cgroup peak.
+
+Reproduce a resource case (create a fresh writable `measure-work` below HOME):
+
+```sh
+docker run --rm --pull=never --init --network=none --cpus=2 --memory=4g --pids-limit=128 \
+  --read-only --cap-drop=ALL --security-opt=no-new-privileges --user "$(id -u):$(id -g)" \
+  --tmpfs /tmp:rw,noexec,nosuid,nodev,size=512m \
+  --mount "type=bind,src=$PWD/measure-work,dst=/work" \
+  --mount "type=bind,src=$PWD/scripts/measure-s7-review.py,dst=/probe.py,readonly" \
+  -w /work --entrypoint python3 pycli:runtime /probe.py knn_at_output_cap
+```
+
+Historical S7 cap timings above used the earlier budget policy. Guarded S3–S7
+operations now share time_limit seconds (default10, >0..30); a historical native
+case taking >10 seconds may now return TIME_LIMIT unless given a larger explicit
+budget. The independent <=50-second whole-child limit still includes imports.
+No amd64 execution is claimed.

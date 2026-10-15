@@ -34,3 +34,32 @@ subtests plus 10 errors); 6542b3f added the independently failing SOS precision 
 Coverage-only numerical/doc fixtures that were already correct pass on baseline;
 the schema assertions fail until its false claims are corrected. Resource guards
 are tested both at the front-end boundary and by instrumenting expensive worker calls.
+
+Follow-up red regressions caught and fixed two search-boundary defects during this
+work: high-p radius neighborhoods larger than 32 must not truncate to one chunk
+(98742d2 / 3ab0deb), and arbitrary coordinate scaling must not lose inclusive
+radius membership one binary64 spacing away (0cdaca3 / 7d706ed). Scaling now uses
+an exact power of two. Full acceptance also caught a mechanical migration of one
+read-only least-squares test to write descriptors; 12eab93 restores its inline
+residue assertion. Runtime read behavior was unchanged.
+
+The final source-gate failure was a bare banned word inside an allocation error
+message, not a dynamic-code call; 4758e23 renames that message and leaves the S0
+grep assertion unchanged. Test-image CTest now runs four independent groups
+concurrently on this four-CPU host; performance measurements remain
+sequential with no competing build/test/recipe workload. Resource and per-call
+measurements are recorded in docs/timings.md with raw JSON.
+
+The initial four-way acceptance passed 29/30 groups and reproduced one existing S4 timing-sensitive assertion: its 1 ms
+budget sometimes expires before entering HiGHS, returning honest TIME_LIMIT without
+highs_model_status. The S4 review group is now RUN_SERIAL, preserving every assertion
+and avoiding competing test CPU load. Other groups continue with parallelism four.
+
+Final acceptance: `./scripts/build.sh test` exit0; offline production test image
+30/30 CTest groups passed, exit0 (502.99s); runtime rebuild exit0; all 17 recipes
+passed real/check/dry-run through the hardened host shim, 51/51 exit0. The isolated
+S4 review group passed unchanged, including native HiGHS model status13. Both
+images' production CLI binaries have identical SHA256. See acceptance-s7-review.json
+for image IDs, source/worker hashes, commands and per-recipe results. Resource and
+sequential timing drivers exited0; deliberate validation/domain refusals have the
+expected exit1/2 and are enumerated in their raw JSON.

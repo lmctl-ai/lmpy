@@ -1,0 +1,342 @@
+{
+  "implementation_commit": "4758e23",
+  "test_scheduling_commit": "ad58a88",
+  "commands": [
+    {
+      "command": "./scripts/build.sh test",
+      "exit_code": 0
+    },
+    {
+      "command": "docker run --rm --pull=never --network=none pycli:test",
+      "exit_code": 0,
+      "groups": 30,
+      "failed": 0,
+      "seconds": 502.99
+    },
+    {
+      "command": "./scripts/build.sh runtime",
+      "exit_code": 0
+    }
+  ],
+  "runtime_image": "sha256:91704d190d8992b8831320d840f0c258fc7519df30790f30b227bbafdb2ca630",
+  "runtime_image_bytes": 136513714,
+  "test_image": "sha256:f98229426719e4257636d252b483ad0280dcfbbab0dfee0d716301d110d52d4e",
+  "production_binary_sha256": "d731b555ea538f9b815ddc258a05e6b3195669fb7990a534e3f76a773bb6817b",
+  "runtime_test_production_binaries_identical": true,
+  "worker_sha256": "c4c6dab37324a4c1d966ca646f8b322379bad158108312bcb96818544cfff651",
+  "architecture": "aarch64",
+  "ctest_parallelism": 4,
+  "serial_groups": [
+    "s4_review"
+  ],
+  "recipes": [
+    {
+      "recipe": "curve-fit.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.162
+    },
+    {
+      "recipe": "curve-fit.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.207
+    },
+    {
+      "recipe": "curve-fit.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 1.292
+    },
+    {
+      "recipe": "lp-plan.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.155
+    },
+    {
+      "recipe": "lp-plan.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.175
+    },
+    {
+      "recipe": "lp-plan.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.231
+    },
+    {
+      "recipe": "lstsq-fit.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "recipe": "lstsq-fit.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.181
+    },
+    {
+      "recipe": "lstsq-fit.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 1.947
+    },
+    {
+      "recipe": "minimize-rosenbrock.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.154
+    },
+    {
+      "recipe": "minimize-rosenbrock.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.173
+    },
+    {
+      "recipe": "minimize-rosenbrock.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 2.358
+    },
+    {
+      "recipe": "ml-classify-cv.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.157
+    },
+    {
+      "recipe": "ml-classify-cv.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.18
+    },
+    {
+      "recipe": "ml-classify-cv.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 6.533
+    },
+    {
+      "recipe": "ode-sir.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.158
+    },
+    {
+      "recipe": "ode-sir.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.177
+    },
+    {
+      "recipe": "ode-sir.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 1.334
+    },
+    {
+      "recipe": "oracle-interp.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.167
+    },
+    {
+      "recipe": "oracle-interp.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.198
+    },
+    {
+      "recipe": "oracle-interp.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 11.604
+    },
+    {
+      "recipe": "oracle-kmeans.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.158
+    },
+    {
+      "recipe": "oracle-kmeans.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.177
+    },
+    {
+      "recipe": "oracle-kmeans.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.379
+    },
+    {
+      "recipe": "oracle-ml-linear.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.174
+    },
+    {
+      "recipe": "oracle-ml-linear.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.192
+    },
+    {
+      "recipe": "oracle-ml-linear.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.365
+    },
+    {
+      "recipe": "oracle-sm-arima.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.171
+    },
+    {
+      "recipe": "oracle-sm-arima.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.202
+    },
+    {
+      "recipe": "oracle-sm-arima.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.558
+    },
+    {
+      "recipe": "oracle-sm-glm.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.186
+    },
+    {
+      "recipe": "oracle-sm-glm.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.205
+    },
+    {
+      "recipe": "oracle-sm-glm.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.497
+    },
+    {
+      "recipe": "oracle-sm-regression.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.174
+    },
+    {
+      "recipe": "oracle-sm-regression.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.204
+    },
+    {
+      "recipe": "oracle-sm-regression.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.338
+    },
+    {
+      "recipe": "oracle-spectrum.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.199
+    },
+    {
+      "recipe": "oracle-spectrum.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.216
+    },
+    {
+      "recipe": "oracle-spectrum.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.161
+    },
+    {
+      "recipe": "sales-report.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.157
+    },
+    {
+      "recipe": "sales-report.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.177
+    },
+    {
+      "recipe": "sales-report.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 6.3
+    },
+    {
+      "recipe": "sig-denoise-peaks.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "recipe": "sig-denoise-peaks.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.183
+    },
+    {
+      "recipe": "sig-denoise-peaks.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 4.559
+    },
+    {
+      "recipe": "solve.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.158
+    },
+    {
+      "recipe": "solve.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.175
+    },
+    {
+      "recipe": "solve.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 2.469
+    },
+    {
+      "recipe": "spatial-neighbours.lms",
+      "mode": "check",
+      "exit_code": 0,
+      "seconds": 0.164
+    },
+    {
+      "recipe": "spatial-neighbours.lms",
+      "mode": "dry-run",
+      "exit_code": 0,
+      "seconds": 0.183
+    },
+    {
+      "recipe": "spatial-neighbours.lms",
+      "mode": "real",
+      "exit_code": 0,
+      "seconds": 3.192
+    }
+  ],
+  "resource_probe_driver_exit_code": 0,
+  "timing_driver_exit_code": 0
+}

@@ -1,8 +1,10 @@
 # pycli
 
-An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 / statsmodels 0.14.6 (S0–S5).
+An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 / statsmodels 0.14.6 / scikit-learn 1.7.2 (S0–S7).
 Each call starts a fresh Python child. The fixed dispatch and validated inputs
 accept no caller code. The Docker container is the isolation boundary.
+All file writes use `result.artifacts[name]` with the same descriptor fields:
+`ref,path,format,key,dtype,shape,nbytes` (full contract below).
 
 | Operation | Access | Inputs | Result |
 |---|---|---|---|
@@ -554,14 +556,14 @@ status is `OK`; a non-OK status of a write form is the error's `tool_code`). Eac
 | Operation | Access | Contract |
 |---|---|---|
 | `interp_eval` | read | `kind` linear / cubic (`bc_type` not-a-knot, natural, clamped, periodic) / pchip / akima / makima / smoothing (`lam`, default GCV) / rbf (`kernel`, `epsilon`, `smoothing`, `degree`; n-D, <=5000 nodes, <=8 dims); evaluate at `x_new`, derivative order `nu` (<=3; linear 1; rbf 0), definite integral `integrate: [a, b]`; `extrapolate` error (default, `BAD_RANGE`) / nan / extend |
-| `interp_eval_to` | write | Same, `values` in the artifact |
+| `interp_eval_to` | write | Requires `x_new`; `values` in the artifact; integral-only calls use `interp_eval` |
 | `sig_filter` | read | IIR design `family` butter / cheby1 / cheby2 / ellip / bessel, `order` 1..20, `btype`, `wn` (Hz with `fs`, else fraction of Nyquist), `rp`, `rs` -> second-order sections only (never `b`/`a`), `max_pole_radius`, `stable`, `marginal`; optional `freqs` -> `magnitude`, `phase`; optional `x` filtered with `sosfilt` (causal) or `sosfiltfilt` (zero phase) |
 | `sig_filter_to` | write | Same, filtered `y` in the artifact (`x` required) |
-| `sig_spectrum` | read | `welch` / `periodogram` / `csd` / `coherence` of `x` (and `y`): `fs`, `window` (13 names), `nperseg` <=65536, `noverlap`, `nfft` <=131072, `detrend`, `scaling` density/spectrum, `average`; `f` and `pxx` (`pxy_re`/`pxy_im`, `cxy`), `df`, `n_segments`, `peak_freq`, `total_power` |
+| `sig_spectrum` | read | `welch` / `periodogram` / `csd` / `coherence` of `x` (and `y`): `fs`, `window` (13 names), `nperseg` <=65536, `noverlap`, `nfft` <=131072, `detrend`, `scaling` density/spectrum, `average`; `f` and `pxx` (`pxy_re`/`pxy_im`, `cxy`), `df`, `n_segments`, `peak_freq`; `total_power` only for Welch/periodogram |
 | `sig_spectrum_to` | write | Same, arrays in the artifact |
 | `sig_peaks` | read | `find_peaks` with `height`, `threshold`, `distance`, `prominence`, `width`, `wlen`, `rel_height`; `indices`, `heights`, `prominences`, `widths` (<=~225 peaks inline) |
 | `sig_peaks_to` | write | Same; status `NO_PEAKS` (no artifact) when nothing qualifies |
-| `spatial_knn` | read | cKDTree exact search: `k` (<=1000) or `radius`, Minkowski `p` in [1, 64] or `"inf"`, `queries` (default: the points themselves, `exclude_self`), `max_pairs`; k-mode `indices`/`distances` (m x k); radius mode CSR `counts`, `indices`, `distances` sorted by distance |
+| `spatial_knn` | read | Exact scaled-tree / stable-brute search: `k` (<=1000) or `radius`, Minkowski `p` in [1, 64] or `"inf"`, `queries` (default: the points themselves, `exclude_self`), `max_pairs`; k-mode `indices`/`distances` (m x k); radius mode CSR `counts`, `indices`, `distances` sorted by distance |
 | `spatial_knn_to` | write | Same, tensors in the artifact |
 | `spatial_hull` | read | QHull `convex_hull` / `delaunay` / `voronoi` in 2..6 dimensions with a fixed option table per kind (never caller-supplied); degenerate input is the status `DEGENERATE` |
 | `spatial_hull_to` | write | Same, simplices / vertices / ridges in the artifact |
@@ -609,5 +611,5 @@ whole child (imports included) at <=50 seconds. Native work also has pre-spawn c
 Interpolation `extrapolate="nan"` permits NaNs **only outside** the node range/bounding
 box, in read and write forms; in-domain nonfinite results are NUMERICAL_FAILURE.
 `interp_eval_to` requires `x_new`; integral-only calls use the read operation.
-Malformed shapes/data use BAD_DATA; invalid parameter values use BAD_PARAM;
+Within S7, malformed shapes/data use BAD_DATA; invalid parameter values use BAD_PARAM;
 input resource caps use INPUT_TOO_LARGE and result budgets OUTPUT_TOO_LARGE.

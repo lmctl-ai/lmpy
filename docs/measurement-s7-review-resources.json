@@ -1,0 +1,214 @@
+{
+  "image": "sha256:91704d190d8992b8831320d840f0c258fc7519df30790f30b227bbafdb2ca630",
+  "image_bytes": 136513714,
+  "cases": [
+    {
+      "case": "knn_preflight",
+      "seconds": 0.007398690999252722,
+      "exit_code": 1,
+      "maxrss_kib": 27740,
+      "result": {
+        "success": false,
+        "error": {
+          "code": "COMMAND_FAILED",
+          "message": "spatial_knn query workspace/output exceeds 1900000 numbers; reduce queries or k",
+          "data": {
+            "tool_code": "OUTPUT_TOO_LARGE"
+          }
+        }
+      }
+    },
+    {
+      "case": "knn_at_output_cap",
+      "seconds": 1.1778868490073364,
+      "exit_code": 0,
+      "maxrss_kib": 93336,
+      "result": {
+        "status": "OK",
+        "n_points": 1000,
+        "n_queries": 950,
+        "p": 2,
+        "search": "scaled_tree",
+        "k": 1000,
+        "empty_outputs": [],
+        "meta": {
+          "python": "3.12.15",
+          "numpy": "2.3.3",
+          "scipy": "1.16.2",
+          "pandas": "unloaded",
+          "sklearn": "unloaded",
+          "statsmodels": "unloaded",
+          "scipy_subpackages": [
+            "spatial"
+          ],
+          "forbidden_modules_loaded": [],
+          "import_ms": 371.2334080191795,
+          "elapsed_ms": 843.106390995672
+        },
+        "warnings": [],
+        "warnings_truncated": false,
+        "artifacts": {
+          "distances": {
+            "format": "safetensors",
+            "ref": "/work/out.safetensors#distances",
+            "path": "/work/out.safetensors",
+            "key": "distances",
+            "dtype": "F64",
+            "shape": [
+              950,
+              1000
+            ],
+            "nbytes": 7600000
+          },
+          "indices": {
+            "format": "safetensors",
+            "ref": "/work/out.safetensors#indices",
+            "path": "/work/out.safetensors",
+            "key": "indices",
+            "dtype": "I64",
+            "shape": [
+              950,
+              1000
+            ],
+            "nbytes": 7600000
+          }
+        },
+        "outputs_in_artifact": true
+      }
+    },
+    {
+      "case": "peaks_inline",
+      "seconds": 1.1386583670100663,
+      "exit_code": 1,
+      "maxrss_kib": 113912,
+      "result": {
+        "success": false,
+        "error": {
+          "code": "COMMAND_FAILED",
+          "message": "peak candidates exceed inline output budget; use sig_peaks_to",
+          "data": {
+            "tool_code": "OUTPUT_TOO_LARGE",
+            "exception": "OutputTooLarge",
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "case": "peaks_write",
+      "seconds": 1.178033512987895,
+      "exit_code": 2,
+      "maxrss_kib": 113916,
+      "result": {
+        "success": false,
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "prominence search exceeds 20000000 candidate*window work; specify a smaller wlen",
+          "data": {
+            "tool_code": "BAD_PARAM",
+            "exception": "BadData",
+            "warnings": []
+          }
+        }
+      }
+    },
+    {
+      "case": "peaks_windowed",
+      "seconds": 1.2093312939978205,
+      "exit_code": 0,
+      "maxrss_kib": 117908,
+      "result": {
+        "status": "OK",
+        "n_peaks": 99999,
+        "n_candidates": 99999,
+        "n_samples": 200000,
+        "rel_height": 0.5,
+        "wlen_used": 199,
+        "empty_outputs": [],
+        "meta": {
+          "python": "3.12.15",
+          "numpy": "2.3.3",
+          "scipy": "1.16.2",
+          "pandas": "unloaded",
+          "sklearn": "unloaded",
+          "statsmodels": "unloaded",
+          "scipy_subpackages": [
+            "interpolate",
+            "signal",
+            "spatial"
+          ],
+          "forbidden_modules_loaded": [],
+          "import_ms": 785.561040014727,
+          "elapsed_ms": 824.4032330112532
+        },
+        "warnings": [],
+        "warnings_truncated": false,
+        "artifacts": {
+          "heights": {
+            "format": "safetensors",
+            "ref": "/work/out.safetensors#heights",
+            "path": "/work/out.safetensors",
+            "key": "heights",
+            "dtype": "F64",
+            "shape": [
+              99999
+            ],
+            "nbytes": 799992
+          },
+          "indices": {
+            "format": "safetensors",
+            "ref": "/work/out.safetensors#indices",
+            "path": "/work/out.safetensors",
+            "key": "indices",
+            "dtype": "I64",
+            "shape": [
+              99999
+            ],
+            "nbytes": 799992
+          },
+          "prominences": {
+            "format": "safetensors",
+            "ref": "/work/out.safetensors#prominences",
+            "path": "/work/out.safetensors",
+            "key": "prominences",
+            "dtype": "F64",
+            "shape": [
+              99999
+            ],
+            "nbytes": 799992
+          },
+          "widths": {
+            "format": "safetensors",
+            "ref": "/work/out.safetensors#widths",
+            "path": "/work/out.safetensors",
+            "key": "widths",
+            "dtype": "F64",
+            "shape": [
+              99999
+            ],
+            "nbytes": 799992
+          }
+        },
+        "outputs_in_artifact": true
+      }
+    },
+    {
+      "case": "radius_dense",
+      "seconds": 0.75138868499198,
+      "exit_code": 1,
+      "maxrss_kib": 94452,
+      "result": {
+        "success": false,
+        "error": {
+          "code": "COMMAND_FAILED",
+          "message": "radius exceeds max_pairs/output budget (stopped early)",
+          "data": {
+            "tool_code": "OUTPUT_TOO_LARGE",
+            "exception": "OutputTooLarge",
+            "warnings": []
+          }
+        }
+      }
+    }
+  ]
+}
