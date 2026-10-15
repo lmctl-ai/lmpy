@@ -1446,6 +1446,866 @@
           "description": "Cap on expression evaluations."
         }
       ]
+    },
+    {
+      "name": "sm_ols",
+      "access": "read",
+      "returns": "object",
+      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT; coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "y",
+          "type": "string",
+          "occurs": "1",
+          "description": "Response column."
+        },
+        {
+          "name": "terms",
+          "type": "array",
+          "occurs": "1",
+          "description": "Design terms (no formula strings): [{\"const\":true|false}, {\"var\":col}, {\"cat\":col,\"ref\":level}, {\"interact\":[col,col(,col)]}, {\"poly\":[col,degree 2..6]}], at most 64. An intercept named const is included unless {\"const\":false}; its position follows the list. cat uses treatment coding with the explicit reference level and columns named col[T.level]; interact multiplies the factors' columns (name a:b); poly adds raw powers named col, col^2, ...",
+          "items": "object"
+        },
+        {
+          "name": "weights",
+          "type": "string",
+          "occurs": "?",
+          "description": "Column of positive weights: weighted least squares."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "enum": [
+            "nonrobust",
+            "HC0",
+            "HC1",
+            "HC2",
+            "HC3",
+            "cluster"
+          ],
+          "description": "Covariance estimator. use_t defaults to true for nonrobust (OLS) and false otherwise, as in statsmodels."
+        },
+        {
+          "name": "cluster",
+          "type": "string",
+          "occurs": "?",
+          "description": "Cluster column for cov_type cluster."
+        },
+        {
+          "name": "use_t",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "Use t instead of normal reference distributions."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Confidence-interval level is 1-alpha."
+        },
+        {
+          "name": "na_action",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "drop"
+          ],
+          "description": "Missing (null/NaN) values in used columns: error (MISSING_VALUES) or drop the rows and report n_dropped. Infinities are always errors."
+        },
+        {
+          "name": "include",
+          "type": "array",
+          "occurs": "?",
+          "enum": [
+            "fitted",
+            "residuals"
+          ],
+          "description": "fitted and/or residuals inline (counted against the 1000-number rule).",
+          "items": "string"
+        }
+      ]
+    },
+    {
+      "name": "sm_ols_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Ordinary/weighted least squares (statsmodels OLS/WLS) on a validated JSON term list. Statuses OK, RANK_DEFICIENT (standard errors NA), TIME_LIMIT; coefficient table, r2, r2_adj, f_statistic, llf, aic, bic, ssr, sigma, condition_number, durbin_watson. Tables wider than ~100 coefficients need the _to form. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "y",
+          "type": "string",
+          "occurs": "1",
+          "description": "Response column."
+        },
+        {
+          "name": "terms",
+          "type": "array",
+          "occurs": "1",
+          "description": "Design terms (no formula strings): [{\"const\":true|false}, {\"var\":col}, {\"cat\":col,\"ref\":level}, {\"interact\":[col,col(,col)]}, {\"poly\":[col,degree 2..6]}], at most 64. An intercept named const is included unless {\"const\":false}; its position follows the list. cat uses treatment coding with the explicit reference level and columns named col[T.level]; interact multiplies the factors' columns (name a:b); poly adds raw powers named col, col^2, ...",
+          "items": "object"
+        },
+        {
+          "name": "weights",
+          "type": "string",
+          "occurs": "?",
+          "description": "Column of positive weights: weighted least squares."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "enum": [
+            "nonrobust",
+            "HC0",
+            "HC1",
+            "HC2",
+            "HC3",
+            "cluster"
+          ],
+          "description": "Covariance estimator. use_t defaults to true for nonrobust (OLS) and false otherwise, as in statsmodels."
+        },
+        {
+          "name": "cluster",
+          "type": "string",
+          "occurs": "?",
+          "description": "Cluster column for cov_type cluster."
+        },
+        {
+          "name": "use_t",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "Use t instead of normal reference distributions."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Confidence-interval level is 1-alpha."
+        },
+        {
+          "name": "na_action",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "drop"
+          ],
+          "description": "Missing (null/NaN) values in used columns: error (MISSING_VALUES) or drop the rows and report n_dropped. Infinities are always errors."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors artifact with coef (p x 6: estimate, std_err, statistic, p_value, ci_lower, ci_upper), fitted and residuals (and row_index when rows were dropped)."
+        }
+      ]
+    },
+    {
+      "name": "sm_glm",
+      "access": "read",
+      "returns": "object",
+      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE; coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "y",
+          "type": "string",
+          "occurs": "1",
+          "description": "Response column."
+        },
+        {
+          "name": "terms",
+          "type": "array",
+          "occurs": "1",
+          "description": "Design terms (no formula strings): [{\"const\":true|false}, {\"var\":col}, {\"cat\":col,\"ref\":level}, {\"interact\":[col,col(,col)]}, {\"poly\":[col,degree 2..6]}], at most 64. An intercept named const is included unless {\"const\":false}; its position follows the list. cat uses treatment coding with the explicit reference level and columns named col[T.level]; interact multiplies the factors' columns (name a:b); poly adds raw powers named col, col^2, ...",
+          "items": "object"
+        },
+        {
+          "name": "weights",
+          "type": "string",
+          "occurs": "?",
+          "description": "Column of positive variance weights (var_weights)."
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "gaussian",
+            "poisson",
+            "binomial",
+            "gamma"
+          ],
+          "description": "Exponential family. Links: gaussian identity|log|inverse_power; poisson log|identity|sqrt; binomial logit|probit|cloglog; gamma inverse_power|log|identity (first is the default)."
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "identity",
+            "log",
+            "inverse_power",
+            "logit",
+            "probit",
+            "cloglog",
+            "sqrt"
+          ],
+          "description": "Link function; must be one of the family's links."
+        },
+        {
+          "name": "offset",
+          "type": "string",
+          "occurs": "?",
+          "description": "Offset column added to the linear predictor."
+        },
+        {
+          "name": "exposure",
+          "type": "string",
+          "occurs": "?",
+          "description": "Exposure column (log link only): offset = log(exposure)."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 100,
+          "description": "IRLS iterations, 1..100; NO_CONVERGENCE when exhausted."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-08,
+          "description": "IRLS deviance tolerance, 1e-12..1e-2."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "enum": [
+            "nonrobust",
+            "HC0",
+            "HC1",
+            "HC2",
+            "HC3",
+            "cluster"
+          ],
+          "description": "Covariance estimator. use_t defaults to true for nonrobust (OLS) and false otherwise, as in statsmodels."
+        },
+        {
+          "name": "cluster",
+          "type": "string",
+          "occurs": "?",
+          "description": "Cluster column for cov_type cluster."
+        },
+        {
+          "name": "use_t",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "Use t instead of normal reference distributions."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Confidence-interval level is 1-alpha."
+        },
+        {
+          "name": "na_action",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "drop"
+          ],
+          "description": "Missing (null/NaN) values in used columns: error (MISSING_VALUES) or drop the rows and report n_dropped. Infinities are always errors."
+        },
+        {
+          "name": "include",
+          "type": "array",
+          "occurs": "?",
+          "enum": [
+            "fitted",
+            "residuals"
+          ],
+          "description": "fitted and/or residuals inline (counted against the 1000-number rule).",
+          "items": "string"
+        }
+      ]
+    },
+    {
+      "name": "sm_glm_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Generalized linear model (statsmodels GLM, IRLS) on a validated JSON term list. Statuses OK, NO_CONVERGENCE, PERFECT_SEPARATION, RANK_DEFICIENT (standard errors NA), TIME_LIMIT, NUMERICAL_FAILURE; coefficient table, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, converged, n_iter. Writes coef/fitted/residuals to an exclusive safetensors artifact (CONFLICT if it exists).",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "y",
+          "type": "string",
+          "occurs": "1",
+          "description": "Response column."
+        },
+        {
+          "name": "terms",
+          "type": "array",
+          "occurs": "1",
+          "description": "Design terms (no formula strings): [{\"const\":true|false}, {\"var\":col}, {\"cat\":col,\"ref\":level}, {\"interact\":[col,col(,col)]}, {\"poly\":[col,degree 2..6]}], at most 64. An intercept named const is included unless {\"const\":false}; its position follows the list. cat uses treatment coding with the explicit reference level and columns named col[T.level]; interact multiplies the factors' columns (name a:b); poly adds raw powers named col, col^2, ...",
+          "items": "object"
+        },
+        {
+          "name": "weights",
+          "type": "string",
+          "occurs": "?",
+          "description": "Column of positive variance weights (var_weights)."
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "gaussian",
+            "poisson",
+            "binomial",
+            "gamma"
+          ],
+          "description": "Exponential family. Links: gaussian identity|log|inverse_power; poisson log|identity|sqrt; binomial logit|probit|cloglog; gamma inverse_power|log|identity (first is the default)."
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "identity",
+            "log",
+            "inverse_power",
+            "logit",
+            "probit",
+            "cloglog",
+            "sqrt"
+          ],
+          "description": "Link function; must be one of the family's links."
+        },
+        {
+          "name": "offset",
+          "type": "string",
+          "occurs": "?",
+          "description": "Offset column added to the linear predictor."
+        },
+        {
+          "name": "exposure",
+          "type": "string",
+          "occurs": "?",
+          "description": "Exposure column (log link only): offset = log(exposure)."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 100,
+          "description": "IRLS iterations, 1..100; NO_CONVERGENCE when exhausted."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-08,
+          "description": "IRLS deviance tolerance, 1e-12..1e-2."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "enum": [
+            "nonrobust",
+            "HC0",
+            "HC1",
+            "HC2",
+            "HC3",
+            "cluster"
+          ],
+          "description": "Covariance estimator. use_t defaults to true for nonrobust (OLS) and false otherwise, as in statsmodels."
+        },
+        {
+          "name": "cluster",
+          "type": "string",
+          "occurs": "?",
+          "description": "Cluster column for cov_type cluster."
+        },
+        {
+          "name": "use_t",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "Use t instead of normal reference distributions."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Confidence-interval level is 1-alpha."
+        },
+        {
+          "name": "na_action",
+          "type": "string",
+          "occurs": "?",
+          "default": "error",
+          "enum": [
+            "error",
+            "drop"
+          ],
+          "description": "Missing (null/NaN) values in used columns: error (MISSING_VALUES) or drop the rows and report n_dropped. Infinities are always errors."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors artifact with coef (p x 6: estimate, std_err, statistic, p_value, ci_lower, ci_upper), fitted and residuals (and row_index when rows were dropped)."
+        }
+      ]
+    },
+    {
+      "name": "sm_arima",
+      "access": "read",
+      "returns": "object",
+      "description": "SARIMAX exact maximum likelihood (statsmodels) on a numeric series. Statuses OK, NO_CONVERGENCE, TIME_LIMIT, NUMERICAL_FAILURE; params table (statsmodels names), sigma2, llf, aic, bic, hqic, nobs_effective, converged, forecast with normal intervals.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "series",
+          "type": "string",
+          "occurs": "1",
+          "description": "Time-ordered series column; missing values are modelled by the state-space filter (n_missing reported)."
+        },
+        {
+          "name": "order",
+          "type": "array",
+          "occurs": "1",
+          "description": "[p, d, q]: p,q <= 5, d <= 2.",
+          "items": "number"
+        },
+        {
+          "name": "seasonal_order",
+          "type": "array",
+          "occurs": "?",
+          "description": "[P, D, Q, s]: P,Q <= 2, D <= 1, s in 2..24; state dimension <= 64, <= 24 parameters.",
+          "items": "number"
+        },
+        {
+          "name": "trend",
+          "type": "string",
+          "occurs": "?",
+          "default": "n",
+          "enum": [
+            "n",
+            "c",
+            "t",
+            "ct"
+          ],
+          "description": "Deterministic trend; c is the regression intercept (mean = c / (1 - sum phi) for AR models), not R's mean."
+        },
+        {
+          "name": "exog",
+          "type": "array",
+          "occurs": "?",
+          "description": "Up to 8 regressor columns.",
+          "items": "string"
+        },
+        {
+          "name": "exog_future",
+          "type": "object",
+          "occurs": "?",
+          "description": "{exog column: forecast_steps values} when forecasting with exog."
+        },
+        {
+          "name": "enforce_stationarity",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Constrain AR parameters to the stationary region."
+        },
+        {
+          "name": "enforce_invertibility",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Constrain MA parameters to the invertible region."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "lbfgs",
+          "enum": [
+            "lbfgs",
+            "bfgs",
+            "nm",
+            "powell"
+          ],
+          "description": "Optimizer for the exact Gaussian likelihood."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 200,
+          "description": "Optimizer iterations, 1..1000; NO_CONVERGENCE when the optimizer reports failure."
+        },
+        {
+          "name": "start_params",
+          "type": "array",
+          "occurs": "?",
+          "description": "Optional starting parameters in statsmodels order (trend, exog, ar, ma, seasonal ar, seasonal ma, sigma2); the count is checked against the model.",
+          "items": "number"
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "enum": [
+            "opg",
+            "oim",
+            "approx"
+          ],
+          "description": "Parameter covariance: opg (outer product of gradients, statsmodels default), oim (observed information) or approx (numerical Hessian of the likelihood, what R's arima reports)."
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Forecast horizon 0..100 (inline: mean, lower, upper)."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Forecast interval and parameter CI level is 1-alpha."
+        }
+      ]
+    },
+    {
+      "name": "sm_arima_to",
+      "access": "write",
+      "returns": "object",
+      "description": "SARIMAX exact maximum likelihood (statsmodels) on a numeric series. Statuses OK, NO_CONVERGENCE, TIME_LIMIT, NUMERICAL_FAILURE; params table (statsmodels names), sigma2, llf, aic, bic, hqic, nobs_effective, converged, forecast with normal intervals. Writes residuals and the forecast to an exclusive safetensors artifact.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "series",
+          "type": "string",
+          "occurs": "1",
+          "description": "Time-ordered series column; missing values are modelled by the state-space filter (n_missing reported)."
+        },
+        {
+          "name": "order",
+          "type": "array",
+          "occurs": "1",
+          "description": "[p, d, q]: p,q <= 5, d <= 2.",
+          "items": "number"
+        },
+        {
+          "name": "seasonal_order",
+          "type": "array",
+          "occurs": "?",
+          "description": "[P, D, Q, s]: P,Q <= 2, D <= 1, s in 2..24; state dimension <= 64, <= 24 parameters.",
+          "items": "number"
+        },
+        {
+          "name": "trend",
+          "type": "string",
+          "occurs": "?",
+          "default": "n",
+          "enum": [
+            "n",
+            "c",
+            "t",
+            "ct"
+          ],
+          "description": "Deterministic trend; c is the regression intercept (mean = c / (1 - sum phi) for AR models), not R's mean."
+        },
+        {
+          "name": "exog",
+          "type": "array",
+          "occurs": "?",
+          "description": "Up to 8 regressor columns.",
+          "items": "string"
+        },
+        {
+          "name": "exog_future",
+          "type": "object",
+          "occurs": "?",
+          "description": "{exog column: forecast_steps values} when forecasting with exog."
+        },
+        {
+          "name": "enforce_stationarity",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Constrain AR parameters to the stationary region."
+        },
+        {
+          "name": "enforce_invertibility",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Constrain MA parameters to the invertible region."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "lbfgs",
+          "enum": [
+            "lbfgs",
+            "bfgs",
+            "nm",
+            "powell"
+          ],
+          "description": "Optimizer for the exact Gaussian likelihood."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 200,
+          "description": "Optimizer iterations, 1..1000; NO_CONVERGENCE when the optimizer reports failure."
+        },
+        {
+          "name": "start_params",
+          "type": "array",
+          "occurs": "?",
+          "description": "Optional starting parameters in statsmodels order (trend, exog, ar, ma, seasonal ar, seasonal ma, sigma2); the count is checked against the model.",
+          "items": "number"
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "enum": [
+            "opg",
+            "oim",
+            "approx"
+          ],
+          "description": "Parameter covariance: opg (outer product of gradients, statsmodels default), oim (observed information) or approx (numerical Hessian of the likelihood, what R's arima reports)."
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Forecast horizon 0..1000 (artifact)."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Forecast interval and parameter CI level is 1-alpha."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .safetensors artifact with residuals and forecast (3 x h: mean, lower, upper)."
+        }
+      ]
+    },
+    {
+      "name": "sm_tsa_acf",
+      "access": "read",
+      "returns": "object",
+      "description": "Sample autocorrelation or partial autocorrelation with confidence intervals (statsmodels.tsa.stattools); lags 0..nlags. Constant series are CONSTANT_SERIES.",
+      "params": [
+        {
+          "name": "columns",
+          "type": "object",
+          "occurs": "?",
+          "description": "Inline table {column: values}, <=1000 cells; strings, numbers, booleans, null for missing."
+        },
+        {
+          "name": "csv",
+          "type": "string",
+          "occurs": "?",
+          "description": "UTF-8 CSV file with a header, inside the working directory (<=16 MiB, <=200000 rows)."
+        },
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored-only .npz table artifact from frame_import."
+        },
+        {
+          "name": "series",
+          "type": "string",
+          "occurs": "1",
+          "description": "Series column (no missing values)."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "acf",
+            "pacf"
+          ],
+          "description": "Autocorrelation or partial autocorrelation."
+        },
+        {
+          "name": "nlags",
+          "type": "number",
+          "occurs": "?",
+          "default": 20,
+          "description": "1..100 and below the series length (pacf: below half of it)."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Confidence level 1-alpha: Bartlett intervals for acf, +-z/sqrt(n) for pacf."
+        },
+        {
+          "name": "adjusted",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "acf only: divide autocovariances by n-k instead of n (default matches R)."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "ywm",
+          "enum": [
+            "ywm",
+            "ywadjusted",
+            "ols",
+            "ldb"
+          ],
+          "description": "pacf only: ywm (Yule-Walker with n denominator, R's pacf), ywadjusted, ols, ldb."
+        }
+      ]
     }
   ]
 }

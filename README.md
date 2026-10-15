@@ -1,6 +1,6 @@
 # pycli
 
-An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 (S0–S3).
+An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 / statsmodels 0.14.6 (S0–S5).
 Each call starts a fresh Python child. The fixed dispatch and validated inputs
 accept no caller code. The Docker container is the isolation boundary.
 
@@ -444,3 +444,66 @@ including12 review and16 original S4 groups. Seven recipes pass real/check/dry-r
 (21 exits0). Hardened cap probes pass with100.34MiB cgroup peak, including the
 harness. Runtime527MB /115249079 content bytes; test1.06GB. Current image IDs,
 shared-host timing samples and per-finding dispositions are in the linked docs.
+
+### S5: statsmodels (OLS/WLS, GLM, SARIMAX, ACF/PACF)
+
+| Operation | Access | Contract |
+|---|---|---|
+| `sm_ols` | read | OLS/WLS on a JSON term list; nonrobust, HC0-HC3 or one-way cluster covariance; coefficient table, R², F, llf, AIC/BIC, Durbin-Watson, condition number; optional inline `include` of `fitted`/`residuals` |
+| `sm_ols_to` | write | Same fit; `coef` (p x 6), `fitted`, `residuals` (and `row_index` when rows were dropped) in an exclusive safetensors `out` |
+| `sm_glm` | read | GLM by IRLS: gaussian, poisson, binomial, gamma with the documented links, offset/exposure/variance weights, deviance, null deviance, Pearson chi2, scale, llf, AIC/BIC |
+| `sm_glm_to` | write | Same fit, artifact as `sm_ols_to` (response-scale fitted values and residuals) |
+| `sm_arima` | read | SARIMAX exact Gaussian ML: order, seasonal order, trend, exog, optimizer, start parameters, parameter table, sigma2, llf, AIC/BIC/HQIC, forecast with intervals (h <= 100) |
+| `sm_arima_to` | write | Same fit; `residuals` and `forecast` (3 x h: mean, lower, upper, h <= 1000) in an artifact |
+| `sm_tsa_acf` | read | Sample ACF or PACF with confidence intervals, nlags <= 100 |
+
+**No formulas.** Models are specified by a JSON term list; patsy, formulaic and `statsmodels.formula` are never imported (statsmodels'
+package `__init__` imports `patsy.util` unconditionally, so the worker satisfies that single import with an empty stub that is removed
+again, and the real packages are on the worker's blocked-import list; every response reports `meta.forbidden_modules_loaded`, tested to be
+empty). The wheels for statsmodels 0.14.6, patsy 1.0.3 and packaging 26.3 are hash-locked for both architectures. Image and import costs are
+in [docs/s5.md](docs/s5.md) and [docs/timings.md](docs/timings.md).
+
+Data comes from exactly one of `columns` (inline table, <=1000 cells), `csv` (UTF-8 file with header, S2 limits: <=16 MiB, <=200000 rows)
+or `frame` (a `.npz` table from `frame_import`, which carries typed and ordered-category columns). The response and other columns are named
+in `y` / `series`, `weights`, `cluster`, `offset`, `exposure`, `exog`; names are 1-256 bytes of letters (any language), digits, space and
+`_ . - % $ @ / #`, validated before spawn.
+
+Terms (`terms`, 1-64, no strings): `{"const": true|false}`, `{"var": col}`, `{"cat": col, "ref": level}`, `{"interact": [col, col(, col)]}`,
+`{"poly": [col, degree 2..6]}`. An intercept is included unless `{"const": false}`; its column position follows the list (default first).
+Column names: `const`; `x`; `g[T.level]` (treatment coding, the reference level is mandatory and excluded; levels are the observed ones in
+declared category order, sorted string order, numeric order, or False/True); `a:b` for interactions (factors in the order given; a categorical
+factor must also have its own `cat` term and contributes its dummy columns); `x`, `x^2`, ... `x^d` for raw powers. Differences from other
+tools: patsy writes `C(g, Treatment('b'))[T.a]`, R writes `ga`, and R's `poly()` is orthogonal unless `raw=TRUE`. The design is checked
+against statsmodels' formula API in the test image (same coefficients and standard errors). At most 256 design columns and 10,000,000 design
+cells; wider tables need `_to` (inline coefficient tables are limited to about 100 coefficients).
+
+Missing values: null/NaN in any used column are *missing*. `na_action: "error"` (default) fails with `MISSING_VALUES` and a row count;
+`"drop"` removes the rows and reports `n_dropped` (the kept rows keep their order; `_to` adds a `row_index` tensor). Infinities are always
+`NONFINITE_DATA`. For `sm_arima`, missing series values are part of the state-space model and reported as `n_missing`.
+
+Statuses (exit 0 unless the input is invalid): `OK`; `RANK_DEFICIENT` (the design has fewer independent columns than terms: estimates are
+the minimum-norm solution, standard errors/tests/intervals are the string `NA`); `NO_CONVERGENCE` (GLM: IRLS hit `maxiter`; ARIMA: the
+optimizer reported failure; results are returned but not trustworthy); `PERFECT_SEPARATION` (binomial); `TIME_LIMIT` (the call timeout minus
+10 s and the import time elapsed; a cooperative SIGALRM budget around the library loops, no partial result); `NUMERICAL_FAILURE`. When the
+model has no residual degrees of freedom `no_dof` is true and uncertainty columns are `NA`. Write twins fail without an artifact unless the
+status is `OK` or `RANK_DEFICIENT`. Domain errors are exit 2: `BAD_TERMS`, `BAD_NAME`, `UNKNOWN_COLUMN`, `NOT_NUMERIC`, `BAD_REFERENCE`,
+`BAD_RESPONSE` (poisson needs non-negative integers, gamma positive, binomial within [0,1]), `BAD_WEIGHTS`, `DUPLICATE_COLUMN`,
+`TOO_MANY_COLUMNS`, `MISSING_VALUES`, `NONFINITE_DATA`, `BAD_START_PARAMS`, `CONSTANT_SERIES`.
+
+OLS: `cov_type` nonrobust|HC0..HC3|cluster (`use_t` defaults to true for nonrobust, false otherwise, as in statsmodels); the robust overall F is
+computed on the array API (statsmodels' own `fvalue` path needs patsy) and tested against it. `aic`/`bic` count `k_params` = number of design
+columns, statsmodels' (and lmstats') convention; R counts one more (the error variance), so R's AIC = aic + 2 and BIC = bic + ln(n)
+(recorded in docs/oracle-findings.md). GLM links: gaussian identity|log|inverse_power, poisson log|identity|sqrt, binomial
+logit|probit|cloglog, gamma inverse_power|log|identity (first is the default); `exposure` needs the log link; `weights` are variance
+weights; `maxiter` <= 100 (`n_iter` is reported), `tol` is the IRLS deviance tolerance; gaussian/gamma use the Pearson-based scale. GLM
+standard errors are z-based (`use_t` false) like R's `summary.glm` for families with a fixed or Pearson-estimated scale.
+
+ARIMA: `order` p,q <= 5, d <= 2; `seasonal_order` P,Q <= 2, D <= 1, s in 2..24; state dimension <= 64 and <= 24 parameters; series <= 20000
+observations. Parameter names are statsmodels' (`intercept`/`drift`, exog names, `ar.L1`, `ma.L1`, `ar.S.L12`, ..., `sigma2` last). The `c` trend
+is the regression intercept, so an AR model's mean is `c / (1 - sum phi)`, whereas R's `arima` reports the mean itself. `cov_type`: `opg`
+(statsmodels default), `oim`, or `approx` (numerical Hessian: what R reports). `nobs_effective` excludes the diffuse observations of
+differencing (`aic`/`bic` use it). Forecast intervals are normal: `mean +- z(1-alpha/2) * se`. `start_params` must have the model's exact
+parameter count.
+
+ACF/PACF: `acf` is the biased (divide by n) estimate like R unless `adjusted`; confidence intervals are Bartlett's for the ACF and
+`+-z/sqrt(n)` for the PACF; PACF methods `ywm` (R's), `ywadjusted`, `ols`, `ldb`; `nlags` < n (PACF: < n/2). Constant series are `CONSTANT_SERIES`.
