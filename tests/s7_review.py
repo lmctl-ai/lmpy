@@ -79,6 +79,16 @@ class Review(old.Base):
  def test_time_limit_uniform_and_guarded(self):
   for op,p in [('sig_filter',dict(family='butter',order=2,wn=.2)),('sig_spectrum',dict(method='welch',x=[1,0,-1,0]*20)),('sig_peaks',dict(x=[0,1,0])),('spatial_knn',dict(points=[[0],[1]],k=1))]:
    r=self.runop(op,**p,time_limit=1e-9);self.assertEqual(r['status'],'TIME_LIMIT')
+ def test_near_unit_poles_use_actual_quadratics(self):
+  import decimal
+  r=self.runop('sig_filter',family='butter',order=20,wn=1e-10)
+  with decimal.localcontext() as ctx:
+   ctx.prec=80;expected=decimal.Decimal(0)
+   for row in r['sos']:
+    a,b,c=[decimal.Decimal.from_float(float(v)) for v in row[3:]];disc=b*b-4*a*c
+    radius=(c/a).sqrt() if disc<0 else max(abs((-b+disc.sqrt())/(2*a)),abs((-b-disc.sqrt())/(2*a)))
+    expected=max(expected,radius)
+  self.assertAlmostEqual(r['max_pole_radius'],float(expected),14)
  def test_schema_documentation_contract(self):
   schema=json.loads(subprocess.check_output([BIN,'--schema'],text=True));ops={o['name']:o for o in schema['operations']}
   for name in ['interp_eval','interp_eval_to']:
