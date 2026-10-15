@@ -161,6 +161,23 @@ class Review(Base):
             self.assertEqual(w['s8_operation'](name)({'time_limit':.125})['status'],'TIME_LIMIT',name)
         self.assertEqual(observed,[.125]*5)
 
+    def test_expired_budget_never_installs_artifact(self):
+        t=self.table({'x':[1.,2.]})
+        for i,(name,p) in enumerate([
+            ('array_to_frame',dict(ref=[1.,2.],columns=['v'])),
+            ('frame_to_array_to',dict(frame=t,columns=['x'])),
+            ('frame_merge',dict(left=t,right=t,on=['x'])),
+            ('stats_dist_to',dict(dist='norm',fn='rvs',seed=1,n=1000)),
+        ]):
+            if name=='frame_merge':
+                keys=self.table({'k':[1,2]},name='keys.npz'); p=dict(left=keys,right=keys,on=['k'])
+            out=self.p('expired%d.%s'%(i,'safetensors' if name in ('frame_to_array_to','stats_dist_to') else 'npz'))
+            z=call(name,dict(p,out=out,time_limit=1e-9),rc=1)
+            self.assertEqual(z['error']['data']['tool_code'],'TIME_LIMIT')
+            self.assertFalse(os.path.exists(out))
+        z=call('ml_metrics',dict(y_true=[0,1],y_pred=[0,1],metrics=['accuracy'],time_limit=1e-9))
+        self.assertEqual(z['status'],'TIME_LIMIT')
+
     def test_schema_contract_corrections(self):
         ops={v['name']:v for v in json.loads(subprocess.run([BIN,'--schema'],capture_output=True,text=True).stdout)['operations']}
         self.assertIn('only inside',ops['frame_mutate']['description'])
