@@ -3664,8 +3664,8 @@
           "name": "xtol",
           "type": "number",
           "occurs": "?",
-          "default": 1.49012e-08,
-          "description": "Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq)."
+          "default": 1e-12,
+          "description": "Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq); default 1e-12."
         },
         {
           "name": "residual_tol",

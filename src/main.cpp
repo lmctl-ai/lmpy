@@ -842,7 +842,7 @@ int main(int argc,char** argv){
         Param{"start",Type::Object,true,nullptr,{},"Start values {name: number} (names [a-z][a-z0-9_]{0,31}), one per equation; with bracket only the name is used.",},
         Param{"method",Type::String,false,"hybr",{"hybr","lm","brentq"},"hybr (Powell hybrid, square systems) or lm (Levenberg-Marquardt); brentq is chosen when a bracket is given."},
         Param{"bracket",Type::Array,false,nullptr,{},"One equation in one unknown: [lower, upper] with f(lower), f(upper) of opposite signs (BAD_INTERVAL otherwise); solved with brentq.","",false,false,false,{},Type::Number},
-        Param{"xtol",Type::Number,false,1.49012e-8,{},"Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq)."},
+        Param{"xtol",Type::Number,false,1e-12,{},"Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq); default 1e-12."},
         Param{"residual_tol",Type::Number,false,1e-8,{},"Largest accepted max|f_i(x)| at the returned point; larger is NO_CONVERGENCE even when the solver claims success."},
         Param{"maxiter",Type::Integer,false,100,{},"brentq iterations, 1..1000."},Param{"max_evals",Type::Integer,false,500000,{},"Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."}}});
     spec.operations.push_back(Operation{"num_root",Access::Read,"Bracketed scalar root of an expression in x (scipy.optimize brentq/bisect/ridder/toms748). f(lower) and f(upper) must be finite with opposite signs (BAD_INTERVAL otherwise). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT. Result: root, f_root, iterations, function_calls","object",{

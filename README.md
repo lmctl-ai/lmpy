@@ -22,6 +22,7 @@ All file writes use `result.artifacts[name]` with the same descriptor fields:
 | `opt_least_squares` | read | model + response or residual expressions, x0, data, bounds, method trf/dogbox/lm, loss, f_scale, sigma, absolute_sigma, tol, max_nfev | par, std_err (Jacobian), cov_status, cost, rss, status, nfev |
 | `num_quad` | read | f(x), a, b (finite or "Inf"/"-Inf"), epsabs, epsrel, limit, points | value, abserr, neval, subdivisions, status OK/NO_CONVERGENCE/NON_FINITE/EVAL_LIMIT |
 | `num_root` | read | f(x), bracket lower/upper, method brentq/bisect/ridder/toms748, xtol, rtol, maxiter | root, f_root, iterations, function_calls, status |
+| `opt_root` | read | equations (n expressions), start {name: number} (n unknowns), method hybr/lm (or a 1-D bracket -> brentq), xtol, residual_tol, max_evals | x {name: value}, fun, residual_max, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE (success verified by the residual) |
 | `la_decomp` | write | a, kind=svd/qr/eig/eigh/cholesky/lu, full, pivoting, lower, exclusive out.safetensors | one descriptor per factor, small eigen/singular values inline, reconstruction_error, status |
 
 Arrays accept nested row-major JSON, `{shape:[r,c],data:[...]}`, or cwd-confined
@@ -694,3 +695,43 @@ choose `nan_policy=value` to retain numeric NaNs or `missing` to mask all NaNs. 
 S8a review measurements: ordinary bridge/join/rolling/metrics/sampling calls had **0.69–0.78 s median** through the hardened shim;
 mutate **1.00 s**. The 13 GB projected string join is refused before allocation; the 1e8-element rolling cap completed in 3.25 s.
 [Current timings and resource measurements](docs/timings.md#s8a-review-fixes-aarch64-2026-10-15) include methodology and raw data.
+
+## S8b: matrix functions, sparse algebra, special functions, root systems, time-series tests
+
+This slice is the first half of S8b; the graph operations and the long tail of `stats_dist` families are still to come (docs/s8b.md). Every operation follows the S7/S8a
+conventions: caps before spawn and again in the worker, `time_limit` budget, statuses instead of silent bad values, `_to` twins that store arrays under the one
+`artifacts[name]` seven-field descriptor (nothing is written for a non-OK status), lazy imports of only the scipy subpackage needed.
+
+| Operation | Access | Contract |
+|---|---|---|
+| `la_matrix_fn` | read | `inv`, `pinv` (`rtol`, reports `rank`), `expm`, `logm`, `sqrtm` of a finite real matrix; a result that is not exactly real is split into `y_re`/`y_im` (`complex: true`); `condition_number` for inv, `residual` for inv/pinv/logm/sqrtm |
+| `la_matrix_fn_to` | write | Same, tensors in an exclusive `out.safetensors` (`y` or `y_re`, `y_im`) |
+| `la_sparse` | read | COO matrix (`shape`, `row`, `col`, `val` arrays, or an `.npz` `frame` with column names; duplicates are summed) and `task` spsolve, cg, gmres, eigsh, eigs, svds; ARPACK start vector from the REQUIRED `seed` (PCG64) |
+| `la_sparse_to` | write | Same, `x` / `w` (`w_re`, `w_im`) and `v` / `s`, `u`, `vt` in an artifact |
+| `special_fn` | read | 34 functions (erf, erfc, erfcx, erfinv, erfcinv, gammainc, gammaincc, gammaincinv, gammainccinv, betainc, betaincinv, zeta, polygamma, lambertw, expit, logit, log_ndtr, ndtri, ellipk, ellipe, hyp2f1, jv, yv, iv, kv, spherical_jn, airy, struve, owens_t, boxcox, inv_boxcox, xlogy, xlog1py, logsumexp) on `args` {name: number or vector} |
+| `special_fn_to` | write | Same, `y` (airy: `ai`, `aip`, `bi`, `bip`) in an artifact, up to 200000 values per output |
+| `opt_root` | read | see the table at the top |
+| `sm_tsa_tools` | read | `test` acf / pacf (the `sm_tsa_acf` code path), adfuller, kpss, ljung_box on one series |
+
+`la_matrix_fn`: there is no `funm` (it needs a callable). inv is `SINGULAR` when the condition number reaches 1/eps (or LAPACK reports singularity); logm of a matrix with a zero
+eigenvalue is `SINGULAR`; logm, sqrtm and pinv are verified after the fact (`expm(Y) = A`, `Y Y = A`, `A Y A = A`): a relative residual above 1e-6 is `NUMERICAL_FAILURE`, as is a non-finite
+result (expm overflow). Results are principal values: a negative real eigenvalue makes logm and sqrtm complex. Matrices larger than the 200000-number input cap (n = 447) are refused.
+
+`la_sparse`: n and the column count are at most 100000, entries at most 200000, spsolve at most 20000 unknowns (SuperLU fill-in); `cg` and `eigsh` need an exactly symmetric matrix
+(`NOT_SYMMETRIC`, tolerance 1e-12 relative). The true residual is recomputed: `cg`/`gmres` return `relative_residual` and `iterations`, and are `NO_CONVERGENCE` when the iteration fails or the true
+residual misses `max(10 rtol, ~1e3 eps ||A|| ||x|| / ||b||)` (the second term is the residual a double-precision iteration can reach, so an unattainable `rtol` is reported rather than hidden);
+`spsolve` is `SINGULAR` for an exactly singular matrix and `ILL_CONDITIONED` above a 1e-6 relative residual. ARPACK non-convergence within `maxiter` is the domain status `NO_CONVERGENCE`
+with `n_converged` (no partial values); eigenpairs report `max_residual`. `eigsh` returns ascending eigenvalues, `eigs` sorts by (real, imaginary), `svds` descending singular values.
+`which=SA`/`SM` on matrices with clustered ends (the 1-D Poisson matrix) converge slowly: use `which=LM` with `sigma` (shift-invert) or raise `time_limit`.
+
+`special_fn`: broadcasting is explicit (all vector arguments have one length, scalars repeat); `zeta` takes `q` (default 1: Riemann), `lambertw` the branch `k` (default 0; a result with a non-zero
+imaginary part is a domain error), `polygamma` and `spherical_jn` an integer `n >= 0`. A NaN result is `DOMAIN_ERROR`, an infinite one (pole, overflow) `NON_FINITE`, each with `n_bad`,
+`first_index` and the arguments at that index and no values. The test oracle is mpmath at 50 digits; mpmath is installed in the test image only (docker/requirements-test.lock).
+
+`opt_root`: the equations use the S3 expression grammar in the named scalar unknowns (no data columns, no eval path), as many equations as unknowns (`UNDER_DETERMINED`). The solver's own success flag is not
+trusted: the residual `max|f_i(x)|` is recomputed at the returned point and must be at most `residual_tol` (default 1e-8), otherwise the status is `NO_CONVERGENCE` (a local minimum of the residual norm is not a
+root). A bracket with one equation uses brentq (`BAD_INTERVAL` without a sign change). `max_evals` is `EVAL_LIMIT` with the best point.
+
+`sm_tsa_tools`: `adfuller` reports statistic, MacKinnon p-value, `used_lag`, `nobs`, `critical_values` (and `icbest` with an information-criterion autolag); `kpss` the statistic, the p-value interpolated from the
+published table with `p_value_bounded` none/above/below when the statistic lies outside it, `lags` and `critical_values`; `ljung_box` the statistic and p-value per lag (`model_df` removes fitted parameters).
+Constant series are `CONSTANT_SERIES`, series too short for the requested lags `TOO_SHORT`. patsy is never imported.
