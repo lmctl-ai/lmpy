@@ -725,6 +725,24 @@ class Spatial(Base):
         self.assertEqual(r['meta']['scipy_subpackages'], ['spatial'])  # neither scipy.interpolate nor scipy.signal
 
 
+class Budgets(Base):
+    def test_write_twins_obey_readonly_and_dry_run(self):
+        params = dict(a=[[0.0, 0.0], [3.0, 4.0]], metric='euclidean', out=self.out())
+        call('spatial_dist_to', params, rc=6, env=dict(os.environ, PYCLI_READONLY='1'))
+        call('spatial_dist_to', params, rc=0, env=dict(os.environ, PYCLI_DRYRUN='1'))
+        self.assertFalse(os.path.exists(self.out()))
+        call('spatial_dist_to', params)
+        self.assertTrue(os.path.exists(self.out()))
+
+    def test_time_budget_returns_a_status_not_a_kill(self):
+        rng = np.random.default_rng(12)
+        x = rng.uniform(size=(5000, 3))
+        params = dict(kind='rbf', x=self.npy(x), y=self.npy(np.sin(x.sum(axis=1))), x_new=[[0.5, 0.5, 0.5]])
+        r = call('interp_eval', params, env=dict(os.environ, PYCLI_TIMEOUT_S='12'))  # budget = 12 - 10 s, less than the ~6 s solve plus import
+        self.assertEqual(r['status'], 'TIME_LIMIT')
+        self.assertNotIn('values', r)
+
+
 class Schema(unittest.TestCase):
     def test_registration_access_and_documentation(self):
         schema = json.loads(subprocess.run([BIN, '--schema'], capture_output=True, text=True).stdout)

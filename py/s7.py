@@ -2,6 +2,7 @@
 Every enum, option string and cap was validated by the C++ front end; the checks here repeat the ones a corrupted request could break.
 Assembled after ml.py (shares codec/array/save_outputs/BadData/OutputTooLarge and the SIGALRM budget helpers of sm.py)."""
 S7_INLINE = 900
+S7_ARTIFACT_NUMBERS = 1900000  # the C++ side refuses worker outputs above 2M numbers; fail cleanly first
 S7_WINDOWS = ('hann', 'hamming', 'blackman', 'boxcar', 'bartlett', 'flattop', 'parzen', 'bohman', 'blackmanharris', 'nuttall', 'barthann', 'cosine', 'triang')
 
 
@@ -13,6 +14,9 @@ def s7_emit(np, p, result, named, op):
     """Inline arrays (<= 900 numbers in total) or, for the _to twins, raw tensors for the C++ side to store; empty arrays are never stored."""
     if p.get('output_prefix'):
         stored = [(key, np.asarray(value)) for key, value in named if np.size(value)]
+        total = sum(int(v.size) for _, v in stored)
+        if total > S7_ARTIFACT_NUMBERS:
+            raise OutputTooLarge('the %s result holds %d numbers (artifact limit %d): use fewer points or a smaller problem' % (op, total, S7_ARTIFACT_NUMBERS))
         result['empty_outputs'] = [key for key, value in named if not np.size(value)]
         if stored:
             result['outputs'] = save_outputs(p, stored)

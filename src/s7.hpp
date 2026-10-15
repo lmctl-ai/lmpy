@@ -136,6 +136,9 @@ Json prepare_spectrum(const Params& in,std::map<std::string,Array>& arrays,bool 
     if(!needs_y&&has_y)bad_param("y is only used with csd and coherence");
     if(has_y){const Array& y=s7_load(in,"y",arrays,1);if(y.data.size()!=n)invalid("x and y must have the same length","BAD_DATA");}
     if(in.contains("window")&&!in["window"].is_null()){const std::string w=in["window"];if(std::find(S7_WINDOWS.begin(),S7_WINDOWS.end(),w)==S7_WINDOWS.end())bad_param("unknown window");}
+    const bool has_scaling=in.contains("scaling")&&!in["scaling"].is_null();
+    if(has_scaling&&method=="coherence")bad_param("scaling is not used by coherence");
+    p["scaling"]=has_scaling?in["scaling"]:Json("density");
     const bool has_average=in.contains("average")&&!in["average"].is_null();
     if(has_average&&(periodogram||method=="coherence"))bad_param("average is only used with welch and csd");
     p["average"]=has_average?in["average"]:Json("mean");
@@ -195,8 +198,9 @@ Json prepare_hull(const Params& in,std::map<std::string,Array>& arrays,bool twin
     if(d<2)invalid("points need at least 2 dimensions","BAD_DATA");
     if(d>S7_HULL_DIM)invalid("points allow at most 6 dimensions","INPUT_TOO_LARGE");
     const std::string kind=in["kind"];
-    // Output size explodes with dimension (a Delaunay triangulation has O(n^(d/2)) simplices), so the point caps shrink with d.
-    static const size_t hull_cap[7]={0,0,20000,20000,5000,1000,300},triangulation_cap[7]={0,0,20000,5000,300,100,50};
+    // Output size explodes with dimension (a cyclic polytope has O(n^(d/2)) facets; measured worst cases in docs/timings.md), so the caps shrink with d
+    // until the worst-case simplex list still fits the 2M-number artifact budget.
+    static const size_t hull_cap[7]={0,0,20000,20000,800,400,100},triangulation_cap[7]={0,0,20000,800,300,100,50};
     const size_t cap=(kind=="convex_hull"?hull_cap:triangulation_cap)[d];
     if(n>cap)invalid(kind+" in "+std::to_string(d)+" dimensions allows at most "+std::to_string(cap)+" points","INPUT_TOO_LARGE");
     // The only QHull options that ever reach the library: a fixed table per kind (and Qx for d > 4, scipy's own rule). Never caller-supplied.
@@ -273,7 +277,7 @@ void add_s7_ops(CliSpec& spec){
             integer("noverlap",nullptr,"Overlap between segments, 0..nperseg-1 (default nperseg/2). Not for periodogram."),
             integer("nfft",nullptr,"FFT length (zero padding), >= nperseg (>= the signal length for periodogram), at most 131072."),
             text("detrend",false,"constant",{"constant","linear","none"},"Per-segment detrending."),
-            text("scaling",false,"density",{"density","spectrum"},"density: power per Hz; spectrum: power per bin (an on-bin sine of amplitude A peaks at A^2/2). Not for coherence."),
+            text("scaling",false,nullptr,{"density","spectrum"},"density (default): power per Hz; spectrum: power per bin (an on-bin sine of amplitude A peaks at A^2/2). Not for coherence."),
             text("average",false,nullptr,{"mean","median"},"Segment averaging, welch and csd only (default mean).")}});
         finish(Operation{write?"sig_peaks_to":"sig_peaks",write?Access::Write:Access::Read,std::string("Local maxima of a finite signal (scipy.signal.find_peaks) with heights, prominences and widths at rel_height. Plateaus report their middle sample; the first and last sample are never peaks. Result: n_peaks, indices, heights, prominences, widths (read form: at most ~225 peaks).")+(write?" The write form stores them and answers NO_PEAKS (no artifact) when nothing qualifies.":" Use the _to form for more peaks."),"object",{
             json("x",true,"Finite signal (vector), at least 3 samples."),
@@ -293,7 +297,7 @@ void add_s7_ops(CliSpec& spec){
             Param{"exclude_self",Type::Boolean,false,false,{},"Only without queries: drop each point from its own neighbour list."},
             integer("max_pairs",100000,"Radius mode: refuse (OUTPUT_TOO_LARGE) when more than this many neighbour pairs would result, 1..1000000.")}});
         finish(Operation{write?"spatial_hull_to":"spatial_hull",write?Access::Write:Access::Read,std::string("Convex hull, Delaunay triangulation or Voronoi diagram with QHull (scipy.spatial). The QHull options are fixed per kind and never caller-supplied. Degenerate input (collinear/coplanar points, fewer than dim+1 points, duplicates only, a QHull error) is a domain status DEGENERATE with a message, not an error. Statuses OK, DEGENERATE, NUMERICAL_FAILURE, TIME_LIMIT. convex_hull: vertices, simplices, volume, area (in 2-D: area and perimeter); delaunay: simplices, volume, n_coplanar; voronoi: vertices, point_region, regions and ridge_vertices as flat arrays with offsets (-1 is the point at infinity), ridge_points.")+tail,"object",{
-            json("points",true,"Finite n x d matrix, 2 <= d <= 6. Point caps shrink with d (convex_hull: 20000/20000/5000/1000/300 for d=2..6; delaunay and voronoi: 20000/5000/300/100/50)."),
+            json("points",true,"Finite n x d matrix, 2 <= d <= 6. Point caps shrink with d (convex_hull: 20000/20000/800/400/100 for d=2..6; delaunay and voronoi: 20000/800/300/100/50)."),
             text("kind",true,nullptr,{"convex_hull","delaunay","voronoi"},"Which QHull structure to compute.")}});
         finish(Operation{write?"spatial_dist_to":"spatial_dist",write?Access::Write:Access::Read,std::string("Pairwise distance matrix (scipy.spatial.distance.cdist) between the rows of a and b (b omitted: a with itself, a symmetric matrix). Metrics come from a closed list. A pair for which the metric is undefined (cosine/correlation of a zero or constant vector, an indefinite VI, overflow) makes the status UNDEFINED with a count, and no matrix is returned. Statuses OK, UNDEFINED, TIME_LIMIT. Result: shape, distances (n x m).")+tail,"object",{
             json("a",true,"Finite n x d matrix."),
