@@ -1,0 +1,1813 @@
+{
+  "schema": "cli.schema.v1",
+  "tool": "rcli",
+  "version": "0.2.0",
+  "inputs": [
+    "flags",
+    "json"
+  ],
+  "globals": [],
+  "operations": [
+    {
+      "name": "r_info",
+      "access": "read",
+      "returns": "object",
+      "description": "R runtime and RNG provenance",
+      "params": []
+    },
+    {
+      "name": "dist_quantile",
+      "access": "read",
+      "returns": "object",
+      "description": "Vectorized R distribution quantiles",
+      "params": [
+        {
+          "name": "dist",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "norm",
+            "t",
+            "chisq",
+            "gamma",
+            "beta",
+            "binom",
+            "pois"
+          ],
+          "description": "dist input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "p",
+          "type": "array",
+          "occurs": "1",
+          "description": "p input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "lower_tail",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "lower_tail input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "log_p",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "log_p input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "mean",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "mean input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "sd",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "sd input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "df",
+          "type": "number",
+          "occurs": "?",
+          "description": "df input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "shape",
+          "type": "number",
+          "occurs": "?",
+          "description": "shape input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "rate",
+          "type": "number",
+          "occurs": "?",
+          "description": "rate input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "a",
+          "type": "number",
+          "occurs": "?",
+          "description": "a input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "b",
+          "type": "number",
+          "occurs": "?",
+          "description": "b input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "occurs": "?",
+          "description": "size input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "prob",
+          "type": "number",
+          "occurs": "?",
+          "description": "prob input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "lambda",
+          "type": "number",
+          "occurs": "?",
+          "description": "lambda input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "dist_density",
+      "access": "read",
+      "returns": "object",
+      "description": "Vectorized R distribution densities",
+      "params": [
+        {
+          "name": "dist",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "norm",
+            "t",
+            "chisq",
+            "gamma",
+            "beta",
+            "binom",
+            "pois"
+          ],
+          "description": "dist input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "log",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "log input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "mean",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "mean input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "sd",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "sd input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "df",
+          "type": "number",
+          "occurs": "?",
+          "description": "df input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "shape",
+          "type": "number",
+          "occurs": "?",
+          "description": "shape input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "rate",
+          "type": "number",
+          "occurs": "?",
+          "description": "rate input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "a",
+          "type": "number",
+          "occurs": "?",
+          "description": "a input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "b",
+          "type": "number",
+          "occurs": "?",
+          "description": "b input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "occurs": "?",
+          "description": "size input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "prob",
+          "type": "number",
+          "occurs": "?",
+          "description": "prob input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "lambda",
+          "type": "number",
+          "occurs": "?",
+          "description": "lambda input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "dist_probability",
+      "access": "read",
+      "returns": "object",
+      "description": "Vectorized R distribution probabilities",
+      "params": [
+        {
+          "name": "dist",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "norm",
+            "t",
+            "chisq",
+            "gamma",
+            "beta",
+            "binom",
+            "pois"
+          ],
+          "description": "dist input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "q",
+          "type": "array",
+          "occurs": "1",
+          "description": "q input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "lower_tail",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "lower_tail input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "log_p",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "log_p input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "mean",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "mean input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "sd",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "sd input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "df",
+          "type": "number",
+          "occurs": "?",
+          "description": "df input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "shape",
+          "type": "number",
+          "occurs": "?",
+          "description": "shape input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "rate",
+          "type": "number",
+          "occurs": "?",
+          "description": "rate input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "a",
+          "type": "number",
+          "occurs": "?",
+          "description": "a input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "b",
+          "type": "number",
+          "occurs": "?",
+          "description": "b input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "occurs": "?",
+          "description": "size input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "prob",
+          "type": "number",
+          "occurs": "?",
+          "description": "prob input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "lambda",
+          "type": "number",
+          "occurs": "?",
+          "description": "lambda input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "rng_draw",
+      "access": "read",
+      "returns": "object",
+      "description": "Seeded R distribution draws",
+      "params": [
+        {
+          "name": "dist",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "norm",
+            "unif",
+            "exp",
+            "gamma",
+            "beta",
+            "binom",
+            "pois",
+            "t",
+            "chisq"
+          ],
+          "description": "dist input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "n",
+          "type": "number",
+          "occurs": "1",
+          "description": "n input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "1",
+          "description": "seed input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "mean",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "mean input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "sd",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "sd input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "min input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "max input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "rate",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "rate input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "shape",
+          "type": "number",
+          "occurs": "?",
+          "description": "shape input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "a",
+          "type": "number",
+          "occurs": "?",
+          "description": "a input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "b",
+          "type": "number",
+          "occurs": "?",
+          "description": "b input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "occurs": "?",
+          "description": "size input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "prob",
+          "type": "number",
+          "occurs": "?",
+          "description": "prob input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "lambda",
+          "type": "number",
+          "occurs": "?",
+          "description": "lambda input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "df",
+          "type": "number",
+          "occurs": "?",
+          "description": "df input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "rng_sample",
+      "access": "read",
+      "returns": "object",
+      "description": "Seeded sample with or without replacement",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "occurs": "1",
+          "description": "size input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "1",
+          "description": "seed input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "replace",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "replace input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "prob",
+          "type": "array",
+          "occurs": "?",
+          "description": "prob input; numeric units follow the corresponding R function.",
+          "items": "number"
+        }
+      ]
+    },
+    {
+      "name": "math_special",
+      "access": "read",
+      "returns": "object",
+      "description": "Vectorized R special functions",
+      "params": [
+        {
+          "name": "fn",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "gamma",
+            "lgamma",
+            "beta",
+            "lbeta",
+            "digamma",
+            "trigamma",
+            "choose",
+            "lchoose",
+            "besselJ",
+            "besselI",
+            "besselK",
+            "besselY"
+          ],
+          "description": "fn input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "y",
+          "type": "array",
+          "occurs": "?",
+          "description": "y input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "nu",
+          "type": "number",
+          "occurs": "?",
+          "description": "nu input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "summary_quantile",
+      "access": "read",
+      "returns": "object",
+      "description": "R sample quantiles with type 1 through 9",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "probs",
+          "type": "array",
+          "occurs": "1",
+          "description": "probs input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "type",
+          "type": "number",
+          "occurs": "?",
+          "default": 7,
+          "description": "type input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "na_rm",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "na_rm input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "num_fft",
+      "access": "read",
+      "returns": "object",
+      "description": "R discrete Fourier transform",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "inverse",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "inverse input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "normalize",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Normalize inverse output by vector length; false matches R fft(inverse=TRUE)."
+        }
+      ]
+    },
+    {
+      "name": "test_htest",
+      "access": "read",
+      "returns": "object",
+      "description": "Run a fixed R hypothesis test",
+      "params": [
+        {
+          "name": "test",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "t",
+            "wilcox",
+            "chisq",
+            "shapiro",
+            "ks",
+            "fisher",
+            "binom",
+            "prop",
+            "cor",
+            "var"
+          ],
+          "description": "test input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "y",
+          "type": "array",
+          "occurs": "?",
+          "description": "y input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "expected",
+          "type": "array",
+          "occurs": "?",
+          "description": "expected input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "probabilities",
+          "type": "array",
+          "occurs": "?",
+          "description": "probabilities input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "trials",
+          "type": "array",
+          "occurs": "?",
+          "description": "trials input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "n",
+          "type": "number",
+          "occurs": "?",
+          "description": "n input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "p",
+          "type": "number",
+          "occurs": "?",
+          "description": "p input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "alternative",
+          "type": "string",
+          "occurs": "?",
+          "default": "two.sided",
+          "enum": [
+            "two.sided",
+            "less",
+            "greater"
+          ],
+          "description": "alternative input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "conf_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95,
+          "description": "conf_level input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "conf_int",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "conf_int input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "paired",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "paired input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "var_equal",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "var_equal input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "mu",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "mu input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "ratio",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "ratio input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "correct",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "correct input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "occurs": "?",
+          "description": "rows input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "cols",
+          "type": "number",
+          "occurs": "?",
+          "description": "cols input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "byrow",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Fill contingency tables by rows; default false fills by columns."
+        },
+        {
+          "name": "simulate_p_value",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "simulate_p_value input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "seed input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "exact",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "exact input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "odds_ratio",
+          "type": "number",
+          "occurs": "?",
+          "description": "odds_ratio input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "distribution",
+          "type": "string",
+          "occurs": "?",
+          "enum": [
+            "norm",
+            "unif",
+            "exp",
+            "pois"
+          ],
+          "description": "distribution input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "mean",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "mean input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "sd",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "sd input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "min input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "max input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "rate",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "rate input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "lambda",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "lambda input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "pearson",
+          "enum": [
+            "pearson",
+            "kendall",
+            "spearman"
+          ],
+          "description": "method input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "fit_glm",
+      "access": "read",
+      "returns": "object",
+      "description": "Fit a base R generalized linear model",
+      "params": [
+        {
+          "name": "response",
+          "type": "string",
+          "occurs": "1",
+          "description": "response input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "predictors",
+          "type": "array",
+          "occurs": "1",
+          "description": "predictors input; numeric units follow the corresponding R function.",
+          "items": "string"
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "1",
+          "description": "data input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "gaussian",
+            "binomial",
+            "poisson",
+            "Gamma"
+          ],
+          "description": "family input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "occurs": "?",
+          "default": "default",
+          "enum": [
+            "default",
+            "identity",
+            "log",
+            "inverse",
+            "logit",
+            "probit",
+            "cloglog",
+            "cauchit",
+            "sqrt"
+          ],
+          "description": "link input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "maxit",
+          "type": "number",
+          "occurs": "?",
+          "default": 50,
+          "description": "maxit input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "weights",
+          "type": "array",
+          "occurs": "?",
+          "description": "weights input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "offset",
+          "type": "array",
+          "occurs": "?",
+          "description": "offset input; numeric units follow the corresponding R function.",
+          "items": "number"
+        }
+      ]
+    },
+    {
+      "name": "smooth_spline",
+      "access": "read",
+      "returns": "object",
+      "description": "Fit and predict an R smoothing spline",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "y",
+          "type": "array",
+          "occurs": "1",
+          "description": "y input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "new_x",
+          "type": "array",
+          "occurs": "?",
+          "description": "new_x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "df",
+          "type": "number",
+          "occurs": "?",
+          "description": "df input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "spar",
+          "type": "number",
+          "occurs": "?",
+          "description": "spar input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "cv",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "cv input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "smooth_loess",
+      "access": "read",
+      "returns": "object",
+      "description": "Fit and predict an R loess smoother",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "y",
+          "type": "array",
+          "occurs": "1",
+          "description": "y input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "new_x",
+          "type": "array",
+          "occurs": "?",
+          "description": "new_x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "span",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.75,
+          "description": "span input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "degree",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "degree input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "?",
+          "default": "gaussian",
+          "enum": [
+            "gaussian",
+            "symmetric"
+          ],
+          "description": "family input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "interp_spline",
+      "access": "read",
+      "returns": "object",
+      "description": "Evaluate a cubic R spline interpolant",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "y",
+          "type": "array",
+          "occurs": "1",
+          "description": "y input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "xout",
+          "type": "array",
+          "occurs": "1",
+          "description": "xout input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "fmm",
+          "enum": [
+            "fmm",
+            "natural",
+            "periodic",
+            "monoH.FC"
+          ],
+          "description": "method input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "interp_approx",
+      "access": "read",
+      "returns": "object",
+      "description": "Evaluate an R piecewise approximation",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "y",
+          "type": "array",
+          "occurs": "1",
+          "description": "y input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "xout",
+          "type": "array",
+          "occurs": "1",
+          "description": "xout input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "linear",
+          "enum": [
+            "linear",
+            "constant"
+          ],
+          "description": "method input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "rule",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "rule input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "ts_arima",
+      "access": "read",
+      "returns": "object",
+      "description": "Fit a base R ARIMA model and optionally forecast",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "order",
+          "type": "array",
+          "occurs": "1",
+          "description": "order input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "seasonal_order",
+          "type": "array",
+          "occurs": "?",
+          "description": "seasonal_order input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "period",
+          "type": "number",
+          "occurs": "?",
+          "description": "period input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "CSS-ML",
+          "enum": [
+            "ML",
+            "CSS-ML",
+            "CSS"
+          ],
+          "description": "method input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "residuals",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "residuals input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "n_ahead",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "n_ahead input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "include_mean",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Include an intercept/mean term when fitting non-differenced ARIMA models."
+        }
+      ]
+    },
+    {
+      "name": "rng_arima_sim",
+      "access": "read",
+      "returns": "object",
+      "description": "Generate seeded data with stats::arima.sim",
+      "params": [
+        {
+          "name": "n",
+          "type": "number",
+          "occurs": "1",
+          "description": "n input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "1",
+          "description": "seed input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "order",
+          "type": "array",
+          "occurs": "1",
+          "description": "order input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "ar",
+          "type": "array",
+          "occurs": "?",
+          "description": "ar input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "ma",
+          "type": "array",
+          "occurs": "?",
+          "description": "ma input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "sd",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.0,
+          "description": "sd input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "ts_acf",
+      "access": "read",
+      "returns": "object",
+      "description": "Autocorrelation",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "lag_max",
+          "type": "number",
+          "occurs": "?",
+          "description": "lag_max input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "ts_pacf",
+      "access": "read",
+      "returns": "object",
+      "description": "Partial autocorrelation",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "lag_max",
+          "type": "number",
+          "occurs": "?",
+          "description": "lag_max input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "ts_stl",
+      "access": "read",
+      "returns": "object",
+      "description": "Decompose a time series with base R STL",
+      "params": [
+        {
+          "name": "x",
+          "type": "array",
+          "occurs": "1",
+          "description": "x input; numeric units follow the corresponding R function.",
+          "items": "number"
+        },
+        {
+          "name": "period",
+          "type": "number",
+          "occurs": "1",
+          "description": "period input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "seasonal_window",
+          "type": "number",
+          "occurs": "?",
+          "default": 7,
+          "description": "seasonal_window input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "periodic",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "periodic input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "robust",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "robust input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "cluster_kmeans",
+      "access": "read",
+      "returns": "object",
+      "description": "Hartigan-Wong k-means clustering",
+      "params": [
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "1",
+          "description": "data input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "k",
+          "type": "number",
+          "occurs": "1",
+          "description": "k input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "1",
+          "description": "seed input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "nstart",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "nstart input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "iter_max",
+          "type": "number",
+          "occurs": "?",
+          "default": 10,
+          "description": "iter_max input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "algorithm",
+          "type": "string",
+          "occurs": "?",
+          "default": "Hartigan-Wong",
+          "enum": [
+            "Hartigan-Wong",
+            "Lloyd",
+            "MacQueen"
+          ],
+          "description": "algorithm input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "cluster_hclust",
+      "access": "read",
+      "returns": "object",
+      "description": "Hierarchical clustering",
+      "params": [
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "1",
+          "description": "data input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "complete",
+          "enum": [
+            "ward.D",
+            "ward.D2",
+            "single",
+            "complete",
+            "average",
+            "mcquitty",
+            "median",
+            "centroid"
+          ],
+          "description": "method input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "dist_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "euclidean",
+          "enum": [
+            "euclidean",
+            "maximum",
+            "manhattan",
+            "canberra",
+            "binary",
+            "minkowski"
+          ],
+          "description": "dist_method input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "p",
+          "type": "number",
+          "occurs": "?",
+          "default": 2.0,
+          "description": "Minkowski exponent, used when dist_method is minkowski."
+        },
+        {
+          "name": "cut_k",
+          "type": "number",
+          "occurs": "?",
+          "description": "cut_k input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "fit_lm",
+      "access": "read",
+      "returns": "object",
+      "description": "Fit an R linear model from inline data or CSV",
+      "params": [
+        {
+          "name": "formula",
+          "type": "string",
+          "occurs": "1",
+          "description": "formula input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "?",
+          "description": "data input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "file",
+          "type": "string",
+          "occurs": "?",
+          "description": "file input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "residuals",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "residuals input; numeric units follow the corresponding R function."
+        },
+        {
+          "name": "na_action",
+          "type": "string",
+          "occurs": "?",
+          "default": "omit",
+          "enum": [
+            "omit",
+            "exclude"
+          ],
+          "description": "na_action input; numeric units follow the corresponding R function."
+        }
+      ]
+    },
+    {
+      "name": "opt_minimize",
+      "access": "read",
+      "returns": "object",
+      "description": "Minimize a fixed-grammar R objective",
+      "params": [
+        {
+          "name": "objective",
+          "type": "string",
+          "occurs": "1",
+          "description": "Arithmetic objective in the fixed expression grammar."
+        },
+        {
+          "name": "start",
+          "type": "object",
+          "occurs": "1",
+          "description": "Named finite starting parameters; names are expression variables."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "Nelder-Mead",
+          "enum": [
+            "Nelder-Mead",
+            "BFGS",
+            "CG",
+            "L-BFGS-B",
+            "SANN"
+          ],
+          "description": "Base R optim method (default Nelder-Mead)."
+        },
+        {
+          "name": "lower",
+          "type": "object",
+          "occurs": "?",
+          "description": "Optional named lower bounds; only accepted with L-BFGS-B."
+        },
+        {
+          "name": "upper",
+          "type": "object",
+          "occurs": "?",
+          "description": "Optional named upper bounds; only accepted with L-BFGS-B."
+        },
+        {
+          "name": "maxit",
+          "type": "number",
+          "occurs": "?",
+          "description": "Maximum iterations; R defaults are 500 for Nelder-Mead, 100 for BFGS/CG/L-BFGS-B, and 10000 for SANN (range 1 to 10000)."
+        },
+        {
+          "name": "reltol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.4901161193847656e-08,
+          "description": "R optim default relative tolerance sqrt(.Machine$double.eps). Not passed for L-BFGS-B."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "Required only for SANN."
+        },
+        {
+          "name": "hessian",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Return optim's Hessian (default false)."
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "?",
+          "description": "Optional equal-length numeric columns available to the objective (no default)."
+        },
+        {
+          "name": "nonfinite",
+          "type": "string",
+          "occurs": "?",
+          "default": "inf",
+          "enum": [
+            "inf",
+            "error"
+          ],
+          "description": "How NA/NaN objective values are handled (default inf for Nelder-Mead/SANN; other methods return NONFINITE_OBJECTIVE)."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Expression evaluation limit (default 500000; 1 to 2000000)."
+        }
+      ]
+    },
+    {
+      "name": "opt_optimize",
+      "access": "read",
+      "returns": "object",
+      "description": "Optimize a scalar expression over an interval",
+      "params": [
+        {
+          "name": "objective",
+          "type": "string",
+          "occurs": "1",
+          "description": "Scalar expression in the variable x."
+        },
+        {
+          "name": "lower",
+          "type": "number",
+          "occurs": "1",
+          "description": "Finite lower endpoint of the search interval."
+        },
+        {
+          "name": "upper",
+          "type": "number",
+          "occurs": "1",
+          "description": "Finite upper endpoint greater than lower."
+        },
+        {
+          "name": "maximum",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Maximize instead of minimize (default false)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001220703125,
+          "description": "R optimize default tol (.Machine$double.eps^0.25)."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Expression evaluation limit (default 500000; 1 to 2000000)."
+        }
+      ]
+    },
+    {
+      "name": "num_root",
+      "access": "read",
+      "returns": "object",
+      "description": "Find a root of a fixed-grammar expression",
+      "params": [
+        {
+          "name": "f",
+          "type": "string",
+          "occurs": "1",
+          "description": "Vectorized expression in x."
+        },
+        {
+          "name": "lower",
+          "type": "number",
+          "occurs": "1",
+          "description": "Finite lower bracket endpoint."
+        },
+        {
+          "name": "upper",
+          "type": "number",
+          "occurs": "1",
+          "description": "Finite upper bracket endpoint."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001220703125,
+          "description": "R uniroot default tol (.Machine$double.eps^0.25)."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000,
+          "description": "R uniroot default maximum iterations (1 to 1000)."
+        },
+        {
+          "name": "extend_int",
+          "type": "string",
+          "occurs": "?",
+          "default": "no",
+          "enum": [
+            "no",
+            "yes",
+            "upX",
+            "downX"
+          ],
+          "description": "Whether uniroot may extend the interval (default no)."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Expression evaluation limit (default 500000; 1 to 2000000)."
+        }
+      ]
+    },
+    {
+      "name": "num_integrate",
+      "access": "read",
+      "returns": "object",
+      "description": "Numerically integrate a fixed-grammar expression",
+      "params": [
+        {
+          "name": "f",
+          "type": "string",
+          "occurs": "1",
+          "description": "Vectorized integrand in x."
+        },
+        {
+          "name": "lower",
+          "type": "number",
+          "occurs": "1",
+          "description": "Finite bound or the special strings -Inf and Inf."
+        },
+        {
+          "name": "upper",
+          "type": "number",
+          "occurs": "1",
+          "description": "Finite bound or the special strings Inf and -Inf."
+        },
+        {
+          "name": "subdivisions",
+          "type": "number",
+          "occurs": "?",
+          "default": 100,
+          "description": "Maximum subdivisions (default 100; 1 to 1000)."
+        },
+        {
+          "name": "rel_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001220703125,
+          "description": "R integrate default rel.tol (.Machine$double.eps^0.25)."
+        },
+        {
+          "name": "abs_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001220703125,
+          "description": "R integrate default abs.tol (.Machine$double.eps^0.25)."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Expression evaluation limit (default 500000; 1 to 2000000)."
+        }
+      ]
+    },
+    {
+      "name": "fit_nls",
+      "access": "read",
+      "returns": "object",
+      "description": "Fit nonlinear least squares with a fixed-grammar model",
+      "params": [
+        {
+          "name": "response",
+          "type": "string",
+          "occurs": "1",
+          "description": "Response column name."
+        },
+        {
+          "name": "rhs",
+          "type": "string",
+          "occurs": "1",
+          "description": "Model expression in start parameters and data columns."
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "occurs": "1",
+          "description": "Equal-length numeric data columns, up to 200000 rows."
+        },
+        {
+          "name": "start",
+          "type": "object",
+          "occurs": "1",
+          "description": "Named finite starting coefficients."
+        },
+        {
+          "name": "algorithm",
+          "type": "string",
+          "occurs": "?",
+          "default": "default",
+          "enum": [
+            "default",
+            "port"
+          ],
+          "description": "R nls algorithm (default default); plinear is not supported."
+        },
+        {
+          "name": "lower",
+          "type": "object",
+          "occurs": "?",
+          "description": "Named lower bounds required for port when supplied."
+        },
+        {
+          "name": "upper",
+          "type": "object",
+          "occurs": "?",
+          "description": "Named upper bounds required for port when supplied."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 50,
+          "description": "R nls.control default maximum iterations (1 to 1000)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-05,
+          "description": "R nls.control default convergence tolerance."
+        },
+        {
+          "name": "fitted",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Include fitted values (default false)."
+        },
+        {
+          "name": "residuals",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Include residuals (default false)."
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 500000,
+          "description": "Expression evaluation limit (default 500000; 1 to 2000000)."
+        }
+      ]
+    }
+  ]
+}

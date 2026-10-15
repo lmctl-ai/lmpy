@@ -1,0 +1,74 @@
+{
+ "sm_ols_200000x50": {
+  "exit": 0,
+  "seconds": 4.59,
+  "response_bytes": 7659,
+  "status": "OK",
+  "result_status": "OK",
+  "peak_bytes_so_far": 501231616,
+  "error": null
+ },
+ "sm_ols_hc3_200000x50": {
+  "exit": 0,
+  "seconds": 5.72,
+  "response_bytes": 7663,
+  "status": "OK",
+  "result_status": "OK",
+  "peak_bytes_so_far": 501301248,
+  "error": null
+ },
+ "sm_glm_binomial_200000x50": {
+  "exit": 0,
+  "seconds": 7.26,
+  "response_bytes": 7554,
+  "status": "OK",
+  "result_status": "OK",
+  "peak_bytes_so_far": 920596480,
+  "error": null
+ },
+ "sm_glm_poisson_to_200000x50": {
+  "exit": 0,
+  "seconds": 8.03,
+  "response_bytes": 8152,
+  "status": "OK",
+  "result_status": "OK",
+  "peak_bytes_so_far": 1005613056,
+  "error": null
+ },
+ "sm_arima_2_0_1_n2000": {
+  "exit": 0,
+  "seconds": 1.48,
+  "response_bytes": 7303,
+  "status": "OK",
+  "result_status": "OK",
+  "peak_bytes_so_far": 1005613056,
+  "error": null
+ },
+ "sm_arima_seasonal_1_1_1_1_1_1_12_n2000": {
+  "exit": 0,
+  "seconds": 9.95,
+  "response_bytes": 2713,
+  "status": "OK",
+  "result_status": "OK",
+  "peak_bytes_so_far": 1005613056,
+  "error": null
+ },
+ "sm_arima_cap_5_0_5_2_0_2_12_n2000": {
+  "exit": 0,
+  "seconds": 13.82,
+  "response_bytes": 2546,
+  "status": "NO_CONVERGENCE",
+  "result_status": "NO_CONVERGENCE",
+  "peak_bytes_so_far": 1005613056,
+  "error": null
+ },
+ "sm_tsa_acf_100_lags": {
+  "exit": 0,
+  "seconds": 1.36,
+  "response_bytes": 6849,
+  "status": "OK",
+  "result_status": "OK",
+  "peak_bytes_so_far": 1005613056,
+  "error": null
+ }
+}

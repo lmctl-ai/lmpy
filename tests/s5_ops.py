@@ -775,7 +775,7 @@ D = s5.DATA
 common = {'alpha': 0.05, 'na_action': 'error', 'time_budget_s': 30}
 ols = dict(common, columns=s5.columns('y', 'x1', 'x2', 'g'), y='y', terms=%r, cov_type='nonrobust')
 glm = dict(common, columns=s5.columns('count', 'x1'), y='count', terms=[{'var': 'x1'}], family='poisson', link='log', maxiter=100, tol=1e-8, cov_type='nonrobust')
-arima = dict(common, columns={'s': D['series']}, series='s', order=[1, 0, 0], trend='n', enforce_stationarity=True, enforce_invertibility=True, method='lbfgs', maxiter=100, forecast_steps=2)
+arima = dict(common, columns={'s': D['series']}, series='s', order=[1, 0, 0], trend='n', cov_type='opg', enforce_stationarity=True, enforce_invertibility=True, method='lbfgs', maxiter=100, forecast_steps=2)
 acf = dict(common, columns={'s': D['series']}, series='s', kind='pacf', nlags=5, adjusted=False, method='ywm')
 for name, params in (('sm_ols', ols), ('sm_glm', glm), ('sm_arima', arima), ('sm_tsa_acf', acf)):
     result = w.sm_operation(name)(params)

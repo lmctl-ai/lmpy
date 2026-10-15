@@ -1,0 +1,4337 @@
+{
+  "schema": "cli.schema.v1",
+  "tool": "statsrust",
+  "version": "0.1.0",
+  "policy": {
+    "dryrun": true,
+    "readonly": true
+  },
+  "inputs": [
+    "flags",
+    "json"
+  ],
+  "globals": [
+    {
+      "name": "dryrun",
+      "type": "boolean",
+      "occurs": "?",
+      "description": "Simulate write operations",
+      "aliases": [
+        "dry-run"
+      ]
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "occurs": "?",
+      "description": "Refuse to run write operations",
+      "aliases": [
+        "read-only"
+      ]
+    },
+    {
+      "name": "confirm",
+      "type": "boolean",
+      "occurs": "?",
+      "description": "Confirm dangerous operations",
+      "aliases": [
+        "i-understand"
+      ]
+    },
+    {
+      "name": "json",
+      "type": "boolean",
+      "occurs": "?",
+      "description": "Output as JSON"
+    },
+    {
+      "name": "help",
+      "type": "boolean",
+      "occurs": "?",
+      "description": "Show help",
+      "aliases": [
+        "h"
+      ]
+    },
+    {
+      "name": "list",
+      "type": "boolean",
+      "occurs": "?",
+      "description": "List operations as JSON"
+    },
+    {
+      "name": "schema",
+      "type": "boolean",
+      "occurs": "?",
+      "description": "Print schema document"
+    },
+    {
+      "name": "explain",
+      "type": "string",
+      "occurs": "?",
+      "description": "Explain an operation"
+    },
+    {
+      "name": "format",
+      "type": "string",
+      "occurs": "?",
+      "description": "Format for explain (text or json)"
+    },
+    {
+      "name": "input-json",
+      "type": "string",
+      "occurs": "?",
+      "description": "JSON document input",
+      "aliases": [
+        "inputJson"
+      ]
+    },
+    {
+      "name": "input-graphql",
+      "type": "string",
+      "occurs": "?",
+      "description": "GraphQL document input",
+      "aliases": [
+        "inputGraphql"
+      ]
+    },
+    {
+      "name": "input-file",
+      "type": "string",
+      "occurs": "?",
+      "description": "Path to file containing JSON document input",
+      "aliases": [
+        "inputFile"
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "name": "arima",
+      "access": "read",
+      "returns": "object",
+      "description": "ARIMA / SARIMAX fit (statsmodels SARIMAX, state space) with optional forecast and intervals",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "order",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "seasonal_order",
+          "type": "array",
+          "occurs": "?",
+          "items": "number"
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "statespace"
+        },
+        {
+          "name": "enforce_stationarity",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true
+        },
+        {
+          "name": "enforce_invertibility",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "include_smoothed_state",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "ARIMA-only: if true, also compute and return the Kalman-smoothed state at every in-sample time point (smoothed_state/ smoothed_signal)."
+        },
+        {
+          "name": "diffuse_init",
+          "type": "string",
+          "occurs": "?",
+          "default": "approximate",
+          "description": "ARIMA/UnobservedComponents-only: \"approximate\" (default, EXISTING behavior -- large-finite-variance diffuse initialization, unchanged) or \"exact\" (Durbin & Koopman ch."
+        },
+        {
+          "name": "include_state",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, add an opaque \"state\" blob to the response that can be fed back verbatim as resume_state later."
+        },
+        {
+          "name": "resume_state",
+          "type": "json",
+          "occurs": "?",
+          "description": "A previously-exported state blob (opaque JSON; feed back verbatim)."
+        },
+        {
+          "name": "update_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "\"filter_only\"|\"refit_warm\"|\"refit_fresh\"."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        }
+      ]
+    },
+    {
+      "name": "var",
+      "access": "read",
+      "returns": "object",
+      "description": "Vector autoregression on a T x K endog matrix: coefficients, forecast, IRF/FEVD, Granger causality",
+      "params": [
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "include_state",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, add an opaque \"state\" blob to the response that can be fed back verbatim as resume_state later."
+        },
+        {
+          "name": "resume_state",
+          "type": "json",
+          "occurs": "?",
+          "description": "A previously-exported state blob (opaque JSON; feed back verbatim)."
+        },
+        {
+          "name": "update_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "\"filter_only\"|\"refit_warm\"|\"refit_fresh\"."
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "ic",
+          "type": "string",
+          "occurs": "?",
+          "description": "Information criterion for lag-order selection: \"aic\"|\"bic\"|\"hqic\"|\"fpe\"."
+        },
+        {
+          "name": "lags",
+          "type": "number",
+          "occurs": "?",
+          "description": "Exact VAR lag order (mutually exclusive with ic)."
+        },
+        {
+          "name": "irf_periods",
+          "type": "number",
+          "occurs": "?",
+          "description": "Number of IRF horizons to compute; 0/absent omits irf from the response."
+        },
+        {
+          "name": "fevd_periods",
+          "type": "number",
+          "occurs": "?",
+          "description": "Number of FEVD horizons to compute; 0/absent omits fevd from the response."
+        },
+        {
+          "name": "causality_caused",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "VAR Granger-causality test: indices of caused variables."
+        },
+        {
+          "name": "causality_causing",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "VAR Granger-causality test: indices of causing variables."
+        },
+        {
+          "name": "causality_all_pairwise",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, run every ordered one-variable-causes-one-variable Granger test."
+        },
+        {
+          "name": "causality_kind",
+          "type": "string",
+          "occurs": "?",
+          "default": "f",
+          "description": "VAR Granger-causality test kind: \"f\" (default) or \"wald\"."
+        },
+        {
+          "name": "causality_signif",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Significance level for VAR Granger-causality critical values."
+        },
+        {
+          "name": "test_normality_signif",
+          "type": "number",
+          "occurs": "?",
+          "description": "model=\"vecm\" only: when supplied, additionally runs VecmModel::test_normality at this significance level and populates the response's normality_test field (2026-07 \"quick win\" pass)."
+        }
+      ]
+    },
+    {
+      "name": "hp_filter",
+      "access": "read",
+      "returns": "object",
+      "description": "Hodrick-Prescott filter: trend and cycle of a series",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "lamb",
+          "type": "number",
+          "occurs": "?",
+          "description": "HP filter smoothing parameter."
+        }
+      ]
+    },
+    {
+      "name": "ets",
+      "access": "read",
+      "returns": "object",
+      "description": "Hyndman ETS (error/trend/seasonal exponential smoothing) fit with forecast and intervals",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "include_smoothed_state",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "ARIMA-only: if true, also compute and return the Kalman-smoothed state at every in-sample time point (smoothed_state/ smoothed_signal)."
+        },
+        {
+          "name": "include_state",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, add an opaque \"state\" blob to the response that can be fed back verbatim as resume_state later."
+        },
+        {
+          "name": "resume_state",
+          "type": "json",
+          "occurs": "?",
+          "description": "A previously-exported state blob (opaque JSON; feed back verbatim)."
+        },
+        {
+          "name": "update_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "\"filter_only\"|\"refit_warm\"|\"refit_fresh\"."
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "occurs": "?",
+          "default": "add",
+          "description": "ETS error type: \"add\" (default) or \"mul\"."
+        },
+        {
+          "name": "damped_trend",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether an ETS trend is damped."
+        },
+        {
+          "name": "seasonal",
+          "type": "json",
+          "occurs": "?",
+          "description": "ETS seasonality: \"none\" (default), \"add\", or \"mul\"."
+        },
+        {
+          "name": "seasonal_periods",
+          "type": "number",
+          "occurs": "?",
+          "description": "Required for ETS when seasonal != \"none\"."
+        },
+        {
+          "name": "initialization_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "estimated",
+          "description": "ETS initialization method: \"estimated\" (default), \"heuristic\", or \"known\"."
+        },
+        {
+          "name": "initial_level",
+          "type": "number",
+          "occurs": "?",
+          "description": "ETS known initialization fields (only used when initialization_method=\"known\")."
+        },
+        {
+          "name": "initial_trend",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "initial_seasonal",
+          "type": "array",
+          "occurs": "?",
+          "items": "number"
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "Optional seed for ETS simulation-based intervals and GARCH simulation forecasts."
+        },
+        {
+          "name": "n_simulations",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000,
+          "description": "Number of paths for ETS simulation intervals and GARCH simulation forecasts; default 1000."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        }
+      ]
+    },
+    {
+      "name": "glm",
+      "access": "read",
+      "returns": "object",
+      "description": "Generalized linear model (gaussian, binomial, poisson, gamma, negative binomial, tweedie); method=elastic_net for penalized fits",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "?",
+          "description": "GLM response variable, row-major: one inner array per observation. Required on some paths of this model; see durable-memory/json-api.md."
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "occurs": "?",
+          "description": "GLM link; default is the family's canonical link."
+        },
+        {
+          "name": "link_power",
+          "type": "number",
+          "occurs": "?",
+          "description": "Required when link=\"power\": the power exponent for the generic power-transform link (g(mu) = mu^power, links.py::Power)."
+        },
+        {
+          "name": "alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "Negative-Binomial dispersion parameter, FIXED (not estimated), default 1.0."
+        },
+        {
+          "name": "var_power",
+          "type": "number",
+          "occurs": "?",
+          "default": 1.5,
+          "description": "Tweedie power-variance-function parameter (V(mu) = mu^var_power), default 1.5 (the common insurance-claims/compound-Poisson-Gamma value)."
+        },
+        {
+          "name": "tweedie_eql",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Tweedie only: if true, use statsmodels' Extended Quasi-Likelihood approximation for loglike/AIC/BIC."
+        },
+        {
+          "name": "offset",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional per-observation additive offset on the linear predictor."
+        },
+        {
+          "name": "exposure",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional per-observation exposure; only valid with the log link (validated explicitly, matching statsmodels)."
+        },
+        {
+          "name": "var_weights",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional per-observation GLM variance weights (analytic/prior weights)."
+        },
+        {
+          "name": "freq_weights",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional per-observation GLM frequency weights."
+        },
+        {
+          "name": "glm_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 100,
+          "description": "GLM IRLS max iterations, default 100 (statsmodels' _fit_irls default)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "GLM IRLS convergence tolerance on deviance, default 1e-8."
+        },
+        {
+          "name": "add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "elastic_net_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "Elastic-net/lasso penalty weight, default 1.0 (matching ridge_alpha's own default and statsmodels' OLS.fit_regularized(alpha=..., L1_wt=...) scalar-alpha default)."
+        },
+        {
+          "name": "elastic_net_l1_wt",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "Elastic-net L1 weight fraction, l1_wt in [0, 1]."
+        },
+        {
+          "name": "elastic_net_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 50,
+          "description": "Elastic-net coordinate-descent iteration cap, default 50 (statsmodels' own OLS.fit_regularized default, NOT the more generic fit_elasticnet default of 100)."
+        },
+        {
+          "name": "refit",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Post-process elastic-net/lasso fits by refitting an unregularized OLS model on the selected nonzero regularized coefficients, matching statsmodels' fit_regularized(..., refit=True)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        }
+      ]
+    },
+    {
+      "name": "regression",
+      "access": "read",
+      "returns": "object",
+      "description": "Linear regression: OLS, WLS, GLS, GLSAR, ridge, elastic net or square-root lasso, with robust covariances",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001,
+          "description": "GLM IRLS convergence tolerance on deviance, default 1e-8."
+        },
+        {
+          "name": "add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "weights",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "WLS weights, one per observation."
+        },
+        {
+          "name": "sigma",
+          "type": "json",
+          "occurs": "?",
+          "description": "GLS covariance matrix, row-major n x n."
+        },
+        {
+          "name": "ridge_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "Ridge (L2-penalized least squares) penalty weight, default 1.0 (statsmodels' own OLS.fit_regularized(alpha=..., L1_wt=0.0) default)."
+        },
+        {
+          "name": "elastic_net_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "Elastic-net/lasso penalty weight, default 1.0 (matching ridge_alpha's own default and statsmodels' OLS.fit_regularized(alpha=..., L1_wt=...) scalar-alpha default)."
+        },
+        {
+          "name": "elastic_net_l1_wt",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "Elastic-net L1 weight fraction, l1_wt in [0, 1]."
+        },
+        {
+          "name": "elastic_net_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 50,
+          "description": "Elastic-net coordinate-descent iteration cap, default 50 (statsmodels' own OLS.fit_regularized default, NOT the more generic fit_elasticnet default of 100)."
+        },
+        {
+          "name": "sqrt_lasso_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 10000,
+          "description": "Sqrt-lasso coordinate-bisection iteration cap, default 10,000."
+        },
+        {
+          "name": "sqrt_lasso_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "Sqrt-lasso penalty weight, default 1.0."
+        },
+        {
+          "name": "refit",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Post-process elastic-net/lasso fits by refitting an unregularized OLS model on the selected nonzero regularized coefficients, matching statsmodels' fit_regularized(..., refit=True)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "time",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Regression panel-HAC time labels, one per observation; required when cov_type=\"hac-groupsum\"."
+        },
+        {
+          "name": "rho",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "GLSAR-only: AR order for the feasible-GLS error process."
+        },
+        {
+          "name": "iterations",
+          "type": "number",
+          "occurs": "?",
+          "default": 3,
+          "description": "GLSAR-only: maximum iterative_fit iterations."
+        }
+      ]
+    },
+    {
+      "name": "stl",
+      "access": "read",
+      "returns": "object",
+      "description": "STL seasonal-trend decomposition (LOESS): trend, seasonal and residual components",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "period",
+          "type": "number",
+          "occurs": "1",
+          "description": "Seasonal period for STL or classical seasonal_decompose."
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "seasonal",
+          "type": "json",
+          "occurs": "?",
+          "description": "ETS seasonality: \"none\" (default), \"add\", or \"mul\"."
+        },
+        {
+          "name": "low_pass",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL low-pass LOESS window."
+        },
+        {
+          "name": "seasonal_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "trend_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "low_pass_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "robust",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false
+        },
+        {
+          "name": "inner_iter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "outer_iter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "seasonal_jump",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL seasonal LOESS jump stride (seasonal_jump)."
+        },
+        {
+          "name": "trend_jump",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL trend LOESS jump stride (trend_jump)."
+        },
+        {
+          "name": "low_pass_jump",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL low-pass LOESS jump stride (low_pass_jump)."
+        }
+      ]
+    },
+    {
+      "name": "stl_forecast",
+      "access": "read",
+      "returns": "object",
+      "description": "STL decomposition plus a forecast of the seasonally adjusted series",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "period",
+          "type": "number",
+          "occurs": "1",
+          "description": "Seasonal period for STL or classical seasonal_decompose."
+        },
+        {
+          "name": "order",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "seasonal_order",
+          "type": "array",
+          "occurs": "?",
+          "default": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "items": "number"
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "enforce_stationarity",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true
+        },
+        {
+          "name": "enforce_invertibility",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "seasonal",
+          "type": "json",
+          "occurs": "?",
+          "description": "ETS seasonality: \"none\" (default), \"add\", or \"mul\"."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "low_pass",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL low-pass LOESS window."
+        },
+        {
+          "name": "seasonal_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "trend_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "low_pass_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "robust",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false
+        },
+        {
+          "name": "inner_iter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "outer_iter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "seasonal_jump",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL seasonal LOESS jump stride (seasonal_jump)."
+        },
+        {
+          "name": "trend_jump",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL trend LOESS jump stride (trend_jump)."
+        },
+        {
+          "name": "low_pass_jump",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL low-pass LOESS jump stride (low_pass_jump)."
+        },
+        {
+          "name": "arima_trend",
+          "type": "string",
+          "occurs": "?",
+          "description": "model=\"stl_forecast\" only: the ARIMA/SARIMAX trend-term spec (statsmodels' own \"n\"|\"c\"|\"t\"|\"ct\" short code, same convention as plain model=\"arima\"'s trend field)."
+        }
+      ]
+    },
+    {
+      "name": "mstl",
+      "access": "read",
+      "returns": "object",
+      "description": "MSTL decomposition with several seasonal periods",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "periods",
+          "type": "array",
+          "occurs": "1",
+          "items": "number",
+          "description": "MSTL seasonal periods, e.g."
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "windows",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "MSTL seasonal smoother windows, one per period."
+        },
+        {
+          "name": "iterate",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "MSTL outer refinement iterations."
+        },
+        {
+          "name": "lambda",
+          "type": "json",
+          "occurs": "?",
+          "description": "MSTL Box-Cox lambda."
+        },
+        {
+          "name": "low_pass",
+          "type": "number",
+          "occurs": "?",
+          "description": "STL low-pass LOESS window."
+        },
+        {
+          "name": "seasonal_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "trend_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "low_pass_deg",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "robust",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false
+        },
+        {
+          "name": "inner_iter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "outer_iter",
+          "type": "number",
+          "occurs": "?"
+        }
+      ]
+    },
+    {
+      "name": "seasonal_decompose",
+      "access": "read",
+      "returns": "object",
+      "description": "Classical moving-average seasonal decomposition (additive or multiplicative)",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "period",
+          "type": "number",
+          "occurs": "1",
+          "description": "Seasonal period for STL or classical seasonal_decompose."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "two_sided",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Classical seasonal_decompose centered-vs-trailing moving average."
+        },
+        {
+          "name": "filt",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Classical seasonal_decompose custom convolution filter coefficients."
+        },
+        {
+          "name": "extrapolate_trend",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Classical seasonal_decompose trend-edge extrapolation."
+        },
+        {
+          "name": "decomposition_model",
+          "type": "string",
+          "occurs": "?",
+          "description": "Classical seasonal_decompose type."
+        }
+      ]
+    },
+    {
+      "name": "logit",
+      "access": "read",
+      "returns": "object",
+      "description": "Binary logistic regression (Newton-Raphson), optional marginal effects",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "discrete_add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting (mirrors regression's add_const convention)."
+        },
+        {
+          "name": "discrete_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Newton-Raphson max iterations, default 35 (statsmodels' Logit/Probit.fit() default)."
+        },
+        {
+          "name": "discrete_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "Newton-Raphson convergence tolerance (all parameter changes below this), default 1e-8 (statsmodels' _fit_newton default)."
+        },
+        {
+          "name": "discrete_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "Logit/Probit fit_regularized(method=\"l1\") penalty weight."
+        },
+        {
+          "name": "discrete_trim_mode",
+          "type": "string",
+          "occurs": "?",
+          "default": "auto",
+          "description": "Logit/Probit L1 trim mode: \"auto\" (default), \"size\", or \"off\"."
+        },
+        {
+          "name": "discrete_auto_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.01,
+          "description": "Logit/Probit L1 auto-trim tolerance, default 0.01."
+        },
+        {
+          "name": "discrete_size_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001,
+          "description": "Logit/Probit L1 size-trim tolerance, default 1e-4."
+        },
+        {
+          "name": "discrete_qc_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.03,
+          "description": "Logit/Probit L1 QC tolerance, default 0.03."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "pred_table_threshold",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.5,
+          "description": "Classification threshold for pred_table (model=\"logit\"| \"probit\" only)."
+        }
+      ]
+    },
+    {
+      "name": "probit",
+      "access": "read",
+      "returns": "object",
+      "description": "Binary probit regression (Newton-Raphson), optional marginal effects",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "discrete_add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting (mirrors regression's add_const convention)."
+        },
+        {
+          "name": "discrete_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Newton-Raphson max iterations, default 35 (statsmodels' Logit/Probit.fit() default)."
+        },
+        {
+          "name": "discrete_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "Newton-Raphson convergence tolerance (all parameter changes below this), default 1e-8 (statsmodels' _fit_newton default)."
+        },
+        {
+          "name": "discrete_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "Logit/Probit fit_regularized(method=\"l1\") penalty weight."
+        },
+        {
+          "name": "discrete_trim_mode",
+          "type": "string",
+          "occurs": "?",
+          "default": "auto",
+          "description": "Logit/Probit L1 trim mode: \"auto\" (default), \"size\", or \"off\"."
+        },
+        {
+          "name": "discrete_auto_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.01,
+          "description": "Logit/Probit L1 auto-trim tolerance, default 0.01."
+        },
+        {
+          "name": "discrete_size_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001,
+          "description": "Logit/Probit L1 size-trim tolerance, default 1e-4."
+        },
+        {
+          "name": "discrete_qc_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.03,
+          "description": "Logit/Probit L1 QC tolerance, default 0.03."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "pred_table_threshold",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.5,
+          "description": "Classification threshold for pred_table (model=\"logit\"| \"probit\" only)."
+        }
+      ]
+    },
+    {
+      "name": "poisson",
+      "access": "read",
+      "returns": "object",
+      "description": "Discrete-model Poisson count regression, optional marginal effects",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "poisson_add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "poisson_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Newton-Raphson max iterations, default 35."
+        },
+        {
+          "name": "poisson_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "Newton-Raphson convergence tolerance, default 1e-8."
+        },
+        {
+          "name": "poisson_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "Poisson fit_regularized(method=\"l1\") penalty weight."
+        },
+        {
+          "name": "poisson_trim_mode",
+          "type": "string",
+          "occurs": "?",
+          "default": "auto",
+          "description": "Poisson L1 trim mode: \"auto\" (default), \"size\", or \"off\"."
+        },
+        {
+          "name": "poisson_auto_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.01
+        },
+        {
+          "name": "poisson_size_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001
+        },
+        {
+          "name": "poisson_qc_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.03
+        }
+      ]
+    },
+    {
+      "name": "phreg",
+      "access": "read",
+      "returns": "object",
+      "description": "Cox proportional hazards regression for right-censored durations",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "status",
+          "type": "array",
+          "occurs": "1",
+          "items": "number",
+          "description": "Right-censoring status: 1 = event, 0 = censored."
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "phreg_ties",
+          "type": "string",
+          "occurs": "?",
+          "description": "Tie-handling method: \"breslow\" (default) or \"efron\"."
+        },
+        {
+          "name": "phreg_strata",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional PHReg stratum label per observation."
+        },
+        {
+          "name": "phreg_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 100,
+          "description": "Newton-Raphson max iterations, default 100 (matches statsmodels.base.model.LikelihoodModel.fit's own default)."
+        },
+        {
+          "name": "phreg_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "Newton-Raphson convergence tolerance, default 1e-8."
+        }
+      ]
+    },
+    {
+      "name": "gee",
+      "access": "read",
+      "returns": "object",
+      "description": "Generalized estimating equations for clustered observations",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "1",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "occurs": "?",
+          "default": "gaussian",
+          "description": "GLM response variable, row-major: one inner array per observation."
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "occurs": "?",
+          "description": "GLM link; default is the family's canonical link."
+        },
+        {
+          "name": "gee_cov_struct",
+          "type": "string",
+          "occurs": "?",
+          "default": "independence",
+          "description": "Working correlation structure: \"independence\" (default), \"exchangeable\", or \"ar1\" (first-order autoregressive, implicit row-order-within-cluster time ordering -- an explicit time array is out of scope; \"unstructured\"/\"nested\" are out of ..."
+        },
+        {
+          "name": "gee_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 60,
+          "description": "Max iterations, default 60 (matches GEE.fit()'s own default)."
+        },
+        {
+          "name": "gee_ctol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.000001,
+          "description": "Convergence tolerance on the L2 norm of the score, default 1e-6 (matches GEE.fit(ctol=1e-6)'s own default)."
+        },
+        {
+          "name": "gee_cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "robust",
+          "description": "Which covariance to report as params.std_err/z_values/ p_values/conf_int_*: \"robust\" (default, GEE's own actual default cov_type) or \"naive\" (model-based, meaningful only if the working correlation is correctly specified)."
+        }
+      ]
+    },
+    {
+      "name": "mixedlm",
+      "access": "read",
+      "returns": "object",
+      "description": "Linear mixed-effects model with random intercepts/slopes by group",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "1",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "mixedlm_reml",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "If true (statsmodels' own actual default, MixedLM.fit(reml=True) -- verified directly, NOT ML), fit via REML; if false, fit via ML."
+        },
+        {
+          "name": "mixedlm_exog_re",
+          "type": "json",
+          "occurs": "?",
+          "description": "Optional random-effects design matrix for MixedLM."
+        }
+      ]
+    },
+    {
+      "name": "survfunc",
+      "access": "read",
+      "returns": "object",
+      "description": "Kaplan-Meier survival function estimate",
+      "params": [
+        {
+          "name": "status",
+          "type": "array",
+          "occurs": "1",
+          "items": "number",
+          "description": "Right-censoring status: 1 = event, 0 = censored."
+        },
+        {
+          "name": "survfunc_time",
+          "type": "array",
+          "occurs": "1",
+          "items": "number",
+          "description": "Event/censoring times, one per subject."
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        }
+      ]
+    },
+    {
+      "name": "kde",
+      "access": "read",
+      "returns": "object",
+      "description": "Univariate kernel density estimate",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "kde_kernel",
+          "type": "string",
+          "occurs": "?",
+          "default": "gau",
+          "description": "KDE kernel name."
+        },
+        {
+          "name": "kde_bw",
+          "type": "json",
+          "occurs": "?",
+          "description": "KDE bandwidth selector or fixed bandwidth."
+        },
+        {
+          "name": "gridsize",
+          "type": "number",
+          "occurs": "?",
+          "description": "Number of grid points for KDE support."
+        },
+        {
+          "name": "eval_points",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional points at which to additionally evaluate the KDE using the fitted bandwidth, mirroring KDEUnivariate.evaluate(point)."
+        },
+        {
+          "name": "kde_adjust",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "KDE bandwidth adjustment factor, default 1.0."
+        },
+        {
+          "name": "kde_cut",
+          "type": "number",
+          "occurs": "?",
+          "default": 3,
+          "description": "KDE grid extension in bandwidth units, default 3.0."
+        }
+      ]
+    },
+    {
+      "name": "negativebinomial",
+      "access": "read",
+      "returns": "object",
+      "description": "Negative binomial count regression (NB2/NB1/geometric) with estimated alpha",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "negbin_add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "negbin_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Newton-Raphson max iterations, default 35 (matching NegativeBinomial.fit(method=\"newton\")'s shared base.optimizer._fit_newton default, same as Logit/Probit)."
+        },
+        {
+          "name": "negbin_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "Newton-Raphson convergence tolerance, default 1e-8."
+        },
+        {
+          "name": "negbin_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "NegativeBinomial fit_regularized(method=\"l1\") penalty weight."
+        },
+        {
+          "name": "negbin_trim_mode",
+          "type": "string",
+          "occurs": "?",
+          "default": "auto",
+          "description": "NegativeBinomial L1 trim mode: \"auto\" (default), \"size\", or \"off\"."
+        },
+        {
+          "name": "negbin_auto_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.01
+        },
+        {
+          "name": "negbin_size_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001
+        },
+        {
+          "name": "negbin_qc_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.03
+        },
+        {
+          "name": "loglike_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "nb2",
+          "description": "loglike_method: \"nb2\" (default, Var=mu+alpha*mu^2) | \"nb1\" (Var=mu+alpha*mu, linear variance-mean) | \"geometric\" (alpha FIXED at 1, not estimated -- no alpha in the parameter vector at all)."
+        }
+      ]
+    },
+    {
+      "name": "negativebinomialp",
+      "access": "read",
+      "returns": "object",
+      "description": "Generalized negative binomial (NB-P) count regression",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "negbinp_add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "negbinp_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Newton-Raphson max iterations, default 35 (same convention as negbin_maxiter)."
+        },
+        {
+          "name": "negbinp_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "Newton-Raphson convergence tolerance, default 1e-8."
+        },
+        {
+          "name": "negbinp_p",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "The NB-P power parameter (NegativeBinomialP's constructor-time p, a FIXED hyperparameter, never estimated -- verified directly against source)."
+        },
+        {
+          "name": "negbinp_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "NegativeBinomialP fit_regularized(method=\"l1\") penalty weight."
+        },
+        {
+          "name": "negbinp_trim_mode",
+          "type": "string",
+          "occurs": "?",
+          "default": "auto",
+          "description": "NegativeBinomialP L1 trim mode: \"auto\" (default), \"size\", or \"off\"."
+        },
+        {
+          "name": "negbinp_auto_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.01
+        },
+        {
+          "name": "negbinp_size_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001
+        },
+        {
+          "name": "negbinp_qc_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.03
+        }
+      ]
+    },
+    {
+      "name": "rlm",
+      "access": "read",
+      "returns": "object",
+      "description": "Robust linear model (M-estimation by IRLS: Huber, Tukey, ...)",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 50
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "GLM IRLS convergence tolerance on deviance, default 1e-8."
+        },
+        {
+          "name": "norm",
+          "type": "string",
+          "occurs": "?",
+          "default": "huber",
+          "description": "Robust norm for RLM: \"huber\" (default), \"tukey\", \"AndrewWave\" (alias \"AndrewsWave\"), \"RamsayE\", \"TrimmedMean\", \"Hampel\", \"LeastSquares\", \"TukeyQuartic\", \"StudentT\", or \"mquantile\"."
+        },
+        {
+          "name": "norm_tuning",
+          "type": "json",
+          "occurs": "?",
+          "description": "Optional tuning-constant override for norm (default: statsmodels' own default constant for the selected norm, preserving 100% prior behavior when omitted)."
+        },
+        {
+          "name": "mquantile_q",
+          "type": "number",
+          "occurs": "?",
+          "description": "MQuantileNorm only: quantile level q in (0, 1)."
+        },
+        {
+          "name": "mquantile_base_norm",
+          "type": "string",
+          "occurs": "?",
+          "default": "huber",
+          "description": "MQuantileNorm only: base robust norm, default \"huber\"."
+        },
+        {
+          "name": "scale_est",
+          "type": "string",
+          "occurs": "?",
+          "default": "mad",
+          "description": "RLM scale estimator: \"mad\" (default) or \"huber\" for statsmodels' HuberScale() / Huber's Proposal 2."
+        },
+        {
+          "name": "cov",
+          "type": "string",
+          "occurs": "?",
+          "default": "H1",
+          "description": "RLM covariance estimator: \"H1\" (default), \"H2\", or \"H3\"."
+        },
+        {
+          "name": "conv",
+          "type": "string",
+          "occurs": "?",
+          "default": "dev",
+          "description": "RLM convergence criterion: \"dev\" (default), \"coefs\", \"weights\", or \"sresid\"."
+        },
+        {
+          "name": "rlm_start_params",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "RLM initial coefficient vector for the first IRLS weighting step."
+        },
+        {
+          "name": "rlm_update_scale",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "RLM scale-update flag."
+        },
+        {
+          "name": "rlm_start_scale",
+          "type": "number",
+          "occurs": "?",
+          "description": "Optional initial/fixed RLM scale."
+        },
+        {
+          "name": "add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        }
+      ]
+    },
+    {
+      "name": "quantreg",
+      "access": "read",
+      "returns": "object",
+      "description": "Quantile regression at one or several quantiles",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "q",
+          "type": "number",
+          "occurs": "?",
+          "description": "Target quantile, strictly between 0 and 1."
+        },
+        {
+          "name": "qs",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional batch of target quantiles."
+        },
+        {
+          "name": "vcov",
+          "type": "string",
+          "occurs": "?",
+          "default": "robust",
+          "description": "QuantReg covariance estimator: \"robust\" (default) or \"iid\"."
+        },
+        {
+          "name": "kernel",
+          "type": "string",
+          "occurs": "?",
+          "default": "epa",
+          "description": "QuantReg kernel for density-at-zero estimate: \"epa\" (default), \"biw\", \"cos\", \"gau\", or \"par\"."
+        },
+        {
+          "name": "bandwidth",
+          "type": "string",
+          "occurs": "?",
+          "default": "hsheather",
+          "description": "QuantReg bandwidth selection: \"hsheather\" (default), \"bofinger\", or \"chamberlain\"."
+        },
+        {
+          "name": "p_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.000001,
+          "description": "QuantReg IRLS parameter-change tolerance."
+        },
+        {
+          "name": "rearrange",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "QuantReg batch-only: if true with qs, also return per-observation rearranged fitted values (row-wise sorted across quantiles)."
+        },
+        {
+          "name": "add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        }
+      ]
+    },
+    {
+      "name": "unobserved_components",
+      "access": "read",
+      "returns": "object",
+      "description": "Structural time-series model (level, trend, seasonal, cycle) with smoothed components and forecast",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "level",
+          "type": "string",
+          "occurs": "1",
+          "description": "Level/trend spec, e.g."
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "include_smoothed_state",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "ARIMA-only: if true, also compute and return the Kalman-smoothed state at every in-sample time point (smoothed_state/ smoothed_signal)."
+        },
+        {
+          "name": "diffuse_init",
+          "type": "string",
+          "occurs": "?",
+          "default": "approximate",
+          "description": "ARIMA/UnobservedComponents-only: \"approximate\" (default, EXISTING behavior -- large-finite-variance diffuse initialization, unchanged) or \"exact\" (Durbin & Koopman ch."
+        },
+        {
+          "name": "include_state",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, add an opaque \"state\" blob to the response that can be fed back verbatim as resume_state later."
+        },
+        {
+          "name": "resume_state",
+          "type": "json",
+          "occurs": "?",
+          "description": "A previously-exported state blob (opaque JSON; feed back verbatim)."
+        },
+        {
+          "name": "update_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "\"filter_only\"|\"refit_warm\"|\"refit_fresh\"."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "irregular",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "Optional observation-noise/irregular component flag for UnobservedComponents."
+        },
+        {
+          "name": "stochastic_level",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "Whether the level state has a stochastic innovation variance."
+        },
+        {
+          "name": "stochastic_trend",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "Whether the trend state has a stochastic innovation variance."
+        },
+        {
+          "name": "uc_seasonal_periods",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Optional stochastic dummy-variable seasonal period (e.g."
+        },
+        {
+          "name": "freq_seasonal",
+          "type": "json",
+          "occurs": "?",
+          "description": "Optional frequency-domain seasonal components, matching statsmodels' freq_seasonal=[{\"period\": p, \"harmonics\": h?}, ...] shape."
+        },
+        {
+          "name": "stochastic_freq_seasonal",
+          "type": "array",
+          "occurs": "?",
+          "items": "boolean",
+          "description": "Optional per-frequency-seasonal stochastic flags."
+        },
+        {
+          "name": "cycle",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether to add a trigonometric cycle component (UnobservedComponents(..., cycle=True, ...))."
+        },
+        {
+          "name": "stochastic_cycle",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether the cycle's shock is stochastic (adds sigma2.cycle)."
+        },
+        {
+          "name": "damped_cycle",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether the cycle is damped (adds damping.cycle)."
+        },
+        {
+          "name": "autoregressive",
+          "type": "number",
+          "occurs": "?",
+          "description": "Autoregressive component order (UnobservedComponents(..., autoregressive=N, ...), matching statsmodels' own field name and semantics exactly: an ORDER, not a boolean -- None/omitted/0 means no AR component)."
+        },
+        {
+          "name": "mle_regression",
+          "type": "boolean",
+          "occurs": "?",
+          "description": "UnobservedComponents regression mode."
+        }
+      ]
+    },
+    {
+      "name": "mnlogit",
+      "access": "read",
+      "returns": "object",
+      "description": "Multinomial logit for unordered categories",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "mnlogit_add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "mnlogit_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Newton-Raphson max iterations, default 35 (statsmodels' MNLogit.fit() verified default, same as binary Logit/Probit)."
+        },
+        {
+          "name": "mnlogit_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-8,
+          "description": "Newton-Raphson convergence tolerance, default 1e-8."
+        },
+        {
+          "name": "mnlogit_alpha",
+          "type": "json",
+          "occurs": "?",
+          "description": "MNLogit fit_regularized(method=\"l1\") penalty weight."
+        },
+        {
+          "name": "mnlogit_trim_mode",
+          "type": "string",
+          "occurs": "?",
+          "default": "auto",
+          "description": "MNLogit L1 trim mode: \"auto\" (default), \"size\", or \"off\"."
+        },
+        {
+          "name": "mnlogit_auto_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.01
+        },
+        {
+          "name": "mnlogit_size_trim_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0001
+        },
+        {
+          "name": "mnlogit_qc_tol",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.03
+        }
+      ]
+    },
+    {
+      "name": "ordered_logit",
+      "access": "read",
+      "returns": "object",
+      "description": "Ordered (proportional-odds) logit for ordinal outcomes",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "GLM IRLS convergence tolerance on deviance, default 1e-8."
+        },
+        {
+          "name": "add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "ordered_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Max iterations for ordered logit/probit numerical Newton fit."
+        },
+        {
+          "name": "ordered_tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "Parameter-change tolerance for ordered logit/probit numerical Newton fit."
+        }
+      ]
+    },
+    {
+      "name": "ordered_probit",
+      "access": "read",
+      "returns": "object",
+      "description": "Ordered probit for ordinal outcomes",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "GLM IRLS convergence tolerance on deviance, default 1e-8."
+        },
+        {
+          "name": "add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "ordered_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Max iterations for ordered logit/probit numerical Newton fit."
+        },
+        {
+          "name": "ordered_tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "Parameter-change tolerance for ordered logit/probit numerical Newton fit."
+        }
+      ]
+    },
+    {
+      "name": "ordered_cloglog",
+      "access": "read",
+      "returns": "object",
+      "description": "Ordered complementary log-log model for ordinal outcomes",
+      "params": [
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "GLM IRLS convergence tolerance on deviance, default 1e-8."
+        },
+        {
+          "name": "add_const",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, prepend a column of ones to exog before fitting."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "nonrobust",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Cluster ids, one per observation; required when cov_type=\"cluster\"."
+        },
+        {
+          "name": "groups2",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional second cluster dimension; when present with groups and cov_type=\"cluster\", computes statsmodels-style two-way clustering."
+        },
+        {
+          "name": "compute_margeff",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, also compute and return average marginal effects (AME) with delta-method standard errors."
+        },
+        {
+          "name": "margeff_at",
+          "type": "string",
+          "occurs": "?",
+          "default": "overall",
+          "description": "Marginal-effects evaluation point for models that support it: \"overall\" (default), \"mean\", \"median\", \"zero\", or \"all\"."
+        },
+        {
+          "name": "margeff_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dydx",
+          "description": "Marginal-effects transform for Logit/Probit, Poisson, NegativeBinomial, NegativeBinomialP, and MNLogit, matching statsmodels' get_margeff(method=...): \"dydx\" (default), \"eyex\", \"dyex\", or \"eydx\"."
+        },
+        {
+          "name": "margeff_dummy",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat 0/1-valued regressor columns as binary/dummy in marginal effects (discrete difference P(y|x=1) - P(y|x=0) instead of the continuous derivative)."
+        },
+        {
+          "name": "margeff_count",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, treat non-negative-integer-valued regressor columns (that are not already dummy) as count variables in marginal effects (discrete difference (P(y|x+1) - P(y|x-1))/2 instead of the continuous derivative)."
+        },
+        {
+          "name": "ordered_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "description": "Max iterations for ordered logit/probit numerical Newton fit."
+        },
+        {
+          "name": "ordered_tol",
+          "type": "number",
+          "occurs": "?",
+          "description": "Parameter-change tolerance for ordered logit/probit numerical Newton fit."
+        }
+      ]
+    },
+    {
+      "name": "garch",
+      "access": "read",
+      "returns": "object",
+      "description": "GARCH-family volatility model (GARCH, GJR, EGARCH, ...) with variance/volatility forecast",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "Optional seed for ETS simulation-based intervals and GARCH simulation forecasts."
+        },
+        {
+          "name": "n_simulations",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000,
+          "description": "Number of paths for ETS simulation intervals and GARCH simulation forecasts; default 1000."
+        },
+        {
+          "name": "include_simulation_paths",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "GARCH simulation forecasts only: include per-simulation variance paths and standardized shocks in the response."
+        },
+        {
+          "name": "vol",
+          "type": "string",
+          "occurs": "?",
+          "default": "garch",
+          "description": "Volatility process: \"garch\" (default) | \"gjr\" (GJR-GARCH/TARCH, asymmetric leverage term) | \"egarch\" (log-variance)."
+        },
+        {
+          "name": "garch_p",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "GARCH symmetric-innovation order (default 1)."
+        },
+        {
+          "name": "garch_o",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "GARCH asymmetric/leverage order, only meaningful for vol=\"gjr\" or \"egarch\" (default 0, i.e."
+        },
+        {
+          "name": "garch_q",
+          "type": "number",
+          "occurs": "?",
+          "default": 1,
+          "description": "GARCH lagged-variance order (default 1)."
+        },
+        {
+          "name": "dist",
+          "type": "string",
+          "occurs": "?",
+          "default": "normal",
+          "description": "Conditional distribution: \"normal\" (default) | \"t\" (standardized Student's t, shape parameter nu) | \"skewt\" (Hansen's standardized skew-t, shape parameters eta/lambda) | \"ged\" (Generalized Error Distribution, shape parameter nu)."
+        },
+        {
+          "name": "mean",
+          "type": "string",
+          "occurs": "?",
+          "default": "constant",
+          "description": "Mean specification: \"constant\" (default, jointly estimated) | \"zero\" | \"ar\"."
+        },
+        {
+          "name": "ar_lags",
+          "type": "json",
+          "occurs": "?",
+          "description": "GARCH AR/ARX mean lags."
+        },
+        {
+          "name": "har_lags",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "GARCH HAR/HARX mean lag-bucket endpoints (e.g."
+        },
+        {
+          "name": "garch_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500,
+          "description": "GARCH L-BFGS max iterations, default 500."
+        },
+        {
+          "name": "garch_forecast_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "analytic",
+          "description": "GARCH forecast method: \"analytic\" (default, existing behavior) or \"simulation\" (currently only for EGARCH, seeded by seed and using n_simulations, default 1000)."
+        },
+        {
+          "name": "power",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "Power ARCH exponent (arch.univariate.volatility.GARCH(power=...)), only meaningful for vol=\"garch\"|\"gjr\"."
+        }
+      ]
+    },
+    {
+      "name": "theta",
+      "access": "read",
+      "returns": "object",
+      "description": "Theta method forecast (statsmodels ThetaModel)",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "period",
+          "type": "number",
+          "occurs": "?",
+          "description": "Seasonal period for STL or classical seasonal_decompose."
+        },
+        {
+          "name": "deseasonalize",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Whether to deseasonalize before fitting."
+        },
+        {
+          "name": "use_test",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Whether to apply statsmodels' seasonal autocorrelation test before deseasonalizing."
+        },
+        {
+          "name": "theta_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "auto",
+          "description": "Seasonal decomposition method: \"auto\" (default), \"additive\", or \"multiplicative\"."
+        },
+        {
+          "name": "difference",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Difference the data before the seasonality test."
+        },
+        {
+          "name": "use_mle",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Theta-only: estimate b0/alpha via statsmodels' MLE path (SARIMAX(0,1,1)+drift) instead of the default OLS/SES two-step path."
+        },
+        {
+          "name": "theta",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "Theta-only: the theta value used to combine the trend and SES forecast components at forecast time (ThetaModelResults.forecast (steps, theta=...))."
+        }
+      ]
+    },
+    {
+      "name": "prophet",
+      "access": "read",
+      "returns": "object",
+      "description": "Prophet-style additive trend + seasonality + holidays forecast",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "ds",
+          "type": "json",
+          "occurs": "?",
+          "description": "Prophet-only: observation timestamps."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "Optional seed for ETS simulation-based intervals and GARCH simulation forecasts."
+        },
+        {
+          "name": "n_simulations",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000,
+          "description": "Number of paths for ETS simulation intervals and GARCH simulation forecasts; default 1000."
+        },
+        {
+          "name": "n_changepoints",
+          "type": "number",
+          "occurs": "?",
+          "default": 25,
+          "description": "Number of potential trend changepoints."
+        },
+        {
+          "name": "changepoint_range",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.8,
+          "description": "Proportion of history in which automatic changepoints are placed."
+        },
+        {
+          "name": "changepoint_prior_scale",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Laplace prior scale for trend changepoint adjustments."
+        },
+        {
+          "name": "seasonality_prior_scale",
+          "type": "number",
+          "occurs": "?",
+          "default": 10,
+          "description": "Gaussian prior scale for Fourier seasonality coefficients."
+        },
+        {
+          "name": "holidays_prior_scale",
+          "type": "number",
+          "occurs": "?",
+          "default": 10,
+          "description": "Gaussian prior scale for user-specified holiday indicator columns."
+        },
+        {
+          "name": "yearly_seasonality",
+          "type": "json",
+          "occurs": "?",
+          "description": "Built-in yearly seasonality: \"auto\", bool, or Fourier order."
+        },
+        {
+          "name": "yearly_seasonality_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional per-yearly-seasonality mode override: \"additive\" or \"multiplicative\"."
+        },
+        {
+          "name": "weekly_seasonality",
+          "type": "json",
+          "occurs": "?",
+          "description": "Built-in weekly seasonality: \"auto\", bool, or Fourier order."
+        },
+        {
+          "name": "weekly_seasonality_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional per-weekly-seasonality mode override."
+        },
+        {
+          "name": "daily_seasonality",
+          "type": "json",
+          "occurs": "?",
+          "description": "Built-in daily seasonality: \"auto\", bool, or Fourier order."
+        },
+        {
+          "name": "daily_seasonality_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional per-daily-seasonality mode override."
+        },
+        {
+          "name": "holidays",
+          "type": "json",
+          "occurs": "?",
+          "description": "User-specified Prophet holidays."
+        },
+        {
+          "name": "holidays_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional holiday mode: \"additive\" or \"multiplicative\"."
+        },
+        {
+          "name": "extra_regressors",
+          "type": "json",
+          "occurs": "?",
+          "description": "Additive Prophet extra regressors."
+        },
+        {
+          "name": "growth",
+          "type": "string",
+          "occurs": "?",
+          "default": "linear",
+          "description": "Prophet growth mode: \"linear\" (default) or \"logistic\"."
+        },
+        {
+          "name": "cap",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Required when growth=\"logistic\": capacity at each observation (raw, unscaled units), one entry per series element."
+        },
+        {
+          "name": "future_cap",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Required when growth=\"logistic\" and forecast_steps > 0: capacity at each future forecast step, one entry per step."
+        },
+        {
+          "name": "floor",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional per-observation floor (raw units) for growth=\"logistic\"; defaults to 0.0 at every observation when omitted (Prophet's own scaling=\"absmax\" default)."
+        },
+        {
+          "name": "future_floor",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Optional per-forecast-step floor (raw units), one entry per step; defaults to 0.0 when omitted, matching floor's own default."
+        },
+        {
+          "name": "seasonality_mode",
+          "type": "string",
+          "occurs": "?",
+          "description": "Prophet seasonality mode for built-in Fourier seasonalities: \"additive\" (default) or \"multiplicative\"."
+        },
+        {
+          "name": "scaling",
+          "type": "string",
+          "occurs": "?",
+          "description": "Prophet response scaling: \"absmax\" (default, y_scale = max(abs(y)), zero offset) or \"minmax\" (y rescaled to [0, 1] via y_scale = y.max() - y.min(), y_min offset added back into the trend at fit/predict time -- see ProphetScaling's doc co..."
+        }
+      ]
+    },
+    {
+      "name": "vecm",
+      "access": "read",
+      "returns": "object",
+      "description": "Vector error-correction model with Johansen cointegration rank",
+      "params": [
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "k_ar_diff",
+          "type": "number",
+          "occurs": "1",
+          "description": "Number of lagged DIFFERENCE terms (statsmodels' k_ar_diff; the level-VAR-equivalent order is k_ar_diff + 1)."
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "coint_rank",
+          "type": "number",
+          "occurs": "?",
+          "description": "Cointegrating rank r."
+        },
+        {
+          "name": "deterministic",
+          "type": "string",
+          "occurs": "?",
+          "default": "co",
+          "description": "Deterministic-term short code: \"n\"|\"co\"|\"ci\"|\"lo\"|\"li\" (and combinations like \"cili\"/\"colo\") -- see roadmap.md."
+        },
+        {
+          "name": "seasons",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Number of seasons for centered seasonal dummies (statsmodels' VECM(..., seasons=))."
+        },
+        {
+          "name": "first_season",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Season index of the first observation (statsmodels' VECM(..., first_season=))."
+        },
+        {
+          "name": "exog_coint",
+          "type": "json",
+          "occurs": "?",
+          "description": "Cointegration-relation (inside) exogenous regressors (statsmodels' VECM(..., exog_coint=)), same row count as endog."
+        },
+        {
+          "name": "test_normality_signif",
+          "type": "number",
+          "occurs": "?",
+          "description": "model=\"vecm\" only: when supplied, additionally runs VecmModel::test_normality at this significance level and populates the response's normality_test field (2026-07 \"quick win\" pass)."
+        }
+      ]
+    },
+    {
+      "name": "coint_johansen",
+      "access": "read",
+      "returns": "object",
+      "description": "Johansen cointegration test (trace and max-eigenvalue statistics)",
+      "params": [
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "k_ar_diff",
+          "type": "number",
+          "occurs": "1",
+          "description": "Number of lagged DIFFERENCE terms (statsmodels' k_ar_diff; the level-VAR-equivalent order is k_ar_diff + 1)."
+        },
+        {
+          "name": "deterministic",
+          "type": "string",
+          "occurs": "?",
+          "default": "co",
+          "description": "Deterministic-term short code: \"n\"|\"co\"|\"ci\"|\"lo\"|\"li\" (and combinations like \"cili\"/\"colo\") -- see roadmap.md."
+        },
+        {
+          "name": "select_coint_rank",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "model=\"coint_johansen\" only: if true, also run statsmodels-style select_coint_rank using Johansen critical values."
+        },
+        {
+          "name": "coint_rank_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "trace",
+          "description": "Rank-selection method: \"trace\" (default) or \"maxeig\"."
+        },
+        {
+          "name": "coint_rank_signif",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.05,
+          "description": "Rank-selection significance: 0.10, 0.05 (default), or 0.01."
+        }
+      ]
+    },
+    {
+      "name": "adf",
+      "access": "read",
+      "returns": "object",
+      "description": "Augmented Dickey-Fuller unit-root test",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        }
+      ]
+    },
+    {
+      "name": "kpss",
+      "access": "read",
+      "returns": "object",
+      "description": "KPSS stationarity test",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        }
+      ]
+    },
+    {
+      "name": "acf_pacf",
+      "access": "read",
+      "returns": "object",
+      "description": "Autocorrelation and partial autocorrelation functions",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "diag_nlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "model=\"acf_pacf\" only: number of lags, default min(10*log10(nobs), nobs-1) (acf) / nobs/2 - 1 (pacf), matching statsmodels' own respective defaults."
+        },
+        {
+          "name": "diag_confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95,
+          "description": "model=\"acf_pacf\"/\"ljung_box\": confidence level for acf/pacf CIs (as 1 - alpha)."
+        },
+        {
+          "name": "diag_pacf_method",
+          "type": "string",
+          "occurs": "?",
+          "description": "model=\"acf_pacf\" only: pacf method, \"yw\"/\"ywadjusted\" (default) or \"burg\"."
+        }
+      ]
+    },
+    {
+      "name": "ljung_box",
+      "access": "read",
+      "returns": "object",
+      "description": "Ljung-Box test for autocorrelation at chosen lags",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "diag_lags",
+          "type": "number",
+          "occurs": "1",
+          "description": "model=\"ljung_box\" only: number of lags for the cumulative Q-statistic."
+        }
+      ]
+    },
+    {
+      "name": "markov_regression",
+      "access": "read",
+      "returns": "object",
+      "description": "Markov-switching regression (regime-dependent mean/variance)",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "markov_order",
+          "type": "number",
+          "occurs": "1",
+          "description": "AR order."
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "k_regimes",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "Number of regimes, k_regimes >= 2."
+        },
+        {
+          "name": "switching_ar",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Whether AR coefficients depend on regime (MarkovAutoregression only)."
+        },
+        {
+          "name": "switching_variance",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether the innovation variance depends on regime."
+        },
+        {
+          "name": "switching_trend",
+          "type": "json",
+          "occurs": "?",
+          "description": "Whether the trend coefficient(s) depend on regime."
+        },
+        {
+          "name": "markov_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 200,
+          "description": "L-BFGS max iterations per restart, default 200."
+        },
+        {
+          "name": "exog_tvtp",
+          "type": "json",
+          "occurs": "?",
+          "description": "Optional time-varying transition probability regressors."
+        },
+        {
+          "name": "switching_exog",
+          "type": "array",
+          "occurs": "?",
+          "items": "boolean",
+          "description": "Per-exog-column switching flags (statsmodels' own switching_exog, length must equal the number of exog columns when exog is supplied)."
+        }
+      ]
+    },
+    {
+      "name": "markov_autoregression",
+      "access": "read",
+      "returns": "object",
+      "description": "Markov-switching autoregression",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "markov_order",
+          "type": "number",
+          "occurs": "1",
+          "description": "AR order."
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?"
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "k_regimes",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "Number of regimes, k_regimes >= 2."
+        },
+        {
+          "name": "switching_ar",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "Whether AR coefficients depend on regime (MarkovAutoregression only)."
+        },
+        {
+          "name": "switching_variance",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether the innovation variance depends on regime."
+        },
+        {
+          "name": "switching_trend",
+          "type": "json",
+          "occurs": "?",
+          "description": "Whether the trend coefficient(s) depend on regime."
+        },
+        {
+          "name": "markov_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 200,
+          "description": "L-BFGS max iterations per restart, default 200."
+        },
+        {
+          "name": "exog_tvtp",
+          "type": "json",
+          "occurs": "?",
+          "description": "Optional time-varying transition probability regressors."
+        },
+        {
+          "name": "switching_exog",
+          "type": "array",
+          "occurs": "?",
+          "items": "boolean",
+          "description": "Per-exog-column switching flags (statsmodels' own switching_exog, length must equal the number of exog columns when exog is supplied)."
+        }
+      ]
+    },
+    {
+      "name": "svar",
+      "access": "read",
+      "returns": "object",
+      "description": "Structural VAR (A/B restrictions)",
+      "params": [
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "svar_type",
+          "type": "string",
+          "occurs": "1",
+          "description": "Structural identification scheme: \"A\"|\"B\"|\"AB\" (case-sensitive, matching statsmodels' own exact string check)."
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "maxlags",
+          "type": "number",
+          "occurs": "?",
+          "description": "VAR: maximum lag order to search when ic is given; defaults to statsmodels' 12*(nobs/100)**0.25 heuristic (rounded)."
+        },
+        {
+          "name": "ic",
+          "type": "string",
+          "occurs": "?",
+          "description": "Information criterion for lag-order selection: \"aic\"|\"bic\"|\"hqic\"|\"fpe\"."
+        },
+        {
+          "name": "lags",
+          "type": "number",
+          "occurs": "?",
+          "description": "Exact VAR lag order (mutually exclusive with ic)."
+        },
+        {
+          "name": "irf_periods",
+          "type": "number",
+          "occurs": "?",
+          "default": 10,
+          "description": "Number of IRF horizons to compute; 0/absent omits irf from the response."
+        },
+        {
+          "name": "a_template",
+          "type": "json",
+          "occurs": "?",
+          "description": "K x K template for the structural A matrix: null marks a free (to-be-estimated) element, a number is a fixed value -- the JSON analogue of statsmodels' \"E\"-string template convention."
+        },
+        {
+          "name": "b_template",
+          "type": "json",
+          "occurs": "?",
+          "description": "K x K template for the structural B matrix, same convention as a_template."
+        },
+        {
+          "name": "a_guess",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Starting values for A's free elements, in row-major template order."
+        },
+        {
+          "name": "b_guess",
+          "type": "array",
+          "occurs": "?",
+          "items": "number",
+          "description": "Starting values for B's free elements, same convention as a_guess."
+        },
+        {
+          "name": "svar_maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500,
+          "description": "L-BFGS max iterations for the structural-parameter MLE, default 500 (matches statsmodels' own maxiter default)."
+        }
+      ]
+    },
+    {
+      "name": "dynamic_factor",
+      "access": "read",
+      "returns": "object",
+      "description": "Dynamic factor model with smoothed common factors and forecast",
+      "params": [
+        {
+          "name": "endog",
+          "type": "json",
+          "occurs": "1",
+          "description": "Endogenous data."
+        },
+        {
+          "name": "k_factors",
+          "type": "number",
+          "occurs": "1",
+          "description": "Number of latent common factors."
+        },
+        {
+          "name": "factor_order",
+          "type": "number",
+          "occurs": "1",
+          "description": "VAR order followed by the latent factors."
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "error_order",
+          "type": "number",
+          "occurs": "?",
+          "default": 0,
+          "description": "Idiosyncratic AR/VAR error order for DynamicFactor."
+        },
+        {
+          "name": "error_var",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether idiosyncratic errors follow a joint VAR instead of independent per-series AR processes."
+        },
+        {
+          "name": "error_cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "diagonal",
+          "description": "Idiosyncratic error covariance type for DynamicFactor: \"scalar\"|\"diagonal\"|\"unstructured\"."
+        }
+      ]
+    },
+    {
+      "name": "croston",
+      "access": "read",
+      "returns": "object",
+      "description": "Croston's method for intermittent demand (classic, SBA or optimized)",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "croston_method",
+          "type": "string",
+          "occurs": "?",
+          "default": "classic",
+          "description": "Croston variant: \"classic\"|\"sba\"|\"optimized\", default \"classic\"."
+        },
+        {
+          "name": "croston_alpha",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.1,
+          "description": "Smoothing parameter for \"classic\"/\"sba\" (same alpha applied to both the demand-size and interval components, matching statsforecast's own convention)."
+        },
+        {
+          "name": "croston_fitted",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether to compute and return in-sample fitted values."
+        }
+      ]
+    },
+    {
+      "name": "auto_arima",
+      "access": "read",
+      "returns": "object",
+      "description": "Automatic ARIMA order selection (Hyndman-Khandakar stepwise search) with forecast",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "seasonal_order",
+          "type": "array",
+          "occurs": "?",
+          "default": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "items": "number"
+        },
+        {
+          "name": "trend",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "exog",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "statespace"
+        },
+        {
+          "name": "enforce_stationarity",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true
+        },
+        {
+          "name": "enforce_invertibility",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "exog_future",
+          "type": "json",
+          "occurs": "?"
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "ic",
+          "type": "string",
+          "occurs": "?",
+          "default": "aic",
+          "description": "Information criterion for lag-order selection: \"aic\"|\"bic\"|\"hqic\"|\"fpe\"."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "max_p",
+          "type": "number",
+          "occurs": "?",
+          "default": 5,
+          "description": "Maximum nonseasonal AR order to search."
+        },
+        {
+          "name": "max_d",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "Maximum differencing order to search (via repeated KPSS testing)."
+        },
+        {
+          "name": "max_q",
+          "type": "number",
+          "occurs": "?",
+          "default": 5,
+          "description": "Maximum nonseasonal MA order to search."
+        },
+        {
+          "name": "max_seasonal_p",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "Maximum seasonal AR order to search; only used when seasonal_order gives a period s > 1."
+        },
+        {
+          "name": "max_seasonal_q",
+          "type": "number",
+          "occurs": "?",
+          "default": 2,
+          "description": "Maximum seasonal MA order to search; only used when seasonal_order gives a period s > 1."
+        }
+      ]
+    },
+    {
+      "name": "auto_ets",
+      "access": "read",
+      "returns": "object",
+      "description": "Automatic ETS model selection by information criterion with forecast",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 500
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 0
+        },
+        {
+          "name": "confidence_level",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.95
+        },
+        {
+          "name": "seasonal_periods",
+          "type": "number",
+          "occurs": "?",
+          "description": "Required for ETS when seasonal != \"none\"."
+        },
+        {
+          "name": "seed",
+          "type": "number",
+          "occurs": "?",
+          "description": "Optional seed for ETS simulation-based intervals and GARCH simulation forecasts."
+        },
+        {
+          "name": "n_simulations",
+          "type": "number",
+          "occurs": "?",
+          "default": 1000,
+          "description": "Number of paths for ETS simulation intervals and GARCH simulation forecasts; default 1000."
+        },
+        {
+          "name": "ic",
+          "type": "string",
+          "occurs": "?",
+          "default": "aicc",
+          "description": "Information criterion for lag-order selection: \"aic\"|\"bic\"|\"hqic\"|\"fpe\"."
+        },
+        {
+          "name": "cov_type",
+          "type": "string",
+          "occurs": "?",
+          "default": "opg",
+          "description": "Regression covariance estimator: \"nonrobust\" (default) | \"HC0\"|\"HC1\"|\"HC2\"|\"HC3\" (heteroskedasticity-robust sandwich covariance) | \"HAC\" (Newey-West/Bartlett, requires maxlags) | \"cluster\" (one-way with groups, two-way with groups + grou..."
+        },
+        {
+          "name": "allow_multiplicative_trend",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Whether to include multiplicative-trend candidates in the search."
+        }
+      ]
+    },
+    {
+      "name": "weighted_moving_average",
+      "access": "read",
+      "returns": "object",
+      "description": "Weighted moving-average forecast with outlier exclusion",
+      "params": [
+        {
+          "name": "series",
+          "type": "json",
+          "occurs": "1"
+        },
+        {
+          "name": "weights",
+          "type": "array",
+          "occurs": "1",
+          "items": "number",
+          "description": "WLS weights, one per observation."
+        },
+        {
+          "name": "forecast_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 1
+        },
+        {
+          "name": "include_extremes",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "If true, include values that would otherwise be flagged as outliers (via the built-in median-absolute-deviation rule) in the weighted average."
+        },
+        {
+          "name": "outlier_multiplier",
+          "type": "number",
+          "occurs": "?",
+          "default": 3.5,
+          "description": "Median-absolute-deviation multiplier for the built-in outlier rule."
+        }
+      ]
+    },
+    {
+      "name": "erlang_a",
+      "access": "read",
+      "returns": "object",
+      "description": "Erlang-A (M/M/N+M) staffing metrics: service level, ASA, occupancy, abandonment",
+      "params": [
+        {
+          "name": "erlang_lambda",
+          "type": "number",
+          "occurs": "1",
+          "description": "Arrival rate, contacts per second."
+        },
+        {
+          "name": "erlang_mu",
+          "type": "number",
+          "occurs": "1",
+          "description": "Service rate, 1 / average_handle_time_seconds."
+        },
+        {
+          "name": "erlang_theta",
+          "type": "number",
+          "occurs": "1",
+          "description": "Abandonment rate, 1 / average_patience_seconds."
+        },
+        {
+          "name": "n_agents",
+          "type": "number",
+          "occurs": "1",
+          "description": "Number of agents/servers."
+        },
+        {
+          "name": "wait_threshold",
+          "type": "number",
+          "occurs": "1",
+          "description": "Target answer-time threshold in seconds, for the service-level calculation."
+        }
+      ]
+    }
+  ]
+}

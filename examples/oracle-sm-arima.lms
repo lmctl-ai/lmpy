@@ -1,0 +1,52 @@
+// access: read
+// What it does: fits ARMA(1,1) without a mean to a 120-point series with pycli sm_arima (statsmodels SARIMAX exact ML) and compares
+//   the AR/MA parameters, innovation variance, log-likelihood and a 5-step forecast with R 4.3.3 constants, rcli ts_arima (R arima, ML)
+//   and lmstats arima (statespace) when those binaries are on PATH.
+// Tolerance: 1e-3 absolute for parameters, variance and forecasts; 1e-3 for the log-likelihood. Iterative maximum likelihood: the three
+//   optimizers (R optim BFGS on its own likelihood, statsmodels L-BFGS-B, lmstats' port) stop at slightly different points of a flat
+//   likelihood, so agreement is limited by optimizer tolerance, not by the model. Standard errors are not compared: R differentiates
+//   the likelihood numerically, statsmodels uses the observed information matrix, and they differ in the 2nd or 3rd digit.
+// Setup: see examples/schemas/README.md.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+import "schemas/statsrust.cli.schema.v1.json" as lmstats;
+
+function maxdiff(label, a, b) {
+  worst = 0;
+  for (i = 0; i < len(a); i = i + 1) {
+    d = abs(a[i] - b[i]);
+    println(sprintf("  %s[%d] | %.12f | %.12f | %.12f", label, i, a[i], b[i], d));
+    if (d > worst) { worst = d; }
+  }
+  return worst;
+}
+
+series = [1.711067, 1.950077, 0.993479, 2.023794, 3.453829, 0.578432, -0.44952, -0.767853, -0.476348, 1.309661, -0.453622, 0.757637, 0.819034, -0.365827, 1.445735, 0.028669, 1.022639, 0.035805, 1.370305, 2.140949, 1.458921, 0.205727, 1.969063, 0.182424, -0.018104, 0.701203, 0.629847, -0.61745, -1.785113, -2.585672, -1.174721, -0.756786, -1.076715, 0.420553, 1.381112, -1.444828, -1.799813, -1.904894, -1.123578, -1.70666, -1.12284, -0.703516, -2.311815, -0.948614, 0.125585, -1.485551, 0.473432, 0.653838, 0.497185, 0.571642, -0.694302, -1.243102, -2.173681, -0.539678, -1.074198, 0.351298, -0.729166, -0.67223, -1.932696, -0.686771, 0.793329, 1.816287, 1.86441, 1.236054, 0.710433, -0.304354, -1.699413, -0.298616, 1.349212, 1.789738, 2.508197, 0.605009, 0.285838, -0.402331, -0.606723, -2.069574, -1.129054, -0.730502, -0.277475, -0.446977, -2.463374, -1.570972, -0.4483, -0.45778, -0.244125, 0.541801, -0.320608, -0.618947, 0.541034, 2.624481, 0.915248, 1.585814, 1.641114, 0.309236, 0.511232, 1.739555, 2.492113, 1.414169, -1.045194, 0.244345, 1.023871, -1.354144, -2.228578, -1.980628, -0.976562, 0.317488, 0.24733, -1.237032, -1.720789, -0.687724, -2.057374, -2.01787, -0.713297, -0.644801, -1.852762, -0.635152, -2.146743, -1.612279, -0.209231, -0.150042];
+fit = pycli.sm_arima({columns: {s: series}, series: "s", order: [1, 0, 1], trend: "n", forecast_steps: 5});
+if (fit.status == "simulated") { println("ARIMA comparison simulated."); exit(0); }
+if (fit.status != "ok" || fit.result.status != "OK") { println("pycli sm_arima failed:", json_stringify(fit)); exit(1); }
+est = [fit.result.coefficients.estimate[0], fit.result.coefficients.estimate[1], fit.result.sigma2];
+println("pycli: " + json_stringify(fit.result.coefficients.names) + sprintf(" llf=%.8f aic=%.6f", fit.result.llf, fit.result.aic));
+println("leg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)");
+r_est = [0.5745258882876039, 0.05445130866767214, 1.0650504361214743];
+worst = max(maxdiff("param", est, r_est), maxdiff("forecast", fit.result.forecast.mean, [-0.08999880500544839, -0.05170664339057809, -0.02970680522434224, -0.017067328659702057, -0.009805622158911804]), abs(fit.result.llf - (-174.28654082259692)));
+legs = 1;
+if (which("rcli") == null) { println("leg 2 skipped: rcli not on PATH (see examples/schemas/README.md)"); }
+else {
+  r = rcli.ts_arima({x: series, order: [1, 0, 1], include_mean: false, method: "ML", n_ahead: 5});
+  if (r.status != "ok") { println("rcli ts_arima failed:", json_stringify(r)); exit(1); }
+  println("leg 2: pycli vs rcli ts_arima");
+  worst = max(worst, maxdiff("param", est, [r.result.estimate[0], r.result.estimate[1], r.result.sigma2]), maxdiff("forecast", fit.result.forecast.mean, r.result.forecast), abs(fit.result.llf - r.result.loglik));
+  legs = legs + 1;
+}
+if (which("statsrust") == null) { println("leg 3 skipped: statsrust not on PATH (see examples/schemas/README.md)"); }
+else {
+  s = lmstats.arima({series: series, order: [1, 0, 1], trend: "n", method: "statespace", forecast_steps: 5});
+  if (s.status != "ok") { println("lmstats arima failed:", json_stringify(s)); exit(1); }
+  println("leg 3: pycli vs lmstats arima");
+  worst = max(worst, maxdiff("param", est, [s.result.params.values[0], s.result.params.values[1], s.result.sigma2]), maxdiff("forecast", fit.result.forecast.mean, s.result.forecast.mean), abs(fit.result.llf - s.result.loglike));
+  legs = legs + 1;
+}
+println(sprintf("%d leg(s) compared; largest absolute difference %.12f", legs, worst));
+if (worst > 0.001) { println("ARIMA mismatch above the 1e-3 tolerance"); exit(1); }
+println("ARMA(1,1) agrees within 1e-3.");

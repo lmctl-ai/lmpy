@@ -1,0 +1,68 @@
+// access: read
+// What it does: fits y ~ x1 + x2 + g + x1:x2 (treatment coding, reference level a) with pycli sm_ols and compares coefficients and
+//   standard errors with R 4.3.3 (constants computed once by scripts/s5-r-golden.py), with rcli fit_lm when rcli is on PATH and with
+//   lmstats regression (statsrust) when it is on PATH. Missing host binaries skip their leg with a setup hint.
+// Tolerance: 1e-9 absolute for coefficients and standard errors (same closed-form least squares everywhere).
+// Setup: see examples/schemas/README.md (PATH entries for the pycli shim, rcli and statsrust).
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+import "schemas/statsrust.cli.schema.v1.json" as lmstats;
+
+function maxdiff(label, a, b) {
+  worst = 0;
+  for (i = 0; i < len(a); i = i + 1) {
+    d = abs(a[i] - b[i]);
+    println(sprintf("  %s[%d] | %.12f | %.12f | %.12f", label, i, a[i], b[i], d));
+    if (d > worst) { worst = d; }
+  }
+  return worst;
+}
+
+x1 = [0.0, 9.02439, 8.04878, 7.073171, 6.097561, 5.121951, 4.146341, 3.170732, 2.195122, 1.219512, 0.243902, 9.268293, 8.292683, 7.317073, 6.341463, 5.365854, 4.390244, 3.414634, 2.439024, 1.463415, 0.487805, 9.512195, 8.536585, 7.560976, 6.585366, 5.609756, 4.634146, 3.658537, 2.682927, 1.707317, 0.731707, 9.756098, 8.780488, 7.804878, 6.829268, 5.853659, 4.878049, 3.902439, 2.926829, 1.95122];
+x2 = [-2.0, -1.361702, -0.723404, -0.085106, 0.553191, 1.191489, 1.829787, 2.468085, -1.893617, -1.255319, -0.617021, 0.021277, 0.659574, 1.297872, 1.93617, 2.574468, -1.787234, -1.148936, -0.510638, 0.12766, 0.765957, 1.404255, 2.042553, 2.680851, -1.680851, -1.042553, -0.404255, 0.234043, 0.87234, 1.510638, 2.148936, 2.787234, -1.574468, -0.93617, -0.297872, 0.340426, 0.978723, 1.617021, 2.255319, 2.893617];
+g = ['a', 'c', 'b', 'b', 'a', 'c', 'c', 'b', 'a', 'a', 'c', 'b', 'b', 'a', 'c', 'c', 'b', 'a', 'a', 'c', 'b', 'b', 'a', 'c', 'c', 'b', 'a', 'a', 'c', 'b', 'b', 'a', 'c', 'c', 'b', 'a', 'a', 'c', 'b', 'b'];
+y = [2.954535, 17.671755, 17.105806, 13.838887, 13.773494, 9.689788, 8.672194, 6.434021, 6.664264, 5.512977, 1.526185, 19.097022, 17.600086, 15.232588, 13.199891, 10.925678, 10.344611, 7.838138, 7.456069, 4.511963, 1.263234, 19.60068, 19.377061, 17.51056, 14.25616, 12.121329, 10.377497, 8.979624, 5.846226, 3.205993, 1.559838, 22.300896, 17.319633, 16.189567, 13.954069, 12.869558, 11.204965, 8.764896, 6.180387, 3.597162];
+terms = [{const: true}, {var: "x1"}, {var: "x2"}, {cat: "g", ref: "a"}, {interact: ["x1", "x2"]}];
+fit = pycli.sm_ols({columns: {y: y, x1: x1, x2: x2, g: g}, y: "y", terms: terms});
+if (fit.status == "simulated") { println("OLS comparison simulated."); exit(0); }
+if (fit.status != "ok" || fit.result.status != "OK") { println("pycli sm_ols failed:", json_stringify(fit)); exit(1); }
+est = fit.result.coefficients.estimate;
+se = fit.result.coefficients.std_err;
+println("coefficient names: " + json_stringify(fit.result.coefficients.names));
+r_est = [1.7549211662843887, 1.927896524977624, -0.7343884399456135, -0.6372879302822495, -0.6199909538782493, 0.12986471104707903];
+r_se = [0.2124369971649228, 0.032195098397045985, 0.13555392712021316, 0.25839144486044796, 0.2450738527567276, 0.023668847562198447];
+println("leg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)");
+worst = max(maxdiff("estimate", est, r_est), maxdiff("std_err", se, r_se));
+if (abs(fit.result.r2 - 0.9919897066087565) > 0.000000001 || abs(fit.result.sigma - 0.5511915069887131) > 0.000000001) { println("R-squared or sigma differs from R"); exit(1); }
+legs = 1;
+if (which("rcli") == null) { println("leg 2 skipped: rcli not on PATH (see examples/schemas/README.md)"); }
+else {
+  // rcli fit_lm takes numeric columns and plain additive formulas only (no factors, no ':'), so the dummies and the product are passed as columns.
+  gb = []; gc = []; x12 = [];
+  for (i = 0; i < len(y); i = i + 1) {
+    gb = concat(gb, [g[i] == "b" ? 1 : 0]); gc = concat(gc, [g[i] == "c" ? 1 : 0]); x12 = concat(x12, [x1[i] * x2[i]]);
+  }
+  r = rcli.fit_lm({formula: "y ~ x1 + x2 + gb + gc + x12", data: {y: y, x1: x1, x2: x2, gb: gb, gc: gc, x12: x12}});
+  if (r.status != "ok") { println("rcli fit_lm failed:", json_stringify(r)); exit(1); }
+  println("leg 2: pycli vs rcli fit_lm");
+  worst = max(worst, maxdiff("estimate", est, r.result.estimate), maxdiff("std_err", se, r.result.std_error));
+  legs = legs + 1;
+}
+if (which("statsrust") == null) { println("leg 3 skipped: statsrust not on PATH (see examples/schemas/README.md)"); }
+else {
+  exog = [];
+  for (i = 0; i < len(y); i = i + 1) {
+    gb = 0; gc = 0;
+    if (g[i] == "b") { gb = 1; }
+    if (g[i] == "c") { gc = 1; }
+    exog = concat(exog, [[x1[i], x2[i], gb, gc, x1[i] * x2[i]]]);
+  }
+  s = lmstats.regression({endog: y, exog: exog, add_const: true, method: "ols"});
+  if (s.status != "ok") { println("lmstats regression failed:", json_stringify(s)); exit(1); }
+  println("leg 3: pycli vs lmstats regression");
+  worst = max(worst, maxdiff("estimate", est, s.result.params.values), maxdiff("std_err", se, s.result.params.std_err));
+  legs = legs + 1;
+}
+println(sprintf("%d leg(s) compared; largest absolute difference %.12f", legs, worst));
+if (worst > 0.000000001) { println("OLS mismatch above the 1e-9 tolerance"); exit(1); }
+println("OLS agrees within 1e-9.");

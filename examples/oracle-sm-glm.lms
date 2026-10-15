@@ -1,0 +1,56 @@
+// access: read
+// What it does: fits a Poisson regression (count ~ x1 + x2, log link) with pycli sm_glm and compares coefficients, standard errors and
+//   deviance with R 4.3.3 constants, rcli fit_glm and lmstats glm when those binaries are on PATH.
+// Tolerance: 1e-6 absolute (IRLS stopping rules differ between R's deviance criterion and statsmodels'; both are converged to ~1e-8).
+// Setup: see examples/schemas/README.md.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+import "schemas/statsrust.cli.schema.v1.json" as lmstats;
+
+function maxdiff(label, a, b) {
+  worst = 0;
+  for (i = 0; i < len(a); i = i + 1) {
+    d = abs(a[i] - b[i]);
+    println(sprintf("  %s[%d] | %.12f | %.12f | %.12f", label, i, a[i], b[i], d));
+    if (d > worst) { worst = d; }
+  }
+  return worst;
+}
+
+x1 = [0.0, 9.02439, 8.04878, 7.073171, 6.097561, 5.121951, 4.146341, 3.170732, 2.195122, 1.219512, 0.243902, 9.268293, 8.292683, 7.317073, 6.341463, 5.365854, 4.390244, 3.414634, 2.439024, 1.463415, 0.487805, 9.512195, 8.536585, 7.560976, 6.585366, 5.609756, 4.634146, 3.658537, 2.682927, 1.707317, 0.731707, 9.756098, 8.780488, 7.804878, 6.829268, 5.853659, 4.878049, 3.902439, 2.926829, 1.95122];
+x2 = [-2.0, -1.361702, -0.723404, -0.085106, 0.553191, 1.191489, 1.829787, 2.468085, -1.893617, -1.255319, -0.617021, 0.021277, 0.659574, 1.297872, 1.93617, 2.574468, -1.787234, -1.148936, -0.510638, 0.12766, 0.765957, 1.404255, 2.042553, 2.680851, -1.680851, -1.042553, -0.404255, 0.234043, 0.87234, 1.510638, 2.148936, 2.787234, -1.574468, -0.93617, -0.297872, 0.340426, 0.978723, 1.617021, 2.255319, 2.893617];
+count = [3, 3, 2, 4, 1, 4, 2, 0, 3, 2, 1, 3, 4, 3, 1, 2, 3, 3, 4, 0, 2, 3, 3, 4, 1, 3, 0, 1, 2, 2, 2, 2, 4, 2, 3, 4, 1, 1, 3, 1];
+fit = pycli.sm_glm({columns: {count: count, x1: x1, x2: x2}, y: "count", terms: [{var: "x1"}, {var: "x2"}], family: "poisson"});
+if (fit.status == "simulated") { println("GLM comparison simulated."); exit(0); }
+if (fit.status != "ok" || fit.result.status != "OK") { println("pycli sm_glm failed:", json_stringify(fit)); exit(1); }
+est = fit.result.coefficients.estimate;
+se = fit.result.coefficients.std_err;
+println(sprintf("pycli: converged=%s iterations=%d deviance=%.10f aic=%.8f", json_stringify(fit.result.converged), fit.result.n_iter, fit.result.deviance, fit.result.aic));
+println("leg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)");
+r_est = [0.516618914189981, 0.0655692957180046, -0.0712561328727916];
+r_se = [0.228351965294106, 0.036981866990601096, 0.07158736490469798];
+worst = max(maxdiff("estimate", est, r_est), maxdiff("std_err", se, r_se), abs(fit.result.deviance - 27.198453170791623));
+if (abs(fit.result.aic - 134.09792143911952) > 0.000001) { println("AIC differs from R"); exit(1); }
+legs = 1;
+if (which("rcli") == null) { println("leg 2 skipped: rcli not on PATH (see examples/schemas/README.md)"); }
+else {
+  r = rcli.fit_glm({response: "count", predictors: ["x1", "x2"], family: "poisson", data: {count: count, x1: x1, x2: x2}});
+  if (r.status != "ok") { println("rcli fit_glm failed:", json_stringify(r)); exit(1); }
+  println("leg 2: pycli vs rcli fit_glm");
+  worst = max(worst, maxdiff("estimate", est, r.result.estimate), maxdiff("std_err", se, r.result.std_error), abs(fit.result.deviance - r.result.deviance));
+  legs = legs + 1;
+}
+if (which("statsrust") == null) { println("leg 3 skipped: statsrust not on PATH (see examples/schemas/README.md)"); }
+else {
+  exog = [];
+  endog = [];
+  for (i = 0; i < len(count); i = i + 1) { exog = concat(exog, [[1, x1[i], x2[i]]]); endog = concat(endog, [[count[i]]]); }
+  s = lmstats.glm({endog: endog, exog: exog, family: "poisson"});
+  if (s.status != "ok") { println("lmstats glm failed:", json_stringify(s)); exit(1); }
+  println("leg 3: pycli vs lmstats glm");
+  worst = max(worst, maxdiff("estimate", est, s.result.params.values), maxdiff("std_err", se, s.result.params.std_err));
+  legs = legs + 1;
+}
+println(sprintf("%d leg(s) compared; largest absolute difference %.12f", legs, worst));
+if (worst > 0.000001) { println("GLM mismatch above the 1e-6 tolerance"); exit(1); }
+println("Poisson GLM agrees within 1e-6.");

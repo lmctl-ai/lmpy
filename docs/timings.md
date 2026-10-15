@@ -355,3 +355,16 @@ original S4 suite16 groups pass; all prior regressions and sanitizer gates pass.
 See review-s4-fixes.md for every finding and technical contract. Temporary probes,
 superseded images and project-labeled disposable builder cache were removed;
 final test/runtime retained. amd64 remains unverified.
+
+## S5: statsmodels (aarch64, 2026-10-14)
+
+Runtime image: 527 -> 573 MB on disk; `image inspect .Size` +9.74 MB content from statsmodels, patsy and packaging (pruned tree).
+**Import cost**: the lazy sm import (statsmodels OLS/GLM/SARIMAX/stattools, patsy stub) takes ~1.02-1.05 s median in the worker
+(p95 1.3 s) on a shared 4-core host, so no split worker is proposed (threshold 3 s). Non-sm ops pay nothing (py_info import 0.11 s).
+End-to-end through the production shim, 10 fresh calls each, 40-row / 120-point inputs (`docs/measurement-s5-shim.json`, `scripts/measure-s5.py`):
+py_info 0.74 s; sm_ols 1.92 s; sm_ols_to 1.76 s; sm_glm (Poisson) 1.80 s; sm_arima ARMA(1,1) 1.78 s; sm_tsa_acf 1.75 s (p50 wall).
+
+Caps probe in the hardened container (2 CPU, 4 GiB, read-only; `docs/measurement-s5-caps.json`, `scripts/measure-s5-caps.py`), all exit 0:
+OLS 200000 x 50 (10M design cells) 5.2 s (HC3 5.7 s); binomial GLM 7.5 s; Poisson `sm_glm_to` 7.9 s; ARIMA(2,0,1) n=2000 1.5 s;
+seasonal (1,1,1)(1,1,1,12) 10.0 s; state-cap ARIMA(5,0,5)(2,0,2,12) 13.8 s -> `NO_CONVERGENCE` at maxiter 50 (a status, not an error).
+Cgroup peak memory over the whole probe: 1.0 GB (OLS alone 0.50 GB, GLM 1.0 GB), far below the 4 GiB limit.
