@@ -569,8 +569,7 @@ calls through the production shim (`docs/measurement-s8-shim.json`, `scripts/mea
 | `frame_to_array`, `frame_to_array_to`, `array_to_frame`, `frame_merge`, `frame_rolling`, `ml_metrics`, `stats_dist` rvs | numpy only | 0.10 s | 0.64-0.77 s | 0.78-1.10 s |
 | `frame_mutate` | numpy + `scipy.special` (expression functions) | 0.34 s | 0.99 s | 1.12 s |
 
-For comparison the pandas-based table operations of S2 import for about 1.0 s, so the bridge ops are about 0.3 s faster per call and `frame_mutate` about 0.7 s faster than a
-pandas path would be. No split worker is proposed (all far below the 3 s threshold).
+For comparison the pandas-based table operations of S2 take about 1.0 s per call (import 1.0 s), so the numpy-only bridge ops are about 0.3 s faster and `frame_mutate` is on par while importing neither pandas nor scipy.stats. No split worker is proposed (all far below the 3 s threshold).
 
 **Caps measured in the hardened container** (2 CPUs, 4 GiB, read-only root, `scripts/measure-s8-caps.py`, raw output `docs/measurement-s8-caps.txt`; cgroup peak over the whole probe
 **0.25 GB**), every case at its cap:
