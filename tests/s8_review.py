@@ -114,6 +114,12 @@ class Review(Base):
         rejected('frame_merge',dict(left=t,right=t,on=['k'],suffixes=['_x\0','_y'],out=self.p('bad.npz')),'BAD_DATA')
         rejected('frame_rolling',dict(frame=t,columns=[c],window=1,functions=['median'],out=self.p('bad.npz')),'BAD_DATA')
 
+    def test_result_column_cap_retains_specific_status(self):
+        t=self.table({'c%d'%i:[i] for i in range(256)})
+        rejected('frame_rolling',dict(frame=t,columns=['c0'],window=1,functions=['mean'],out=self.p('out.npz')),'TOO_MANY_COLUMNS')
+        rejected('frame_merge',dict(left=t,right=t,left_on=['c0'],right_on=['c0'],out=self.p('out.npz')),'TOO_MANY_COLUMNS')
+        rejected('array_to_frame',dict(frame=t,ref=[1.],columns=['extra'],out=self.p('out.npz')),'INPUT_TOO_LARGE')
+
     def test_mixed_metrics_class_cap_before_spawn(self):
         rejected('ml_metrics',dict(y_true=list(range(31)),y_pred=list(range(31)),metrics=['confusion_matrix','mse']),'INPUT_TOO_LARGE')
         t=self.table({'y':list(range(31))})
