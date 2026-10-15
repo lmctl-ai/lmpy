@@ -49,12 +49,12 @@ class Review(unittest.TestCase):
  def test_undefined_metric_diagnostic(self):
   r=self.cv([0,0,0,1,0,1],['roc_auc']);self.assertEqual(r['status'],'UNDEFINED_METRIC');self.assertEqual(r['metric'],'roc_auc');self.assertIn('fold_index',r)
  def test_csv_inline_artifact_class_identity(self):
-  for labels in [[0,0,1,1],['00','00','01','01'],['+0','+0','+1','+1']]:
+  for labels in [[0,0,1,1],['0','0','1','1'],['00','00','01','01'],['+0','+0','+1','+1']]:
    cols={'x':[-2,-1,1,2],'y':labels};(self.cwd/'train.csv').write_text('x,y\n'+''.join(f'{x},{y}\n' for x,y in zip(cols['x'],labels)))
    self.call('frame_import',columns=cols,out='train.npz')
    for i,source in enumerate([{'columns':cols},{'csv':'train.csv'},{'frame':'train.npz'}]):
-    r=self.call('ml_fit',family='gaussian_nb',features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},out=f'{i}.safetensors',**source);self.assertEqual(r['classes'],sorted(set(labels)))
-    self.predict(f'{i}.safetensors',{'x':[-2,2]});self.assertEqual(self.output('pred.npz')['prediction'],[labels[0],labels[-1]]);(self.cwd/'pred.npz').unlink();(self.cwd/f'{i}.safetensors').unlink()
+    r=self.call('ml_fit',family='gaussian_nb',features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},out=f'{i}.safetensors',**source);self.assertEqual(r['classes'],[0,1] if labels[0] in (0,'0') else sorted(set(labels)))
+    self.predict(f'{i}.safetensors',{'x':[-2,2]});self.assertEqual(self.output('pred.npz')['prediction'],([0,1] if labels[0] in (0,'0') else [labels[0],labels[-1]]));(self.cwd/'pred.npz').unlink();(self.cwd/f'{i}.safetensors').unlink()
    (self.cwd/'train.npz').unlink()
  def test_small_parameters_and_wide_budget(self):
   r=self.fit('ridge',{'x':[0,1,2],'y':[1,3,5]},['x'],'y',params={'alpha':1})

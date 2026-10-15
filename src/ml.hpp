@@ -83,6 +83,13 @@ Json prepare_ml(const std::string& op,const Params& in,std::map<std::string,Arra
   for(auto& name:nums)if(cols.contains(name)){types[name]="float64";for(auto& v:cols[name]){if(!v.is_string())bad_param("CSV numeric field required");double number=csv_number(v.get<std::string>());if(!std::isfinite(number))bad_param("ML rejects NaN/Inf");v=number;}}
   for(auto& name:strings)types[name]="string";p["dtypes"]=types;
  }
+ // Canonical decimal class labels have the same type in CSV, JSON and table sources.
+ if(!predict&&task=="classification"&&cols.contains(target)){
+  bool strings=cols[target][0].is_string();for(auto& v:cols[target])if(v.is_string()!=strings)bad_param("class labels must have one type");
+  if(strings){static const std::regex decimal("0|-?[1-9][0-9]*");bool integers=true;for(auto& v:cols[target]){auto text=v.get<std::string>();if(text.size()>11||!std::regex_match(text,decimal)||std::abs(csv_number(text))>1e9){integers=false;break;}}
+   if(integers){for(auto& v:cols[target])v=std::stoll(v.get<std::string>());if(in.contains("csv"))p["dtypes"][target]="int64";}
+  }
+ }
  size_t width=ml_columns(cols,p["features"],p["preprocess"],predict?"":target,task=="classification",groups),rows=cols.begin().value().size();if(!predict&&rows<2)bad_param("at least two training rows required");
  // File numeric strings are parsed strictly here and typed explicitly below by ml_source's CSV policy.
  size_t folds=op=="ml_cv"?p["n_splits"].get<size_t>():1;if(folds<1||folds>20||folds>rows)bad_param("n_splits must be 2..20 and <=rows");
