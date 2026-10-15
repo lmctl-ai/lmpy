@@ -297,7 +297,8 @@ def spatial_knn(p):
     if brute:s7_cap(n*m*points.shape[1]<=20000000,'stable p-norm work')
     tree=None;scale=1.
     if not brute:
-        scale=max(float(np.max(np.abs(points))),float(np.max(np.abs(q)))) or 1.
+        magnitude=max(float(np.max(np.abs(points))),float(np.max(np.abs(q)))) or 1.
+        scale=math.ldexp(1.,math.frexp(magnitude)[1]-1)  # exact binary scaling preserves nearby coordinates
         pts=points/scale;qq=q/scale
         # Refuse unsafe dynamic ranges rather than merge points or underflow powers.
         for original,scaled in [(points,pts),(q,qq)]:
