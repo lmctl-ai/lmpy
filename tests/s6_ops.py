@@ -74,6 +74,28 @@ class ML(unittest.TestCase):
    self.call('ml_fit',family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},predict_frame='test.npz',predict_out='tree.npz');self.assertTrue((self.cwd/'tree.npz').exists());(self.cwd/'tree.npz').unlink()
    self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family=f,columns=train,features=['x'],target='y',seed=123,preprocess={'scale':False,'one_hot':[]},out='no.safetensors',predict_frame='test.npz',predict_out='tree.npz')
   r=self.fit('logistic',{'x':list(range(20)),'y':[0]*10+[1]*10},['x'],'y',params={'max_iter':1},rc=1);self.assertEqual(r['error']['data']['tool_code'],'NO_CONVERGENCE')
+ def test_csv_npz_caps_and_nan_preflight(self):
+  base=dict(family='ridge',features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},out='fit.safetensors')
+  (self.cwd/'train.csv').write_text('x,y\n1,2\n2,4\n3,6\n')
+  self.call('ml_fit',csv='train.csv',**base)
+  self.call('frame_import',columns={'x':[1,2,3],'y':[2,4,6]},out='train.npz')
+  self.call('ml_fit',frame='train.npz',**dict(base,out='f2.safetensors'))
+  env=dict(os.environ,PYCLI_PYTHON='/missing-python')
+  (self.cwd/'large.csv').write_text('x,y\n'+'1,2\n'*20001)
+  self.call('ml_fit',rc=2,env=env,csv='large.csv',**dict(base,out='big.safetensors'))
+  for value in [None,'NaN','Inf',1e13]:self.call('ml_fit',rc=2,env=env,columns={'x':[1,value,3],'y':[2,4,6]},**dict(base,out='bad.safetensors'))
+ def test_proba_decision_transform_and_skew(self):
+  cols={'x':[-3,-2,-1,1,2,3],'y':[0,0,0,1,1,1]};self.fit('logistic',cols,['x'],'y')
+  for kind in ['predict_proba','decision_function']:
+   r=self.predict('logistic.safetensors',cols,kind);self.assertTrue(all(t['num_threads']==1 for t in r['threads']));data=self.output('pred.npz');(self.cwd/'pred.npz').unlink()
+   if kind=='predict_proba':np.testing.assert_allclose(np.array(list(data.values())).sum(0),1,atol=1e-15)
+  tamper(self.cwd/'logistic.safetensors',self.cwd/'old.safetensors',lambda h:h['__metadata__'].update(sklearn_version='0.0.0'))
+  r=self.predict('old.safetensors',cols,allow_version_skew=True);self.assertTrue(r['version_skew_accepted'])
+ def test_budgets_seeds_laziness(self):
+  base=dict(columns={'x':[-3,-2,-1,1,2,3],'y':[0,0,0,1,1,1]},features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},out='fit.safetensors')
+  self.call('ml_fit',rc=2,env=dict(os.environ,PYCLI_PYTHON='/missing-python'),family='logistic',**base)
+  r=self.call('ml_fit',rc=1,family='logistic',seed=123,time_limit=0.000001,**base);self.assertEqual(r['error']['data']['tool_code'],'TIME_LIMIT');self.assertFalse((self.cwd/'fit.safetensors').exists())
+  for op,args in [('py_info',{}),('stats_dist',{'dist':'norm','fn':'cdf','x':[0]})]:self.assertEqual(self.call(op,**args)['meta']['sklearn'],'unloaded')
 class Isolation(unittest.TestCase):
  def test_dependency_inventory(self):
   import importlib.metadata as md
