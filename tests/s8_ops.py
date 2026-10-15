@@ -431,12 +431,12 @@ class Merge(Base):
     def test_numpy_only(self):
         self.assertEqual(self.merge('inner')['meta']['pandas'], 'unloaded')
 
-    def test_an_empty_join_is_a_status_and_writes_nothing(self):
+    def test_an_empty_join_writes_a_valid_empty_table(self):
         self.table({'id': [10, 11]}, 'nomatch.npz')
         out = self.p('empty.npz')
-        r = call('frame_merge', dict(left=self.p('l.npz'), right=self.p('nomatch.npz'), on=['id'], out=out), rc=1)
-        self.assertEqual(r['error']['data']['tool_code'], 'EMPTY_RESULT')
-        self.assertFalse(os.path.exists(out))
+        r = call('frame_merge', dict(left=self.p('l.npz'), right=self.p('nomatch.npz'), on=['id'], out=out))
+        self.assertEqual((r['status'],r['shape'][0]), ('OK',0))
+        self.assertTrue(os.path.exists(out))
         outer = call('frame_merge', dict(left=self.p('l.npz'), right=self.p('nomatch.npz'), on=['id'], how='outer', out=self.p('o.npz')))
         self.assertEqual(outer['shape'], [8, 3])
 

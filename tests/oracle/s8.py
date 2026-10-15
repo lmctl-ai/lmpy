@@ -88,7 +88,7 @@ def hand_merge(left, right, how, lkeys, rkeys):
 def hand_rolling(values, fn, window, min_periods, center=False, times=None, span=None):
     """values: list of float|None (None = missing). Count windows are trailing (or centred: [i - w//2, i + (w-1)//2]); time windows are
     the rows j <= i with times[i] - span < times[j] <= times[i]. Missing observations are skipped; a result needs min_periods
-    observations (std/var also need two); count is always defined."""
+    observations (std/var also need two); count also requires min_periods observations."""
     n = len(values)
     out = []
     for i in range(n):
@@ -101,7 +101,7 @@ def hand_rolling(values, fn, window, min_periods, center=False, times=None, span
         v = [values[j] for j in idx if values[j] is not None]
         c = len(v)
         if fn == 'count':
-            out.append(c)
+            out.append(c if c >= min_periods else None)
             continue
         need = max(min_periods, 2 if fn in ('std', 'var') else 1)
         if c < need or c == 0:

@@ -358,7 +358,7 @@ def decomp(p):
     return result
 
 
-def distribution(p):
+def distribution_body(p):
     from scipy.stats import norm, t
     families = {'norm': norm, 't': t}
     family = families[p['dist']]
@@ -371,7 +371,12 @@ def distribution(p):
             warnings.warn('SciPy returned NaN for a finite/domain-valid distribution input', NumericalWarning)
     for i in p.get('missing', []):
         values[i] = 'NA'
-    return {'values': values}
+    return {'status': 'OK', 'dist': p['dist'], 'fn': p['fn'], 'params': params, 'values': values}
+
+
+def distribution(p):
+    result = s7_guard(p, lambda: distribution_body(p))
+    return {'status': 'TIME_LIMIT'} if result is None else result
 
 
 class NumericalWarning(RuntimeWarning):
@@ -401,6 +406,10 @@ def main():
         import numpy as np
         s8 = request['op'] in ('frame_to_array', 'frame_to_array_to', 'array_to_frame', 'frame_mutate', 'frame_merge', 'frame_rolling', 'ml_metrics', 'stats_dist_to') or (request['op'] == 'stats_dist' and request['params'].get('fn') == 'rvs')
         if s8:
+            import zoneinfo
+            zoneinfo.reset_tzpath(())
+            from zoneinfo import ZoneInfo
+            ZoneInfo('America/New_York')  # warm pinned tzdata package resources before the guard
             import io
             warm = io.BytesIO()  # numpy imports its NPZ helpers lazily; do it before the import guard (no pandas, no scipy needed)
             np.savez(warm, a=np.zeros(1))

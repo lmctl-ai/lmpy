@@ -578,8 +578,8 @@ Json call(const std::string& op,const Params& input){
         if(p["dist"]!="norm"&&p["dist"]!="t")bad_param("only norm and t have pdf/cdf/ppf/sf; the other families sample (fn rvs)");
         if(!p.contains("x")||p["x"].is_null())bad_param("pdf, cdf, ppf and sf need x");
         arrays["x"]=load(p["x"]);if(arrays["x"].shape.size()!=1||arrays["x"].data.size()>1000)invalid("stats_dist requires <=1000 vector values");
-        auto params=p["params"];if(!params.is_object())invalid("params must be an object");for(auto it=params.begin();it!=params.end();++it){if(it.key()!="loc"&&it.key()!="scale"&&!(p["dist"]=="t"&&it.key()=="df"))invalid("unknown distribution parameter");if(!it.value().is_number()||!std::isfinite(it.value().get<double>()))invalid("distribution parameters must be finite");}
-        if(params.contains("scale")&&params["scale"]<=0)invalid("scale must be positive");if(p["dist"]=="t"&&(!params.contains("df")||params["df"]<=0))invalid("t requires positive df");p["missing"]=arrays["x"].missing;
+        auto params=p["params"];if(!params.is_object())bad_param("params must be an object");for(auto it=params.begin();it!=params.end();++it){if(it.key()!="loc"&&it.key()!="scale"&&!(p["dist"]=="t"&&it.key()=="df"))bad_param("unknown distribution parameter");if(!it.value().is_number()||!std::isfinite(it.value().get<double>()))bad_param("distribution parameters must be finite");}
+        if(params.contains("scale")&&params["scale"]<=0)bad_param("scale must be positive");if(p["dist"]=="t"&&(!params.contains("df")||params["df"]<=0))bad_param("t requires positive df");p["missing"]=arrays["x"].missing;
         if(p["fn"]=="ppf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid("ppf probabilities must lie in [0,1]","BAD_PROBABILITY");
     }
     if(sm)p=prepare_sm(op,p);
@@ -592,7 +592,7 @@ Json call(const std::string& op,const Params& input){
     bool numeric=s4||op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
     if(s4)p=(op=="opt_linprog"||op=="opt_linprog_to")?prepare_linprog(input,arrays):prepare_ode(input,arrays);
     else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
-    if(sm||ml||s7||s8||numeric){double limit=input.value("time_limit",10.);if(!std::isfinite(limit)||!(limit>0&&limit<=30))bad_param("time_limit must be >0..30 seconds");p["time_limit"]=limit;}
+    if(sm||ml||s7||s8||numeric||op=="stats_dist"){double limit=input.value("time_limit",10.);if(!std::isfinite(limit)||!(limit>0&&limit<=30))bad_param("time_limit must be >0..30 seconds");p["time_limit"]=limit;}
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
     if(sm||ml||s7||s8)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
@@ -685,6 +685,7 @@ Json call(const std::string& op,const Params& input){
         if(result.dump().size()>65536)output_too_large("S4 inline response exceeds 64KiB");
     }
     if((frame||s8)&&!table_output.empty()){
+        if(s8&&result.value("status",std::string())!="OK")no_artifact(result,"frame operation produced no successful artifact");
         auto output=p["output_file"].get<std::string>();if(!fs::is_regular_file(output))no_artifact(result,"frame operation produced no artifact");
         if(op!="frame_export"){try{frames::npz(frames::bounded_read(output));}catch(const Error&){throw Error{ErrorCode::InternalError,"worker produced invalid table artifact",{{"tool_code","BAD_TABLE_OUTPUT"}}};}}
         size_t shown=inline_numbers(result);if(shown>MAX_INLINE)output_too_large("table summary exceeds 1000 cells");
@@ -885,7 +886,7 @@ int main(int argc,char** argv){
         spec.operations.push_back(Operation{"sm_tsa_acf",Access::Read,"Sample autocorrelation or partial autocorrelation with confidence intervals (statsmodels.tsa.stattools); lags 0..nlags. Constant series are CONSTANT_SERIES.","object",params});
     }
     add_ml_ops(spec);
-    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||operation.name=="array_to_frame"||operation.name=="frame_to_array_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
+    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||operation.name=="array_to_frame"||operation.name=="frame_to_array_to"||operation.name=="frame_to_array"||operation.name=="stats_dist"||operation.name=="stats_dist_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
     for(auto& op:spec.operations){if(op.access==Access::Write)op.description+=" Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).";std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }
