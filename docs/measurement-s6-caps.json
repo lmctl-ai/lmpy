@@ -1,0 +1,75 @@
+{
+  "ridge_20000x9_200000_raw_cells": {
+    "exit": 0,
+    "seconds": 2.774,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 1231,
+    "peak_bytes_so_far": 188403712
+  },
+  "future_import": {
+    "exit": 0,
+    "seconds": 0.63,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 2725,
+    "peak_bytes_so_far": 188403712
+  },
+  "random_forest_regressor_20000x9": {
+    "exit": 0,
+    "seconds": 14.792,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 1268,
+    "peak_bytes_so_far": 200306688
+  },
+  "hist_gradient_boosting_regressor_20000x9": {
+    "exit": 0,
+    "seconds": 3.216,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 1297,
+    "peak_bytes_so_far": 200306688
+  },
+  "ridge_cv_20fold_20000x9": {
+    "exit": 0,
+    "seconds": 2.967,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 4987,
+    "peak_bytes_so_far": 200306688
+  },
+  "pca_3125x64_200000_cells": {
+    "exit": 0,
+    "seconds": 2.711,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 14245,
+    "peak_bytes_so_far": 200306688
+  },
+  "kmeans_20000x1_k32_192M_budget": {
+    "exit": 0,
+    "seconds": 2.216,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 865,
+    "peak_bytes_so_far": 200306688
+  },
+  "knn_fit_2000": {
+    "exit": 0,
+    "seconds": 1.645,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 914,
+    "peak_bytes_so_far": 200306688
+  },
+  "knn_predict_5M_pairs": {
+    "exit": 0,
+    "seconds": 1.997,
+    "status": "OK",
+    "error": null,
+    "response_bytes": 847,
+    "peak_bytes_so_far": 200306688
+  },
+  "peak_bytes": 200306688
+}

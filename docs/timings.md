@@ -375,3 +375,47 @@ Re-measured (`scripts/measure-s5.py`, p50 wall): sm_ols 1.74 s, sm_ols_to 1.80 s
 Nelder-Mead polish adds ~0.05 s), sm_tsa_acf 1.80 s; import still ~1.0 s. New ARIMA bound (observations x states^2 <= 2.5e7), measured in the
 hardened container (4 GiB): states 55 / n 8264 and states 30 / n 20000 both complete with a cgroup peak of 2.59 GB.
 Acceptance: `./scripts/build.sh test` 0, `docker run --rm --pull=never --network=none pycli:test` 25/25 exit 0 (819 s), all 10 examples exit 0.
+
+## S6: scikit-learn (aarch64, 2026-10-15)
+
+Runtime `48279277327e`: **634 MB** (`docker image ls`), versus S5 **573 MB**, approximately **+61 MB**. Docker's content-size field
+`image inspect .Size` is 136458812 bytes versus 124998107, +11460705 bytes; this is a different accounting basis from the displayed on-disk size.
+Both architecture locks resolve pinned binary wheels; amd64 has not been executed.
+
+Ten fresh processes per case, sequential through the production host shim, after builds/CTest/recipes finished. OS filesystem caches are warm;
+these are fresh-worker, not cold-disk, measurements. Raw data: `measurement-s6-shim.json`; generator: `scripts/measure-s6.py`.
+
+| Operation / data | Shim p50 | Shim p95 | Worker import p50 |
+|---|---:|---:|---:|
+| py_info | 0.646 s | 0.684 s | 0.103 s |
+| ml_fit logistic, 40 x 1 | 2.043 s | 2.236 s | 1.235 s |
+| ml_predict predict_proba, 40 x 1 | 2.044 s | 2.139 s | 1.238 s |
+| ml_cv logistic, 4 folds, 40 x 1 | 2.060 s | 2.321 s | 1.242 s |
+
+The ML import p95 is at most 1.461 s in this sample, below the 3 s threshold: no split worker is proposed. Non-ML ops report sklearn unloaded.
+The import includes pandas and all supported ML estimator modules, joblib and threadpoolctl; it never imports statsmodels/patsy for ML.
+
+Resource probes (`measurement-s6-caps.json`, `scripts/measure-s6-caps.py`) used the hardened runtime: offline, init, two CPUs, 4 GiB memory,
+128 pids, read-only root, no capabilities/new privileges, default seccomp, uid/gid 1000, 512 MiB noexec tmpfs. Probes were sequential and idle
+apart from the measurement harness. Native single-thread compute budgets were explicitly **30 s** (default is 10 s); caps can need the longer
+budget, especially forests. Every operation below exited **0**, status **OK**, with no OOM/TOOL_CRASH. Peak cgroup memory over the complete probe
+was **200306688 bytes (191 MiB)**; per-case peaks in the JSON are cumulative, not independent RSS maxima.
+
+| Probe | Time inside hardened container |
+|---|---:|
+| ridge, 20000 x 9 + target (200000 raw cells) | 2.774 s |
+| random_forest_regressor, same data, 64 trees / depth 12 | 14.792 s |
+| hist_gradient_boosting_regressor, same data, 100 iterations / depth 8 | 3.216 s |
+| ridge CV, 20 folds, same data | 2.967 s |
+| PCA, 3125 x 64 (200000 cells), 32 components | 2.711 s |
+| kmeans, 20000 x 1, k=32 / n_init=1 / max_iter=300 (192M work bound) | 2.216 s |
+| KNN prediction, 2000 training x 2500 query rows (5M pairs) | 1.997 s |
+
+Conservative work bounds are not claims that every fit consumes every allowed iteration. Timers are cooperative at Python boundaries; the
+container/process hard timeout is still the backstop. The forest cap result is not a claim that it completes within the default 10 s budget.
+
+Acceptance on the final source: `./scripts/build.sh test` **0**; `docker run --rm --pull=never --network=none pycli:test` **0**, **26/26** targets
+(958.16 s; S6's 19 unittest methods 128.28 s); `./scripts/build.sh runtime` **0**; all 13 recipes real/check/dry-run **0** (39 invocations).
+Runtime and acceptance binaries have the identical SHA256 `b08750accf6d3e01eaba56000f6b77697799be425881bee4858fe892558039e7`.
+The measurement harness initially assumed py_info had a status field (exit 1); that assertion was corrected and the complete timing run
+restarted, exit 0. Earlier incomplete build/test runs were superseded by the final acceptance above.

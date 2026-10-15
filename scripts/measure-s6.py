@@ -19,6 +19,6 @@ with tempfile.TemporaryDirectory(dir=root) as d:
    counter+=1;params=dict(p)
    if op=='ml_fit':params['out']=f'm{counter}.safetensors'
    if op=='ml_predict':params['out']=f'p{counter}.npz'
-   j,w=call(op,params);assert j['status']=='OK',j;walls.append(w);imports.append(j['meta']['import_ms']);elapsed.append(j['meta']['elapsed_ms'])
+   j,w=call(op,params);assert op=='py_info' or j['status']=='OK',j;walls.append(w);imports.append(j['meta']['import_ms']);elapsed.append(j['meta']['elapsed_ms'])
   results[name]={'wall':summary(walls),'worker_import_ms':summary(imports),'worker_elapsed_ms':summary(elapsed)}
 print(json.dumps(results,indent=2))

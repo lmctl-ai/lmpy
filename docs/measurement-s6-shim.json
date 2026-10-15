@@ -1,0 +1,73 @@
+{
+  "image_inspect_bytes": 136458812,
+  "image_display_size": "634MB",
+  "method": "sequential fresh calls, no concurrent builds or tests; 10 calls per case",
+  "py_info": {
+    "wall": {
+      "p50_ms": 645.839,
+      "p95_ms": 684.298,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 103.139,
+      "p95_ms": 123.462,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 107.583,
+      "p95_ms": 128.543,
+      "n": 10
+    }
+  },
+  "ml_fit_logistic_40x1": {
+    "wall": {
+      "p50_ms": 2042.619,
+      "p95_ms": 2236.4,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1234.733,
+      "p95_ms": 1400.746,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1260.542,
+      "p95_ms": 1432.215,
+      "n": 10
+    }
+  },
+  "ml_predict_proba_40x1": {
+    "wall": {
+      "p50_ms": 2044.183,
+      "p95_ms": 2138.905,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1238.267,
+      "p95_ms": 1314.632,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1262.98,
+      "p95_ms": 1345.061,
+      "n": 10
+    }
+  },
+  "ml_cv_logistic_4fold_40x1": {
+    "wall": {
+      "p50_ms": 2060.43,
+      "p95_ms": 2320.551,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1241.686,
+      "p95_ms": 1460.688,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1290.41,
+      "p95_ms": 1522.03,
+      "n": 10
+    }
+  }
+}
