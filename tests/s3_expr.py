@@ -275,7 +275,7 @@ class BuilderIsClosed(unittest.TestCase):
             W.check_bindings(spec, W.function_table(numpy))
 
     def test_worker_source_has_no_dynamic_code_paths(self):
-        source = ''.join((ROOT / 'py' / name).read_text() for name in ('frames.py', 'numerics.py', 'worker.py'))
+        source = ''.join((ROOT / 'py' / name).read_text() for name in ('frames.py', 'numerics.py', 's4.py', 'worker.py'))
         forbidden = r'(?<!re\.)\b(eval|exec|compile|literal_eval|setattr|delattr|globals|locals|vars|__import__|importlib|attrgetter|methodcaller|numexpr|pickle|query|sympy|marshal|codeop|runpy|shlex)\b'
         self.assertEqual(re.findall(forbidden, source), [])
         self.assertNotIn('getattr(', ''.join((ROOT / 'py' / 'numerics.py').read_text()))

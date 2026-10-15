@@ -27,7 +27,7 @@ void cleanup_signal(int sig) {
     // All per-call filenames are fixed; signal cleanup uses POSIX-safe calls only.
     if(!active_dir[0])_exit(128+sig);
     char path[4096];
-    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","x.npy","output.bin","expr_spec.json","d_0.npy","d_1.npy","d_2.npy","d_3.npy","d_4.npy","d_5.npy","d_6.npy","d_7.npy","d_8.npy","d_9.npy","d_10.npy","d_11.npy","d_12.npy","d_13.npy","d_14.npy","d_15.npy","d_16.npy","d_17.npy","d_18.npy","d_19.npy","d_20.npy","d_21.npy","d_22.npy","d_23.npy","d_24.npy","d_25.npy","d_26.npy","d_27.npy","d_28.npy","d_29.npy","d_30.npy","d_31.npy","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","frame.npz","input.csv","table.npz","export.bin"}){
+    for(const char* file:{"req.json","resp.json","worker.py","a.npy","b.npy","c.npy","a_ub.npy","b_ub.npy","a_eq.npy","b_eq.npy","x.npy","output.bin","expr_spec.json","d_0.npy","d_1.npy","d_2.npy","d_3.npy","d_4.npy","d_5.npy","d_6.npy","d_7.npy","d_8.npy","d_9.npy","d_10.npy","d_11.npy","d_12.npy","d_13.npy","d_14.npy","d_15.npy","d_16.npy","d_17.npy","d_18.npy","d_19.npy","d_20.npy","d_21.npy","d_22.npy","d_23.npy","d_24.npy","d_25.npy","d_26.npy","d_27.npy","d_28.npy","d_29.npy","d_30.npy","d_31.npy","out_0.bin","out_1.bin","out_2.bin","out_3.bin","out_4.bin","out_5.bin","out_6.bin","out_7.bin","frame.npz","input.csv","table.npz","export.bin"}){
         size_t n=0;while(active_dir[n] && n<sizeof(path)-64){path[n]=active_dir[n];++n;}
         path[n++]='/';while(*file)path[n++]=*file++;path[n]=0;unlink(path);
     }
@@ -272,7 +272,7 @@ pycli::TensorBundle read_outputs(TempDir& temp,Json& result){
 [[noreturn]] void no_artifact(const Json& result,const char* message){
     Json data={{"tool_code",result.value("status",std::string("PY_ERROR"))},{"warnings",result.value("warnings",Json::array())}};
     // Keep whatever the worker measured so a caller can tell 1e-8 from 0.9.
-    for(const char* field:{"kind","driver","message","reconstruction_error","rank","residual_norm"})if(result.contains(field))data[field]=result[field];
+    for(const char* field:{"kind","driver","message","reconstruction_error","rank","residual_norm","scipy_status","has_primal","iterations_available","iterations"})if(result.contains(field))data[field]=result[field];
     throw Error{ErrorCode::CommandFailed,message,data};
 }
 // The binding rule is <=1000 numbers inline per result: count every array element (shapes, meta and warnings aside).
@@ -478,6 +478,7 @@ Json prepare_root(const Params& in){
     request["maxiter"]=int_param(in,"maxiter",1,1000);request["max_evals"]=int_param(in,"max_evals",1,2000000);
     return request;
 }
+#include "s4.hpp"
 int expr_check_cli(){
     try{
         std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
@@ -563,19 +564,22 @@ Json call(const std::string& op,const Params& input){
         if(params.contains("scale")&&params["scale"]<=0)invalid("scale must be positive");if(p["dist"]=="t"&&(!params.contains("df")||params["df"]<=0))invalid("t requires positive df");p["missing"]=arrays["x"].missing;
         if(p["fn"]=="ppf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid("ppf probabilities must lie in [0,1]","BAD_PROBABILITY");
     }
-    bool numeric=op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
-    if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
+    bool s4=op=="opt_linprog"||op=="ode_solve";std::string s4_out;
+    bool numeric=s4||op=="opt_minimize"||op=="opt_least_squares"||op=="num_quad"||op=="num_root";
+    if(s4)p=op=="opt_linprog"?prepare_linprog(input,arrays):prepare_ode(input,arrays);
+    else if(numeric)p=op=="opt_minimize"?prepare_minimize(input,arrays):op=="opt_least_squares"?prepare_least_squares(input,arrays):op=="num_quad"?prepare_quad(input):prepare_root(input);
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
     if(numeric){
         {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
-        p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=std::max(1,seconds-10);  // worker stops cooperatively before the hard kill
+        p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=s4?Json(std::max(0.01,double(seconds)-2.0)):Json(std::max(1,seconds-10));  // worker stops cooperatively before the hard kill
     }
     if(frame){if(!table_input.empty()){auto file=temp.file(table_input.c_str());std::ofstream f(file,std::ios::binary);f.write(table_bytes.data(),table_bytes.size());if(!f)throw std::runtime_error("cannot copy table input");p[table_input=="frame.npz"?"frame_file":"csv_file"]=file;table_bytes.clear();}if(!table_output.empty())p["output_file"]=temp.file(op=="frame_export"?"export.bin":"table.npz");}
     for(const auto& entry:arrays){auto file=temp.file((entry.first+".npy").c_str());write_npy(entry.second,file);p.erase(entry.first);p[entry.first+"_file"]=file;}
     if(op=="la_solve_to")p["output_file"]=temp.file("output.bin");
     Json request=p;
-    if(op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
+    if(s4){s4_out=p.contains("out")?p["out"].get<std::string>():(fs::current_path()/("pycli-result-"+fs::path(temp.path).filename().string()+".safetensors")).string();request["force_artifact"]=p.contains("out");}
+    if(s4||op=="la_lstsq_to"||op=="la_decomp"){request["output_prefix"]=temp.file("out_");request.erase("out");}
     {std::ofstream f(temp.file("req.json"));f<<Json{{"op",op},{"params",request}}.dump();if(!f)throw std::runtime_error("cannot write request");}
     {std::ofstream f(temp.file("worker.py"));f<<PYCLI_WORKER_SOURCE;if(!f)throw std::runtime_error("cannot write worker");}
     std::string python="python3";
@@ -612,6 +616,18 @@ Json call(const std::string& op,const Params& input){
         for(const auto& entry:bundle.tensors)if(op!="la_lstsq_to"||entry.first!="x")tensors[entry.first]=pycli::descriptor({path,entry.first},entry.second);
         if(op=="la_lstsq_to")result["x"]=pycli::descriptor({path,"x"},bundle.tensors.at("x"));
         if(op=="la_decomp"||!tensors.empty())result["tensors"]=tensors;
+    }
+    if(s4){
+        if(result.contains("dual_keys")){Json duals=Json::object();for(const auto& k:result["dual_keys"]){auto key=k.get<std::string>();duals[key]=result["dual_"+key];result.erase("dual_"+key);}result.erase("dual_keys");result["duals"]=duals;}
+        if(result.contains("outputs")){
+            auto bundle=read_outputs(temp,result);Json descriptors=Json::object();for(const auto& item:bundle.tensors)descriptors[item.first]=pycli::descriptor({s4_out,item.first},item.second);
+            auto replace=[&](Json& value){if(value.is_object()&&value.size()==1&&value.contains("tensor")){auto key=value["tensor"].get<std::string>();if(!descriptors.contains(key))throw std::runtime_error("missing S4 output tensor");value=descriptors[key];}};
+            for(auto it=result.begin();it!=result.end();++it){replace(it.value());if(it.key()=="duals")for(auto d=it.value().begin();d!=it.value().end();++d)replace(d.value());}
+            result["artifact"]={{"path",s4_out},{"ref",s4_out}};
+            if(inline_numbers(result)>MAX_INLINE||result.dump().size()>65536)output_too_large("S4 inline result exceeds budget");
+            pycli::write_bundle(s4_out,bundle);result["artifact"]["nbytes"]=fs::file_size(s4_out);
+        }else if(input.contains("out"))no_artifact(result,"no primal/artifact was produced");
+        if(result.dump().size()>65536)output_too_large("S4 inline response exceeds 64KiB");
     }
     if(frame&&!table_output.empty()){
         auto output=p["output_file"].get<std::string>();if(!fs::is_regular_file(output))no_artifact(result,"frame operation produced no artifact");
@@ -675,6 +691,23 @@ int main(int argc,char** argv){
     auto integer=[](const char* name,Json def,const char* text){return Param{name,Type::Integer,false,std::move(def),{},text};};
     const char* x0_text="Start values {name: number | [numbers]} (names [a-z][a-z0-9_]{0,31}; at most 64 scalars). A vector variable is used as name[0], name[1] with integer literals. Variables are ordered by name, vector components by index.";
     const char* data_text="Data columns {name: inline array (<=1000 numbers) | file.npy | file.safetensors#key}: finite vectors of equal length (<=200000), at most 32.";
+    spec.operations.push_back(Operation{"opt_linprog",Access::Write,"Dense LP/MILP via HiGHS. Status OK/INFEASIBLE/UNBOUNDED/TIME_LIMIT/NODE_LIMIT/ITERATION_LIMIT/NUMERICAL_FAILURE; LP marginal signs follow original maximize/minimize objective. Large vectors auto-persist; optional out forces artifact. Statically write even for inline computation.","object",{
+        Param{"c",Type::Json,true,nullptr,{},"Finite objective vector, 1..512 variables; inline <=1000 or npy/safetensors#key."},
+        Param{"a_ub",Type::Json,false,nullptr,{},"Dense inequality matrix; a_ub*x<=b_ub. Combined matrices <=200000 entries /4096 rows."},Param{"b_ub",Type::Json,false,nullptr,{},"Inequality RHS vector; required with a_ub."},
+        Param{"a_eq",Type::Json,false,nullptr,{},"Dense equality matrix; a_eq*x=b_eq."},Param{"b_eq",Type::Json,false,nullptr,{},"Equality RHS vector; required with a_eq."},
+        Param{"bounds",Type::Json,false,nullptr,{},"Per-variable [lower,upper], equal bounds allowed. Default [0,Inf]; null or signed infinity tokens for open bounds."},
+        Param{"integrality",Type::Array,false,Json::array(),{},"One continuous/integer/binary enum per variable; binary intersects bounds with [0,1].","",false,false,false,{},Type::String},
+        Param{"maximize",Type::Boolean,false,false,{},"Maximize original c*x instead of minimizing."},num("time_limit",10.0,"Solver wall budget seconds, >0..30, bounded by process budget."),integer("node_limit",10000,"MILP node cap, 0..100000."),integer("maxiter",10000,"LP iteration cap, 1..100000."),num("mip_rel_gap",0.0,"MILP relative gap target, 0..0.1; actual mip_gap returned."),
+        Param{"out",Type::String,false,nullptr,{},"Exclusive .safetensors path; optional, otherwise a unique artifact is created only when vectors exceed inline budget."}}});
+    spec.operations.push_back(Operation{"ode_solve",Access::Write,"Budgeted scipy solve_ivp with closed RHS/event ASTs. Status OK/EVAL_LIMIT/TIME_LIMIT/STEP_LIMIT/EVENT_LIMIT/NON_FINITE/STEP_SIZE_TOO_SMALL/NO_CONVERGENCE. Default uniformly sampled trajectory; large arrays auto-persist. Statically write; explicit out forces artifact.","object",{
+        Param{"rhs",Type::Json,true,nullptr,{},"One scalar expression per state: list using y[i], t, params; or object matching named y0."},Param{"y0",Type::Json,true,nullptr,{},"Finite state array or named object; 1..32 states. Named states sorted by name."},
+        Param{"states",Type::Array,false,nullptr,{},"Optional state aliases for array y0; unique, non-reserved, distinct from t/y/params.","",false,false,false,{},Type::String},Param{"params",Type::Object,false,Json::object(),{},"At most 16 named finite scalar parameters, default empty."},
+        Param{"t_span",Type::Array,true,nullptr,{},"Two distinct finite times, absolute values <=1e12; forward or reverse.","",false,false,false,{},Type::Number},
+        Param{"t_eval",Type::Json,false,nullptr,{},"Strictly ordered times within t_span; inline or npy/safetensors ref, <=10000. Missing endpoints are added and reported."},integer("max_output_points",101,"Uniform grid size when t_eval omitted, 2..10000. Total potential output <=200000 numbers including event reserve."),
+        Param{"method",Type::String,false,"RK45",{"RK45","RK23","DOP853","Radau","BDF","LSODA"},"Closed solve_ivp method."},num("rtol",1e-6,"Relative tolerance, 1e-13..0.1."),Param{"atol",Type::Json,false,1e-9,{},"Absolute tolerance scalar or one per state, 1e-15..0.1."},num("max_step",nullptr,"Optional positive finite maximum step <=1e12."),
+        Param{"events",Type::Array,false,Json::array(),{},"At most four {expr,direction:-1|0|1,terminal:boolean} events. Each nonterminal event stops after 32 roots with EVENT_LIMIT.","",false,false,false,{},Type::Object},
+        integer("max_evals",200000,"Shared RHS-component/event expression cap, 1..200000. Counts finite-difference RHS calls too."),integer("max_steps",10000,"Accepted adaptive step cap, 1..20000."),num("time_limit",10.0,"Cooperative solve wall seconds, >0..30, checked on every expression evaluation."),
+        Param{"out",Type::String,false,nullptr,{},"Exclusive .safetensors path; automatic unique artifact when trajectory exceeds inline budget."}}});
     spec.operations.push_back(Operation{"opt_minimize",Access::Read,"Minimise a scalar expression with scipy.optimize.minimize (closed method list). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE; EVAL_LIMIT/TIME_LIMIT/NON_FINITE return the best point so far by objective value, which can be infeasible when constraints exist (see constraint_violation); gradients by finite differences unless gradient expressions are given (checked at x0, every evaluation counted). Result: par, fun, nit, nfev, evals, nonfinite_evals, constraint_violation","object",{
         Param{"objective",Type::String,true,nullptr,{},"Expression (<=2048 bytes, 512 nodes) in the unknowns and data columns; sum/mean/prod/min/max reducers only with data."},
         obj("x0",true,x0_text),

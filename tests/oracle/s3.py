@@ -9,8 +9,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 def load_worker():
-    """Same assembly order as CMakeLists.txt: frames.py, numerics.py, worker.py (one module namespace)."""
-    text = ''.join((ROOT / 'py' / name).read_text() + '\n' for name in ('frames.py', 'numerics.py', 'worker.py'))
+    """Same assembly order as CMakeLists.txt: frames.py, numerics.py, s4.py, worker.py (one module namespace)."""
+    text = ''.join((ROOT / 'py' / name).read_text() + '\n' for name in ('frames.py', 'numerics.py', 's4.py', 'worker.py'))
     directory = tempfile.mkdtemp()
     path = pathlib.Path(directory) / 'assembled_worker.py'
     path.write_text(text)

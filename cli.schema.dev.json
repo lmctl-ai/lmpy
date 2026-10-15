@@ -695,6 +695,223 @@
       ]
     },
     {
+      "name": "opt_linprog",
+      "access": "write",
+      "returns": "object",
+      "description": "Dense LP/MILP via HiGHS. Status OK/INFEASIBLE/UNBOUNDED/TIME_LIMIT/NODE_LIMIT/ITERATION_LIMIT/NUMERICAL_FAILURE; LP marginal signs follow original maximize/minimize objective. Large vectors auto-persist; optional out forces artifact. Statically write even for inline computation.",
+      "params": [
+        {
+          "name": "c",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite objective vector, 1..512 variables; inline <=1000 or npy/safetensors#key."
+        },
+        {
+          "name": "a_ub",
+          "type": "json",
+          "occurs": "?",
+          "description": "Dense inequality matrix; a_ub*x<=b_ub. Combined matrices <=200000 entries /4096 rows."
+        },
+        {
+          "name": "b_ub",
+          "type": "json",
+          "occurs": "?",
+          "description": "Inequality RHS vector; required with a_ub."
+        },
+        {
+          "name": "a_eq",
+          "type": "json",
+          "occurs": "?",
+          "description": "Dense equality matrix; a_eq*x=b_eq."
+        },
+        {
+          "name": "b_eq",
+          "type": "json",
+          "occurs": "?",
+          "description": "Equality RHS vector; required with a_eq."
+        },
+        {
+          "name": "bounds",
+          "type": "json",
+          "occurs": "?",
+          "description": "Per-variable [lower,upper], equal bounds allowed. Default [0,Inf]; null or signed infinity tokens for open bounds."
+        },
+        {
+          "name": "integrality",
+          "type": "array",
+          "occurs": "?",
+          "default": [],
+          "description": "One continuous/integer/binary enum per variable; binary intersects bounds with [0,1].",
+          "items": "string"
+        },
+        {
+          "name": "maximize",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Maximize original c*x instead of minimizing."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Solver wall budget seconds, >0..30, bounded by process budget."
+        },
+        {
+          "name": "node_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10000,
+          "description": "MILP node cap, 0..100000."
+        },
+        {
+          "name": "maxiter",
+          "type": "number",
+          "occurs": "?",
+          "default": 10000,
+          "description": "LP iteration cap, 1..100000."
+        },
+        {
+          "name": "mip_rel_gap",
+          "type": "number",
+          "occurs": "?",
+          "default": 0.0,
+          "description": "MILP relative gap target, 0..0.1; actual mip_gap returned."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "?",
+          "description": "Exclusive .safetensors path; optional, otherwise a unique artifact is created only when vectors exceed inline budget."
+        }
+      ]
+    },
+    {
+      "name": "ode_solve",
+      "access": "write",
+      "returns": "object",
+      "description": "Budgeted scipy solve_ivp with closed RHS/event ASTs. Status OK/EVAL_LIMIT/TIME_LIMIT/STEP_LIMIT/EVENT_LIMIT/NON_FINITE/STEP_SIZE_TOO_SMALL/NO_CONVERGENCE. Default uniformly sampled trajectory; large arrays auto-persist. Statically write; explicit out forces artifact.",
+      "params": [
+        {
+          "name": "rhs",
+          "type": "json",
+          "occurs": "1",
+          "description": "One scalar expression per state: list using y[i], t, params; or object matching named y0."
+        },
+        {
+          "name": "y0",
+          "type": "json",
+          "occurs": "1",
+          "description": "Finite state array or named object; 1..32 states. Named states sorted by name."
+        },
+        {
+          "name": "states",
+          "type": "array",
+          "occurs": "?",
+          "description": "Optional state aliases for array y0; unique, non-reserved, distinct from t/y/params.",
+          "items": "string"
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "occurs": "?",
+          "default": {},
+          "description": "At most 16 named finite scalar parameters, default empty."
+        },
+        {
+          "name": "t_span",
+          "type": "array",
+          "occurs": "1",
+          "description": "Two distinct finite times, absolute values <=1e12; forward or reverse.",
+          "items": "number"
+        },
+        {
+          "name": "t_eval",
+          "type": "json",
+          "occurs": "?",
+          "description": "Strictly ordered times within t_span; inline or npy/safetensors ref, <=10000. Missing endpoints are added and reported."
+        },
+        {
+          "name": "max_output_points",
+          "type": "number",
+          "occurs": "?",
+          "default": 101,
+          "description": "Uniform grid size when t_eval omitted, 2..10000. Total potential output <=200000 numbers including event reserve."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "RK45",
+          "enum": [
+            "RK45",
+            "RK23",
+            "DOP853",
+            "Radau",
+            "BDF",
+            "LSODA"
+          ],
+          "description": "Closed solve_ivp method."
+        },
+        {
+          "name": "rtol",
+          "type": "number",
+          "occurs": "?",
+          "default": 1e-06,
+          "description": "Relative tolerance, 1e-13..0.1."
+        },
+        {
+          "name": "atol",
+          "type": "json",
+          "occurs": "?",
+          "default": 1e-09,
+          "description": "Absolute tolerance scalar or one per state, 1e-15..0.1."
+        },
+        {
+          "name": "max_step",
+          "type": "number",
+          "occurs": "?",
+          "description": "Optional positive finite maximum step <=1e12."
+        },
+        {
+          "name": "events",
+          "type": "array",
+          "occurs": "?",
+          "default": [],
+          "description": "At most four {expr,direction:-1|0|1,terminal:boolean} events. Each nonterminal event stops after 32 roots with EVENT_LIMIT.",
+          "items": "object"
+        },
+        {
+          "name": "max_evals",
+          "type": "number",
+          "occurs": "?",
+          "default": 200000,
+          "description": "Shared RHS-component/event expression cap, 1..200000. Counts finite-difference RHS calls too."
+        },
+        {
+          "name": "max_steps",
+          "type": "number",
+          "occurs": "?",
+          "default": 10000,
+          "description": "Accepted adaptive step cap, 1..20000."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative solve wall seconds, >0..30, checked on every expression evaluation."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "?",
+          "description": "Exclusive .safetensors path; automatic unique artifact when trajectory exceeds inline budget."
+        }
+      ]
+    },
+    {
       "name": "opt_minimize",
       "access": "read",
       "returns": "object",

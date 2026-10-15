@@ -18,10 +18,10 @@ assert result('stats_dist',{'dist':'norm','fn':'ppf','x':[0,1,'NaN','NA',None]})
 assert result('stats_dist',{'dist':'norm','fn':'cdf','x':['-Inf','Inf','NaN','NA']})['values'] == [0.,1.,'NaN','NA']
 info = result('py_info')
 assert info['rng'] == 'PCG64' and info['blas'] and all(b['threads']==1 for b in info['blas']), info
-assert info['worker_sha256']==hashlib.sha256((ROOT/'py/frames.py').read_bytes()+b'\n'+(ROOT/'py/numerics.py').read_bytes()+b'\n'+(ROOT/'py/worker.py').read_bytes()).hexdigest()
+assert info['worker_sha256']==hashlib.sha256((ROOT/'py/frames.py').read_bytes()+b'\n'+(ROOT/'py/numerics.py').read_bytes()+b'\n'+(ROOT/'py/s4.py').read_bytes()+b'\n'+(ROOT/'py/worker.py').read_bytes()).hexdigest()
 if info['arch']=='aarch64':
     assert info['coretype_requested']=='ARMV8' and all(b['core']=='armv8' for b in info['blas'])
-worker = (ROOT/'py/frames.py').read_text() + (ROOT/'py/numerics.py').read_text() + (ROOT/'py/worker.py').read_text()
+worker = (ROOT/'py/frames.py').read_text() + (ROOT/'py/numerics.py').read_text() + (ROOT/'py/s4.py').read_text() + (ROOT/'py/worker.py').read_text()
 assert not re.search(r'\b(eval|exec|pickle|query)\b',worker)
 env = dict(os.environ, PYCLI_PYTHON='/no/such/python', PATH='/nonexistent')
 p = subprocess.run([BIN,'--schema'],capture_output=True,text=True,env=env)

@@ -11,11 +11,15 @@ class S4(unittest.TestCase):
  def test_production_diet_duals(self):
   # Wyndor: max 3x+5y subject to x<=4, 2y<=12, 3x+2y<=18; optimum (2,6), 36.
   p=dict(c=[3,5],a_ub=[[1,0],[0,2],[3,2]],b_ub=[4,12,18],maximize=True)
-  r=self.call('opt_linprog',**p);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['objective'],36);self.assertAlmostEqual(r['x'][0],2);self.assertAlmostEqual(r['x'][1],6)
+  r=self.call('opt_linprog',**p);self.assertEqual(r['status'],'OK');self.assertTrue(r['primal_feasible']);self.assertEqual(r['warnings'],[]);self.assertAlmostEqual(r['objective'],36);self.assertAlmostEqual(r['x'][0],2);self.assertAlmostEqual(r['x'][1],6)
   for i in range(3):
    q=dict(p,b_ub=list(p['b_ub']));q['b_ub'][i]+=1e-4;s=self.call('opt_linprog',**q);self.assertAlmostEqual((s['objective']-r['objective'])/1e-4,r['duals']['ub'][i],places=6)
   # min x+2y, x+y>=3, x+3y>=5: intersection (2,1), cost4.
   r=self.call('opt_linprog',c=[1,2],a_ub=[[-1,-1],[-1,-3]],b_ub=[-3,-5]);self.assertAlmostEqual(r['objective'],4)
+ def test_eq_and_bound_dual_sensitivity(self):
+  p={'c':[1,2],'a_eq':[[1,1]],'b_eq':[1]};r=self.call('opt_linprog',**p);s=self.call('opt_linprog',**dict(p,b_eq=[1.0001]));self.assertAlmostEqual((s['objective']-r['objective'])/.0001,r['duals']['eq'][0],places=7)
+  for maximize,which,base,changed in [(False,'lower',[2,5],[2.0001,5]),(True,'upper',[2,5],[2,5.0001])]:
+   r=self.call('opt_linprog',c=[1],bounds=[base],maximize=maximize);s=self.call('opt_linprog',c=[1],bounds=[changed],maximize=maximize);self.assertAlmostEqual((s['objective']-r['objective'])/.0001,r['duals'][which][0],places=7)
  def test_lp_statuses_degenerate_and_fixed_bounds(self):
   r=self.call('opt_linprog',c=[1,1],a_eq=[[1,1]],b_eq=[1]);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(sum(r['x']),1);self.assertAlmostEqual(r['objective'],1)
   self.assertEqual(self.call('opt_linprog',c=[1],a_ub=[[1],[-1]],b_ub=[0,-1])['status'],'INFEASIBLE')
@@ -62,6 +66,10 @@ class S4(unittest.TestCase):
   r=self.ode(rhs=['a*y[0]-b*y[0]*y[1]','d*y[0]*y[1]-g*y[1]'],params={'a':1.5,'b':1,'d':1,'g':3},y0=[2,1],t_span=[0,20],method='DOP853',rtol=1e-10,atol=1e-12,max_output_points=101)
   def h(y):return y[0]-3*math.log(y[0])+y[1]-1.5*math.log(y[1])
   self.assertLess(max(abs(h(y)-h([2,1])) for y in r['y']),1e-6)
+ def test_rhs_event_r_semantics(self):
+  r=self.ode(rhs=['ifelse(log(y[0]-2)>0,1,0)']);self.assertEqual(r['status'],'NON_FINITE')
+  r=self.ode(events=[{'expr':'ifelse(log(y[0]-2)>0,1,0)'}]);self.assertEqual(r['status'],'NON_FINITE')
+  r=self.ode(rhs=['choose(5,2.5)'],y0=[0]);self.assertAlmostEqual(r['final_state'][0],10,places=8);self.assertEqual(sum(w['count'] for w in r['warnings']),1)
  def test_robertson_primary_reference(self):
   # ODEPACK DLSODA example, opkdmain.f line3931, run at RTOL=1e-4. Its displayed digits are not certified accuracy.
   for method in ('BDF','Radau'):
@@ -98,5 +106,5 @@ class S4(unittest.TestCase):
    for path in ('rhs','events'):
     p={'rhs':[text]} if path=='rhs' else {'events':[{'expr':text}]}
     self.ode(rc=2,env=env,**p)
-  for p in ({'y0':[1]*33,'rhs':['0']*33},{'t_span':[0,1e300]},{'events':[{'expr':'t'}]*5},{'t_eval':[0,.5,.4,1]},{'max_output_points':10001},{'rtol':0},{'atol':-1},{'params':{'t':1}}):self.ode(rc=2,env=env,**p)
+  for p in ({'y0':[1]*33,'rhs':['0']*33},{'t_span':[0,1e300]},{'events':[{'expr':'t'}]*5},{'t_eval':[0,.5,.4,1]},{'max_output_points':10001},{'rtol':0},{'atol':-1},{'params':{'t':1}},{'method':'unsafe'}):self.ode(rc=2,env=env,**p)
 if __name__=='__main__':unittest.main()
