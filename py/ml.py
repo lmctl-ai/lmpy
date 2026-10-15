@@ -99,6 +99,15 @@ def ml_fit_one(df,p):
 def ml_result(est,x,kind,family,labels):
     import numpy as np
     classification=bool(labels)
+    if not np.isfinite(x).all() or (np.abs(x)>1e150).any(): raise NumericalFailure('transformed features exceed safe arithmetic range')
+    # A class label is always finite, even when argmax sees only invalid scores.
+    # Check the underlying public scores before accepting a classification.
+    if family in ('logistic','linear_svc','lda'):
+        if not np.isfinite(est.decision_function(x)).all(): raise NumericalFailure('nonfinite classification score')
+    elif family in ('gaussian_nb','knn_classifier'):
+        if not np.isfinite(est.predict_proba(x)).all(): raise NumericalFailure('nonfinite classification probability')
+    elif family=='kmeans' and kind=='predict':
+        if not np.isfinite(est.transform(x)).all(): raise NumericalFailure('nonfinite centroid distance')
     if kind=='predict':
         if family in ('pca','standard_scaler'): raise BadData('use transform for '+family)
         a=est.predict(x)
