@@ -241,8 +241,8 @@ def ml_cv(p):
         if status!='OK':return {'status':status,'folds':folds,'completed_folds':len(folds)}
         xx,_=ml_matrix(df.iloc[test],p['features'],p['preprocess'],prep)
         if scaler is not None:xx=scaler.transform(xx)
-        raw=est.predict(xx)
-        true=df.iloc[test][p['target']].to_numpy();pred=np.asarray([fold_labels[int(v)] for v in raw]) if task=='classification' else raw
+        pred=np.asarray(ml_result(est,xx,'predict',p['family'],fold_labels)['prediction'])
+        true=df.iloc[test][p['target']].to_numpy()
         scores={}
         for name in p['metrics']:
             if name=='accuracy':score=metric.accuracy_score(true,pred)
