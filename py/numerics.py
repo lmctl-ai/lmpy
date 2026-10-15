@@ -35,33 +35,160 @@ def load_spec(p):
     return json.loads(text), hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
+_WARNED = set()
+
+
+def warn_once(key, message):
+    """One NumericalWarning per kind per process: expression calls can run 10^6 times."""
+    if key not in _WARNED:
+        _WARNED.add(key)
+        warnings.warn(message, NumericalWarning)
+
+
 def function_table(np):
-    """Spec function name -> numpy/scipy function object (objects, never names resolved from strings)."""
+    """Spec function name -> numpy/scipy function object (objects, never names resolved from strings).
+
+    Functions that rcli evaluates with R's own semantics (NaN/NA propagation in conditions, R's choose/lchoose/beta
+    domains, R_pow special cases, gamma/digamma poles) are wrapped to match; docs/s3.md lists the grid that pins this.
+    """
     from scipy import special
+    nan, inf = np.nan, np.inf
 
     def dnorm(x):
         return np.exp(-0.5 * np.square(x)) / np.sqrt(2.0 * np.pi)
 
+    def truth(x):
+        x = np.asarray(x, dtype=float)
+        return np.where(np.isnan(x), nan, (x != 0).astype(float))  # R: numeric -> logical, NaN -> NA
+
+    def ifelse(condition, yes, no):
+        test = truth(condition)
+        return np.where(np.isnan(test), nan, np.where(test != 0, yes, no))  # an NA test yields NA, as in R
+
+    def gamma(x):
+        x = np.asarray(x, dtype=float)
+        return np.where(x == 0, nan, special.gamma(x))  # R: gamma(0) is NaN
+
+    def lgamma(x):
+        x = np.asarray(x, dtype=float)
+        return np.where(np.isneginf(x), inf, special.gammaln(x))  # R: lgamma(-Inf) is Inf
+
+    def digamma(x):
+        x = np.asarray(x, dtype=float)
+        return np.where(x == 0, nan, special.digamma(x))
+
+    def beta(a, b):
+        a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+        value = np.where(np.isinf(a) | np.isinf(b), 0.0, special.beta(a, b))
+        value = np.where((a == 0) | (b == 0), inf, value)
+        value = np.where((a < 0) | (b < 0), nan, value)  # R restricts beta to a, b >= 0
+        return np.where(np.isnan(a) | np.isnan(b), nan, value)
+
+    def lbeta(a, b):
+        a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+        low, high = np.minimum(a, b), np.maximum(a, b)
+        value = np.where(np.isinf(high), -inf, special.betaln(a, b))
+        value = np.where(low == 0, inf, value)
+        value = np.where(low < 0, nan, value)
+        return np.where(np.isnan(a) | np.isnan(b), nan, value)
+
+    def integer_like(n):
+        return np.isinf(n) | (np.isfinite(n) & (np.abs(n - np.rint(n)) <= 1e-7 * np.maximum(1.0, np.abs(n))))  # R_IS_INT counts +-Inf
+
+    def round_k(k):
+        rounded = np.rint(k)  # R_forceint: nearbyint, half to even
+        if np.any(np.isfinite(k) & (np.abs(k - rounded) > 1e-7)):
+            warn_once('choose_k', "'k' of choose/lchoose is not an integer and was rounded, as R does")
+        return rounded
+
+    def choose(n, k):
+        n, k_in = np.asarray(n, dtype=float), np.asarray(k, dtype=float)
+        k = round_k(k_in)
+        whole = integer_like(n)
+        n = np.where(whole, np.rint(n), n)
+        negative = whole & (n < 0)
+        effective = np.where(negative, -n + k - 1, n)
+        value = special.binom(effective, k)
+        value = np.where(np.isinf(effective), np.where(k == 0, 1.0, inf), value)
+        value = np.where(negative & (np.mod(k, 2) == 1), -value, value)
+        value = np.where(whole & (n >= 0) & (k > n), 0.0, value)
+        value = np.where(k < 0, 0.0, value)
+        value = np.where(whole & (np.abs(value) < 2.0 ** 53), np.rint(value), value)
+        # R quirks reproduced on purpose: its large-k branch evaluates exp(lfastchoose), which is NaN for infinite n, and
+        # k = +Inf is 0 only for a finite non-negative n (a negative n recurses into choose(Inf, Inf)).
+        value = np.where(np.isposinf(k), np.where(np.isfinite(n) & (n >= 0), 0.0, nan), value)
+        value = np.where(np.isneginf(k), 0.0, value)
+        value = np.where(np.isinf(n) & (k >= 30) & np.isfinite(k), nan, value)
+        return np.where(np.isnan(n) | np.isnan(k_in), nan, value)
+
     def lchoose(n, k):
-        return np.log(np.abs(special.binom(n, k)))
+        n, k_in = np.asarray(n, dtype=float), np.asarray(k, dtype=float)
+        k = round_k(k_in)
+        original = n
+        whole = integer_like(n)
+        n = np.where(whole, np.rint(n), n)
+        effective = np.where(whole & (n < 0), -n + k - 1, n)
+        with np.errstate(all='ignore'):
+            # -log(n+1) - lbeta(n-k+1, k+1) as in R's lfastchoose where the arguments are positive (accurate for huge n, k);
+            # log-gamma differences elsewhere. Neither ever forms the coefficient, so large results do not overflow.
+            positive = (effective + 1 > 0) & (effective - k + 1 > 0) & (k + 1 > 0)
+            by_beta = -np.log(effective + 1) - special.betaln(np.where(positive, effective - k + 1, 1.0), np.where(positive, k + 1, 1.0))
+            by_gamma = special.gammaln(effective + 1) - special.gammaln(k + 1) - special.gammaln(effective - k + 1)
+            value = np.where(positive, by_beta, by_gamma)
+        value = np.where(np.isinf(effective), np.where(k == 0, 0.0, inf), value)
+        value = np.where(whole & (n >= 0) & (k > n), -inf, value)
+        value = np.where(k == 1, np.log(np.abs(original)), value)
+        value = np.where(k == 0, 0.0, value)
+        value = np.where(np.isinf(n) & (k >= 2) & np.isfinite(k), nan, value)  # R: lfastchoose(Inf, k) is NaN
+        value = np.where(np.isposinf(k), np.where(np.isfinite(n) & (n >= 0), -inf, nan), value)
+        value = np.where(k < 0, -inf, value)
+        return np.where(np.isnan(n) | np.isnan(k_in), nan, value)
 
     return {
         'exp': np.exp, 'log': np.log, 'log1p': np.log1p, 'expm1': np.expm1, 'log2': np.log2, 'log10': np.log10,
         'sqrt': np.sqrt, 'abs': np.abs, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'asin': np.arcsin,
         'acos': np.arccos, 'atan': np.arctan, 'sinh': np.sinh, 'cosh': np.cosh, 'tanh': np.tanh,
         'floor': np.floor, 'ceiling': np.ceil, 'trunc': np.trunc, 'round': np.round, 'sign': np.sign,
-        'gamma': special.gamma, 'lgamma': special.gammaln, 'digamma': special.digamma,
+        'gamma': gamma, 'lgamma': lgamma, 'digamma': digamma,
         'pnorm': special.ndtr, 'dnorm': dnorm, 'qnorm': special.ndtri, 'plogis': special.expit,
-        'atan2': np.arctan2, 'pmin': np.minimum, 'pmax': np.maximum, 'beta': special.beta,
-        'lbeta': special.betaln, 'choose': special.binom, 'lchoose': lchoose, 'ifelse': np.where,
+        'atan2': np.arctan2, 'pmin': np.minimum, 'pmax': np.maximum, 'beta': beta,
+        'lbeta': lbeta, 'choose': choose, 'lchoose': lchoose, 'ifelse': ifelse,
         'sum': np.sum, 'mean': np.mean, 'prod': np.prod, 'min': np.min, 'max': np.max,
     }
 
 
 def operator_table(np):
-    return {'+': np.add, '-': np.subtract, '*': np.multiply, '/': np.divide, '^': np.power,
-            '<': np.less, '<=': np.less_equal, '>': np.greater, '>=': np.greater_equal, '==': np.equal,
-            '!=': np.not_equal, '&': np.logical_and, '|': np.logical_or}
+    """Operators with R's three-valued logic: comparisons and & | return 1.0 / 0.0 / NaN (NA); numbers are truthy if nonzero."""
+    nan = np.nan
+
+    def power(x, y):
+        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+        value = np.power(x, y)
+        # R_pow: NaN for a negative base with an infinite exponent and for -Inf with a non-integer/infinite exponent
+        undefined = (np.isinf(y) & (x < 0)) | (np.isneginf(x) & ~(np.isfinite(y) & (y == np.floor(y))))
+        return np.where(undefined & ~((x == 1) | (y == 0)), nan, value)
+
+    def comparison(function):
+        def compare(x, y):
+            x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+            return np.where(np.isnan(x) | np.isnan(y), nan, function(x, y).astype(float))
+        return compare
+
+    def truth(x):
+        x = np.asarray(x, dtype=float)
+        return np.where(np.isnan(x), nan, (x != 0).astype(float))
+
+    def conjunction(x, y):
+        a, b = truth(x), truth(y)
+        return np.where((a == 0) | (b == 0), 0.0, np.where(np.isnan(a) | np.isnan(b), nan, 1.0))  # NA & FALSE is FALSE
+
+    def disjunction(x, y):
+        a, b = truth(x), truth(y)
+        return np.where((a == 1) | (b == 1), 1.0, np.where(np.isnan(a) | np.isnan(b), nan, 0.0))  # NA | TRUE is TRUE
+
+    return {'+': np.add, '-': np.subtract, '*': np.multiply, '/': np.divide, '^': power,
+            '<': comparison(np.less), '<=': comparison(np.less_equal), '>': comparison(np.greater), '>=': comparison(np.greater_equal),
+            '==': comparison(np.equal), '!=': comparison(np.not_equal), '&': conjunction, '|': disjunction}
 
 
 def check_bindings(spec, table):
