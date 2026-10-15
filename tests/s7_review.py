@@ -145,6 +145,12 @@ class WorkerWorkBounds(unittest.TestCase):
    p['output_prefix']=str(pathlib.Path(d)/'out_')
    with mock.patch('scipy.signal.peak_prominences',side_effect=AssertionError('unbounded prominence search')):
     with self.assertRaises(w.BadData):w.sig_peaks(p)
+ def test_high_p_radius_returns_more_than_one_search_chunk(self):
+  w=self.worker()
+  with tempfile.TemporaryDirectory() as d:
+   file=pathlib.Path(d)/'x.npy';queries=pathlib.Path(d)/'q.npy';np.save(file,np.linspace(0,.5,50)[:,None]);np.save(queries,np.array([[.25]]))
+   r=w.spatial_knn(dict(points_file=str(file),queries_file=str(queries),p=64,radius=1,max_pairs=100,exclude_self=False))
+   self.assertEqual(r['counts'],[50]);self.assertEqual(set(r['indices']),set(range(50)))
  def test_radius_early_budget_exit(self):
   w=self.worker()
   class Tree:
