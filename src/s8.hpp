@@ -133,6 +133,7 @@ Json prepare_array_to_frame(const Params& in,std::map<std::string,Array>& arrays
             if(s8_has(t,c)){if(!in["allow_replace"].get<bool>())bad_param("column "+c+" already exists: set allow_replace to overwrite it");}
             else names.push_back(c);
         }
+        if(names.size()>S8_COLS)invalid("enriched table exceeds 256 columns","INPUT_TOO_LARGE");
         frames::names(names);if(rows*names.size()>S8_CELLS)invalid("enriched table exceeds cell cap","INPUT_TOO_LARGE");
         uint64_t bytes=t.bytes.size()+rows*cols*9+1024*1024;
         if(bytes>frames::BYTES)output_too_large("enriched table exceeds 256MiB storage budget");
@@ -200,8 +201,8 @@ Json prepare_merge(const Params& in,S8Extra& x){
     std::vector<std::string> names;for(const auto& c:lcols)names.push_back(clash.count(c)?c+sl:c);for(const auto& c:rkept)names.push_back(clash.count(c)?c+sr:c);
     std::set<std::string> unique(names.begin(),names.end());
     if(unique.size()!=names.size())invalid("the merged table would hold duplicate column names; choose different suffixes","DUPLICATE_COLUMN");
-    frames::names(names);
     if(names.size()>S8_COLS)invalid("the merged table would hold "+std::to_string(names.size())+" columns (limit 256)","TOO_MANY_COLUMNS");
+    frames::names(names);
     int64_t max_rows=in["max_rows"];if(max_rows<1||max_rows>200000)bad_param("max_rows must be 1..200000");
     const std::string how=in["how"];if(how!="inner"&&how!="left"&&how!="right"&&how!="outer")bad_param("how must be inner, left, right or outer");
     const std::string validate=in["validate"];if(validate!="one_to_one"&&validate!="one_to_many"&&validate!="many_to_one"&&validate!="many_to_many")bad_param("validate must be one_to_one, one_to_many, many_to_one or many_to_many");
@@ -241,8 +242,8 @@ Json prepare_rolling(const Params& in,S8Extra& x){
     }
     std::set<std::string> existing;for(const auto& c:t.meta["columns"])existing.insert(c);size_t total=existing.size();
     for(const auto& c:columns)for(const auto& f:functions){if(!existing.insert(c+"__"+f).second)invalid("output column "+c+"__"+f+" already exists","DUPLICATE_COLUMN");++total;}
-    frames::names(Json(existing));
     if(total>S8_COLS)invalid("the result would hold "+std::to_string(total)+" columns (limit 256)","TOO_MANY_COLUMNS");
+    frames::names(Json(existing));
     if(rows*total>S8_CELLS)invalid("the result would hold "+std::to_string(rows*total)+" cells (limit 500000)","INPUT_TOO_LARGE");
     p["functions"]=functions;s8_table_out(in,x);x.tables["frame"]=std::move(t.bytes);return p;
 }
