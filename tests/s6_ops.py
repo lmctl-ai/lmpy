@@ -70,6 +70,11 @@ class ML(unittest.TestCase):
   (self.cwd/'truncated.safetensors').write_bytes((self.cwd/'a.safetensors').read_bytes()[:-1]);self.call('ml_predict',rc=2,env=env,model='truncated.safetensors',columns={'x':[1]},out='bad.npz')
   self.call('ml_predict',rc=2,env=env,model='a.safetensors',columns={'z':[1]},out='bad.npz')
   self.call('ml_fit',rc=6,env=dict(os.environ,PYCLI_READONLY='1'),**dict(base,out='none.safetensors'));self.call('ml_fit',env=dict(os.environ,PYCLI_DRYRUN='1'),**dict(base,out='none.safetensors'));self.assertFalse((self.cwd/'none.safetensors').exists())
+ def test_tree_cv_against_constant_and_separated_oracles(self):
+  for f in ['random_forest_classifier','random_forest_regressor','hist_gradient_boosting_classifier','hist_gradient_boosting_regressor']:
+   cls=f.endswith('classifier');columns={'x':[0]*6+[1]*6,'y':[0]*6+[1]*6 if cls else [2]*12}
+   r=self.call('ml_cv',family=f,columns=columns,features=['x'],target='y',preprocess={'scale':False,'one_hot':[]},seed=42,cv='stratified' if cls else 'kfold',n_splits=3,shuffle=False,metrics=['accuracy' if cls else 'mse'],params={'min_samples_leaf':1})
+   self.assertEqual(r['status'],'OK');self.assertEqual(r['mean']['accuracy' if cls else 'mse'],1 if cls else 0)
  def test_trees_and_nonconvergence(self):
   train={'x':[-3,-2,-1,1,2,3],'y':[0,0,0,1,1,1]};self.call('frame_import',columns={'x':[-2,2]},out='test.npz')
   for f in ['random_forest_classifier','random_forest_regressor','hist_gradient_boosting_classifier','hist_gradient_boosting_regressor']:
