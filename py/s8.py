@@ -314,7 +314,7 @@ def frame_merge(p):
     if total * len(names) > TABLE_CELLS:
         raise BadData('the join would produce %d cells (limit %d)' % (total * len(names), TABLE_CELLS), 'ROW_EXPLOSION')
     if total == 0:
-        raise BadData('the join is empty (no rows)', 'BAD_DATA')
+        return {'status': 'EMPTY_RESULT', 'how': how, 'n_left': lrows, 'n_right': rrows, 'message': 'the join has no rows (no key matched); a table needs at least one row, so no artifact is written'}
     li, ri = [], []
 
     def left_driven(unmatched_left):
@@ -580,7 +580,9 @@ def ml_metrics(p):
                         raise BadData('average=binary needs pos_label for labels other than 0/1', 'BAD_PARAM')
                     pos = 1
                 k = position.get(pos)
-                triple = prf(tp[k], fp[k], fn[k]) if k is not None else (zd, zd, zd)
+                if k is None:
+                    raise BadData('pos_label %r does not occur among the labels %s' % (pos, labels), 'BAD_PARAM')
+                triple = prf(tp[k], fp[k], fn[k])
             elif average == 'micro':
                 triple = prf(tp.sum(), fp.sum(), fn.sum())
             else:
@@ -608,6 +610,8 @@ def ml_metrics(p):
                 raise BadData('scored metrics need pos_label for labels other than 0/1', 'BAD_PARAM')
             pos = 1
         result['pos_label'] = pos
+        if len(classes) == 2 and pos not in classes:
+            raise BadData('pos_label %r does not occur among the labels %s' % (pos, classes), 'BAD_PARAM')
         target = np.asarray([1.0 if v == pos else 0.0 for v in yt])
         if len(classes) > 2:
             for m in scored:

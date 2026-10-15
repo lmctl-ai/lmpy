@@ -421,6 +421,15 @@ class Merge(Base):
     def test_numpy_only(self):
         self.assertEqual(self.merge('inner')['meta']['pandas'], 'unloaded')
 
+    def test_an_empty_join_is_a_status_and_writes_nothing(self):
+        self.table({'id': [10, 11]}, 'nomatch.npz')
+        out = self.p('empty.npz')
+        r = call('frame_merge', dict(left=self.p('l.npz'), right=self.p('nomatch.npz'), on=['id'], out=out), rc=1)
+        self.assertEqual(r['error']['data']['tool_code'], 'EMPTY_RESULT')
+        self.assertFalse(os.path.exists(out))
+        outer = call('frame_merge', dict(left=self.p('l.npz'), right=self.p('nomatch.npz'), on=['id'], how='outer', out=self.p('o.npz')))
+        self.assertEqual(outer['shape'], [8, 3])
+
 
 # ------------------------------------------------------------------------------------------------------------ rolling
 class Rolling(Base):
@@ -610,6 +619,17 @@ class Metrics(Base):
         r = call('ml_metrics', dict(frame=t, y_true='t', y_pred='p', y_score='s', metrics=['accuracy', 'roc_auc'], pos_label=1))
         self.assertEqual(r['metrics']['accuracy'], 0.5)
         self.assertEqual(r['metrics']['roc_auc'], s8.hand_auc([1, 0, 1, 0], [0.9, 0.2, 0.4, 0.1], 1))
+
+    def test_pos_label_must_occur(self):
+        r = call('ml_metrics', dict(y_true=[1, 0, 1], y_pred=[1, 0, 0], metrics=['f1'], average='binary', pos_label=7), rc=2)
+        self.assertEqual(r['error']['data']['tool_code'], 'BAD_PARAM')
+        t = self.table({'t': ['a', 'b', 'a'], 'p': ['a', 'a', 'b'], 's': [0.9, 0.2, 0.4]})
+        r = call('ml_metrics', dict(frame=t, y_true='t', y_pred='p', y_score='s', metrics=['f1', 'roc_auc'], average='binary', pos_label='a'))
+        self.assertEqual(r['status'], 'OK')
+        self.assertAlmostEqual(r['metrics']['f1'], 2 * 1 / (2 * 1 + 1 + 1), places=15)
+        self.assertEqual(r['metrics']['roc_auc'], s8.hand_auc(['a', 'b', 'a'], [0.9, 0.2, 0.4], 'a'))
+        bad = call('ml_metrics', dict(frame=t, y_true='t', y_pred='p', metrics=['f1'], average='binary'), rc=2)
+        self.assertEqual(bad['error']['data']['tool_code'], 'BAD_PARAM')  # string labels need an explicit pos_label
 
     def test_class_cap_and_import_cost(self):
         labels = list(range(40))
