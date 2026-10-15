@@ -108,3 +108,31 @@ Recipes: `oracle-metrics.lms`, `oracle-frame.lms` (lmda), `oracle-rvs.lms` (rcli
    masked missing value as a row and skips it inside the window.
 4. **PCG64 and R's Mersenne-Twister streams differ**, so samples are never compared value by value; the recipe compares each family's empirical CDF with R's quantile
    function instead. rcli's `rng_draw` has no PCG64 option.
+
+## S8b (matrix functions, sparse algebra, special functions, root systems, time-series tests; scipy 1.16.2 / statsmodels 0.14.6, 2026-10-16)
+
+Recipes: `oracle-tsa-tools.lms` (rcli `ts_acf`, lmstats `acf_pacf`/`adf`/`kpss`/`ljung_box`), `oracle-root.lms` (pycli `num_root`, rcli `num_root`), `sparse-poisson.lms` (analytic spectrum, exact solution). All
+exit 0 in real, `--check` and `--dry-run` modes. Special functions are checked against mpmath at 50 digits in the test image (`tests/s8b_ops.py`), not in a recipe.
+
+| Comparison | Result | Tolerance |
+|---|---|---|
+| ACF lags 1-4 vs the dot-product formula, R `acf()` and lmstats `acf_pacf` | differences <= 1e-15 (printed) | 1e-9 |
+| PACF (ywadjusted) vs lmstats | <= 1e-15 | 1e-9 |
+| Ljung-Box Q(2), Q(4) and p-values vs the formula and a closed-form chi-square tail | relative 1e-15 | 1e-9 |
+| lmstats `ljung_box` Q and p for lags 1-4, and all other statistics and correlations of the recipe | largest difference 4.4e-14 | 1e-9 |
+| ADF statistic, used lag (11), nobs (108) vs lmstats | statistic equal to 12 decimals; same lag and nobs | 1e-9 |
+| ADF MacKinnon p-value vs lmstats (0.014945880 vs 0.014945879) | **1.4e-9** | 1e-8 |
+| KPSS statistic, p-value, lags (4) vs lmstats | statistic equal to 12 decimals, p and lags identical | 1e-9 |
+| root of x^3 - 2x - 5: pycli brentq, `num_root`, R `uniroot` vs 2.0945514815423265 | <= 5e-16 | 1e-12 |
+| circle/line system (hybr and lm) vs sqrt 2 | <= 1e-12 | 1e-8 |
+| 1-D Poisson (n = 120): spsolve / cg / gmres vs x(1-x); eigsh (SA and LA) vs 4 sin^2(j pi / (2(n+1))) | below the 12 printed decimals | 1e-9 |
+
+1. **ADF p-value: 1.4e-9 between pycli (statsmodels) and lmstats.** Same statistic, same lag, same critical values, but the MacKinnon polynomial is evaluated with a different normal CDF; the recipe tolerance for this one
+   quantity is 1e-8. Neither is wrong; both are far below the 1e-3 uncertainty of the response-surface approximation itself.
+2. **lmstats `acf_pacf` defaults to the `ywadjusted` PACF**, pycli to `ywm` (R's convention); the recipe sets the method on both sides. lmstats rejects `ywm`.
+3. **Convergence verdicts the solvers do not give by themselves.** `scipy.optimize.root` (hybr) with its default step tolerance 1.49e-8 stops with max|f| = 1.5e-8 on x_i^2 = i (16 unknowns) and reports success; pycli
+   recomputes the residual and, with the default `residual_tol` 1e-8, would have called that NO_CONVERGENCE, so the default `xtol` is 1e-12 (the same system then reaches 2e-13). `x^2 + 1 = 0` makes hybr and lm stop
+   at the minimum of the residual norm; both are reported as NO_CONVERGENCE with the residual 1.0. For cg, the residual a double-precision iteration reaches is bounded by about eps ||A|| ||x|| / ||b||: on the
+   2000-unknown Poisson matrix `rtol=1e-12` produced a true relative residual of 6e-11 while the iteration reported convergence, which is why the acceptance bound includes that attainable floor.
+4. **ARPACK is slow, not wrong, on the clustered end of a Poisson spectrum**: eigsh SA with k = 5 on n = 66000 (and cg/gmres at n = 66000) exhaust the default 10 s budget (TIME_LIMIT); shift-invert with sigma = 0 returns the same
+   eigenvalues in 0.9 s.
