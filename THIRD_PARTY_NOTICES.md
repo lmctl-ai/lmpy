@@ -1,4 +1,4 @@
-# Third-party notices — S5
+# Third-party notices — S6
 
 pycli is MIT, Copyright (c) 2026 Lattice Systems LLC.
 The full pycli/lmcpp MIT notices and nlohmann JSON 3.11.2 MIT notice appear below.
@@ -15,6 +15,9 @@ S2 adds pandas 2.3.3, python-dateutil 2.9.0.post0, pytz 2025.2, tzdata 2025.2 an
 S5 adds statsmodels 0.14.6 (BSD-3-Clause, with bundled third-party notices for libqsturng, factor_rotation and the state-space
 test data), patsy 1.0.3 (BSD-2-Clause, with PSF-2.0 terms for the patsy.compat code; a hard dependency of statsmodels that pycli never imports) and packaging 26.3
 (Apache-2.0 OR BSD-2-Clause), with source inventories and wheel notices below.
+S6 adds scikit-learn 1.7.2 (BSD-3-Clause; bundled liblinear, libsvm and MurmurHash notices), joblib 1.5.2
+(BSD-3-Clause with vendored loky/cloudpickle notices) and threadpoolctl 3.6.0 (BSD-3-Clause).
+The wheel's libgomp licence and GCC runtime exception are retained in its full wheel notice.
 S1 adds no shipped component. Its ASan/UBSan test binaries statically link GCC's sanitizer
 runtimes (same Runtime Library Exception) and exist only in the test image, never in runtime.
 The runtime additionally retains exact builder package copyrights (including
@@ -3861,6 +3864,6543 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scikit-learn 1.7.2 — full wheel notice
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2007-2024 The scikit-learn developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----
+
+This binary distribution of scikit-learn also bundles the following software:
+
+----
+
+Name: GCC runtime library
+Files: scikit_learn.libs/libgomp*.so*
+Availability: https://gcc.gnu.org/git/?p=gcc.git;a=tree;f=libgomp
+
+GCC RUNTIME LIBRARY EXCEPTION
+
+Version 3.1, 31 March 2009
+
+Copyright (C) 2009 Free Software Foundation, Inc. <http://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+This GCC Runtime Library Exception ("Exception") is an additional
+permission under section 7 of the GNU General Public License, version
+3 ("GPLv3"). It applies to a given file (the "Runtime Library") that
+bears a notice placed by the copyright holder of the file stating that
+the file is governed by GPLv3 along with this Exception.
+
+When you use GCC to compile a program, GCC may combine portions of
+certain GCC header files and runtime libraries with the compiled
+program. The purpose of this Exception is to allow compilation of
+non-GPL (including proprietary) programs to use, in this way, the
+header files and runtime libraries covered by this Exception.
+
+0. Definitions.
+
+A file is an "Independent Module" if it either requires the Runtime
+Library for execution after a Compilation Process, or makes use of an
+interface provided by the Runtime Library, but is not otherwise based
+on the Runtime Library.
+
+"GCC" means a version of the GNU Compiler Collection, with or without
+modifications, governed by version 3 (or a specified later version) of
+the GNU General Public License (GPL) with the option of using any
+subsequent versions published by the FSF.
+
+"GPL-compatible Software" is software whose conditions of propagation,
+modification and use would permit combination with GCC in accord with
+the license of GCC.
+
+"Target Code" refers to output from any compiler for a real or virtual
+target processor architecture, in executable form or suitable for
+input to an assembler, loader, linker and/or execution
+phase. Notwithstanding that, Target Code does not include data in any
+format that is used as a compiler intermediate representation, or used
+for producing a compiler intermediate representation.
+
+The "Compilation Process" transforms code entirely represented in
+non-intermediate languages designed for human-written code, and/or in
+Java Virtual Machine byte code, into Target Code. Thus, for example,
+use of source code generators and preprocessors need not be considered
+part of the Compilation Process, since the Compilation Process can be
+understood as starting with the output of the generators or
+preprocessors.
+
+A Compilation Process is "Eligible" if it is done using GCC, alone or
+with other GPL-compatible software, or if it is done without using any
+work based on GCC. For example, using non-GPL-compatible Software to
+optimize any GCC intermediate representations would not qualify as an
+Eligible Compilation Process.
+
+1. Grant of Additional Permission.
+
+You have permission to propagate a work of Target Code formed by
+combining the Runtime Library with Independent Modules, even if such
+propagation would otherwise violate the terms of GPLv3, provided that
+all Target Code was generated by Eligible Compilation Processes. You
+may then convey such a combination under terms of your choice,
+consistent with the licensing of the Independent Modules.
+
+2. No Weakening of GCC Copyleft.
+
+The availability of this Exception does not imply any general
+presumption that third-party software is unaffected by the copyleft
+requirements of the license of GCC.
+```
+
+## joblib 1.5.2 — full wheel notice
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2008-2021, The joblib developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## threadpoolctl 3.6.0 — full wheel notice
+
+```text
+Copyright (c) 2019, threadpoolctl contributors
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of copyright holder nor the names of its contributors
+      may be used to endorse or promote products derived from this software
+      without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## joblib/LICENSE.txt
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2008-2021, The joblib developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## joblib/joblib/externals/__init__.py.notice.txt
+
+```text
+
+```
+
+## joblib/joblib/externals/cloudpickle/__init__.py.notice.txt
+
+```text
+from . import cloudpickle
+from .cloudpickle import *  # noqa
+
+__doc__ = cloudpickle.__doc__
+
+__version__ = "3.1.1"
+
+__all__ = [  # noqa
+    "__version__",
+    "Pickler",
+    "CloudPickler",
+    "dumps",
+    "loads",
+    "dump",
+    "load",
+    "register_pickle_by_value",
+    "unregister_pickle_by_value",
+]
+```
+
+## joblib/joblib/externals/cloudpickle/cloudpickle.py.notice.txt
+
+```text
+"""Pickler class to extend the standard pickle.Pickler functionality
+
+The main objective is to make it natural to perform distributed computing on
+clusters (such as PySpark, Dask, Ray...) with interactively defined code
+(functions, classes, ...) written in notebooks or console.
+
+In particular this pickler adds the following features:
+- serialize interactively-defined or locally-defined functions, classes,
+  enums, typevars, lambdas and nested functions to compiled byte code;
+- deal with some other non-serializable objects in an ad-hoc manner where
+  applicable.
+
+This pickler is therefore meant to be used for the communication between short
+lived Python processes running the same version of Python and libraries. In
+particular, it is not meant to be used for long term storage of Python objects.
+
+It does not include an unpickler, as standard Python unpickling suffices.
+
+This module was extracted from the `cloud` package, developed by `PiCloud, Inc.
+<https://web.archive.org/web/20140626004012/http://www.picloud.com/>`_.
+
+Copyright (c) 2012-now, CloudPickle developers and contributors.
+Copyright (c) 2012, Regents of the University of California.
+Copyright (c) 2009 `PiCloud, Inc. <https://web.archive.org/web/20140626004012/http://www.picloud.com/>`_.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the University of California, Berkeley nor the
+      names of its contributors may be used to endorse or promote
+      products derived from this software without specific prior written
+      permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
+import _collections_abc
+from collections import ChainMap, OrderedDict
+import abc
+import builtins
+import copyreg
+import dataclasses
+import dis
+from enum import Enum
+import io
+import itertools
+import logging
+import opcode
+import pickle
+from pickle import _getattribute as _pickle_getattribute
+import platform
+import struct
+import sys
+import threading
+import types
+import typing
+import uuid
+import warnings
+import weakref
+
+# The following import is required to be imported in the cloudpickle
+# namespace to be able to load pickle files generated with older versions of
+# cloudpickle. See: tests/test_backward_compat.py
+from types import CellType  # noqa: F401
+
+
+# cloudpickle is meant for inter process communication: we expect all
+# communicating processes to run the same Python version hence we favor
+# communication speed over compatibility:
+DEFAULT_PROTOCOL = pickle.HIGHEST_PROTOCOL
+
+# Names of modules whose resources should be treated as dynamic.
+_PICKLE_BY_VALUE_MODULES = set()
+
+# Track the provenance of reconstructed dynamic classes to make it possible to
+# reconstruct instances from the matching singleton class definition when
+# appropriate and preserve the usual "isinstance" semantics of Python objects.
+_DYNAMIC_CLASS_TRACKER_BY_CLASS = weakref.WeakKeyDictionary()
+_DYNAMIC_CLASS_TRACKER_BY_ID = weakref.WeakValueDictionary()
+_DYNAMIC_CLASS_TRACKER_LOCK = threading.Lock()
+
+PYPY = platform.python_implementation() == "PyPy"
+
+builtin_code_type = None
+if PYPY:
+    # builtin-code objects only exist in pypy
+    builtin_code_type = type(float.__new__.__code__)
+
+_extract_code_globals_cache = weakref.WeakKeyDictionary()
+
+
+def _get_or_create_tracker_id(class_def):
+    with _DYNAMIC_CLASS_TRACKER_LOCK:
+        class_tracker_id = _DYNAMIC_CLASS_TRACKER_BY_CLASS.get(class_def)
+        if class_tracker_id is None:
+            class_tracker_id = uuid.uuid4().hex
+            _DYNAMIC_CLASS_TRACKER_BY_CLASS[class_def] = class_tracker_id
+            _DYNAMIC_CLASS_TRACKER_BY_ID[class_tracker_id] = class_def
+    return class_tracker_id
+
+
+def _lookup_class_or_track(class_tracker_id, class_def):
+    if class_tracker_id is not None:
+        with _DYNAMIC_CLASS_TRACKER_LOCK:
+            class_def = _DYNAMIC_CLASS_TRACKER_BY_ID.setdefault(
+                class_tracker_id, class_def
+            )
+            _DYNAMIC_CLASS_TRACKER_BY_CLASS[class_def] = class_tracker_id
+    return class_def
+
+
+def register_pickle_by_value(module):
+    """Register a module to make its functions and classes picklable by value.
+
+    By default, functions and classes that are attributes of an importable
+    module are to be pickled by reference, that is relying on re-importing
+    the attribute from the module at load time.
+
+    If `register_pickle_by_value(module)` is called, all its functions and
+    classes are subsequently to be pickled by value, meaning that they can
+    be loaded in Python processes where the module is not importable.
+
+    This is especially useful when developing a module in a distributed
+    execution environment: restarting the client Python process with the new
+    source code is enough: there is no need to re-install the new version
+    of the module on all the worker nodes nor to restart the workers.
+
+    Note: this feature is considered experimental. See the cloudpickle
+    README.md file for more details and limitations.
+    """
+    if not isinstance(module, types.ModuleType):
+        raise ValueError(f"Input should be a module object, got {str(module)} instead")
+    # In the future, cloudpickle may need a way to access any module registered
+    # for pickling by value in order to introspect relative imports inside
+    # functions pickled by value. (see
+    # https://github.com/cloudpipe/cloudpickle/pull/417#issuecomment-873684633).
+    # This access can be ensured by checking that module is present in
+    # sys.modules at registering time and assuming that it will still be in
+    # there when accessed during pickling. Another alternative would be to
+    # store a weakref to the module. Even though cloudpickle does not implement
+    # this introspection yet, in order to avoid a possible breaking change
+    # later, we still enforce the presence of module inside sys.modules.
+    if module.__name__ not in sys.modules:
+        raise ValueError(
+            f"{module} was not imported correctly, have you used an "
+            "`import` statement to access it?"
+        )
+    _PICKLE_BY_VALUE_MODULES.add(module.__name__)
+
+
+def unregister_pickle_by_value(module):
+    """Unregister that the input module should be pickled by value."""
+    if not isinstance(module, types.ModuleType):
+        raise ValueError(f"Input should be a module object, got {str(module)} instead")
+    if module.__name__ not in _PICKLE_BY_VALUE_MODULES:
+        raise ValueError(f"{module} is not registered for pickle by value")
+    else:
+        _PICKLE_BY_VALUE_MODULES.remove(module.__name__)
+
+
+def list_registry_pickle_by_value():
+    return _PICKLE_BY_VALUE_MODULES.copy()
+
+
+def _is_registered_pickle_by_value(module):
+    module_name = module.__name__
+    if module_name in _PICKLE_BY_VALUE_MODULES:
+        return True
+    while True:
+        parent_name = module_name.rsplit(".", 1)[0]
+        if parent_name == module_name:
+            break
+        if parent_name in _PICKLE_BY_VALUE_MODULES:
+            return True
+        module_name = parent_name
+    return False
+
+
+if sys.version_info >= (3, 14):
+    def _getattribute(obj, name):
+        return _pickle_getattribute(obj, name.split('.'))
+else:
+    def _getattribute(obj, name):
+        return _pickle_getattribute(obj, name)[0]
+
+
+def _whichmodule(obj, name):
+    """Find the module an object belongs to.
+
+    This function differs from ``pickle.whichmodule`` in two ways:
+    - it does not mangle the cases where obj's module is __main__ and obj was
+      not found in any module.
+    - Errors arising during module introspection are ignored, as those errors
+      are considered unwanted side effects.
+    """
+    module_name = getattr(obj, "__module__", None)
+
+    if module_name is not None:
+        return module_name
+    # Protect the iteration by using a copy of sys.modules against dynamic
+    # modules that trigger imports of other modules upon calls to getattr or
+    # other threads importing at the same time.
+    for module_name, module in sys.modules.copy().items():
+        # Some modules such as coverage can inject non-module objects inside
+        # sys.modules
+        if (
+            module_name == "__main__"
+            or module_name == "__mp_main__"
+            or module is None
+            or not isinstance(module, types.ModuleType)
+        ):
+            continue
+        try:
+            if _getattribute(module, name) is obj:
+                return module_name
+        except Exception:
+            pass
+    return None
+
+
+def _should_pickle_by_reference(obj, name=None):
+    """Test whether an function or a class should be pickled by reference
+
+    Pickling by reference means by that the object (typically a function or a
+    class) is an attribute of a module that is assumed to be importable in the
+    target Python environment. Loading will therefore rely on importing the
+    module and then calling `getattr` on it to access the function or class.
+
+    Pickling by reference is the only option to pickle functions and classes
+    in the standard library. In cloudpickle the alternative option is to
+    pickle by value (for instance for interactively or locally defined
+    functions and classes or for attributes of modules that have been
+    explicitly registered to be pickled by value.
+    """
+    if isinstance(obj, types.FunctionType) or issubclass(type(obj), type):
+        module_and_name = _lookup_module_and_qualname(obj, name=name)
+        if module_and_name is None:
+            return False
+        module, name = module_and_name
+        return not _is_registered_pickle_by_value(module)
+
+    elif isinstance(obj, types.ModuleType):
+        # We assume that sys.modules is primarily used as a cache mechanism for
+        # the Python import machinery. Checking if a module has been added in
+        # is sys.modules therefore a cheap and simple heuristic to tell us
+        # whether we can assume that a given module could be imported by name
+        # in another Python process.
+        if _is_registered_pickle_by_value(obj):
+            return False
+        return obj.__name__ in sys.modules
+    else:
+        raise TypeError(
+            "cannot check importability of {} instances".format(type(obj).__name__)
+        )
+
+
+def _lookup_module_and_qualname(obj, name=None):
+    if name is None:
+        name = getattr(obj, "__qualname__", None)
+    if name is None:  # pragma: no cover
+        # This used to be needed for Python 2.7 support but is probably not
+        # needed anymore. However we keep the __name__ introspection in case
+        # users of cloudpickle rely on this old behavior for unknown reasons.
+        name = getattr(obj, "__name__", None)
+
+    module_name = _whichmodule(obj, name)
+
+    if module_name is None:
+        # In this case, obj.__module__ is None AND obj was not found in any
+        # imported module. obj is thus treated as dynamic.
+        return None
+
+    if module_name == "__main__":
+        return None
+
+    # Note: if module_name is in sys.modules, the corresponding module is
+    # assumed importable at unpickling time. See #357
+    module = sys.modules.get(module_name, None)
+    if module is None:
+        # The main reason why obj's module would not be imported is that this
+        # module has been dynamically created, using for example
+        # types.ModuleType. The other possibility is that module was removed
+        # from sys.modules after obj was created/imported. But this case is not
+        # supported, as the standard pickle does not support it either.
+        return None
+
+    try:
+        obj2 = _getattribute(module, name)
+    except AttributeError:
+        # obj was not found inside the module it points to
+        return None
+    if obj2 is not obj:
+        return None
+    return module, name
+
+
+def _extract_code_globals(co):
+    """Find all globals names read or written to by codeblock co."""
+    out_names = _extract_code_globals_cache.get(co)
+    if out_names is None:
+        # We use a dict with None values instead of a set to get a
+        # deterministic order and avoid introducing non-deterministic pickle
+        # bytes as a results.
+        out_names = {name: None for name in _walk_global_ops(co)}
+
+        # Declaring a function inside another one using the "def ..." syntax
+        # generates a constant code object corresponding to the one of the
+        # nested function's As the nested function may itself need global
+        # variables, we need to introspect its code, extract its globals, (look
+        # for code object in it's co_consts attribute..) and add the result to
+        # code_globals
+        if co.co_consts:
+            for const in co.co_consts:
+                if isinstance(const, types.CodeType):
+                    out_names.update(_extract_code_globals(const))
+
+        _extract_code_globals_cache[co] = out_names
+
+    return out_names
+
+
+def _find_imported_submodules(code, top_level_dependencies):
+    """Find currently imported submodules used by a function.
+
+    Submodules used by a function need to be detected and referenced for the
+    function to work correctly at depickling time. Because submodules can be
+    referenced as attribute of their parent package (``package.submodule``), we
+    need a special introspection technique that does not rely on GLOBAL-related
+    opcodes to find references of them in a code object.
+
+    Example:
+    ```
+    import concurrent.futures
+    import cloudpickle
+    def func():
+        x = concurrent.futures.ThreadPoolExecutor
+    if __name__ == '__main__':
+        cloudpickle.dumps(func)
+    ```
+    The globals extracted by cloudpickle in the function's state include the
+    concurrent package, but not its submodule (here, concurrent.futures), which
+    is the module used by func. Find_imported_submodules will detect the usage
+    of concurrent.futures. Saving this module alongside with func will ensure
+    that calling func once depickled does not fail due to concurrent.futures
+    not being imported
+    """
+
+    subimports = []
+    # check if any known dependency is an imported package
+    for x in top_level_dependencies:
+        if (
+            isinstance(x, types.ModuleType)
+            and hasattr(x, "__package__")
+            and x.__package__
+        ):
+            # check if the package has any currently loaded sub-imports
+            prefix = x.__name__ + "."
+            # A concurrent thread could mutate sys.modules,
+            # make sure we iterate over a copy to avoid exceptions
+            for name in list(sys.modules):
+                # Older versions of pytest will add a "None" module to
+                # sys.modules.
+                if name is not None and name.startswith(prefix):
+                    # check whether the function can address the sub-module
+                    tokens = set(name[len(prefix) :].split("."))
+                    if not tokens - set(code.co_names):
+                        subimports.append(sys.modules[name])
+    return subimports
+
+
+# relevant opcodes
+STORE_GLOBAL = opcode.opmap["STORE_GLOBAL"]
+DELETE_GLOBAL = opcode.opmap["DELETE_GLOBAL"]
+LOAD_GLOBAL = opcode.opmap["LOAD_GLOBAL"]
+GLOBAL_OPS = (STORE_GLOBAL, DELETE_GLOBAL, LOAD_GLOBAL)
+HAVE_ARGUMENT = dis.HAVE_ARGUMENT
+EXTENDED_ARG = dis.EXTENDED_ARG
+
+
+_BUILTIN_TYPE_NAMES = {}
+for k, v in types.__dict__.items():
+    if type(v) is type:
+        _BUILTIN_TYPE_NAMES[v] = k
+
+
+def _builtin_type(name):
+    if name == "ClassType":  # pragma: no cover
+        # Backward compat to load pickle files generated with cloudpickle
+        # < 1.3 even if loading pickle files from older versions is not
+        # officially supported.
+        return type
+    return getattr(types, name)
+
+
+def _walk_global_ops(code):
+    """Yield referenced name for global-referencing instructions in code."""
+    for instr in dis.get_instructions(code):
+        op = instr.opcode
+        if op in GLOBAL_OPS:
+            yield instr.argval
+
+
+def _extract_class_dict(cls):
+    """Retrieve a copy of the dict of a class without the inherited method."""
+    # Hack to circumvent non-predictable memoization caused by string interning.
+    # See the inline comment in _class_setstate for details.
+    clsdict = {"".join(k): cls.__dict__[k] for k in sorted(cls.__dict__)}
+
+    if len(cls.__bases__) == 1:
+        inherited_dict = cls.__bases__[0].__dict__
+    else:
+        inherited_dict = {}
+        for base in reversed(cls.__bases__):
+            inherited_dict.update(base.__dict__)
+    to_remove = []
+    for name, value in clsdict.items():
+        try:
+            base_value = inherited_dict[name]
+            if value is base_value:
+                to_remove.append(name)
+        except KeyError:
+            pass
+    for name in to_remove:
+        clsdict.pop(name)
+    return clsdict
+
+
+def is_tornado_coroutine(func):
+    """Return whether `func` is a Tornado coroutine function.
+
+    Running coroutines are not supported.
+    """
+    warnings.warn(
+        "is_tornado_coroutine is deprecated in cloudpickle 3.0 and will be "
+        "removed in cloudpickle 4.0. Use tornado.gen.is_coroutine_function "
+        "directly instead.",
+        category=DeprecationWarning,
+    )
+    if "tornado.gen" not in sys.modules:
+        return False
+    gen = sys.modules["tornado.gen"]
+    if not hasattr(gen, "is_coroutine_function"):
+        # Tornado version is too old
+        return False
+    return gen.is_coroutine_function(func)
+
+
+def subimport(name):
+    # We cannot do simply: `return __import__(name)`: Indeed, if ``name`` is
+    # the name of a submodule, __import__ will return the top-level root module
+    # of this submodule. For instance, __import__('os.path') returns the `os`
+    # module.
+    __import__(name)
+    return sys.modules[name]
+
+
+def dynamic_subimport(name, vars):
+    mod = types.ModuleType(name)
+    mod.__dict__.update(vars)
+    mod.__dict__["__builtins__"] = builtins.__dict__
+    return mod
+
+
+def _get_cell_contents(cell):
+    try:
+        return cell.cell_contents
+    except ValueError:
+        # Handle empty cells explicitly with a sentinel value.
+        return _empty_cell_value
+
+
+def instance(cls):
+    """Create a new instance of a class.
+
+    Parameters
+    ----------
+    cls : type
+        The class to create an instance of.
+
+    Returns
+    -------
+    instance : cls
+        A new instance of ``cls``.
+    """
+    return cls()
+
+
+@instance
+class _empty_cell_value:
+    """Sentinel for empty closures."""
+
+    @classmethod
+    def __reduce__(cls):
+        return cls.__name__
+
+
+def _make_function(code, globals, name, argdefs, closure):
+    # Setting __builtins__ in globals is needed for nogil CPython.
+    globals["__builtins__"] = __builtins__
+    return types.FunctionType(code, globals, name, argdefs, closure)
+
+
+def _make_empty_cell():
+    if False:
+        # trick the compiler into creating an empty cell in our lambda
+        cell = None
+        raise AssertionError("this route should not be executed")
+
+    return (lambda: cell).__closure__[0]
+
+
+def _make_cell(value=_empty_cell_value):
+    cell = _make_empty_cell()
+    if value is not _empty_cell_value:
+        cell.cell_contents = value
+    return cell
+
+
+def _make_skeleton_class(
+    type_constructor, name, bases, type_kwargs, class_tracker_id, extra
+):
+    """Build dynamic class with an empty __dict__ to be filled once memoized
+
+    If class_tracker_id is not None, try to lookup an existing class definition
+    matching that id. If none is found, track a newly reconstructed class
+    definition under that id so that other instances stemming from the same
+    class id will also reuse this class definition.
+
+    The "extra" variable is meant to be a dict (or None) that can be used for
+    forward compatibility shall the need arise.
+    """
+    # We need to intern the keys of the type_kwargs dict to avoid having
+    # different pickles for the same dynamic class depending on whether it was
+    # dynamically created or reconstructed from a pickled stream.
+    type_kwargs = {sys.intern(k): v for k, v in type_kwargs.items()}
+
+    skeleton_class = types.new_class(
+        name, bases, {"metaclass": type_constructor}, lambda ns: ns.update(type_kwargs)
+    )
+
+    return _lookup_class_or_track(class_tracker_id, skeleton_class)
+
+
+def _make_skeleton_enum(
+    bases, name, qualname, members, module, class_tracker_id, extra
+):
+    """Build dynamic enum with an empty __dict__ to be filled once memoized
+
+    The creation of the enum class is inspired by the code of
+    EnumMeta._create_.
+
+    If class_tracker_id is not None, try to lookup an existing enum definition
+    matching that id. If none is found, track a newly reconstructed enum
+    definition under that id so that other instances stemming from the same
+    class id will also reuse this enum definition.
+
+    The "extra" variable is meant to be a dict (or None) that can be used for
+    forward compatibility shall the need arise.
+    """
+    # enums always inherit from their base Enum class at the last position in
+    # the list of base classes:
+    enum_base = bases[-1]
+    metacls = enum_base.__class__
+    classdict = metacls.__prepare__(name, bases)
+
+    for member_name, member_value in members.items():
+        classdict[member_name] = member_value
+    enum_class = metacls.__new__(metacls, name, bases, classdict)
+    enum_class.__module__ = module
+    enum_class.__qualname__ = qualname
+
+    return _lookup_class_or_track(class_tracker_id, enum_class)
+
+
+def _make_typevar(name, bound, constraints, covariant, contravariant, class_tracker_id):
+    tv = typing.TypeVar(
+        name,
+        *constraints,
+        bound=bound,
+        covariant=covariant,
+        contravariant=contravariant,
+    )
+    return _lookup_class_or_track(class_tracker_id, tv)
+
+
+def _decompose_typevar(obj):
+    return (
+        obj.__name__,
+        obj.__bound__,
+        obj.__constraints__,
+        obj.__covariant__,
+        obj.__contravariant__,
+        _get_or_create_tracker_id(obj),
+    )
+
+
+def _typevar_reduce(obj):
+    # TypeVar instances require the module information hence why we
+    # are not using the _should_pickle_by_reference directly
+    module_and_name = _lookup_module_and_qualname(obj, name=obj.__name__)
+
+    if module_and_name is None:
+        return (_make_typevar, _decompose_typevar(obj))
+    elif _is_registered_pickle_by_value(module_and_name[0]):
+        return (_make_typevar, _decompose_typevar(obj))
+
+    return (getattr, module_and_name)
+
+
+def _get_bases(typ):
+    if "__orig_bases__" in getattr(typ, "__dict__", {}):
+        # For generic types (see PEP 560)
+        # Note that simply checking `hasattr(typ, '__orig_bases__')` is not
+        # correct.  Subclasses of a fully-parameterized generic class does not
+        # have `__orig_bases__` defined, but `hasattr(typ, '__orig_bases__')`
+        # will return True because it's defined in the base class.
+        bases_attr = "__orig_bases__"
+    else:
+        # For regular class objects
+        bases_attr = "__bases__"
+    return getattr(typ, bases_attr)
+
+
+def _make_dict_keys(obj, is_ordered=False):
+    if is_ordered:
+        return OrderedDict.fromkeys(obj).keys()
+    else:
+        return dict.fromkeys(obj).keys()
+
+
+def _make_dict_values(obj, is_ordered=False):
+    if is_ordered:
+        return OrderedDict((i, _) for i, _ in enumerate(obj)).values()
+    else:
+        return {i: _ for i, _ in enumerate(obj)}.values()
+
+
+def _make_dict_items(obj, is_ordered=False):
+    if is_ordered:
+        return OrderedDict(obj).items()
+    else:
+        return obj.items()
+
+
+# COLLECTION OF OBJECTS __getnewargs__-LIKE METHODS
+# -------------------------------------------------
+
+
+def _class_getnewargs(obj):
+    type_kwargs = {}
+    if "__module__" in obj.__dict__:
+        type_kwargs["__module__"] = obj.__module__
+
+    __dict__ = obj.__dict__.get("__dict__", None)
+    if isinstance(__dict__, property):
+        type_kwargs["__dict__"] = __dict__
+
+    return (
+        type(obj),
+        obj.__name__,
+        _get_bases(obj),
+        type_kwargs,
+        _get_or_create_tracker_id(obj),
+        None,
+    )
+
+
+def _enum_getnewargs(obj):
+    members = {e.name: e.value for e in obj}
+    return (
+        obj.__bases__,
+        obj.__name__,
+        obj.__qualname__,
+        members,
+        obj.__module__,
+        _get_or_create_tracker_id(obj),
+        None,
+    )
+
+
+# COLLECTION OF OBJECTS RECONSTRUCTORS
+# ------------------------------------
+def _file_reconstructor(retval):
+    return retval
+
+
+# COLLECTION OF OBJECTS STATE GETTERS
+# -----------------------------------
+
+
+def _function_getstate(func):
+    # - Put func's dynamic attributes (stored in func.__dict__) in state. These
+    #   attributes will be restored at unpickling time using
+    #   f.__dict__.update(state)
+    # - Put func's members into slotstate. Such attributes will be restored at
+    #   unpickling time by iterating over slotstate and calling setattr(func,
+    #   slotname, slotvalue)
+    slotstate = {
+        # Hack to circumvent non-predictable memoization caused by string interning.
+        # See the inline comment in _class_setstate for details.
+        "__name__": "".join(func.__name__),
+        "__qualname__": "".join(func.__qualname__),
+        "__annotations__": func.__annotations__,
+        "__kwdefaults__": func.__kwdefaults__,
+        "__defaults__": func.__defaults__,
+        "__module__": func.__module__,
+        "__doc__": func.__doc__,
+        "__closure__": func.__closure__,
+    }
+
+    f_globals_ref = _extract_code_globals(func.__code__)
+    f_globals = {k: func.__globals__[k] for k in f_globals_ref if k in func.__globals__}
+
+    if func.__closure__ is not None:
+        closure_values = list(map(_get_cell_contents, func.__closure__))
+    else:
+        closure_values = ()
+
+    # Extract currently-imported submodules used by func. Storing these modules
+    # in a smoke _cloudpickle_subimports attribute of the object's state will
+    # trigger the side effect of importing these modules at unpickling time
+    # (which is necessary for func to work correctly once depickled)
+    slotstate["_cloudpickle_submodules"] = _find_imported_submodules(
+        func.__code__, itertools.chain(f_globals.values(), closure_values)
+    )
+    slotstate["__globals__"] = f_globals
+
+    # Hack to circumvent non-predictable memoization caused by string interning.
+    # See the inline comment in _class_setstate for details.
+    state = {"".join(k): v for k, v in func.__dict__.items()}
+    return state, slotstate
+
+
+def _class_getstate(obj):
+    clsdict = _extract_class_dict(obj)
+    clsdict.pop("__weakref__", None)
+
+    if issubclass(type(obj), abc.ABCMeta):
+        # If obj is an instance of an ABCMeta subclass, don't pickle the
+        # cache/negative caches populated during isinstance/issubclass
+        # checks, but pickle the list of registered subclasses of obj.
+        clsdict.pop("_abc_cache", None)
+        clsdict.pop("_abc_negative_cache", None)
+        clsdict.pop("_abc_negative_cache_version", None)
+        registry = clsdict.pop("_abc_registry", None)
+        if registry is None:
+            # The abc caches and registered subclasses of a
+            # class are bundled into the single _abc_impl attribute
+            clsdict.pop("_abc_impl", None)
+            (registry, _, _, _) = abc._get_dump(obj)
+
+            clsdict["_abc_impl"] = [subclass_weakref() for subclass_weakref in registry]
+        else:
+            # In the above if clause, registry is a set of weakrefs -- in
+            # this case, registry is a WeakSet
+            clsdict["_abc_impl"] = [type_ for type_ in registry]
+
+    if "__slots__" in clsdict:
+        # pickle string length optimization: member descriptors of obj are
+        # created automatically from obj's __slots__ attribute, no need to
+        # save them in obj's state
+        if isinstance(obj.__slots__, str):
+            clsdict.pop(obj.__slots__)
+        else:
+            for k in obj.__slots__:
+                clsdict.pop(k, None)
+
+    clsdict.pop("__dict__", None)  # unpicklable property object
+
+    return (clsdict, {})
+
+
+def _enum_getstate(obj):
+    clsdict, slotstate = _class_getstate(obj)
+
+    members = {e.name: e.value for e in obj}
+    # Cleanup the clsdict that will be passed to _make_skeleton_enum:
+    # Those attributes are already handled by the metaclass.
+    for attrname in [
+        "_generate_next_value_",
+        "_member_names_",
+        "_member_map_",
+        "_member_type_",
+        "_value2member_map_",
+    ]:
+        clsdict.pop(attrname, None)
+    for member in members:
+        clsdict.pop(member)
+        # Special handling of Enum subclasses
+    return clsdict, slotstate
+
+
+# COLLECTIONS OF OBJECTS REDUCERS
+# -------------------------------
+# A reducer is a function taking a single argument (obj), and that returns a
+# tuple with all the necessary data to re-construct obj. Apart from a few
+# exceptions (list, dict, bytes, int, etc.), a reducer is necessary to
+# correctly pickle an object.
+# While many built-in objects (Exceptions objects, instances of the "object"
+# class, etc), are shipped with their own built-in reducer (invoked using
+# obj.__reduce__), some do not. The following methods were created to "fill
+# these holes".
+
+
+def _code_reduce(obj):
+    """code object reducer."""
+    # If you are not sure about the order of arguments, take a look at help
+    # of the specific type from types, for example:
+    # >>> from types import CodeType
+    # >>> help(CodeType)
+
+    # Hack to circumvent non-predictable memoization caused by string interning.
+    # See the inline comment in _class_setstate for details.
+    co_name = "".join(obj.co_name)
+
+    # Create shallow copies of these tuple to make cloudpickle payload deterministic.
+    # When creating a code object during load, copies of these four tuples are
+    # created, while in the main process, these tuples can be shared.
+    # By always creating copies, we make sure the resulting payload is deterministic.
+    co_names = tuple(name for name in obj.co_names)
+    co_varnames = tuple(name for name in obj.co_varnames)
+    co_freevars = tuple(name for name in obj.co_freevars)
+    co_cellvars = tuple(name for name in obj.co_cellvars)
+    if hasattr(obj, "co_exceptiontable"):
+        # Python 3.11 and later: there are some new attributes
+        # related to the enhanced exceptions.
+        args = (
+            obj.co_argcount,
+            obj.co_posonlyargcount,
+            obj.co_kwonlyargcount,
+            obj.co_nlocals,
+            obj.co_stacksize,
+            obj.co_flags,
+            obj.co_code,
+            obj.co_consts,
+            co_names,
+            co_varnames,
+            obj.co_filename,
+            co_name,
+            obj.co_qualname,
+            obj.co_firstlineno,
+            obj.co_linetable,
+            obj.co_exceptiontable,
+            co_freevars,
+            co_cellvars,
+        )
+    elif hasattr(obj, "co_linetable"):
+        # Python 3.10 and later: obj.co_lnotab is deprecated and constructor
+        # expects obj.co_linetable instead.
+        args = (
+            obj.co_argcount,
+            obj.co_posonlyargcount,
+            obj.co_kwonlyargcount,
+            obj.co_nlocals,
+            obj.co_stacksize,
+            obj.co_flags,
+            obj.co_code,
+            obj.co_consts,
+            co_names,
+            co_varnames,
+            obj.co_filename,
+            co_name,
+            obj.co_firstlineno,
+            obj.co_linetable,
+            co_freevars,
+            co_cellvars,
+        )
+    elif hasattr(obj, "co_nmeta"):  # pragma: no cover
+        # "nogil" Python: modified attributes from 3.9
+        args = (
+            obj.co_argcount,
+            obj.co_posonlyargcount,
+            obj.co_kwonlyargcount,
+            obj.co_nlocals,
+            obj.co_framesize,
+            obj.co_ndefaultargs,
+            obj.co_nmeta,
+            obj.co_flags,
+            obj.co_code,
+            obj.co_consts,
+            co_varnames,
+            obj.co_filename,
+            co_name,
+            obj.co_firstlineno,
+            obj.co_lnotab,
+            obj.co_exc_handlers,
+            obj.co_jump_table,
+            co_freevars,
+            co_cellvars,
+            obj.co_free2reg,
+            obj.co_cell2reg,
+        )
+    else:
+        # Backward compat for 3.8 and 3.9
+        args = (
+            obj.co_argcount,
+            obj.co_posonlyargcount,
+            obj.co_kwonlyargcount,
+            obj.co_nlocals,
+            obj.co_stacksize,
+            obj.co_flags,
+            obj.co_code,
+            obj.co_consts,
+            co_names,
+            co_varnames,
+            obj.co_filename,
+            co_name,
+            obj.co_firstlineno,
+            obj.co_lnotab,
+            co_freevars,
+            co_cellvars,
+        )
+    return types.CodeType, args
+
+
+def _cell_reduce(obj):
+    """Cell (containing values of a function's free variables) reducer."""
+    try:
+        obj.cell_contents
+    except ValueError:  # cell is empty
+        return _make_empty_cell, ()
+    else:
+        return _make_cell, (obj.cell_contents,)
+
+
+def _classmethod_reduce(obj):
+    orig_func = obj.__func__
+    return type(obj), (orig_func,)
+
+
+def _file_reduce(obj):
+    """Save a file."""
+    import io
+
+    if not hasattr(obj, "name") or not hasattr(obj, "mode"):
+        raise pickle.PicklingError(
+            "Cannot pickle files that do not map to an actual file"
+        )
+    if obj is sys.stdout:
+        return getattr, (sys, "stdout")
+    if obj is sys.stderr:
+        return getattr, (sys, "stderr")
+    if obj is sys.stdin:
+        raise pickle.PicklingError("Cannot pickle standard input")
+    if obj.closed:
+        raise pickle.PicklingError("Cannot pickle closed files")
+    if hasattr(obj, "isatty") and obj.isatty():
+        raise pickle.PicklingError("Cannot pickle files that map to tty objects")
+    if "r" not in obj.mode and "+" not in obj.mode:
+        raise pickle.PicklingError(
+            "Cannot pickle files that are not opened for reading: %s" % obj.mode
+        )
+
+    name = obj.name
+
+    retval = io.StringIO()
+
+    try:
+        # Read the whole file
+        curloc = obj.tell()
+        obj.seek(0)
+        contents = obj.read()
+        obj.seek(curloc)
+    except OSError as e:
+        raise pickle.PicklingError(
+            "Cannot pickle file %s as it cannot be read" % name
+        ) from e
+    retval.write(contents)
+    retval.seek(curloc)
+
+    retval.name = name
+    return _file_reconstructor, (retval,)
+
+
+def _getset_descriptor_reduce(obj):
+    return getattr, (obj.__objclass__, obj.__name__)
+
+
+def _mappingproxy_reduce(obj):
+    return types.MappingProxyType, (dict(obj),)
+
+
+def _memoryview_reduce(obj):
+    return bytes, (obj.tobytes(),)
+
+
+def _module_reduce(obj):
+    if _should_pickle_by_reference(obj):
+        return subimport, (obj.__name__,)
+    else:
+        # Some external libraries can populate the "__builtins__" entry of a
+        # module's `__dict__` with unpicklable objects (see #316). For that
+        # reason, we do not attempt to pickle the "__builtins__" entry, and
+        # restore a default value for it at unpickling time.
+        state = obj.__dict__.copy()
+        state.pop("__builtins__", None)
+        return dynamic_subimport, (obj.__name__, state)
+
+
+def _method_reduce(obj):
+    return (types.MethodType, (obj.__func__, obj.__self__))
+
+
+def _logger_reduce(obj):
+    return logging.getLogger, (obj.name,)
+
+
+def _root_logger_reduce(obj):
+    return logging.getLogger, ()
+
+
+def _property_reduce(obj):
+    return property, (obj.fget, obj.fset, obj.fdel, obj.__doc__)
+
+
+def _weakset_reduce(obj):
+    return weakref.WeakSet, (list(obj),)
+
+
+def _dynamic_class_reduce(obj):
+    """Save a class that can't be referenced as a module attribute.
+
+    This method is used to serialize classes that are defined inside
+    functions, or that otherwise can't be serialized as attribute lookups
+    from importable modules.
+    """
+    if Enum is not None and issubclass(obj, Enum):
+        return (
+            _make_skeleton_enum,
+            _enum_getnewargs(obj),
+            _enum_getstate(obj),
+            None,
+            None,
+            _class_setstate,
+        )
+    else:
+        return (
+            _make_skeleton_class,
+            _class_getnewargs(obj),
+            _class_getstate(obj),
+            None,
+            None,
+            _class_setstate,
+        )
+
+
+def _class_reduce(obj):
+    """Select the reducer depending on the dynamic nature of the class obj."""
+    if obj is type(None):  # noqa
+        return type, (None,)
+    elif obj is type(Ellipsis):
+        return type, (Ellipsis,)
+    elif obj is type(NotImplemented):
+        return type, (NotImplemented,)
+    elif obj in _BUILTIN_TYPE_NAMES:
+        return _builtin_type, (_BUILTIN_TYPE_NAMES[obj],)
+    elif not _should_pickle_by_reference(obj):
+        return _dynamic_class_reduce(obj)
+    return NotImplemented
+
+
+def _dict_keys_reduce(obj):
+    # Safer not to ship the full dict as sending the rest might
+    # be unintended and could potentially cause leaking of
+    # sensitive information
+    return _make_dict_keys, (list(obj),)
+
+
+def _dict_values_reduce(obj):
+    # Safer not to ship the full dict as sending the rest might
+    # be unintended and could potentially cause leaking of
+    # sensitive information
+    return _make_dict_values, (list(obj),)
+
+
+def _dict_items_reduce(obj):
+    return _make_dict_items, (dict(obj),)
+
+
+def _odict_keys_reduce(obj):
+    # Safer not to ship the full dict as sending the rest might
+    # be unintended and could potentially cause leaking of
+    # sensitive information
+    return _make_dict_keys, (list(obj), True)
+
+
+def _odict_values_reduce(obj):
+    # Safer not to ship the full dict as sending the rest might
+    # be unintended and could potentially cause leaking of
+    # sensitive information
+    return _make_dict_values, (list(obj), True)
+
+
+def _odict_items_reduce(obj):
+    return _make_dict_items, (dict(obj), True)
+
+
+def _dataclass_field_base_reduce(obj):
+    return _get_dataclass_field_type_sentinel, (obj.name,)
+
+
+# COLLECTIONS OF OBJECTS STATE SETTERS
+# ------------------------------------
+# state setters are called at unpickling time, once the object is created and
+# it has to be updated to how it was at unpickling time.
+
+
+def _function_setstate(obj, state):
+    """Update the state of a dynamic function.
+
+    As __closure__ and __globals__ are readonly attributes of a function, we
+    cannot rely on the native setstate routine of pickle.load_build, that calls
+    setattr on items of the slotstate. Instead, we have to modify them inplace.
+    """
+    state, slotstate = state
+    obj.__dict__.update(state)
+
+    obj_globals = slotstate.pop("__globals__")
+    obj_closure = slotstate.pop("__closure__")
+    # _cloudpickle_subimports is a set of submodules that must be loaded for
+    # the pickled function to work correctly at unpickling time. Now that these
+    # submodules are depickled (hence imported), they can be removed from the
+    # object's state (the object state only served as a reference holder to
+    # these submodules)
+    slotstate.pop("_cloudpickle_submodules")
+
+    obj.__globals__.update(obj_globals)
+    obj.__globals__["__builtins__"] = __builtins__
+
+    if obj_closure is not None:
+        for i, cell in enumerate(obj_closure):
+            try:
+                value = cell.cell_contents
+            except ValueError:  # cell is empty
+                continue
+            obj.__closure__[i].cell_contents = value
+
+    for k, v in slotstate.items():
+        setattr(obj, k, v)
+
+
+def _class_setstate(obj, state):
+    state, slotstate = state
+    registry = None
+    for attrname, attr in state.items():
+        if attrname == "_abc_impl":
+            registry = attr
+        else:
+            # Note: setting attribute names on a class automatically triggers their
+            # interning in CPython:
+            # https://github.com/python/cpython/blob/v3.12.0/Objects/object.c#L957
+            #
+            # This means that to get deterministic pickling for a dynamic class that
+            # was initially defined in a different Python process, the pickler
+            # needs to ensure that dynamic class and function attribute names are
+            # systematically copied into a non-interned version to avoid
+            # unpredictable pickle payloads.
+            #
+            # Indeed the Pickler's memoizer relies on physical object identity to break
+            # cycles in the reference graph of the object being serialized.
+            setattr(obj, attrname, attr)
+
+    if sys.version_info >= (3, 13) and "__firstlineno__" in state:
+        # Set the Python 3.13+ only __firstlineno__  attribute one more time, as it
+        # will be automatically deleted by the `setattr(obj, attrname, attr)` call
+        # above when `attrname` is "__firstlineno__". We assume that preserving this
+        # information might be important for some users and that it not stale in the
+        # context of cloudpickle usage, hence legitimate to propagate. Furthermore it
+        # is necessary to do so to keep deterministic chained pickling as tested in
+        # test_deterministic_str_interning_for_chained_dynamic_class_pickling.
+        obj.__firstlineno__ = state["__firstlineno__"]
+
+    if registry is not None:
+        for subclass in registry:
+            obj.register(subclass)
+
+    return obj
+
+
+# COLLECTION OF DATACLASS UTILITIES
+# ---------------------------------
+# There are some internal sentinel values whose identity must be preserved when
+# unpickling dataclass fields. Each sentinel value has a unique name that we can
+# use to retrieve its identity at unpickling time.
+
+
+_DATACLASSE_FIELD_TYPE_SENTINELS = {
+    dataclasses._FIELD.name: dataclasses._FIELD,
+    dataclasses._FIELD_CLASSVAR.name: dataclasses._FIELD_CLASSVAR,
+    dataclasses._FIELD_INITVAR.name: dataclasses._FIELD_INITVAR,
+}
+
+
+def _get_dataclass_field_type_sentinel(name):
+    return _DATACLASSE_FIELD_TYPE_SENTINELS[name]
+
+
+class Pickler(pickle.Pickler):
+    # set of reducers defined and used by cloudpickle (private)
+    _dispatch_table = {}
+    _dispatch_table[classmethod] = _classmethod_reduce
+    _dispatch_table[io.TextIOWrapper] = _file_reduce
+    _dispatch_table[logging.Logger] = _logger_reduce
+    _dispatch_table[logging.RootLogger] = _root_logger_reduce
+    _dispatch_table[memoryview] = _memoryview_reduce
+    _dispatch_table[property] = _property_reduce
+    _dispatch_table[staticmethod] = _classmethod_reduce
+    _dispatch_table[CellType] = _cell_reduce
+    _dispatch_table[types.CodeType] = _code_reduce
+    _dispatch_table[types.GetSetDescriptorType] = _getset_descriptor_reduce
+    _dispatch_table[types.ModuleType] = _module_reduce
+    _dispatch_table[types.MethodType] = _method_reduce
+    _dispatch_table[types.MappingProxyType] = _mappingproxy_reduce
+    _dispatch_table[weakref.WeakSet] = _weakset_reduce
+    _dispatch_table[typing.TypeVar] = _typevar_reduce
+    _dispatch_table[_collections_abc.dict_keys] = _dict_keys_reduce
+    _dispatch_table[_collections_abc.dict_values] = _dict_values_reduce
+    _dispatch_table[_collections_abc.dict_items] = _dict_items_reduce
+    _dispatch_table[type(OrderedDict().keys())] = _odict_keys_reduce
+    _dispatch_table[type(OrderedDict().values())] = _odict_values_reduce
+    _dispatch_table[type(OrderedDict().items())] = _odict_items_reduce
+    _dispatch_table[abc.abstractmethod] = _classmethod_reduce
+    _dispatch_table[abc.abstractclassmethod] = _classmethod_reduce
+    _dispatch_table[abc.abstractstaticmethod] = _classmethod_reduce
+    _dispatch_table[abc.abstractproperty] = _property_reduce
+    _dispatch_table[dataclasses._FIELD_BASE] = _dataclass_field_base_reduce
+
+    dispatch_table = ChainMap(_dispatch_table, copyreg.dispatch_table)
+
+    # function reducers are defined as instance methods of cloudpickle.Pickler
+    # objects, as they rely on a cloudpickle.Pickler attribute (globals_ref)
+    def _dynamic_function_reduce(self, func):
+        """Reduce a function that is not pickleable via attribute lookup."""
+        newargs = self._function_getnewargs(func)
+        state = _function_getstate(func)
+        return (_make_function, newargs, state, None, None, _function_setstate)
+
+    def _function_reduce(self, obj):
+        """Reducer for function objects.
+
+        If obj is a top-level attribute of a file-backed module, this reducer
+        returns NotImplemented, making the cloudpickle.Pickler fall back to
+        traditional pickle.Pickler routines to save obj. Otherwise, it reduces
+        obj using a custom cloudpickle reducer designed specifically to handle
+        dynamic functions.
+        """
+        if _should_pickle_by_reference(obj):
+            return NotImplemented
+        else:
+            return self._dynamic_function_reduce(obj)
+
+    def _function_getnewargs(self, func):
+        code = func.__code__
+
+        # base_globals represents the future global namespace of func at
+        # unpickling time. Looking it up and storing it in
+        # cloudpickle.Pickler.globals_ref allow functions sharing the same
+        # globals at pickling time to also share them once unpickled, at one
+        # condition: since globals_ref is an attribute of a cloudpickle.Pickler
+        # instance, and that a new cloudpickle.Pickler is created each time
+        # cloudpickle.dump or cloudpickle.dumps is called, functions also need
+        # to be saved within the same invocation of
+        # cloudpickle.dump/cloudpickle.dumps (for example:
+        # cloudpickle.dumps([f1, f2])). There is no such limitation when using
+        # cloudpickle.Pickler.dump, as long as the multiple invocations are
+        # bound to the same cloudpickle.Pickler instance.
+        base_globals = self.globals_ref.setdefault(id(func.__globals__), {})
+
+        if base_globals == {}:
+            # Add module attributes used to resolve relative imports
+            # instructions inside func.
+            for k in ["__package__", "__name__", "__path__", "__file__"]:
+                if k in func.__globals__:
+                    base_globals[k] = func.__globals__[k]
+
+        # Do not bind the free variables before the function is created to
+        # avoid infinite recursion.
+        if func.__closure__ is None:
+            closure = None
+        else:
+            closure = tuple(_make_empty_cell() for _ in range(len(code.co_freevars)))
+
+        return code, base_globals, None, None, closure
+
+    def dump(self, obj):
+        try:
+            return super().dump(obj)
+        except RuntimeError as e:
+            if len(e.args) > 0 and "recursion" in e.args[0]:
+                msg = "Could not pickle object as excessively deep recursion required."
+                raise pickle.PicklingError(msg) from e
+            else:
+                raise
+
+    def __init__(self, file, protocol=None, buffer_callback=None):
+        if protocol is None:
+            protocol = DEFAULT_PROTOCOL
+        super().__init__(file, protocol=protocol, buffer_callback=buffer_callback)
+        # map functions __globals__ attribute ids, to ensure that functions
+        # sharing the same global namespace at pickling time also share
+        # their global namespace at unpickling time.
+        self.globals_ref = {}
+        self.proto = int(protocol)
+
+    if not PYPY:
+        # pickle.Pickler is the C implementation of the CPython pickler and
+        # therefore we rely on reduce_override method to customize the pickler
+        # behavior.
+
+        # `cloudpickle.Pickler.dispatch` is only left for backward
+        # compatibility - note that when using protocol 5,
+        # `cloudpickle.Pickler.dispatch` is not an extension of
+        # `pickle._Pickler.dispatch` dictionary, because `cloudpickle.Pickler`
+        # subclasses the C-implemented `pickle.Pickler`, which does not expose
+        # a `dispatch` attribute.  Earlier versions of `cloudpickle.Pickler`
+        # used `cloudpickle.Pickler.dispatch` as a class-level attribute
+        # storing all reducers implemented by cloudpickle, but the attribute
+        # name was not a great choice given because it would collide with a
+        # similarly named attribute in the pure-Python `pickle._Pickler`
+        # implementation in the standard library.
+        dispatch = dispatch_table
+
+        # Implementation of the reducer_override callback, in order to
+        # efficiently serialize dynamic functions and classes by subclassing
+        # the C-implemented `pickle.Pickler`.
+        # TODO: decorrelate reducer_override (which is tied to CPython's
+        # implementation - would it make sense to backport it to pypy? - and
+        # pickle's protocol 5 which is implementation agnostic. Currently, the
+        # availability of both notions coincide on CPython's pickle, but it may
+        # not be the case anymore when pypy implements protocol 5.
+
+        def reducer_override(self, obj):
+            """Type-agnostic reducing callback for function and classes.
+
+            For performance reasons, subclasses of the C `pickle.Pickler` class
+            cannot register custom reducers for functions and classes in the
+            dispatch_table attribute. Reducers for such types must instead
+            implemented via the special `reducer_override` method.
+
+            Note that this method will be called for any object except a few
+            builtin-types (int, lists, dicts etc.), which differs from reducers
+            in the Pickler's dispatch_table, each of them being invoked for
+            objects of a specific type only.
+
+            This property comes in handy for classes: although most classes are
+            instances of the ``type`` metaclass, some of them can be instances
+            of other custom metaclasses (such as enum.EnumMeta for example). In
+            particular, the metaclass will likely not be known in advance, and
+            thus cannot be special-cased using an entry in the dispatch_table.
+            reducer_override, among other things, allows us to register a
+            reducer that will be called for any class, independently of its
+            type.
+
+            Notes:
+
+            * reducer_override has the priority over dispatch_table-registered
+            reducers.
+            * reducer_override can be used to fix other limitations of
+              cloudpickle for other types that suffered from type-specific
+              reducers, such as Exceptions. See
+              https://github.com/cloudpipe/cloudpickle/issues/248
+            """
+            t = type(obj)
+            try:
+                is_anyclass = issubclass(t, type)
+            except TypeError:  # t is not a class (old Boost; see SF #502085)
+                is_anyclass = False
+
+            if is_anyclass:
+                return _class_reduce(obj)
+            elif isinstance(obj, types.FunctionType):
+                return self._function_reduce(obj)
+            else:
+                # fallback to save_global, including the Pickler's
+                # dispatch_table
+                return NotImplemented
+
+    else:
+        # When reducer_override is not available, hack the pure-Python
+        # Pickler's types.FunctionType and type savers. Note: the type saver
+        # must override Pickler.save_global, because pickle.py contains a
+        # hard-coded call to save_global when pickling meta-classes.
+        dispatch = pickle.Pickler.dispatch.copy()
+
+        def _save_reduce_pickle5(
+            self,
+            func,
+            args,
+            state=None,
+            listitems=None,
+            dictitems=None,
+            state_setter=None,
+            obj=None,
+        ):
+            save = self.save
+            write = self.write
+            self.save_reduce(
+                func,
+                args,
+                state=None,
+                listitems=listitems,
+                dictitems=dictitems,
+                obj=obj,
+            )
+            # backport of the Python 3.8 state_setter pickle operations
+            save(state_setter)
+            save(obj)  # simple BINGET opcode as obj is already memoized.
+            save(state)
+            write(pickle.TUPLE2)
+            # Trigger a state_setter(obj, state) function call.
+            write(pickle.REDUCE)
+            # The purpose of state_setter is to carry-out an
+            # inplace modification of obj. We do not care about what the
+            # method might return, so its output is eventually removed from
+            # the stack.
+            write(pickle.POP)
+
+        def save_global(self, obj, name=None, pack=struct.pack):
+            """Main dispatch method.
+
+            The name of this method is somewhat misleading: all types get
+            dispatched here.
+            """
+            if obj is type(None):  # noqa
+                return self.save_reduce(type, (None,), obj=obj)
+            elif obj is type(Ellipsis):
+                return self.save_reduce(type, (Ellipsis,), obj=obj)
+            elif obj is type(NotImplemented):
+                return self.save_reduce(type, (NotImplemented,), obj=obj)
+            elif obj in _BUILTIN_TYPE_NAMES:
+                return self.save_reduce(
+                    _builtin_type, (_BUILTIN_TYPE_NAMES[obj],), obj=obj
+                )
+
+            if name is not None:
+                super().save_global(obj, name=name)
+            elif not _should_pickle_by_reference(obj, name=name):
+                self._save_reduce_pickle5(*_dynamic_class_reduce(obj), obj=obj)
+            else:
+                super().save_global(obj, name=name)
+
+        dispatch[type] = save_global
+
+        def save_function(self, obj, name=None):
+            """Registered with the dispatch to handle all function types.
+
+            Determines what kind of function obj is (e.g. lambda, defined at
+            interactive prompt, etc) and handles the pickling appropriately.
+            """
+            if _should_pickle_by_reference(obj, name=name):
+                return super().save_global(obj, name=name)
+            elif PYPY and isinstance(obj.__code__, builtin_code_type):
+                return self.save_pypy_builtin_func(obj)
+            else:
+                return self._save_reduce_pickle5(
+                    *self._dynamic_function_reduce(obj), obj=obj
+                )
+
+        def save_pypy_builtin_func(self, obj):
+            """Save pypy equivalent of builtin functions.
+
+            PyPy does not have the concept of builtin-functions. Instead,
+            builtin-functions are simple function instances, but with a
+            builtin-code attribute.
+            Most of the time, builtin functions should be pickled by attribute.
+            But PyPy has flaky support for __qualname__, so some builtin
+            functions such as float.__new__ will be classified as dynamic. For
+            this reason only, we created this special routine. Because
+            builtin-functions are not expected to have closure or globals,
+            there is no additional hack (compared the one already implemented
+            in pickle) to protect ourselves from reference cycles. A simple
+            (reconstructor, newargs, obj.__dict__) tuple is save_reduced.  Note
+            also that PyPy improved their support for __qualname__ in v3.6, so
+            this routing should be removed when cloudpickle supports only PyPy
+            3.6 and later.
+            """
+            rv = (
+                types.FunctionType,
+                (obj.__code__, {}, obj.__name__, obj.__defaults__, obj.__closure__),
+                obj.__dict__,
+            )
+            self.save_reduce(*rv, obj=obj)
+
+        dispatch[types.FunctionType] = save_function
+
+
+# Shorthands similar to pickle.dump/pickle.dumps
+
+
+def dump(obj, file, protocol=None, buffer_callback=None):
+    """Serialize obj as bytes streamed into file
+
+    protocol defaults to cloudpickle.DEFAULT_PROTOCOL which is an alias to
+    pickle.HIGHEST_PROTOCOL. This setting favors maximum communication
+    speed between processes running the same Python version.
+
+    Set protocol=pickle.DEFAULT_PROTOCOL instead if you need to ensure
+    compatibility with older versions of Python (although this is not always
+    guaranteed to work because cloudpickle relies on some internal
+    implementation details that can change from one Python version to the
+    next).
+    """
+    Pickler(file, protocol=protocol, buffer_callback=buffer_callback).dump(obj)
+
+
+def dumps(obj, protocol=None, buffer_callback=None):
+    """Serialize obj as a string of bytes allocated in memory
+
+    protocol defaults to cloudpickle.DEFAULT_PROTOCOL which is an alias to
+    pickle.HIGHEST_PROTOCOL. This setting favors maximum communication
+    speed between processes running the same Python version.
+
+    Set protocol=pickle.DEFAULT_PROTOCOL instead if you need to ensure
+    compatibility with older versions of Python (although this is not always
+    guaranteed to work because cloudpickle relies on some internal
+    implementation details that can change from one Python version to the
+    next).
+    """
+    with io.BytesIO() as file:
+        cp = Pickler(file, protocol=protocol, buffer_callback=buffer_callback)
+        cp.dump(obj)
+        return file.getvalue()
+
+
+# Include pickles unloading functions in this namespace for convenience.
+load, loads = pickle.load, pickle.loads
+
+# Backward compat alias.
+CloudPickler = Pickler
+```
+
+## joblib/joblib/externals/cloudpickle/cloudpickle_fast.py.notice.txt
+
+```text
+"""Compatibility module.
+
+It can be necessary to load files generated by previous versions of cloudpickle
+that rely on symbols being defined under the `cloudpickle.cloudpickle_fast`
+namespace.
+
+See: tests/test_backward_compat.py
+"""
+
+from . import cloudpickle
+
+
+def __getattr__(name):
+    return getattr(cloudpickle, name)
+```
+
+## joblib/joblib/externals/loky/__init__.py.notice.txt
+
+```text
+r"""The :mod:`loky` module manages a pool of worker that can be re-used across time.
+It provides a robust and dynamic implementation os the
+:class:`ProcessPoolExecutor` and a function :func:`get_reusable_executor` which
+hide the pool management under the hood.
+"""
+
+from concurrent.futures import (
+    ALL_COMPLETED,
+    FIRST_COMPLETED,
+    FIRST_EXCEPTION,
+    CancelledError,
+    Executor,
+    TimeoutError,
+    as_completed,
+    wait,
+)
+
+from ._base import Future
+from .backend.context import cpu_count
+from .backend.reduction import set_loky_pickler
+from .reusable_executor import get_reusable_executor
+from .cloudpickle_wrapper import wrap_non_picklable_objects
+from .process_executor import BrokenProcessPool, ProcessPoolExecutor
+
+
+__all__ = [
+    "get_reusable_executor",
+    "cpu_count",
+    "wait",
+    "as_completed",
+    "Future",
+    "Executor",
+    "ProcessPoolExecutor",
+    "BrokenProcessPool",
+    "CancelledError",
+    "TimeoutError",
+    "FIRST_COMPLETED",
+    "FIRST_EXCEPTION",
+    "ALL_COMPLETED",
+    "wrap_non_picklable_objects",
+    "set_loky_pickler",
+]
+
+
+__version__ = "3.5.6"
+```
+
+## joblib/joblib/externals/loky/_base.py.notice.txt
+
+```text
+###############################################################################
+# Modification of concurrent.futures.Future
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+# adapted from concurrent/futures/_base.py (17/02/2017)
+#  * Do not use yield from
+#  * Use old super syntax
+#
+# Copyright 2009 Brian Quinlan. All Rights Reserved.
+# Licensed to PSF under a Contributor Agreement.
+
+from concurrent.futures import Future as _BaseFuture
+from concurrent.futures._base import LOGGER
+
+
+# To make loky._base.Future instances awaitable  by concurrent.futures.wait,
+# derive our custom Future class from _BaseFuture. _invoke_callback is the only
+# modification made to this class in loky.
+# TODO investigate why using `concurrent.futures.Future` directly does not
+# always work in our test suite.
+class Future(_BaseFuture):
+    def _invoke_callbacks(self):
+        for callback in self._done_callbacks:
+            try:
+                callback(self)
+            except BaseException:
+                LOGGER.exception(f"exception calling callback for {self!r}")
+```
+
+## joblib/joblib/externals/loky/backend/__init__.py.notice.txt
+
+```text
+import os
+from multiprocessing import synchronize
+
+from .context import get_context
+
+
+def _make_name():
+    return f"/loky-{os.getpid()}-{next(synchronize.SemLock._rand)}"
+
+
+# monkey patch the name creation for multiprocessing
+synchronize.SemLock._make_name = staticmethod(_make_name)
+
+__all__ = ["get_context"]
+```
+
+## joblib/joblib/externals/loky/backend/_posix_reduction.py.notice.txt
+
+```text
+###############################################################################
+# Extra reducers for Unix based system and connections objects
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+# adapted from multiprocessing/reduction.py (17/02/2017)
+#  * Add adapted reduction for LokyProcesses and socket/Connection
+#
+import os
+import socket
+import _socket
+from multiprocessing.connection import Connection
+from multiprocessing.context import get_spawning_popen
+
+from .reduction import register
+
+HAVE_SEND_HANDLE = (
+    hasattr(socket, "CMSG_LEN")
+    and hasattr(socket, "SCM_RIGHTS")
+    and hasattr(socket.socket, "sendmsg")
+)
+
+
+def _mk_inheritable(fd):
+    os.set_inheritable(fd, True)
+    return fd
+
+
+def DupFd(fd):
+    """Return a wrapper for an fd."""
+    popen_obj = get_spawning_popen()
+    if popen_obj is not None:
+        return popen_obj.DupFd(popen_obj.duplicate_for_child(fd))
+    elif HAVE_SEND_HANDLE:
+        from multiprocessing import resource_sharer
+
+        return resource_sharer.DupFd(fd)
+    else:
+        raise TypeError(
+            "Cannot pickle connection object. This object can only be "
+            "passed when spawning a new process"
+        )
+
+
+def _reduce_socket(s):
+    df = DupFd(s.fileno())
+    return _rebuild_socket, (df, s.family, s.type, s.proto)
+
+
+def _rebuild_socket(df, family, type, proto):
+    fd = df.detach()
+    return socket.fromfd(fd, family, type, proto)
+
+
+def rebuild_connection(df, readable, writable):
+    fd = df.detach()
+    return Connection(fd, readable, writable)
+
+
+def reduce_connection(conn):
+    df = DupFd(conn.fileno())
+    return rebuild_connection, (df, conn.readable, conn.writable)
+
+
+register(socket.socket, _reduce_socket)
+register(_socket.socket, _reduce_socket)
+register(Connection, reduce_connection)
+```
+
+## joblib/joblib/externals/loky/backend/_win_reduction.py.notice.txt
+
+```text
+###############################################################################
+# Extra reducers for Windows system and connections objects
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+# adapted from multiprocessing/reduction.py (17/02/2017)
+#  * Add adapted reduction for LokyProcesses and socket/PipeConnection
+#
+import socket
+from multiprocessing import connection
+from multiprocessing.reduction import _reduce_socket
+
+from .reduction import register
+
+# register reduction for win32 communication objects
+register(socket.socket, _reduce_socket)
+register(connection.Connection, connection.reduce_connection)
+register(connection.PipeConnection, connection.reduce_pipe_connection)
+```
+
+## joblib/joblib/externals/loky/backend/context.py.notice.txt
+
+```text
+###############################################################################
+# Basic context management with LokyContext
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+# adapted from multiprocessing/context.py
+#  * Create a context ensuring loky uses only objects that are compatible
+#  * Add LokyContext to the list of context of multiprocessing so loky can be
+#    used with multiprocessing.set_start_method
+#  * Implement a CFS-aware amd physical-core aware cpu_count function.
+#
+import os
+import sys
+import math
+import subprocess
+import traceback
+import warnings
+import multiprocessing as mp
+from multiprocessing import get_context as mp_get_context
+from multiprocessing.context import BaseContext
+from concurrent.futures.process import _MAX_WINDOWS_WORKERS
+
+
+from .process import LokyProcess, LokyInitMainProcess
+
+# Apparently, on older Python versions, loky cannot work 61 workers on Windows
+# but instead 60: ¯\_(ツ)_/¯
+if sys.version_info < (3, 10):
+    _MAX_WINDOWS_WORKERS = _MAX_WINDOWS_WORKERS - 1
+
+START_METHODS = ["loky", "loky_init_main", "spawn"]
+if sys.platform != "win32":
+    START_METHODS += ["fork", "forkserver"]
+
+_DEFAULT_START_METHOD = None
+
+# Cache for the number of physical cores to avoid repeating subprocess calls.
+# It should not change during the lifetime of the program.
+physical_cores_cache = None
+
+
+def get_context(method=None):
+    # Try to overload the default context
+    method = method or _DEFAULT_START_METHOD or "loky"
+    if method == "fork":
+        # If 'fork' is explicitly requested, warn user about potential issues.
+        warnings.warn(
+            "`fork` start method should not be used with "
+            "`loky` as it does not respect POSIX. Try using "
+            "`spawn` or `loky` instead.",
+            UserWarning,
+        )
+    try:
+        return mp_get_context(method)
+    except ValueError:
+        raise ValueError(
+            f"Unknown context '{method}'. Value should be in "
+            f"{START_METHODS}."
+        )
+
+
+def set_start_method(method, force=False):
+    global _DEFAULT_START_METHOD
+    if _DEFAULT_START_METHOD is not None and not force:
+        raise RuntimeError("context has already been set")
+    assert method is None or method in START_METHODS, (
+        f"'{method}' is not a valid start_method. It should be in "
+        f"{START_METHODS}"
+    )
+
+    _DEFAULT_START_METHOD = method
+
+
+def get_start_method():
+    return _DEFAULT_START_METHOD
+
+
+def cpu_count(only_physical_cores=False):
+    """Return the number of CPUs the current process can use.
+
+    The returned number of CPUs accounts for:
+     * the number of CPUs in the system, as given by
+       ``multiprocessing.cpu_count``;
+     * the CPU affinity settings of the current process
+       (available on some Unix systems);
+     * Cgroup CPU bandwidth limit (available on Linux only, typically
+       set by docker and similar container orchestration systems);
+     * the value of the LOKY_MAX_CPU_COUNT environment variable if defined.
+    and is given as the minimum of these constraints.
+
+    If ``only_physical_cores`` is True, return the number of physical cores
+    instead of the number of logical cores (hyperthreading / SMT). Note that
+    this option is not enforced if the number of usable cores is controlled in
+    any other way such as: process affinity, Cgroup restricted CPU bandwidth
+    or the LOKY_MAX_CPU_COUNT environment variable. If the number of physical
+    cores is not found, return the number of logical cores.
+
+    Note that on Windows, the returned number of CPUs cannot exceed 61 (or 60 for
+    Python < 3.10), see:
+    https://bugs.python.org/issue26903.
+
+    It is also always larger or equal to 1.
+    """
+    # Note: os.cpu_count() is allowed to return None in its docstring
+    os_cpu_count = os.cpu_count() or 1
+    if sys.platform == "win32":
+        # On Windows, attempting to use more than 61 CPUs would result in a
+        # OS-level error. See https://bugs.python.org/issue26903. According to
+        # https://learn.microsoft.com/en-us/windows/win32/procthread/processor-groups
+        # it might be possible to go beyond with a lot of extra work but this
+        # does not look easy.
+        os_cpu_count = min(os_cpu_count, _MAX_WINDOWS_WORKERS)
+
+    cpu_count_user = _cpu_count_user(os_cpu_count)
+    aggregate_cpu_count = max(min(os_cpu_count, cpu_count_user), 1)
+
+    if not only_physical_cores:
+        return aggregate_cpu_count
+
+    if cpu_count_user < os_cpu_count:
+        # Respect user setting
+        return max(cpu_count_user, 1)
+
+    cpu_count_physical, exception = _count_physical_cores()
+    if cpu_count_physical != "not found":
+        return cpu_count_physical
+
+    # Fallback to default behavior
+    if exception is not None:
+        # warns only the first time
+        warnings.warn(
+            "Could not find the number of physical cores for the "
+            f"following reason:\n{exception}\n"
+            "Returning the number of logical cores instead. You can "
+            "silence this warning by setting LOKY_MAX_CPU_COUNT to "
+            "the number of cores you want to use."
+        )
+        traceback.print_tb(exception.__traceback__)
+
+    return aggregate_cpu_count
+
+
+def _cpu_count_cgroup(os_cpu_count):
+    # Cgroup CPU bandwidth limit available in Linux since 2.6 kernel
+    cpu_max_fname = "/sys/fs/cgroup/cpu.max"
+    cfs_quota_fname = "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
+    cfs_period_fname = "/sys/fs/cgroup/cpu/cpu.cfs_period_us"
+    if os.path.exists(cpu_max_fname):
+        # cgroup v2
+        # https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
+        with open(cpu_max_fname) as fh:
+            cpu_quota_us, cpu_period_us = fh.read().strip().split()
+    elif os.path.exists(cfs_quota_fname) and os.path.exists(cfs_period_fname):
+        # cgroup v1
+        # https://www.kernel.org/doc/html/latest/scheduler/sched-bwc.html#management
+        with open(cfs_quota_fname) as fh:
+            cpu_quota_us = fh.read().strip()
+        with open(cfs_period_fname) as fh:
+            cpu_period_us = fh.read().strip()
+    else:
+        # No Cgroup CPU bandwidth limit (e.g. non-Linux platform)
+        cpu_quota_us = "max"
+        cpu_period_us = 100_000  # unused, for consistency with default values
+
+    if cpu_quota_us == "max":
+        # No active Cgroup quota on a Cgroup-capable platform
+        return os_cpu_count
+    else:
+        cpu_quota_us = int(cpu_quota_us)
+        cpu_period_us = int(cpu_period_us)
+        if cpu_quota_us > 0 and cpu_period_us > 0:
+            return math.ceil(cpu_quota_us / cpu_period_us)
+        else:  # pragma: no cover
+            # Setting a negative cpu_quota_us value is a valid way to disable
+            # cgroup CPU bandwith limits
+            return os_cpu_count
+
+
+def _cpu_count_affinity(os_cpu_count):
+    # Number of available CPUs given affinity settings
+    if hasattr(os, "sched_getaffinity"):
+        try:
+            return len(os.sched_getaffinity(0))
+        except NotImplementedError:
+            pass
+
+    # On some platforms, os.sched_getaffinity does not exist or raises
+    # NotImplementedError, let's try with the psutil if installed.
+    try:
+        import psutil
+
+        p = psutil.Process()
+        if hasattr(p, "cpu_affinity"):
+            return len(p.cpu_affinity())
+
+    except ImportError:  # pragma: no cover
+        if (
+            sys.platform == "linux"
+            and os.environ.get("LOKY_MAX_CPU_COUNT") is None
+        ):
+            # Some platforms don't implement os.sched_getaffinity on Linux which
+            # can cause severe oversubscription problems. Better warn the
+            # user in this particularly pathological case which can wreck
+            # havoc, typically on CI workers.
+            warnings.warn(
+                "Failed to inspect CPU affinity constraints on this system. "
+                "Please install psutil or explictly set LOKY_MAX_CPU_COUNT."
+            )
+
+    # This can happen for platforms that do not implement any kind of CPU
+    # infinity such as macOS-based platforms.
+    return os_cpu_count
+
+
+def _cpu_count_user(os_cpu_count):
+    """Number of user defined available CPUs"""
+    cpu_count_affinity = _cpu_count_affinity(os_cpu_count)
+
+    cpu_count_cgroup = _cpu_count_cgroup(os_cpu_count)
+
+    # User defined soft-limit passed as a loky specific environment variable.
+    cpu_count_loky = int(os.environ.get("LOKY_MAX_CPU_COUNT", os_cpu_count))
+
+    return min(cpu_count_affinity, cpu_count_cgroup, cpu_count_loky)
+
+
+def _count_physical_cores():
+    """Return a tuple (number of physical cores, exception)
+
+    If the number of physical cores is found, exception is set to None.
+    If it has not been found, return ("not found", exception).
+
+    The number of physical cores is cached to avoid repeating subprocess calls.
+    """
+    exception = None
+
+    # First check if the value is cached
+    global physical_cores_cache
+    if physical_cores_cache is not None:
+        return physical_cores_cache, exception
+
+    # Not cached yet, find it
+    try:
+        if sys.platform == "linux":
+            cpu_count_physical = _count_physical_cores_linux()
+        elif sys.platform == "win32":
+            cpu_count_physical = _count_physical_cores_win32()
+        elif sys.platform == "darwin":
+            cpu_count_physical = _count_physical_cores_darwin()
+        else:
+            raise NotImplementedError(f"unsupported platform: {sys.platform}")
+
+        # if cpu_count_physical < 1, we did not find a valid value
+        if cpu_count_physical < 1:
+            raise ValueError(f"found {cpu_count_physical} physical cores < 1")
+
+    except Exception as e:
+        exception = e
+        cpu_count_physical = "not found"
+
+    # Put the result in cache
+    physical_cores_cache = cpu_count_physical
+
+    return cpu_count_physical, exception
+
+
+def _count_physical_cores_linux():
+    try:
+        cpu_info = subprocess.run(
+            "lscpu --parse=core".split(), capture_output=True, text=True
+        )
+        cpu_info = cpu_info.stdout.splitlines()
+        cpu_info = {line for line in cpu_info if not line.startswith("#")}
+        return len(cpu_info)
+    except:
+        pass  # fallback to /proc/cpuinfo
+
+    cpu_info = subprocess.run(
+        "cat /proc/cpuinfo".split(), capture_output=True, text=True
+    )
+    cpu_info = cpu_info.stdout.splitlines()
+    cpu_info = {line for line in cpu_info if line.startswith("core id")}
+    return len(cpu_info)
+
+
+def _count_physical_cores_win32():
+    try:
+        cmd = "-Command (Get-CimInstance -ClassName Win32_Processor).NumberOfCores"
+        cpu_info = subprocess.run(
+            f"powershell.exe {cmd}".split(),
+            capture_output=True,
+            text=True,
+        )
+        cpu_info = cpu_info.stdout.splitlines()
+        return int(cpu_info[0])
+    except:
+        pass  # fallback to wmic (older Windows versions; deprecated now)
+
+    cpu_info = subprocess.run(
+        "wmic CPU Get NumberOfCores /Format:csv".split(),
+        capture_output=True,
+        text=True,
+    )
+    cpu_info = cpu_info.stdout.splitlines()
+    cpu_info = [
+        l.split(",")[1] for l in cpu_info if (l and l != "Node,NumberOfCores")
+    ]
+    return sum(map(int, cpu_info))
+
+
+def _count_physical_cores_darwin():
+    cpu_info = subprocess.run(
+        "sysctl -n hw.physicalcpu".split(),
+        capture_output=True,
+        text=True,
+    )
+    cpu_info = cpu_info.stdout
+    return int(cpu_info)
+
+
+class LokyContext(BaseContext):
+    """Context relying on the LokyProcess."""
+
+    _name = "loky"
+    Process = LokyProcess
+    cpu_count = staticmethod(cpu_count)
+
+    def Queue(self, maxsize=0, reducers=None):
+        """Returns a queue object"""
+        from .queues import Queue
+
+        return Queue(maxsize, reducers=reducers, ctx=self.get_context())
+
+    def SimpleQueue(self, reducers=None):
+        """Returns a queue object"""
+        from .queues import SimpleQueue
+
+        return SimpleQueue(reducers=reducers, ctx=self.get_context())
+
+    if sys.platform != "win32":
+        """For Unix platform, use our custom implementation of synchronize
+        ensuring that we use the loky.backend.resource_tracker to clean-up
+        the semaphores in case of a worker crash.
+        """
+
+        def Semaphore(self, value=1):
+            """Returns a semaphore object"""
+            from .synchronize import Semaphore
+
+            return Semaphore(value=value)
+
+        def BoundedSemaphore(self, value):
+            """Returns a bounded semaphore object"""
+            from .synchronize import BoundedSemaphore
+
+            return BoundedSemaphore(value)
+
+        def Lock(self):
+            """Returns a lock object"""
+            from .synchronize import Lock
+
+            return Lock()
+
+        def RLock(self):
+            """Returns a recurrent lock object"""
+            from .synchronize import RLock
+
+            return RLock()
+
+        def Condition(self, lock=None):
+            """Returns a condition object"""
+            from .synchronize import Condition
+
+            return Condition(lock)
+
+        def Event(self):
+            """Returns an event object"""
+            from .synchronize import Event
+
+            return Event()
+
+
+class LokyInitMainContext(LokyContext):
+    """Extra context with LokyProcess, which does load the main module
+
+    This context is used for compatibility in the case ``cloudpickle`` is not
+    present on the running system. This permits to load functions defined in
+    the ``main`` module, using proper safeguards. The declaration of the
+    ``executor`` should be protected by ``if __name__ == "__main__":`` and the
+    functions and variable used from main should be out of this block.
+
+    This mimics the default behavior of multiprocessing under Windows and the
+    behavior of the ``spawn`` start method on a posix system.
+    For more details, see the end of the following section of python doc
+    https://docs.python.org/3/library/multiprocessing.html#multiprocessing-programming
+    """
+
+    _name = "loky_init_main"
+    Process = LokyInitMainProcess
+
+
+# Register loky context so it works with multiprocessing.get_context
+ctx_loky = LokyContext()
+mp.context._concrete_contexts["loky"] = ctx_loky
+mp.context._concrete_contexts["loky_init_main"] = LokyInitMainContext()
+```
+
+## joblib/joblib/externals/loky/backend/fork_exec.py.notice.txt
+
+```text
+###############################################################################
+# Launch a subprocess using forkexec and make sure only the needed fd are
+# shared in the two process.
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+import sys
+import os
+import subprocess
+
+
+def fork_exec(cmd, keep_fds, env=None):
+    import _posixsubprocess
+
+    # Encoded command args as bytes:
+    cmd = [os.fsencode(arg) for arg in cmd]
+
+    # Copy the environment variables to set in the child process (also encoded
+    # as bytes).
+    env = env or {}
+    env = {**os.environ, **env}
+    encoded_env = []
+    for key, value in env.items():
+        encoded_env.append(os.fsencode(f"{key}={value}"))
+
+    # Fds with fileno larger than 3 (stdin=0, stdout=1, stderr=2) are be closed
+    # in the child process, except for those passed in keep_fds.
+    keep_fds = tuple(sorted(map(int, keep_fds)))
+    errpipe_read, errpipe_write = os.pipe()
+
+    if sys.version_info >= (3, 14):
+        # Python >= 3.14 removed allow_vfork from _posixsubprocess.fork_exec,
+        # see https://github.com/python/cpython/pull/121383
+        pgid_to_set = [-1]
+        allow_vfork = []
+    elif sys.version_info >= (3, 11):
+        # Python 3.11 - 3.13 has allow_vfork in _posixsubprocess.fork_exec
+        pgid_to_set = [-1]
+        allow_vfork = [subprocess._USE_VFORK]
+    else:
+        # Python < 3.11
+        pgid_to_set = []
+        allow_vfork = []
+
+    try:
+        return _posixsubprocess.fork_exec(
+            cmd,  # args
+            cmd[0:1],  # executable_list
+            True,  # close_fds
+            keep_fds,  # pass_fds
+            None,  # cwd
+            encoded_env,  # env
+            -1,  # p2cread
+            -1,  # p2cwrite
+            -1,  # c2pread
+            -1,  # c2pwrite
+            -1,  # errread
+            -1,  # errwrite
+            errpipe_read,  # errpipe_read
+            errpipe_write,  # errpipe_write
+            False,  # restore_signal
+            False,  # call_setsid
+            *pgid_to_set,  # pgid_to_set
+            None,  # gid
+            None,  # extra_groups
+            None,  # uid
+            -1,  # child_umask
+            None,  # preexec_fn
+            *allow_vfork,  # extra flag if vfork is available
+        )
+    finally:
+        os.close(errpipe_read)
+        os.close(errpipe_write)
+```
+
+## joblib/joblib/externals/loky/backend/popen_loky_posix.py.notice.txt
+
+```text
+###############################################################################
+# Popen for LokyProcess.
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+import os
+import sys
+import signal
+import pickle
+from io import BytesIO
+from multiprocessing import util, process
+from multiprocessing.connection import wait
+from multiprocessing.context import set_spawning_popen
+
+from . import reduction, resource_tracker, spawn
+
+
+__all__ = ["Popen"]
+
+
+#
+# Wrapper for an fd used while launching a process
+#
+
+
+class _DupFd:
+    def __init__(self, fd):
+        self.fd = reduction._mk_inheritable(fd)
+
+    def detach(self):
+        return self.fd
+
+
+#
+# Start child process using subprocess.Popen
+#
+
+
+class Popen:
+    method = "loky"
+    DupFd = _DupFd
+
+    def __init__(self, process_obj):
+        sys.stdout.flush()
+        sys.stderr.flush()
+        self.returncode = None
+        self._fds = []
+        self._launch(process_obj)
+
+    def duplicate_for_child(self, fd):
+        self._fds.append(fd)
+        return reduction._mk_inheritable(fd)
+
+    def poll(self, flag=os.WNOHANG):
+        if self.returncode is None:
+            while True:
+                try:
+                    pid, sts = os.waitpid(self.pid, flag)
+                except OSError:
+                    # Child process not yet created. See #1731717
+                    # e.errno == errno.ECHILD == 10
+                    return None
+                else:
+                    break
+            if pid == self.pid:
+                if os.WIFSIGNALED(sts):
+                    self.returncode = -os.WTERMSIG(sts)
+                else:
+                    assert os.WIFEXITED(sts)
+                    self.returncode = os.WEXITSTATUS(sts)
+        return self.returncode
+
+    def wait(self, timeout=None):
+        if self.returncode is None:
+            if timeout is not None:
+                if not wait([self.sentinel], timeout):
+                    return None
+            # This shouldn't block if wait() returned successfully.
+            return self.poll(os.WNOHANG if timeout == 0.0 else 0)
+        return self.returncode
+
+    def terminate(self):
+        if self.returncode is None:
+            try:
+                os.kill(self.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            except OSError:
+                if self.wait(timeout=0.1) is None:
+                    raise
+
+    def _launch(self, process_obj):
+
+        tracker_fd = resource_tracker._resource_tracker.getfd()
+
+        fp = BytesIO()
+        set_spawning_popen(self)
+        try:
+            prep_data = spawn.get_preparation_data(
+                process_obj._name,
+                getattr(process_obj, "init_main_module", True),
+            )
+            reduction.dump(prep_data, fp)
+            reduction.dump(process_obj, fp)
+
+        finally:
+            set_spawning_popen(None)
+
+        try:
+            parent_r, child_w = os.pipe()
+            child_r, parent_w = os.pipe()
+            # for fd in self._fds:
+            #     _mk_inheritable(fd)
+
+            cmd_python = [sys.executable]
+            cmd_python += ["-m", self.__module__]
+            cmd_python += ["--process-name", str(process_obj.name)]
+            cmd_python += ["--pipe", str(reduction._mk_inheritable(child_r))]
+            reduction._mk_inheritable(child_w)
+            reduction._mk_inheritable(tracker_fd)
+            self._fds += [child_r, child_w, tracker_fd]
+            if os.name == "posix":
+                mp_tracker_fd = prep_data["mp_tracker_fd"]
+                self.duplicate_for_child(mp_tracker_fd)
+
+            from .fork_exec import fork_exec
+
+            pid = fork_exec(cmd_python, self._fds, env=process_obj.env)
+            util.debug(
+                f"launched python with pid {pid} and cmd:\n{cmd_python}"
+            )
+            self.sentinel = parent_r
+
+            method = "getbuffer"
+            if not hasattr(fp, method):
+                method = "getvalue"
+            with os.fdopen(parent_w, "wb") as f:
+                f.write(getattr(fp, method)())
+            self.pid = pid
+        finally:
+            if parent_r is not None:
+                util.Finalize(self, os.close, (parent_r,))
+            for fd in (child_r, child_w):
+                if fd is not None:
+                    os.close(fd)
+
+    @staticmethod
+    def thread_is_spawning():
+        return True
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser("Command line parser")
+    parser.add_argument(
+        "--pipe", type=int, required=True, help="File handle for the pipe"
+    )
+    parser.add_argument(
+        "--process-name",
+        type=str,
+        default=None,
+        help="Identifier for debugging purpose",
+    )
+
+    args = parser.parse_args()
+
+    info = {}
+    exitcode = 1
+    try:
+        with os.fdopen(args.pipe, "rb") as from_parent:
+            process.current_process()._inheriting = True
+            try:
+                prep_data = pickle.load(from_parent)
+                spawn.prepare(prep_data)
+                process_obj = pickle.load(from_parent)
+            finally:
+                del process.current_process()._inheriting
+
+        exitcode = process_obj._bootstrap()
+    except Exception:
+        print("\n\n" + "-" * 80)
+        print(f"{args.process_name} failed with traceback: ")
+        print("-" * 80)
+        import traceback
+
+        print(traceback.format_exc())
+        print("\n" + "-" * 80)
+    finally:
+        if from_parent is not None:
+            from_parent.close()
+
+        sys.exit(exitcode)
+```
+
+## joblib/joblib/externals/loky/backend/popen_loky_win32.py.notice.txt
+
+```text
+import os
+import sys
+import msvcrt
+import _winapi
+from pickle import load
+from multiprocessing import process, util
+from multiprocessing.context import set_spawning_popen
+from multiprocessing.popen_spawn_win32 import Popen as _Popen
+
+from . import reduction, spawn
+
+
+__all__ = ["Popen"]
+
+#
+#
+#
+
+
+def _path_eq(p1, p2):
+    return p1 == p2 or os.path.normcase(p1) == os.path.normcase(p2)
+
+
+WINENV = hasattr(sys, "_base_executable") and not _path_eq(
+    sys.executable, sys._base_executable
+)
+
+
+def _close_handles(*handles):
+    for handle in handles:
+        _winapi.CloseHandle(handle)
+
+
+#
+# We define a Popen class similar to the one from subprocess, but
+# whose constructor takes a process object as its argument.
+#
+
+
+class Popen(_Popen):
+    """
+    Start a subprocess to run the code of a process object.
+
+    We differ from cpython implementation with the way we handle environment
+    variables, in order to be able to modify then in the child processes before
+    importing any library, in order to control the number of threads in C-level
+    threadpools.
+
+    We also use the loky preparation data, in particular to handle main_module
+    inits and the loky resource tracker.
+    """
+
+    method = "loky"
+
+    def __init__(self, process_obj):
+        prep_data = spawn.get_preparation_data(
+            process_obj._name, getattr(process_obj, "init_main_module", True)
+        )
+
+        # read end of pipe will be duplicated by the child process
+        # -- see spawn_main() in spawn.py.
+        #
+        # bpo-33929: Previously, the read end of pipe was "stolen" by the child
+        # process, but it leaked a handle if the child process had been
+        # terminated before it could steal the handle from the parent process.
+        rhandle, whandle = _winapi.CreatePipe(None, 0)
+        wfd = msvcrt.open_osfhandle(whandle, 0)
+        cmd = get_command_line(parent_pid=os.getpid(), pipe_handle=rhandle)
+
+        python_exe = spawn.get_executable()
+
+        # copy the environment variables to set in the child process
+        child_env = {**os.environ, **process_obj.env}
+
+        # bpo-35797: When running in a venv, we bypass the redirect
+        # executor and launch our base Python.
+        if WINENV and _path_eq(python_exe, sys.executable):
+            cmd[0] = python_exe = sys._base_executable
+            child_env["__PYVENV_LAUNCHER__"] = sys.executable
+
+        cmd = " ".join(f'"{x}"' for x in cmd)
+
+        with open(wfd, "wb") as to_child:
+            # start process
+            try:
+                hp, ht, pid, _ = _winapi.CreateProcess(
+                    python_exe,
+                    cmd,
+                    None,
+                    None,
+                    False,
+                    0,
+                    child_env,
+                    None,
+                    None,
+                )
+                _winapi.CloseHandle(ht)
+            except BaseException:
+                _winapi.CloseHandle(rhandle)
+                raise
+
+            # set attributes of self
+            self.pid = pid
+            self.returncode = None
+            self._handle = hp
+            self.sentinel = int(hp)
+            self.finalizer = util.Finalize(
+                self, _close_handles, (self.sentinel, int(rhandle))
+            )
+
+            # send information to child
+            set_spawning_popen(self)
+            try:
+                reduction.dump(prep_data, to_child)
+                reduction.dump(process_obj, to_child)
+            finally:
+                set_spawning_popen(None)
+
+
+def get_command_line(pipe_handle, parent_pid, **kwds):
+    """Returns prefix of command line used for spawning a child process."""
+    if getattr(sys, "frozen", False):
+        return [sys.executable, "--multiprocessing-fork", pipe_handle]
+    else:
+        prog = (
+            "from joblib.externals.loky.backend.popen_loky_win32 import main; "
+            f"main(pipe_handle={pipe_handle}, parent_pid={parent_pid})"
+        )
+        opts = util._args_from_interpreter_flags()
+        return [
+            spawn.get_executable(),
+            *opts,
+            "-c",
+            prog,
+            "--multiprocessing-fork",
+        ]
+
+
+def is_forking(argv):
+    """Return whether commandline indicates we are forking."""
+    if len(argv) >= 2 and argv[1] == "--multiprocessing-fork":
+        return True
+    else:
+        return False
+
+
+def main(pipe_handle, parent_pid=None):
+    """Run code specified by data received over pipe."""
+    assert is_forking(sys.argv), "Not forking"
+
+    if parent_pid is not None:
+        source_process = _winapi.OpenProcess(
+            _winapi.SYNCHRONIZE | _winapi.PROCESS_DUP_HANDLE, False, parent_pid
+        )
+    else:
+        source_process = None
+    new_handle = reduction.duplicate(
+        pipe_handle, source_process=source_process
+    )
+    fd = msvcrt.open_osfhandle(new_handle, os.O_RDONLY)
+    parent_sentinel = source_process
+
+    with os.fdopen(fd, "rb", closefd=True) as from_parent:
+        process.current_process()._inheriting = True
+        try:
+            preparation_data = load(from_parent)
+            spawn.prepare(preparation_data, parent_sentinel)
+            self = load(from_parent)
+        finally:
+            del process.current_process()._inheriting
+
+    exitcode = self._bootstrap(parent_sentinel)
+    sys.exit(exitcode)
+```
+
+## joblib/joblib/externals/loky/backend/process.py.notice.txt
+
+```text
+###############################################################################
+# LokyProcess implementation
+#
+# authors: Thomas Moreau and Olivier Grisel
+#
+# based on multiprocessing/process.py  (17/02/2017)
+#
+import sys
+from multiprocessing.context import assert_spawning
+from multiprocessing.process import BaseProcess
+
+
+class LokyProcess(BaseProcess):
+    _start_method = "loky"
+
+    def __init__(
+        self,
+        group=None,
+        target=None,
+        name=None,
+        args=(),
+        kwargs={},
+        daemon=None,
+        init_main_module=False,
+        env=None,
+    ):
+        super().__init__(
+            group=group,
+            target=target,
+            name=name,
+            args=args,
+            kwargs=kwargs,
+            daemon=daemon,
+        )
+        self.env = {} if env is None else env
+        self.authkey = self.authkey
+        self.init_main_module = init_main_module
+
+    @staticmethod
+    def _Popen(process_obj):
+        if sys.platform == "win32":
+            from .popen_loky_win32 import Popen
+        else:
+            from .popen_loky_posix import Popen
+        return Popen(process_obj)
+
+
+class LokyInitMainProcess(LokyProcess):
+    _start_method = "loky_init_main"
+
+    def __init__(
+        self,
+        group=None,
+        target=None,
+        name=None,
+        args=(),
+        kwargs={},
+        daemon=None,
+    ):
+        super().__init__(
+            group=group,
+            target=target,
+            name=name,
+            args=args,
+            kwargs=kwargs,
+            daemon=daemon,
+            init_main_module=True,
+        )
+
+
+#
+# We subclass bytes to avoid accidental transmission of auth keys over network
+#
+
+
+class AuthenticationKey(bytes):
+    def __reduce__(self):
+        try:
+            assert_spawning(self)
+        except RuntimeError:
+            raise TypeError(
+                "Pickling an AuthenticationKey object is "
+                "disallowed for security reasons"
+            )
+        return AuthenticationKey, (bytes(self),)
+```
+
+## joblib/joblib/externals/loky/backend/queues.py.notice.txt
+
+```text
+###############################################################################
+# Queue and SimpleQueue implementation for loky
+#
+# authors: Thomas Moreau, Olivier Grisel
+#
+# based on multiprocessing/queues.py (16/02/2017)
+# * Add some custom reducers for the Queues/SimpleQueue to tweak the
+#   pickling process. (overload Queue._feed/SimpleQueue.put)
+#
+import os
+import sys
+import errno
+import weakref
+import threading
+from multiprocessing import util
+from multiprocessing.queues import (
+    Full,
+    Queue as mp_Queue,
+    SimpleQueue as mp_SimpleQueue,
+    _sentinel,
+)
+from multiprocessing.context import assert_spawning
+
+from .reduction import dumps
+
+
+__all__ = ["Queue", "SimpleQueue", "Full"]
+
+
+class Queue(mp_Queue):
+    def __init__(self, maxsize=0, reducers=None, ctx=None):
+        super().__init__(maxsize=maxsize, ctx=ctx)
+        self._reducers = reducers
+
+    # Use custom queue set/get state to be able to reduce the custom reducers
+    def __getstate__(self):
+        assert_spawning(self)
+        return (
+            self._ignore_epipe,
+            self._maxsize,
+            self._reader,
+            self._writer,
+            self._reducers,
+            self._rlock,
+            self._wlock,
+            self._sem,
+            self._opid,
+        )
+
+    def __setstate__(self, state):
+        (
+            self._ignore_epipe,
+            self._maxsize,
+            self._reader,
+            self._writer,
+            self._reducers,
+            self._rlock,
+            self._wlock,
+            self._sem,
+            self._opid,
+        ) = state
+        if sys.version_info >= (3, 9):
+            self._reset()
+        else:
+            self._after_fork()
+
+    # Overload _start_thread to correctly call our custom _feed
+    def _start_thread(self):
+        util.debug("Queue._start_thread()")
+
+        # Start thread which transfers data from buffer to pipe
+        self._buffer.clear()
+        self._thread = threading.Thread(
+            target=Queue._feed,
+            args=(
+                self._buffer,
+                self._notempty,
+                self._send_bytes,
+                self._wlock,
+                self._writer.close,
+                self._reducers,
+                self._ignore_epipe,
+                self._on_queue_feeder_error,
+                self._sem,
+            ),
+            name="QueueFeederThread",
+        )
+        self._thread.daemon = True
+
+        util.debug("doing self._thread.start()")
+        self._thread.start()
+        util.debug("... done self._thread.start()")
+
+        # On process exit we will wait for data to be flushed to pipe.
+        #
+        # However, if this process created the queue then all
+        # processes which use the queue will be descendants of this
+        # process.  Therefore waiting for the queue to be flushed
+        # is pointless once all the child processes have been joined.
+        created_by_this_process = self._opid == os.getpid()
+        if not self._joincancelled and not created_by_this_process:
+            self._jointhread = util.Finalize(
+                self._thread,
+                Queue._finalize_join,
+                [weakref.ref(self._thread)],
+                exitpriority=-5,
+            )
+
+        # Send sentinel to the thread queue object when garbage collected
+        self._close = util.Finalize(
+            self,
+            Queue._finalize_close,
+            [self._buffer, self._notempty],
+            exitpriority=10,
+        )
+
+    # Overload the _feed methods to use our custom pickling strategy.
+    @staticmethod
+    def _feed(
+        buffer,
+        notempty,
+        send_bytes,
+        writelock,
+        close,
+        reducers,
+        ignore_epipe,
+        onerror,
+        queue_sem,
+    ):
+        util.debug("starting thread to feed data to pipe")
+        nacquire = notempty.acquire
+        nrelease = notempty.release
+        nwait = notempty.wait
+        bpopleft = buffer.popleft
+        sentinel = _sentinel
+        if sys.platform != "win32":
+            wacquire = writelock.acquire
+            wrelease = writelock.release
+        else:
+            wacquire = None
+
+        while True:
+            try:
+                nacquire()
+                try:
+                    if not buffer:
+                        nwait()
+                finally:
+                    nrelease()
+                try:
+                    while True:
+                        obj = bpopleft()
+                        if obj is sentinel:
+                            util.debug("feeder thread got sentinel -- exiting")
+                            close()
+                            return
+
+                        # serialize the data before acquiring the lock
+                        obj_ = dumps(obj, reducers=reducers)
+                        if wacquire is None:
+                            send_bytes(obj_)
+                        else:
+                            wacquire()
+                            try:
+                                send_bytes(obj_)
+                            finally:
+                                wrelease()
+                        # Remove references early to avoid leaking memory
+                        del obj, obj_
+                except IndexError:
+                    pass
+            except BaseException as e:
+                if ignore_epipe and getattr(e, "errno", 0) == errno.EPIPE:
+                    return
+                # Since this runs in a daemon thread the resources it uses
+                # may be become unusable while the process is cleaning up.
+                # We ignore errors which happen after the process has
+                # started to cleanup.
+                if util.is_exiting():
+                    util.info(f"error in queue thread: {e}")
+                    return
+                else:
+                    queue_sem.release()
+                    onerror(e, obj)
+
+    def _on_queue_feeder_error(self, e, obj):
+        """
+        Private API hook called when feeding data in the background thread
+        raises an exception.  For overriding by concurrent.futures.
+        """
+        import traceback
+
+        traceback.print_exc()
+
+
+class SimpleQueue(mp_SimpleQueue):
+    def __init__(self, reducers=None, ctx=None):
+        super().__init__(ctx=ctx)
+
+        # Add possiblity to use custom reducers
+        self._reducers = reducers
+
+    def close(self):
+        self._reader.close()
+        self._writer.close()
+
+    # Use custom queue set/get state to be able to reduce the custom reducers
+    def __getstate__(self):
+        assert_spawning(self)
+        return (
+            self._reader,
+            self._writer,
+            self._reducers,
+            self._rlock,
+            self._wlock,
+        )
+
+    def __setstate__(self, state):
+        (
+            self._reader,
+            self._writer,
+            self._reducers,
+            self._rlock,
+            self._wlock,
+        ) = state
+
+    # Overload put to use our customizable reducer
+    def put(self, obj):
+        # serialize the data before acquiring the lock
+        obj = dumps(obj, reducers=self._reducers)
+        if self._wlock is None:
+            # writes to a message oriented win32 pipe are atomic
+            self._writer.send_bytes(obj)
+        else:
+            with self._wlock:
+                self._writer.send_bytes(obj)
+```
+
+## joblib/joblib/externals/loky/backend/reduction.py.notice.txt
+
+```text
+###############################################################################
+# Customizable Pickler with some basic reducers
+#
+# author: Thomas Moreau
+#
+# adapted from multiprocessing/reduction.py (17/02/2017)
+#  * Replace the ForkingPickler with a similar _LokyPickler,
+#  * Add CustomizableLokyPickler to allow customizing pickling process
+#    on the fly.
+#
+import copyreg
+import io
+import functools
+import types
+import sys
+import os
+
+from multiprocessing import util
+from pickle import loads, HIGHEST_PROTOCOL
+
+###############################################################################
+# Enable custom pickling in Loky.
+
+_dispatch_table = {}
+
+
+def register(type_, reduce_function):
+    _dispatch_table[type_] = reduce_function
+
+
+###############################################################################
+# Registers extra pickling routines to improve picklization  for loky
+
+
+# make methods picklable
+def _reduce_method(m):
+    if m.__self__ is None:
+        return getattr, (m.__class__, m.__func__.__name__)
+    else:
+        return getattr, (m.__self__, m.__func__.__name__)
+
+
+class _C:
+    def f(self):
+        pass
+
+    @classmethod
+    def h(cls):
+        pass
+
+
+register(type(_C().f), _reduce_method)
+register(type(_C.h), _reduce_method)
+
+
+def _reduce_method_descriptor(m):
+    return getattr, (m.__objclass__, m.__name__)
+
+
+register(type(list.append), _reduce_method_descriptor)
+register(type(int.__add__), _reduce_method_descriptor)
+
+
+# Make partial func pickable
+def _reduce_partial(p):
+    return _rebuild_partial, (p.func, p.args, p.keywords or {})
+
+
+def _rebuild_partial(func, args, keywords):
+    return functools.partial(func, *args, **keywords)
+
+
+register(functools.partial, _reduce_partial)
+
+if sys.platform != "win32":
+    from ._posix_reduction import _mk_inheritable  # noqa: F401
+else:
+    from . import _win_reduction  # noqa: F401
+
+# global variable to change the pickler behavior
+try:
+    from joblib.externals import cloudpickle  # noqa: F401
+
+    DEFAULT_ENV = "cloudpickle"
+except ImportError:
+    # If cloudpickle is not present, fallback to pickle
+    DEFAULT_ENV = "pickle"
+
+ENV_LOKY_PICKLER = os.environ.get("LOKY_PICKLER", DEFAULT_ENV)
+_LokyPickler = None
+_loky_pickler_name = None
+
+
+def set_loky_pickler(loky_pickler=None):
+    global _LokyPickler, _loky_pickler_name
+
+    if loky_pickler is None:
+        loky_pickler = ENV_LOKY_PICKLER
+
+    loky_pickler_cls = None
+
+    # The default loky_pickler is cloudpickle
+    if loky_pickler in ["", None]:
+        loky_pickler = "cloudpickle"
+
+    if loky_pickler == _loky_pickler_name:
+        return
+
+    if loky_pickler == "cloudpickle":
+        from joblib.externals.cloudpickle import CloudPickler as loky_pickler_cls
+    else:
+        try:
+            from importlib import import_module
+
+            module_pickle = import_module(loky_pickler)
+            loky_pickler_cls = module_pickle.Pickler
+        except (ImportError, AttributeError) as e:
+            extra_info = (
+                "\nThis error occurred while setting loky_pickler to"
+                f" '{loky_pickler}', as required by the env variable "
+                "LOKY_PICKLER or the function set_loky_pickler."
+            )
+            e.args = (e.args[0] + extra_info,) + e.args[1:]
+            e.msg = e.args[0]
+            raise e
+
+    util.debug(
+        f"Using '{loky_pickler if loky_pickler else 'cloudpickle'}' for "
+        "serialization."
+    )
+
+    class CustomizablePickler(loky_pickler_cls):
+        _loky_pickler_cls = loky_pickler_cls
+
+        def _set_dispatch_table(self, dispatch_table):
+            for ancestor_class in self._loky_pickler_cls.mro():
+                dt_attribute = getattr(ancestor_class, "dispatch_table", None)
+                if isinstance(dt_attribute, types.MemberDescriptorType):
+                    # Ancestor class (typically _pickle.Pickler) has a
+                    # member_descriptor for its "dispatch_table" attribute. Use
+                    # it to set the dispatch_table as a member instead of a
+                    # dynamic attribute in the __dict__ of the instance,
+                    # otherwise it will not be taken into account by the C
+                    # implementation of the dump method if a subclass defines a
+                    # class-level dispatch_table attribute as was done in
+                    # cloudpickle 1.6.0:
+                    # https://github.com/joblib/loky/pull/260
+                    dt_attribute.__set__(self, dispatch_table)
+                    break
+
+            # On top of member descriptor set, also use setattr such that code
+            # that directly access self.dispatch_table gets a consistent view
+            # of the same table.
+            self.dispatch_table = dispatch_table
+
+        def __init__(self, writer, reducers=None, protocol=HIGHEST_PROTOCOL):
+            loky_pickler_cls.__init__(self, writer, protocol=protocol)
+            if reducers is None:
+                reducers = {}
+
+            if hasattr(self, "dispatch_table"):
+                # Force a copy that we will update without mutating the
+                # any class level defined dispatch_table.
+                loky_dt = dict(self.dispatch_table)
+            else:
+                # Use standard reducers as bases
+                loky_dt = copyreg.dispatch_table.copy()
+
+            # Register loky specific reducers
+            loky_dt.update(_dispatch_table)
+
+            # Set the new dispatch table, taking care of the fact that we
+            # need to use the member_descriptor when we inherit from a
+            # subclass of the C implementation of the Pickler base class
+            # with an class level dispatch_table attribute.
+            self._set_dispatch_table(loky_dt)
+
+            # Register the reducers
+            for type, reduce_func in reducers.items():
+                self.register(type, reduce_func)
+
+        def register(self, type, reduce_func):
+            """Attach a reducer function to a given type in the dispatch table."""
+            self.dispatch_table[type] = reduce_func
+
+    _LokyPickler = CustomizablePickler
+    _loky_pickler_name = loky_pickler
+
+
+def get_loky_pickler_name():
+    global _loky_pickler_name
+    return _loky_pickler_name
+
+
+def get_loky_pickler():
+    global _LokyPickler
+    return _LokyPickler
+
+
+# Set it to its default value
+set_loky_pickler()
+
+
+def dump(obj, file, reducers=None, protocol=None):
+    """Replacement for pickle.dump() using _LokyPickler."""
+    global _LokyPickler
+    _LokyPickler(file, reducers=reducers, protocol=protocol).dump(obj)
+
+
+def dumps(obj, reducers=None, protocol=None):
+    global _LokyPickler
+
+    buf = io.BytesIO()
+    dump(obj, buf, reducers=reducers, protocol=protocol)
+    return buf.getbuffer()
+
+
+__all__ = ["dump", "dumps", "loads", "register", "set_loky_pickler"]
+
+if sys.platform == "win32":
+    from multiprocessing.reduction import duplicate
+
+    __all__ += ["duplicate"]
+```
+
+## joblib/joblib/externals/loky/backend/resource_tracker.py.notice.txt
+
+```text
+###############################################################################
+# Server process to keep track of unlinked resources, like folders and
+# semaphores and clean them.
+#
+# author: Thomas Moreau
+#
+# Adapted from multiprocessing/resource_tracker.py
+#  * add some VERBOSE logging,
+#  * add support to track folders,
+#  * add Windows support,
+#  * refcounting scheme to avoid unlinking resources still in use.
+#
+# On Unix we run a server process which keeps track of unlinked
+# resources. The server ignores SIGINT and SIGTERM and reads from a
+# pipe. The resource_tracker implements a reference counting scheme: each time
+# a Python process anticipates the shared usage of a resource by another
+# process, it signals the resource_tracker of this shared usage, and in return,
+# the resource_tracker increments the resource's reference count by 1.
+# Similarly, when access to a resource is closed by a Python process, the
+# process notifies the resource_tracker by asking it to decrement the
+# resource's reference count by 1.  When the reference count drops to 0, the
+# resource_tracker attempts to clean up the underlying resource.
+
+# Finally, every other process connected to the resource tracker has a copy of
+# the writable end of the pipe used to communicate with it, so the resource
+# tracker gets EOF when all other processes have exited. Then the
+# resource_tracker process unlinks any remaining leaked resources (with
+# reference count above 0)
+
+# For semaphores, this is important because the system only supports a limited
+# number of named semaphores, and they will not be automatically removed till
+# the next reboot.  Without this resource tracker process, "killall python"
+# would probably leave unlinked semaphores.
+
+# Note that this behavior differs from CPython's resource_tracker, which only
+# implements list of shared resources, and not a proper refcounting scheme.
+# Also, CPython's resource tracker will only attempt to cleanup those shared
+# resources once all processes connected to the resource tracker have exited.
+
+
+import os
+import shutil
+import sys
+import signal
+import warnings
+from multiprocessing import util
+from multiprocessing.resource_tracker import (
+    ResourceTracker as _ResourceTracker,
+)
+
+from . import spawn
+
+if sys.platform == "win32":
+    import _winapi
+    import msvcrt
+    from multiprocessing.reduction import duplicate
+
+
+__all__ = ["ensure_running", "register", "unregister"]
+
+_HAVE_SIGMASK = hasattr(signal, "pthread_sigmask")
+_IGNORED_SIGNALS = (signal.SIGINT, signal.SIGTERM)
+
+
+def cleanup_noop(name):
+    raise RuntimeError("noop should never be registered or cleaned up")
+
+
+_CLEANUP_FUNCS = {
+    "noop": cleanup_noop,
+    "folder": shutil.rmtree,
+    "file": os.unlink,
+}
+
+if os.name == "posix":
+    import _multiprocessing
+
+    # Use sem_unlink() to clean up named semaphores.
+    #
+    # sem_unlink() may be missing if the Python build process detected the
+    # absence of POSIX named semaphores. In that case, no named semaphores were
+    # ever opened, so no cleanup would be necessary.
+    if hasattr(_multiprocessing, "sem_unlink"):
+        _CLEANUP_FUNCS.update(
+            {
+                "semlock": _multiprocessing.sem_unlink,
+            }
+        )
+
+
+VERBOSE = False
+
+
+class ResourceTracker(_ResourceTracker):
+    """Resource tracker with refcounting scheme.
+
+    This class is an extension of the multiprocessing ResourceTracker class
+    which implements a reference counting scheme to avoid unlinking shared
+    resources still in use in other processes.
+
+    This feature is notably used by `joblib.Parallel` to share temporary
+    folders and memory mapped files between the main process and the worker
+    processes.
+
+    The actual implementation of the refcounting scheme is in the main
+    function, which is run in a dedicated process.
+    """
+
+    def maybe_unlink(self, name, rtype):
+        """Decrement the refcount of a resource, and delete it if it hits 0"""
+        self._send("MAYBE_UNLINK", name, rtype)
+
+    def ensure_running(self):
+        """Make sure that resource tracker process is running.
+
+        This can be run from any process.  Usually a child process will use
+        the resource created by its parent.
+
+        This function is necessary for backward compatibility with python
+        versions before 3.13.7.
+        """
+        return self._ensure_running_and_write()
+
+    def _teardown_dead_process(self):
+        # Override this function for compatibility with windows and
+        # for python version before 3.13.7
+
+        # At this point, the resource_tracker process has been killed
+        # or crashed.
+        os.close(self._fd)
+
+        # Let's remove the process entry from the process table on POSIX system
+        # to avoid zombie processes.
+        if os.name == "posix":
+            try:
+                # _pid can be None if this process is a child from another
+                # python process, which has started the resource_tracker.
+                if self._pid is not None:
+                    os.waitpid(self._pid, 0)
+            except OSError:
+                # The resource_tracker has already been terminated.
+                pass
+        self._fd = None
+        self._pid = None
+
+        warnings.warn(
+            "resource_tracker: process died unexpectedly, relaunching. "
+            "Some folders/semaphores might leak."
+        )
+
+    def _launch(self):
+        # This is the overridden part of the resource tracker, which launches
+        # loky's version, which is compatible with windows and allow to track
+        # folders with external ref counting.
+
+        fds_to_pass = []
+        try:
+            fds_to_pass.append(sys.stderr.fileno())
+        except Exception:
+            pass
+
+        # Create a pipe for posix and windows
+        r, w = os.pipe()
+        if sys.platform == "win32":
+            _r = duplicate(msvcrt.get_osfhandle(r), inheritable=True)
+            os.close(r)
+            r = _r
+
+        cmd = f"from {main.__module__} import main; main({r}, {VERBOSE})"
+        try:
+            fds_to_pass.append(r)
+            # process will out live us, so no need to wait on pid
+            exe = spawn.get_executable()
+            args = [exe, *util._args_from_interpreter_flags(), "-c", cmd]
+            util.debug(f"launching resource tracker: {args}")
+            # bpo-33613: Register a signal mask that will block the
+            # signals.  This signal mask will be inherited by the child
+            # that is going to be spawned and will protect the child from a
+            # race condition that can make the child die before it
+            # registers signal handlers for SIGINT and SIGTERM. The mask is
+            # unregistered after spawning the child.
+            try:
+                if _HAVE_SIGMASK:
+                    signal.pthread_sigmask(signal.SIG_BLOCK, _IGNORED_SIGNALS)
+                pid = spawnv_passfds(exe, args, fds_to_pass)
+            finally:
+                if _HAVE_SIGMASK:
+                    signal.pthread_sigmask(
+                        signal.SIG_UNBLOCK, _IGNORED_SIGNALS
+                    )
+        except BaseException:
+            os.close(w)
+            raise
+        else:
+            self._fd = w
+            self._pid = pid
+        finally:
+            if sys.platform == "win32":
+                _winapi.CloseHandle(r)
+            else:
+                os.close(r)
+
+    def _ensure_running_and_write(self, msg=None):
+        """Make sure that resource tracker process is running.
+
+        This can be run from any process.  Usually a child process will use
+        the resource created by its parent.
+
+
+        This function is added for compatibility with python version before 3.13.7.
+        """
+        with self._lock:
+            if (
+                self._fd is not None
+            ):  # resource tracker was launched before, is it still running?
+                if msg is None:
+                    to_send = b"PROBE:0:noop\n"
+                else:
+                    to_send = msg
+                try:
+                    self._write(to_send)
+                except OSError:
+                    self._teardown_dead_process()
+                    self._launch()
+
+                msg = None  # message was sent in probe
+            else:
+                self._launch()
+
+        if msg is not None:
+            self._write(msg)
+
+    def _write(self, msg):
+        nbytes = os.write(self._fd, msg)
+        assert nbytes == len(msg), f"{nbytes=} != {len(msg)=}"
+
+    def __del__(self):
+        # ignore error due to trying to clean up child process which has already been
+        # shutdown on windows. See https://github.com/joblib/loky/pull/450
+        # This is only required if __del__ is defined
+        if not hasattr(_ResourceTracker, "__del__"):
+            return
+        try:
+            super().__del__()
+        except ChildProcessError:
+            pass
+
+
+_resource_tracker = ResourceTracker()
+ensure_running = _resource_tracker.ensure_running
+register = _resource_tracker.register
+maybe_unlink = _resource_tracker.maybe_unlink
+unregister = _resource_tracker.unregister
+getfd = _resource_tracker.getfd
+
+
+def main(fd, verbose=0):
+    """Run resource tracker."""
+    if verbose:
+        util.log_to_stderr(level=util.DEBUG)
+
+    # protect the process from ^C and "killall python" etc
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+
+    if _HAVE_SIGMASK:
+        signal.pthread_sigmask(signal.SIG_UNBLOCK, _IGNORED_SIGNALS)
+
+    for f in (sys.stdin, sys.stdout):
+        try:
+            f.close()
+        except Exception:
+            pass
+
+    if verbose:
+        util.debug("Main resource tracker is running")
+
+    registry = {rtype: {} for rtype in _CLEANUP_FUNCS.keys()}
+
+    try:
+        if sys.platform == "win32":
+            fd = msvcrt.open_osfhandle(fd, os.O_RDONLY)
+        # keep track of registered/unregistered resources
+        with open(fd, "rb") as f:
+            for line in f:
+                try:
+                    splitted = line.strip().decode("ascii").split(":")
+                    # name can potentially contain separator symbols (for
+                    # instance folders on Windows)
+                    cmd, name, rtype = (
+                        splitted[0],
+                        ":".join(splitted[1:-1]),
+                        splitted[-1],
+                    )
+
+                    if rtype not in _CLEANUP_FUNCS:
+                        raise ValueError(
+                            f"Cannot register {name} for automatic cleanup: "
+                            f"unknown resource type ({rtype}). Resource type "
+                            "should be one of the following: "
+                            f"{list(_CLEANUP_FUNCS.keys())}"
+                        )
+
+                    if cmd == "PROBE":
+                        pass
+                    elif cmd == "REGISTER":
+                        if name not in registry[rtype]:
+                            registry[rtype][name] = 1
+                        else:
+                            registry[rtype][name] += 1
+
+                        if verbose:
+                            util.debug(
+                                "[ResourceTracker] incremented refcount of "
+                                f"{rtype} {name} "
+                                f"(current {registry[rtype][name]})"
+                            )
+                    elif cmd == "UNREGISTER":
+                        del registry[rtype][name]
+                        if verbose:
+                            util.debug(
+                                f"[ResourceTracker] unregister {name} {rtype}: "
+                                f"registry({len(registry)})"
+                            )
+                    elif cmd == "MAYBE_UNLINK":
+                        registry[rtype][name] -= 1
+                        if verbose:
+                            util.debug(
+                                "[ResourceTracker] decremented refcount of "
+                                f"{rtype} {name} "
+                                f"(current {registry[rtype][name]})"
+                            )
+
+                        if registry[rtype][name] == 0:
+                            del registry[rtype][name]
+                            try:
+                                if verbose:
+                                    util.debug(
+                                        f"[ResourceTracker] unlink {name}"
+                                    )
+                                _CLEANUP_FUNCS[rtype](name)
+                            except Exception as e:
+                                warnings.warn(
+                                    f"resource_tracker: {name}: {e!r}"
+                                )
+
+                    else:
+                        raise RuntimeError(f"unrecognized command {cmd!r}")
+                except BaseException:
+                    try:
+                        sys.excepthook(*sys.exc_info())
+                    except BaseException:
+                        pass
+    finally:
+        # all processes have terminated; cleanup any remaining resources
+        def _unlink_resources(rtype_registry, rtype):
+            if rtype_registry:
+                try:
+                    warnings.warn(
+                        "resource_tracker: There appear to be "
+                        f"{len(rtype_registry)} leaked {rtype} objects to "
+                        "clean up at shutdown"
+                    )
+                except Exception:
+                    pass
+            for name in rtype_registry:
+                # For some reason the process which created and registered this
+                # resource has failed to unregister it. Presumably it has
+                # died.  We therefore clean it up.
+                try:
+                    _CLEANUP_FUNCS[rtype](name)
+                    if verbose:
+                        util.debug(f"[ResourceTracker] unlink {name}")
+                except Exception as e:
+                    warnings.warn(f"resource_tracker: {name}: {e!r}")
+
+        for rtype, rtype_registry in registry.items():
+            if rtype == "folder":
+                continue
+            else:
+                _unlink_resources(rtype_registry, rtype)
+
+        # The default cleanup routine for folders deletes everything inside
+        # those folders recursively, which can include other resources tracked
+        # by the resource tracker). To limit the risk of the resource tracker
+        # attempting to delete twice a resource (once as part of a tracked
+        # folder, and once as a resource), we delete the folders after all
+        # other resource types.
+        if "folder" in registry:
+            _unlink_resources(registry["folder"], "folder")
+
+    if verbose:
+        util.debug("resource tracker shut down")
+
+
+def spawnv_passfds(path, args, passfds):
+    if sys.platform != "win32":
+        args = [arg.encode("utf-8") for arg in args]
+        path = path.encode("utf-8")
+        return util.spawnv_passfds(path, args, passfds)
+    else:
+        passfds = sorted(passfds)
+        cmd = " ".join(f'"{x}"' for x in args)
+        try:
+            _, ht, pid, _ = _winapi.CreateProcess(
+                path, cmd, None, None, True, 0, None, None, None
+            )
+            _winapi.CloseHandle(ht)
+        except BaseException:
+            pass
+        return pid
+```
+
+## joblib/joblib/externals/loky/backend/spawn.py.notice.txt
+
+```text
+###############################################################################
+# Prepares and processes the data to setup the new process environment
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+# adapted from multiprocessing/spawn.py (17/02/2017)
+#  * Improve logging data
+#
+import os
+import sys
+import runpy
+import textwrap
+import types
+from multiprocessing import process, util
+
+
+if sys.platform != "win32":
+    WINEXE = False
+    WINSERVICE = False
+else:
+    import msvcrt
+    from multiprocessing.reduction import duplicate
+
+    WINEXE = sys.platform == "win32" and getattr(sys, "frozen", False)
+    WINSERVICE = sys.executable.lower().endswith("pythonservice.exe")
+
+if WINSERVICE:
+    _python_exe = os.path.join(sys.exec_prefix, "python.exe")
+else:
+    _python_exe = sys.executable
+
+
+def get_executable():
+    return _python_exe
+
+
+def _check_not_importing_main():
+    if getattr(process.current_process(), "_inheriting", False):
+        raise RuntimeError(
+            textwrap.dedent(
+                """\
+            An attempt has been made to start a new process before the
+            current process has finished its bootstrapping phase.
+
+            This probably means that you are not using fork to start your
+            child processes and you have forgotten to use the proper idiom
+            in the main module:
+
+                if __name__ == '__main__':
+                    freeze_support()
+                    ...
+
+            The "freeze_support()" line can be omitted if the program
+            is not going to be frozen to produce an executable."""
+            )
+        )
+
+
+def get_preparation_data(name, init_main_module=True):
+    """Return info about parent needed by child to unpickle process object."""
+    _check_not_importing_main()
+    d = dict(
+        log_to_stderr=util._log_to_stderr,
+        authkey=bytes(process.current_process().authkey),
+        name=name,
+        sys_argv=sys.argv,
+        orig_dir=process.ORIGINAL_DIR,
+        dir=os.getcwd(),
+    )
+
+    # Send sys_path and make sure the current directory will not be changed
+    d["sys_path"] = [p if p != "" else process.ORIGINAL_DIR for p in sys.path]
+
+    # Make sure to pass the information if the multiprocessing logger is active
+    if util._logger is not None:
+        d["log_level"] = util._logger.getEffectiveLevel()
+        if util._logger.handlers:
+            h = util._logger.handlers[0]
+            d["log_fmt"] = h.formatter._fmt
+
+    # Tell the child how to communicate with the resource_tracker
+    from .resource_tracker import _resource_tracker
+
+    _resource_tracker.ensure_running()
+    if sys.platform == "win32":
+        d["tracker_fd"] = msvcrt.get_osfhandle(_resource_tracker._fd)
+    else:
+        d["tracker_fd"] = _resource_tracker._fd
+
+    if os.name == "posix":
+        # joblib/loky#242: allow loky processes to retrieve the resource
+        # tracker of their parent in case the child processes depickles
+        # shared_memory objects, that are still tracked by multiprocessing's
+        # resource_tracker by default.
+        # XXX: this is a workaround that may be error prone: in the future, it
+        # would be better to have loky subclass multiprocessing's shared_memory
+        # to force registration of shared_memory segments via loky's
+        # resource_tracker.
+        from multiprocessing.resource_tracker import (
+            _resource_tracker as mp_resource_tracker,
+        )
+
+        # multiprocessing's resource_tracker must be running before loky
+        # process is created (othewise the child won't be able to use it if it
+        # is created later on)
+        mp_resource_tracker.ensure_running()
+        d["mp_tracker_fd"] = mp_resource_tracker._fd
+
+    # Figure out whether to initialise main in the subprocess as a module
+    # or through direct execution (or to leave it alone entirely)
+    if init_main_module:
+        main_module = sys.modules["__main__"]
+        try:
+            main_mod_name = getattr(main_module.__spec__, "name", None)
+        except BaseException:
+            main_mod_name = None
+        if main_mod_name is not None:
+            d["init_main_from_name"] = main_mod_name
+        elif sys.platform != "win32" or (not WINEXE and not WINSERVICE):
+            main_path = getattr(main_module, "__file__", None)
+            if main_path is not None:
+                if (
+                    not os.path.isabs(main_path)
+                    and process.ORIGINAL_DIR is not None
+                ):
+                    main_path = os.path.join(process.ORIGINAL_DIR, main_path)
+                d["init_main_from_path"] = os.path.normpath(main_path)
+
+    return d
+
+
+#
+# Prepare current process
+#
+old_main_modules = []
+
+
+def prepare(data, parent_sentinel=None):
+    """Try to get current process ready to unpickle process object."""
+    if "name" in data:
+        process.current_process().name = data["name"]
+
+    if "authkey" in data:
+        process.current_process().authkey = data["authkey"]
+
+    if "log_to_stderr" in data and data["log_to_stderr"]:
+        util.log_to_stderr()
+
+    if "log_level" in data:
+        util.get_logger().setLevel(data["log_level"])
+
+    if "log_fmt" in data:
+        import logging
+
+        util.get_logger().handlers[0].setFormatter(
+            logging.Formatter(data["log_fmt"])
+        )
+
+    if "sys_path" in data:
+        sys.path = data["sys_path"]
+
+    if "sys_argv" in data:
+        sys.argv = data["sys_argv"]
+
+    if "dir" in data:
+        os.chdir(data["dir"])
+
+    if "orig_dir" in data:
+        process.ORIGINAL_DIR = data["orig_dir"]
+
+    if "mp_tracker_fd" in data:
+        from multiprocessing.resource_tracker import (
+            _resource_tracker as mp_resource_tracker,
+        )
+
+        mp_resource_tracker._fd = data["mp_tracker_fd"]
+    if "tracker_fd" in data:
+        from .resource_tracker import _resource_tracker
+
+        if sys.platform == "win32":
+            handle = data["tracker_fd"]
+            handle = duplicate(handle, source_process=parent_sentinel)
+            _resource_tracker._fd = msvcrt.open_osfhandle(handle, os.O_RDONLY)
+        else:
+            _resource_tracker._fd = data["tracker_fd"]
+
+    if "init_main_from_name" in data:
+        _fixup_main_from_name(data["init_main_from_name"])
+    elif "init_main_from_path" in data:
+        _fixup_main_from_path(data["init_main_from_path"])
+
+
+# Multiprocessing module helpers to fix up the main module in
+# spawned subprocesses
+def _fixup_main_from_name(mod_name):
+    # __main__.py files for packages, directories, zip archives, etc, run
+    # their "main only" code unconditionally, so we don't even try to
+    # populate anything in __main__, nor do we make any changes to
+    # __main__ attributes
+    current_main = sys.modules["__main__"]
+    if mod_name == "__main__" or mod_name.endswith(".__main__"):
+        return
+
+    # If this process was forked, __main__ may already be populated
+    if getattr(current_main.__spec__, "name", None) == mod_name:
+        return
+
+    # Otherwise, __main__ may contain some non-main code where we need to
+    # support unpickling it properly. We rerun it as __mp_main__ and make
+    # the normal __main__ an alias to that
+    old_main_modules.append(current_main)
+    main_module = types.ModuleType("__mp_main__")
+    main_content = runpy.run_module(
+        mod_name, run_name="__mp_main__", alter_sys=True
+    )
+    main_module.__dict__.update(main_content)
+    sys.modules["__main__"] = sys.modules["__mp_main__"] = main_module
+
+
+def _fixup_main_from_path(main_path):
+    # If this process was forked, __main__ may already be populated
+    current_main = sys.modules["__main__"]
+
+    # Unfortunately, the main ipython launch script historically had no
+    # "if __name__ == '__main__'" guard, so we work around that
+    # by treating it like a __main__.py file
+    # See https://github.com/ipython/ipython/issues/4698
+    main_name = os.path.splitext(os.path.basename(main_path))[0]
+    if main_name == "ipython":
+        return
+
+    # Otherwise, if __file__ already has the setting we expect,
+    # there's nothing more to do
+    if getattr(current_main, "__file__", None) == main_path:
+        return
+
+    # If the parent process has sent a path through rather than a module
+    # name we assume it is an executable script that may contain
+    # non-main code that needs to be executed
+    old_main_modules.append(current_main)
+    main_module = types.ModuleType("__mp_main__")
+    main_content = runpy.run_path(main_path, run_name="__mp_main__")
+    main_module.__dict__.update(main_content)
+    sys.modules["__main__"] = sys.modules["__mp_main__"] = main_module
+```
+
+## joblib/joblib/externals/loky/backend/synchronize.py.notice.txt
+
+```text
+###############################################################################
+# Synchronization primitives based on our SemLock implementation
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+# adapted from multiprocessing/synchronize.py (17/02/2017)
+#  * Remove ctx argument for compatibility reason
+#  * Registers a cleanup function with the loky resource_tracker to remove the
+#    semaphore when the process dies instead.
+#
+# TODO: investigate which Python version is required to be able to use
+# multiprocessing.resource_tracker and therefore multiprocessing.synchronize
+# instead of a loky-specific fork.
+
+import os
+import sys
+import tempfile
+import threading
+import _multiprocessing
+from time import time as _time
+from multiprocessing import process, util
+from multiprocessing.context import assert_spawning
+
+from . import resource_tracker
+
+__all__ = [
+    "Lock",
+    "RLock",
+    "Semaphore",
+    "BoundedSemaphore",
+    "Condition",
+    "Event",
+]
+# Try to import the mp.synchronize module cleanly, if it fails
+# raise ImportError for platforms lacking a working sem_open implementation.
+# See issue 3770
+try:
+    from _multiprocessing import SemLock as _SemLock
+    from _multiprocessing import sem_unlink
+except ImportError:
+    raise ImportError(
+        "This platform lacks a functioning sem_open"
+        " implementation, therefore, the required"
+        " synchronization primitives needed will not"
+        " function, see issue 3770."
+    )
+
+#
+# Constants
+#
+
+RECURSIVE_MUTEX, SEMAPHORE = range(2)
+SEM_VALUE_MAX = _multiprocessing.SemLock.SEM_VALUE_MAX
+
+
+#
+# Base class for semaphores and mutexes; wraps `_multiprocessing.SemLock`
+#
+
+
+class SemLock:
+
+    _rand = tempfile._RandomNameSequence()
+
+    def __init__(self, kind, value, maxvalue, name=None):
+        # unlink_now is only used on win32 or when we are using fork.
+        unlink_now = False
+        if name is None:
+            # Try to find an unused name for the SemLock instance.
+            for _ in range(100):
+                try:
+                    self._semlock = _SemLock(
+                        kind, value, maxvalue, SemLock._make_name(), unlink_now
+                    )
+                except FileExistsError:  # pragma: no cover
+                    pass
+                else:
+                    break
+            else:  # pragma: no cover
+                raise FileExistsError("cannot find name for semaphore")
+        else:
+            self._semlock = _SemLock(kind, value, maxvalue, name, unlink_now)
+        self.name = name
+        util.debug(
+            f"created semlock with handle {self._semlock.handle} and name "
+            f'"{self.name}"'
+        )
+
+        self._make_methods()
+
+        def _after_fork(obj):
+            obj._semlock._after_fork()
+
+        util.register_after_fork(self, _after_fork)
+
+        # When the object is garbage collected or the
+        # process shuts down we unlink the semaphore name
+        resource_tracker.register(self._semlock.name, "semlock")
+        util.Finalize(
+            self, SemLock._cleanup, (self._semlock.name,), exitpriority=0
+        )
+
+    @staticmethod
+    def _cleanup(name):
+        try:
+            sem_unlink(name)
+        except FileNotFoundError:
+            # Already unlinked, possibly by user code: ignore and make sure to
+            # unregister the semaphore from the resource tracker.
+            pass
+        finally:
+            resource_tracker.unregister(name, "semlock")
+
+    def _make_methods(self):
+        self.acquire = self._semlock.acquire
+        self.release = self._semlock.release
+
+    def __enter__(self):
+        return self._semlock.acquire()
+
+    def __exit__(self, *args):
+        return self._semlock.release()
+
+    def __getstate__(self):
+        assert_spawning(self)
+        sl = self._semlock
+        h = sl.handle
+        return (h, sl.kind, sl.maxvalue, sl.name)
+
+    def __setstate__(self, state):
+        self._semlock = _SemLock._rebuild(*state)
+        util.debug(
+            f'recreated blocker with handle {state[0]!r} and name "{state[3]}"'
+        )
+        self._make_methods()
+
+    @staticmethod
+    def _make_name():
+        # OSX does not support long names for semaphores
+        return f"/loky-{os.getpid()}-{next(SemLock._rand)}"
+
+
+#
+# Semaphore
+#
+
+
+class Semaphore(SemLock):
+    def __init__(self, value=1):
+        SemLock.__init__(self, SEMAPHORE, value, SEM_VALUE_MAX)
+
+    def get_value(self):
+        if sys.platform == "darwin":
+            raise NotImplementedError("OSX does not implement sem_getvalue")
+        return self._semlock._get_value()
+
+    def __repr__(self):
+        try:
+            value = self._semlock._get_value()
+        except Exception:
+            value = "unknown"
+        return f"<{self.__class__.__name__}(value={value})>"
+
+
+#
+# Bounded semaphore
+#
+
+
+class BoundedSemaphore(Semaphore):
+    def __init__(self, value=1):
+        SemLock.__init__(self, SEMAPHORE, value, value)
+
+    def __repr__(self):
+        try:
+            value = self._semlock._get_value()
+        except Exception:
+            value = "unknown"
+        return (
+            f"<{self.__class__.__name__}(value={value}, "
+            f"maxvalue={self._semlock.maxvalue})>"
+        )
+
+
+#
+# Non-recursive lock
+#
+
+
+class Lock(SemLock):
+    def __init__(self):
+        super().__init__(SEMAPHORE, 1, 1)
+
+    def __repr__(self):
+        try:
+            if self._semlock._is_mine():
+                name = process.current_process().name
+                if threading.current_thread().name != "MainThread":
+                    name = f"{name}|{threading.current_thread().name}"
+            elif self._semlock._get_value() == 1:
+                name = "None"
+            elif self._semlock._count() > 0:
+                name = "SomeOtherThread"
+            else:
+                name = "SomeOtherProcess"
+        except Exception:
+            name = "unknown"
+        return f"<{self.__class__.__name__}(owner={name})>"
+
+
+#
+# Recursive lock
+#
+
+
+class RLock(SemLock):
+    def __init__(self):
+        super().__init__(RECURSIVE_MUTEX, 1, 1)
+
+    def __repr__(self):
+        try:
+            if self._semlock._is_mine():
+                name = process.current_process().name
+                if threading.current_thread().name != "MainThread":
+                    name = f"{name}|{threading.current_thread().name}"
+                count = self._semlock._count()
+            elif self._semlock._get_value() == 1:
+                name, count = "None", 0
+            elif self._semlock._count() > 0:
+                name, count = "SomeOtherThread", "nonzero"
+            else:
+                name, count = "SomeOtherProcess", "nonzero"
+        except Exception:
+            name, count = "unknown", "unknown"
+        return f"<{self.__class__.__name__}({name}, {count})>"
+
+
+#
+# Condition variable
+#
+
+
+class Condition:
+    def __init__(self, lock=None):
+        self._lock = lock or RLock()
+        self._sleeping_count = Semaphore(0)
+        self._woken_count = Semaphore(0)
+        self._wait_semaphore = Semaphore(0)
+        self._make_methods()
+
+    def __getstate__(self):
+        assert_spawning(self)
+        return (
+            self._lock,
+            self._sleeping_count,
+            self._woken_count,
+            self._wait_semaphore,
+        )
+
+    def __setstate__(self, state):
+        (
+            self._lock,
+            self._sleeping_count,
+            self._woken_count,
+            self._wait_semaphore,
+        ) = state
+        self._make_methods()
+
+    def __enter__(self):
+        return self._lock.__enter__()
+
+    def __exit__(self, *args):
+        return self._lock.__exit__(*args)
+
+    def _make_methods(self):
+        self.acquire = self._lock.acquire
+        self.release = self._lock.release
+
+    def __repr__(self):
+        try:
+            num_waiters = (
+                self._sleeping_count._semlock._get_value()
+                - self._woken_count._semlock._get_value()
+            )
+        except Exception:
+            num_waiters = "unknown"
+        return f"<{self.__class__.__name__}({self._lock}, {num_waiters})>"
+
+    def wait(self, timeout=None):
+        assert (
+            self._lock._semlock._is_mine()
+        ), "must acquire() condition before using wait()"
+
+        # indicate that this thread is going to sleep
+        self._sleeping_count.release()
+
+        # release lock
+        count = self._lock._semlock._count()
+        for _ in range(count):
+            self._lock.release()
+
+        try:
+            # wait for notification or timeout
+            return self._wait_semaphore.acquire(True, timeout)
+        finally:
+            # indicate that this thread has woken
+            self._woken_count.release()
+
+            # reacquire lock
+            for _ in range(count):
+                self._lock.acquire()
+
+    def notify(self):
+        assert self._lock._semlock._is_mine(), "lock is not owned"
+        assert not self._wait_semaphore.acquire(False)
+
+        # to take account of timeouts since last notify() we subtract
+        # woken_count from sleeping_count and rezero woken_count
+        while self._woken_count.acquire(False):
+            res = self._sleeping_count.acquire(False)
+            assert res
+
+        if self._sleeping_count.acquire(False):  # try grabbing a sleeper
+            self._wait_semaphore.release()  # wake up one sleeper
+            self._woken_count.acquire()  # wait for the sleeper to wake
+
+            # rezero _wait_semaphore in case a timeout just happened
+            self._wait_semaphore.acquire(False)
+
+    def notify_all(self):
+        assert self._lock._semlock._is_mine(), "lock is not owned"
+        assert not self._wait_semaphore.acquire(False)
+
+        # to take account of timeouts since last notify*() we subtract
+        # woken_count from sleeping_count and rezero woken_count
+        while self._woken_count.acquire(False):
+            res = self._sleeping_count.acquire(False)
+            assert res
+
+        sleepers = 0
+        while self._sleeping_count.acquire(False):
+            self._wait_semaphore.release()  # wake up one sleeper
+            sleepers += 1
+
+        if sleepers:
+            for _ in range(sleepers):
+                self._woken_count.acquire()  # wait for a sleeper to wake
+
+            # rezero wait_semaphore in case some timeouts just happened
+            while self._wait_semaphore.acquire(False):
+                pass
+
+    def wait_for(self, predicate, timeout=None):
+        result = predicate()
+        if result:
+            return result
+        if timeout is not None:
+            endtime = _time() + timeout
+        else:
+            endtime = None
+            waittime = None
+        while not result:
+            if endtime is not None:
+                waittime = endtime - _time()
+                if waittime <= 0:
+                    break
+            self.wait(waittime)
+            result = predicate()
+        return result
+
+
+#
+# Event
+#
+
+
+class Event:
+    def __init__(self):
+        self._cond = Condition(Lock())
+        self._flag = Semaphore(0)
+
+    def is_set(self):
+        with self._cond:
+            if self._flag.acquire(False):
+                self._flag.release()
+                return True
+            return False
+
+    def set(self):
+        with self._cond:
+            self._flag.acquire(False)
+            self._flag.release()
+            self._cond.notify_all()
+
+    def clear(self):
+        with self._cond:
+            self._flag.acquire(False)
+
+    def wait(self, timeout=None):
+        with self._cond:
+            if self._flag.acquire(False):
+                self._flag.release()
+            else:
+                self._cond.wait(timeout)
+
+            if self._flag.acquire(False):
+                self._flag.release()
+                return True
+            return False
+```
+
+## joblib/joblib/externals/loky/backend/utils.py.notice.txt
+
+```text
+import os
+import sys
+import time
+import errno
+import signal
+import warnings
+import subprocess
+import traceback
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+
+def kill_process_tree(process, use_psutil=True):
+    """Terminate process and its descendants with SIGKILL"""
+    if use_psutil and psutil is not None:
+        _kill_process_tree_with_psutil(process)
+    else:
+        _kill_process_tree_without_psutil(process)
+
+
+def recursive_terminate(process, use_psutil=True):
+    warnings.warn(
+        "recursive_terminate is deprecated in loky 3.2, use kill_process_tree"
+        "instead",
+        DeprecationWarning,
+    )
+    kill_process_tree(process, use_psutil=use_psutil)
+
+
+def _kill_process_tree_with_psutil(process):
+    try:
+        descendants = psutil.Process(process.pid).children(recursive=True)
+    except psutil.NoSuchProcess:
+        return
+
+    # Kill the descendants in reverse order to avoid killing the parents before
+    # the descendant in cases where there are more processes nested.
+    for descendant in descendants[::-1]:
+        try:
+            descendant.kill()
+        except psutil.NoSuchProcess:
+            pass
+
+    try:
+        psutil.Process(process.pid).kill()
+    except psutil.NoSuchProcess:
+        pass
+    process.join()
+
+
+def _kill_process_tree_without_psutil(process):
+    """Terminate a process and its descendants."""
+    try:
+        if sys.platform == "win32":
+            _windows_taskkill_process_tree(process.pid)
+        else:
+            _posix_recursive_kill(process.pid)
+    except Exception:  # pragma: no cover
+        details = traceback.format_exc()
+        warnings.warn(
+            "Failed to kill subprocesses on this platform. Please install"
+            "psutil: https://github.com/giampaolo/psutil\n"
+            f"Details:\n{details}"
+        )
+        # In case we cannot introspect or kill the descendants, we fall back to
+        # only killing the main process.
+        #
+        # Note: on Windows, process.kill() is an alias for process.terminate()
+        # which in turns calls the Win32 API function TerminateProcess().
+        process.kill()
+    process.join()
+
+
+def _windows_taskkill_process_tree(pid):
+    # On windows, the taskkill function with option `/T` terminate a given
+    # process pid and its children.
+    try:
+        subprocess.check_output(
+            ["taskkill", "/F", "/T", "/PID", str(pid)], stderr=None
+        )
+    except subprocess.CalledProcessError as e:
+        # In Windows, taskkill returns 128, 255 for no process found.
+        if e.returncode not in [128, 255]:
+            # Let's raise to let the caller log the error details in a
+            # warning and only kill the root process.
+            raise  # pragma: no cover
+
+
+def _kill(pid):
+    # Not all systems (e.g. Windows) have a SIGKILL, but the C specification
+    # mandates a SIGTERM signal. While Windows is handled specifically above,
+    # let's try to be safe for other hypothetic platforms that only have
+    # SIGTERM without SIGKILL.
+    kill_signal = getattr(signal, "SIGKILL", signal.SIGTERM)
+    try:
+        os.kill(pid, kill_signal)
+    except OSError as e:
+        # if OSError is raised with [Errno 3] no such process, the process
+        # is already terminated, else, raise the error and let the top
+        # level function raise a warning and retry to kill the process.
+        if e.errno != errno.ESRCH:
+            raise  # pragma: no cover
+
+
+def _posix_recursive_kill(pid):
+    """Recursively kill the descendants of a process before killing it."""
+    try:
+        children_pids = subprocess.check_output(
+            ["pgrep", "-P", str(pid)], stderr=None, text=True
+        )
+    except subprocess.CalledProcessError as e:
+        # `ps` returns 1 when no child process has been found
+        if e.returncode == 1:
+            children_pids = ""
+        else:
+            raise  # pragma: no cover
+
+    # Decode the result, split the cpid and remove the trailing line
+    for cpid in children_pids.splitlines():
+        cpid = int(cpid)
+        _posix_recursive_kill(cpid)
+
+    _kill(pid)
+
+
+def get_exitcodes_terminated_worker(processes):
+    """Return a formatted string with the exitcodes of terminated workers.
+
+    If necessary, wait (up to .25s) for the system to correctly set the
+    exitcode of one terminated worker.
+    """
+    patience = 5
+
+    # Catch the exitcode of the terminated workers. There should at least be
+    # one. If not, wait a bit for the system to correctly set the exitcode of
+    # the terminated worker.
+    exitcodes = [
+        p.exitcode for p in list(processes.values()) if p.exitcode is not None
+    ]
+    while not exitcodes and patience > 0:
+        patience -= 1
+        exitcodes = [
+            p.exitcode
+            for p in list(processes.values())
+            if p.exitcode is not None
+        ]
+        time.sleep(0.05)
+
+    return _format_exitcodes(exitcodes)
+
+
+def _format_exitcodes(exitcodes):
+    """Format a list of exit code with names of the signals if possible"""
+    str_exitcodes = [
+        f"{_get_exitcode_name(e)}({e})" for e in exitcodes if e is not None
+    ]
+    return "{" + ", ".join(str_exitcodes) + "}"
+
+
+def _get_exitcode_name(exitcode):
+    if sys.platform == "win32":
+        # The exitcode are unreliable  on windows (see bpo-31863).
+        # For this case, return UNKNOWN
+        return "UNKNOWN"
+
+    if exitcode < 0:
+        try:
+            import signal
+
+            return signal.Signals(-exitcode).name
+        except ValueError:
+            return "UNKNOWN"
+    elif exitcode != 255:
+        # The exitcode are unreliable on forkserver were 255 is always returned
+        # (see bpo-30589). For this case, return UNKNOWN
+        return "EXIT"
+
+    return "UNKNOWN"
+```
+
+## joblib/joblib/externals/loky/cloudpickle_wrapper.py.notice.txt
+
+```text
+import inspect
+from functools import partial
+from joblib.externals.cloudpickle import dumps, loads
+
+
+WRAP_CACHE = {}
+
+
+class CloudpickledObjectWrapper:
+    def __init__(self, obj, keep_wrapper=False):
+        self._obj = obj
+        self._keep_wrapper = keep_wrapper
+
+    def __reduce__(self):
+        _pickled_object = dumps(self._obj)
+        if not self._keep_wrapper:
+            return loads, (_pickled_object,)
+
+        return _reconstruct_wrapper, (_pickled_object, self._keep_wrapper)
+
+    def __getattr__(self, attr):
+        # Ensure that the wrapped object can be used seemlessly as the
+        # previous object.
+        if attr not in ["_obj", "_keep_wrapper"]:
+            return getattr(self._obj, attr)
+        return getattr(self, attr)
+
+
+# Make sure the wrapped object conserves the callable property
+class CallableObjectWrapper(CloudpickledObjectWrapper):
+    def __call__(self, *args, **kwargs):
+        return self._obj(*args, **kwargs)
+
+
+def _wrap_non_picklable_objects(obj, keep_wrapper):
+    if callable(obj):
+        return CallableObjectWrapper(obj, keep_wrapper=keep_wrapper)
+    return CloudpickledObjectWrapper(obj, keep_wrapper=keep_wrapper)
+
+
+def _reconstruct_wrapper(_pickled_object, keep_wrapper):
+    obj = loads(_pickled_object)
+    return _wrap_non_picklable_objects(obj, keep_wrapper)
+
+
+def _wrap_objects_when_needed(obj):
+    # Function to introspect an object and decide if it should be wrapped or
+    # not.
+    need_wrap = "__main__" in getattr(obj, "__module__", "")
+    if isinstance(obj, partial):
+        return partial(
+            _wrap_objects_when_needed(obj.func),
+            *[_wrap_objects_when_needed(a) for a in obj.args],
+            **{
+                k: _wrap_objects_when_needed(v)
+                for k, v in obj.keywords.items()
+            },
+        )
+    if callable(obj):
+        # Need wrap if the object is a function defined in a local scope of
+        # another function.
+        func_code = getattr(obj, "__code__", "")
+        need_wrap |= getattr(func_code, "co_flags", 0) & inspect.CO_NESTED
+
+        # Need wrap if the obj is a lambda expression
+        func_name = getattr(obj, "__name__", "")
+        need_wrap |= "<lambda>" in func_name
+
+    if not need_wrap:
+        return obj
+
+    wrapped_obj = WRAP_CACHE.get(obj)
+    if wrapped_obj is None:
+        wrapped_obj = _wrap_non_picklable_objects(obj, keep_wrapper=False)
+        WRAP_CACHE[obj] = wrapped_obj
+    return wrapped_obj
+
+
+def wrap_non_picklable_objects(obj, keep_wrapper=True):
+    """Wrapper for non-picklable object to use cloudpickle to serialize them.
+
+    Note that this wrapper tends to slow down the serialization process as it
+    is done with cloudpickle which is typically slower compared to pickle. The
+    proper way to solve serialization issues is to avoid defining functions and
+    objects in the main scripts and to implement __reduce__ functions for
+    complex classes.
+    """
+    # If obj is a  class, create a CloudpickledClassWrapper which instantiates
+    # the object internally and wrap it directly in a CloudpickledObjectWrapper
+    if inspect.isclass(obj):
+
+        class CloudpickledClassWrapper(CloudpickledObjectWrapper):
+            def __init__(self, *args, **kwargs):
+                self._obj = obj(*args, **kwargs)
+                self._keep_wrapper = keep_wrapper
+
+        CloudpickledClassWrapper.__name__ = obj.__name__
+        return CloudpickledClassWrapper
+
+    # If obj is an instance of a class, just wrap it in a regular
+    # CloudpickledObjectWrapper
+    return _wrap_non_picklable_objects(obj, keep_wrapper=keep_wrapper)
+```
+
+## joblib/joblib/externals/loky/initializers.py.notice.txt
+
+```text
+import warnings
+
+
+def _viztracer_init(init_kwargs):
+    """Initialize viztracer's profiler in worker processes"""
+    from viztracer import VizTracer
+
+    tracer = VizTracer(**init_kwargs)
+    tracer.register_exit()
+    tracer.start()
+
+
+def _make_viztracer_initializer_and_initargs():
+    try:
+        import viztracer
+
+        tracer = viztracer.get_tracer()
+        if tracer is not None and getattr(tracer, "enable", False):
+            # Profiler is active: introspect its configuration to
+            # initialize the workers with the same configuration.
+            return _viztracer_init, (tracer.init_kwargs,)
+    except ImportError:
+        # viztracer is not installed: nothing to do
+        pass
+    except Exception as e:
+        # In case viztracer's API evolve, we do not want to crash loky but
+        # we want to know about it to be able to update loky.
+        warnings.warn(f"Unable to introspect viztracer state: {e}")
+    return None, ()
+
+
+class _ChainedInitializer:
+    """Compound worker initializer
+
+    This is meant to be used in conjunction with _chain_initializers to
+    produce  the necessary chained_args list to be passed to __call__.
+    """
+
+    def __init__(self, initializers):
+        self._initializers = initializers
+
+    def __call__(self, *chained_args):
+        for initializer, args in zip(self._initializers, chained_args):
+            initializer(*args)
+
+
+def _chain_initializers(initializer_and_args):
+    """Convenience helper to combine a sequence of initializers.
+
+    If some initializers are None, they are filtered out.
+    """
+    filtered_initializers = []
+    filtered_initargs = []
+    for initializer, initargs in initializer_and_args:
+        if initializer is not None:
+            filtered_initializers.append(initializer)
+            filtered_initargs.append(initargs)
+
+    if not filtered_initializers:
+        return None, ()
+    elif len(filtered_initializers) == 1:
+        return filtered_initializers[0], filtered_initargs[0]
+    else:
+        return _ChainedInitializer(filtered_initializers), filtered_initargs
+
+
+def _prepare_initializer(initializer, initargs):
+    if initializer is not None and not callable(initializer):
+        raise TypeError(
+            f"initializer must be a callable, got: {initializer!r}"
+        )
+
+    # Introspect runtime to determine if we need to propagate the viztracer
+    # profiler information to the workers:
+    return _chain_initializers(
+        [
+            (initializer, initargs),
+            _make_viztracer_initializer_and_initargs(),
+        ]
+    )
+```
+
+## joblib/joblib/externals/loky/process_executor.py.notice.txt
+
+```text
+###############################################################################
+# Re-implementation of the ProcessPoolExecutor more robust to faults
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+# adapted from concurrent/futures/process_pool_executor.py (17/02/2017)
+#  * Add an extra management thread to detect executor_manager_thread failures,
+#  * Improve the shutdown process to avoid deadlocks,
+#  * Add timeout for workers,
+#  * More robust pickling process.
+#
+# Copyright 2009 Brian Quinlan. All Rights Reserved.
+# Licensed to PSF under a Contributor Agreement.
+
+"""Implements ProcessPoolExecutor.
+
+The follow diagram and text describe the data-flow through the system:
+
+|======================= In-process =====================|== Out-of-process ==|
+
++----------+     +----------+       +--------+     +-----------+    +---------+
+|          |  => | Work Ids |       |        |     | Call Q    |    | Process |
+|          |     +----------+       |        |     +-----------+    |  Pool   |
+|          |     | ...      |       |        |     | ...       |    +---------+
+|          |     | 6        |    => |        |  => | 5, call() | => |         |
+|          |     | 7        |       |        |     | ...       |    |         |
+| Process  |     | ...      |       | Local  |     +-----------+    | Process |
+|  Pool    |     +----------+       | Worker |                      |  #1..n  |
+| Executor |                        | Thread |                      |         |
+|          |     +----------- +     |        |     +-----------+    |         |
+|          | <=> | Work Items | <=> |        | <=  | Result Q  | <= |         |
+|          |     +------------+     |        |     +-----------+    |         |
+|          |     | 6: call()  |     |        |     | ...       |    |         |
+|          |     |    future  |     +--------+     | 4, result |    |         |
+|          |     | ...        |                    | 3, except |    |         |
++----------+     +------------+                    +-----------+    +---------+
+
+Executor.submit() called:
+- creates a uniquely numbered _WorkItem and adds it to the "Work Items" dict
+- adds the id of the _WorkItem to the "Work Ids" queue
+
+Local worker thread:
+- reads work ids from the "Work Ids" queue and looks up the corresponding
+  WorkItem from the "Work Items" dict: if the work item has been cancelled then
+  it is simply removed from the dict, otherwise it is repackaged as a
+  _CallItem and put in the "Call Q". New _CallItems are put in the "Call Q"
+  until "Call Q" is full. NOTE: the size of the "Call Q" is kept small because
+  calls placed in the "Call Q" can no longer be cancelled with Future.cancel().
+- reads _ResultItems from "Result Q", updates the future stored in the
+  "Work Items" dict and deletes the dict entry
+
+Process #1..n:
+- reads _CallItems from "Call Q", executes the calls, and puts the resulting
+  _ResultItems in "Result Q"
+"""
+
+
+__author__ = "Thomas Moreau (thomas.moreau.2010@gmail.com)"
+
+
+import faulthandler
+import os
+import gc
+import sys
+import queue
+import struct
+import weakref
+import warnings
+import itertools
+import traceback
+import threading
+from time import time, sleep
+import multiprocessing as mp
+from functools import partial
+from pickle import PicklingError
+from concurrent.futures import Executor
+from concurrent.futures._base import LOGGER
+from concurrent.futures.process import BrokenProcessPool as _BPPException
+from multiprocessing.connection import wait
+
+from ._base import Future
+from .backend import get_context
+from .backend.context import cpu_count, _MAX_WINDOWS_WORKERS
+from .backend.queues import Queue, SimpleQueue
+from .backend.reduction import set_loky_pickler, get_loky_pickler_name
+from .backend.utils import kill_process_tree, get_exitcodes_terminated_worker
+from .initializers import _prepare_initializer
+
+
+# Mechanism to prevent infinite process spawning. When a worker of a
+# ProcessPoolExecutor nested in MAX_DEPTH Executor tries to create a new
+# Executor, a LokyRecursionError is raised
+MAX_DEPTH = int(os.environ.get("LOKY_MAX_DEPTH", 10))
+_CURRENT_DEPTH = 0
+
+# Minimum time interval between two consecutive memory leak protection checks.
+_MEMORY_LEAK_CHECK_DELAY = 1.0
+
+# Number of bytes of memory usage allowed over the reference process size.
+_MAX_MEMORY_LEAK_SIZE = int(3e8)
+
+
+try:
+    from psutil import Process
+
+    _USE_PSUTIL = True
+
+    def _get_memory_usage(pid, force_gc=False):
+        if force_gc:
+            gc.collect()
+
+        mem_size = Process(pid).memory_info().rss
+        mp.util.debug(f"psutil return memory size: {mem_size}")
+        return mem_size
+
+except ImportError:
+    _USE_PSUTIL = False
+
+
+class _ThreadWakeup:
+    def __init__(self):
+        self._closed = False
+        self._reader, self._writer = mp.Pipe(duplex=False)
+
+    def close(self):
+        if not self._closed:
+            self._closed = True
+            self._writer.close()
+            self._reader.close()
+
+    def wakeup(self):
+        if not self._closed:
+            self._writer.send_bytes(b"")
+
+    def clear(self):
+        if not self._closed:
+            while self._reader.poll():
+                self._reader.recv_bytes()
+
+
+class _ExecutorFlags:
+    """necessary references to maintain executor states without preventing gc
+
+    It permits to keep the information needed by executor_manager_thread
+    and crash_detection_thread to maintain the pool without preventing the
+    garbage collection of unreferenced executors.
+    """
+
+    def __init__(self, shutdown_lock):
+
+        self.shutdown = False
+        self.broken = None
+        self.kill_workers = False
+        self.shutdown_lock = shutdown_lock
+
+    def flag_as_shutting_down(self, kill_workers=None):
+        with self.shutdown_lock:
+            self.shutdown = True
+            if kill_workers is not None:
+                self.kill_workers = kill_workers
+
+    def flag_as_broken(self, broken):
+        with self.shutdown_lock:
+            self.shutdown = True
+            self.broken = broken
+
+
+# Prior to 3.9, executor_manager_thread is created as daemon thread. This means
+# that it is not joined automatically when the interpreter is shutting down.
+# To work around this problem, an exit handler is installed to tell the
+# thread to exit when the interpreter is shutting down and then waits until
+# it finishes. The thread needs to be daemonized because the atexit hooks are
+# called after all non daemonized threads are joined.
+#
+# Starting 3.9, there exists a specific atexit hook to be called before joining
+# the threads so the executor_manager_thread does not need to be daemonized
+# anymore.
+#
+# The atexit hooks are registered when starting the first ProcessPoolExecutor
+# to avoid import having an effect on the interpreter.
+
+_global_shutdown = False
+_global_shutdown_lock = threading.Lock()
+_threads_wakeups = weakref.WeakKeyDictionary()
+
+
+def _python_exit():
+    global _global_shutdown
+    _global_shutdown = True
+
+    # Materialize the list of items to avoid error due to iterating over
+    # changing size dictionary.
+    items = list(_threads_wakeups.items())
+    if len(items) > 0:
+        mp.util.debug(
+            f"Interpreter shutting down. Waking up {len(items)}"
+            f"executor_manager_thread:\n{items}"
+        )
+
+    # Wake up the executor_manager_thread's so they can detect the interpreter
+    # is shutting down and exit.
+    for _, (shutdown_lock, thread_wakeup) in items:
+        with shutdown_lock:
+            thread_wakeup.wakeup()
+
+    # Collect the executor_manager_thread's to make sure we exit cleanly.
+    for thread, _ in items:
+        # This locks is to prevent situations where an executor is gc'ed in one
+        # thread while the atexit finalizer is running in another thread.
+        with _global_shutdown_lock:
+            thread.join()
+
+
+# With the fork context, _thread_wakeups is propagated to children.
+# Clear it after fork to avoid some situation that can cause some
+# freeze when joining the workers.
+mp.util.register_after_fork(_threads_wakeups, lambda obj: obj.clear())
+
+
+# Module variable to register the at_exit call
+process_pool_executor_at_exit = None
+
+# Controls how many more calls than processes will be queued in the call queue.
+# A smaller number will mean that processes spend more time idle waiting for
+# work while a larger number will make Future.cancel() succeed less frequently
+# (Futures in the call queue cannot be cancelled).
+EXTRA_QUEUED_CALLS = 1
+
+
+class _RemoteTraceback(Exception):
+    """Embed stringification of remote traceback in local traceback"""
+
+    def __init__(self, tb=None):
+        self.tb = f'\n"""\n{tb}"""'
+
+    def __str__(self):
+        return self.tb
+
+
+# Do not inherit from BaseException to mirror
+# concurrent.futures.process._ExceptionWithTraceback
+class _ExceptionWithTraceback:
+    def __init__(self, exc):
+        tb = getattr(exc, "__traceback__", None)
+        if tb is None:
+            _, _, tb = sys.exc_info()
+        tb = traceback.format_exception(type(exc), exc, tb)
+        tb = "".join(tb)
+        self.exc = exc
+        self.tb = tb
+
+    def __reduce__(self):
+        return _rebuild_exc, (self.exc, self.tb)
+
+
+def _rebuild_exc(exc, tb):
+    exc.__cause__ = _RemoteTraceback(tb)
+    return exc
+
+
+class _WorkItem:
+
+    __slots__ = ["future", "fn", "args", "kwargs"]
+
+    def __init__(self, future, fn, args, kwargs):
+        self.future = future
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+
+
+class _ResultItem:
+    def __init__(self, work_id, exception=None, result=None):
+        self.work_id = work_id
+        self.exception = exception
+        self.result = result
+
+
+class _CallItem:
+    def __init__(self, work_id, fn, args, kwargs):
+        self.work_id = work_id
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+
+        # Store the current loky_pickler so it is correctly set in the worker
+        self.loky_pickler = get_loky_pickler_name()
+
+    def __call__(self):
+        set_loky_pickler(self.loky_pickler)
+        return self.fn(*self.args, **self.kwargs)
+
+    def __repr__(self):
+        return (
+            f"CallItem({self.work_id}, {self.fn}, {self.args}, {self.kwargs})"
+        )
+
+
+class _SafeQueue(Queue):
+    """Safe Queue set exception to the future object linked to a job"""
+
+    def __init__(
+        self,
+        max_size=0,
+        ctx=None,
+        pending_work_items=None,
+        running_work_items=None,
+        thread_wakeup=None,
+        shutdown_lock=None,
+        reducers=None,
+    ):
+        self.thread_wakeup = thread_wakeup
+        self.shutdown_lock = shutdown_lock
+        self.pending_work_items = pending_work_items
+        self.running_work_items = running_work_items
+        super().__init__(max_size, reducers=reducers, ctx=ctx)
+
+    def _on_queue_feeder_error(self, e, obj):
+        if isinstance(obj, _CallItem):
+            # format traceback only works on python3
+            if isinstance(e, struct.error):
+                raised_error = RuntimeError(
+                    "The task could not be sent to the workers as it is too "
+                    "large for `send_bytes`."
+                )
+            else:
+                raised_error = PicklingError(
+                    "Could not pickle the task to send it to the workers."
+                )
+            tb = traceback.format_exception(
+                type(e), e, getattr(e, "__traceback__", None)
+            )
+            raised_error.__cause__ = _RemoteTraceback("".join(tb))
+            work_item = self.pending_work_items.pop(obj.work_id, None)
+            self.running_work_items.remove(obj.work_id)
+            # work_item can be None if another process terminated. In this
+            # case, the executor_manager_thread fails all work_items with
+            # BrokenProcessPool
+            if work_item is not None:
+                work_item.future.set_exception(raised_error)
+                del work_item
+            with self.shutdown_lock:
+                self.thread_wakeup.wakeup()
+        else:
+            super()._on_queue_feeder_error(e, obj)
+
+
+def _get_chunks(chunksize, *iterables):
+    """Iterates over zip()ed iterables in chunks."""
+    it = zip(*iterables)
+    while True:
+        chunk = tuple(itertools.islice(it, chunksize))
+        if not chunk:
+            return
+        yield chunk
+
+
+def _process_chunk(fn, chunk):
+    """Processes a chunk of an iterable passed to map.
+
+    Runs the function passed to map() on a chunk of the
+    iterable passed to map.
+
+    This function is run in a separate process.
+
+    """
+    return [fn(*args) for args in chunk]
+
+
+def _sendback_result(result_queue, work_id, result=None, exception=None):
+    """Safely send back the given result or exception"""
+    try:
+        result_queue.put(
+            _ResultItem(work_id, result=result, exception=exception)
+        )
+    except BaseException as e:
+        exc = _ExceptionWithTraceback(e)
+        result_queue.put(_ResultItem(work_id, exception=exc))
+
+
+def _enable_faulthandler_if_needed():
+    if "PYTHONFAULTHANDLER" in os.environ:
+        # Respect the environment variable to configure faulthandler. This
+        # makes it possible to never enable faulthandler in the loky workers by
+        # setting PYTHONFAULTHANDLER=0 explicitly in the environment.
+        mp.util.debug(
+            f"faulthandler explicitly configured by environment variable: "
+            f"PYTHONFAULTHANDLER={os.environ['PYTHONFAULTHANDLER']}."
+        )
+    else:
+        if faulthandler.is_enabled():
+            # Fault handler is already enabled, possibly via a custom
+            # initializer to customize the behavior.
+            mp.util.debug("faulthandler already enabled.")
+        else:
+            # Enable faulthandler by default with default paramaters otherwise.
+            mp.util.debug(
+                "Enabling faulthandler to report tracebacks on worker crashes."
+            )
+            faulthandler.enable()
+
+
+def _process_worker(
+    call_queue,
+    result_queue,
+    initializer,
+    initargs,
+    processes_management_lock,
+    timeout,
+    worker_exit_lock,
+    current_depth,
+):
+    """Evaluates calls from call_queue and places the results in result_queue.
+
+    This worker is run in a separate process.
+
+    Args:
+        call_queue: A ctx.Queue of _CallItems that will be read and
+            evaluated by the worker.
+        result_queue: A ctx.Queue of _ResultItems that will written
+            to by the worker.
+        initializer: A callable initializer, or None
+        initargs: A tuple of args for the initializer
+        processes_management_lock: A ctx.Lock avoiding worker timeout while
+            some workers are being spawned.
+        timeout: maximum time to wait for a new item in the call_queue. If that
+            time is expired, the worker will shutdown.
+        worker_exit_lock: Lock to avoid flagging the executor as broken on
+            workers timeout.
+        current_depth: Nested parallelism level, to avoid infinite spawning.
+    """
+    if initializer is not None:
+        try:
+            initializer(*initargs)
+        except BaseException:
+            LOGGER.critical("Exception in initializer:", exc_info=True)
+            # The parent will notice that the process stopped and
+            # mark the pool broken
+            return
+
+    # set the global _CURRENT_DEPTH mechanism to limit recursive call
+    global _CURRENT_DEPTH
+    _CURRENT_DEPTH = current_depth
+    _process_reference_size = None
+    _last_memory_leak_check = None
+    pid = os.getpid()
+
+    mp.util.debug(f"Worker started with timeout={timeout}")
+    _enable_faulthandler_if_needed()
+
+    while True:
+        try:
+            call_item = call_queue.get(block=True, timeout=timeout)
+            if call_item is None:
+                mp.util.info("Shutting down worker on sentinel")
+        except queue.Empty:
+            mp.util.info(f"Shutting down worker after timeout {timeout:0.3f}s")
+            if processes_management_lock.acquire(block=False):
+                processes_management_lock.release()
+                call_item = None
+            else:
+                mp.util.info("Could not acquire processes_management_lock")
+                continue
+        except BaseException:
+            previous_tb = traceback.format_exc()
+            try:
+                result_queue.put(_RemoteTraceback(previous_tb))
+            except BaseException:
+                # If we cannot format correctly the exception, at least print
+                # the traceback.
+                print(previous_tb)
+            mp.util.debug("Exiting with code 1")
+            sys.exit(1)
+        if call_item is None:
+            # Notify queue management thread about worker shutdown
+            result_queue.put(pid)
+            is_clean = worker_exit_lock.acquire(True, timeout=30)
+
+            # Early notify any loky executor running in this worker process
+            # (nested parallelism) that this process is about to shutdown to
+            # avoid a deadlock waiting undifinitely for the worker to finish.
+            _python_exit()
+
+            if is_clean:
+                mp.util.debug("Exited cleanly")
+            else:
+                mp.util.info("Main process did not release worker_exit")
+            return
+        try:
+            r = call_item()
+        except BaseException as e:
+            exc = _ExceptionWithTraceback(e)
+            result_queue.put(_ResultItem(call_item.work_id, exception=exc))
+        else:
+            _sendback_result(result_queue, call_item.work_id, result=r)
+            del r
+
+        # Free the resource as soon as possible, to avoid holding onto
+        # open files or shared memory that is not needed anymore
+        del call_item
+
+        if _USE_PSUTIL:
+            if _process_reference_size is None:
+                # Make reference measurement after the first call
+                _process_reference_size = _get_memory_usage(pid, force_gc=True)
+                _last_memory_leak_check = time()
+                continue
+            if time() - _last_memory_leak_check > _MEMORY_LEAK_CHECK_DELAY:
+                mem_usage = _get_memory_usage(pid)
+                _last_memory_leak_check = time()
+                if mem_usage - _process_reference_size < _MAX_MEMORY_LEAK_SIZE:
+                    # Memory usage stays within bounds: everything is fine.
+                    continue
+
+                # Check again memory usage; this time take the measurement
+                # after a forced garbage collection to break any reference
+                # cycles.
+                mem_usage = _get_memory_usage(pid, force_gc=True)
+                _last_memory_leak_check = time()
+                if mem_usage - _process_reference_size < _MAX_MEMORY_LEAK_SIZE:
+                    # The GC managed to free the memory: everything is fine.
+                    continue
+
+                # The process is leaking memory: let the master process
+                # know that we need to start a new worker.
+                mp.util.info("Memory leak detected: shutting down worker")
+                result_queue.put(pid)
+                with worker_exit_lock:
+                    mp.util.debug("Exit due to memory leak")
+                    return
+        else:
+            # if psutil is not installed, trigger gc.collect events
+            # regularly to limit potential memory leaks due to reference cycles
+            if _last_memory_leak_check is None or (
+                time() - _last_memory_leak_check > _MEMORY_LEAK_CHECK_DELAY
+            ):
+                gc.collect()
+                _last_memory_leak_check = time()
+
+
+class _ExecutorManagerThread(threading.Thread):
+    """Manages the communication between this process and the worker processes.
+
+    The manager is run in a local thread.
+
+    Args:
+        executor: A reference to the ProcessPoolExecutor that owns
+            this thread. A weakref will be own by the manager as well as
+            references to internal objects used to introspect the state of
+            the executor.
+    """
+
+    def __init__(self, executor):
+        # Store references to necessary internals of the executor.
+
+        # A _ThreadWakeup to allow waking up the executor_manager_thread from
+        # the main Thread and avoid deadlocks caused by permanently
+        # locked queues.
+        self.thread_wakeup = executor._executor_manager_thread_wakeup
+        self.shutdown_lock = executor._shutdown_lock
+
+        # A weakref.ref to the ProcessPoolExecutor that owns this thread. Used
+        # to determine if the ProcessPoolExecutor has been garbage collected
+        # and that the manager can exit.
+        # When the executor gets garbage collected, the weakref callback
+        # will wake up the queue management thread so that it can terminate
+        # if there is no pending work item.
+        def weakref_cb(
+            _,
+            thread_wakeup=self.thread_wakeup,
+            shutdown_lock=self.shutdown_lock,
+        ):
+            if mp is not None:
+                # At this point, the multiprocessing module can already be
+                # garbage collected. We only log debug info when still
+                # possible.
+                mp.util.debug(
+                    "Executor collected: triggering callback for"
+                    " QueueManager wakeup"
+                )
+            with shutdown_lock:
+                thread_wakeup.wakeup()
+
+        self.executor_reference = weakref.ref(executor, weakref_cb)
+
+        # The flags of the executor
+        self.executor_flags = executor._flags
+
+        # A list of the ctx.Process instances used as workers.
+        self.processes = executor._processes
+
+        # A ctx.Queue that will be filled with _CallItems derived from
+        # _WorkItems for processing by the process workers.
+        self.call_queue = executor._call_queue
+
+        # A ctx.SimpleQueue of _ResultItems generated by the process workers.
+        self.result_queue = executor._result_queue
+
+        # A queue.Queue of work ids e.g. Queue([5, 6, ...]).
+        self.work_ids_queue = executor._work_ids
+
+        # A dict mapping work ids to _WorkItems e.g.
+        #     {5: <_WorkItem...>, 6: <_WorkItem...>, ...}
+        self.pending_work_items = executor._pending_work_items
+
+        # A list of the work_ids that are currently running
+        self.running_work_items = executor._running_work_items
+
+        # A lock to avoid concurrent shutdown of workers on timeout and spawn
+        # of new processes or shut down
+        self.processes_management_lock = executor._processes_management_lock
+
+        super().__init__(name="ExecutorManagerThread")
+        if sys.version_info < (3, 9):
+            self.daemon = True
+
+    def run(self):
+        # Main loop for the executor manager thread.
+
+        while True:
+            self.add_call_item_to_queue()
+
+            result_item, is_broken, bpe = self.wait_result_broken_or_wakeup()
+
+            if is_broken:
+                self.terminate_broken(bpe)
+                return
+            if result_item is not None:
+                self.process_result_item(result_item)
+                # Delete reference to result_item to avoid keeping references
+                # while waiting on new results.
+                del result_item
+
+            if self.is_shutting_down():
+                self.flag_executor_shutting_down()
+
+                # Since no new work items can be added, it is safe to shutdown
+                # this thread if there are no pending work items.
+                if not self.pending_work_items:
+                    self.join_executor_internals()
+                    return
+
+    def add_call_item_to_queue(self):
+        # Fills call_queue with _WorkItems from pending_work_items.
+        # This function never blocks.
+        while True:
+            if self.call_queue.full():
+                return
+            try:
+                work_id = self.work_ids_queue.get(block=False)
+            except queue.Empty:
+                return
+            else:
+                work_item = self.pending_work_items[work_id]
+
+                if work_item.future.set_running_or_notify_cancel():
+                    self.running_work_items += [work_id]
+                    self.call_queue.put(
+                        _CallItem(
+                            work_id,
+                            work_item.fn,
+                            work_item.args,
+                            work_item.kwargs,
+                        ),
+                        block=True,
+                    )
+                else:
+                    del self.pending_work_items[work_id]
+                    continue
+
+    def wait_result_broken_or_wakeup(self):
+        # Wait for a result to be ready in the result_queue while checking
+        # that all worker processes are still running, or for a wake up
+        # signal send. The wake up signals come either from new tasks being
+        # submitted, from the executor being shutdown/gc-ed, or from the
+        # shutdown of the python interpreter.
+        result_reader = self.result_queue._reader
+        wakeup_reader = self.thread_wakeup._reader
+        readers = [result_reader, wakeup_reader]
+        worker_sentinels = [p.sentinel for p in list(self.processes.values())]
+        ready = wait(readers + worker_sentinels)
+
+        bpe = None
+        is_broken = True
+        result_item = None
+        if result_reader in ready:
+            try:
+                result_item = result_reader.recv()
+                if isinstance(result_item, _RemoteTraceback):
+                    bpe = BrokenProcessPool(
+                        "A task has failed to un-serialize. Please ensure that"
+                        " the arguments of the function are all picklable."
+                    )
+                    bpe.__cause__ = result_item
+                else:
+                    is_broken = False
+            except BaseException as e:
+                bpe = BrokenProcessPool(
+                    "A result has failed to un-serialize. Please ensure that "
+                    "the objects returned by the function are always "
+                    "picklable."
+                )
+                tb = traceback.format_exception(
+                    type(e), e, getattr(e, "__traceback__", None)
+                )
+                bpe.__cause__ = _RemoteTraceback("".join(tb))
+
+        elif wakeup_reader in ready:
+            # This is simply a wake-up event that might either trigger putting
+            # more tasks in the queue or trigger the clean up of resources.
+            is_broken = False
+        else:
+            # A worker has terminated and we don't know why, set the state of
+            # the executor as broken
+            exit_codes = ""
+            if sys.platform != "win32":
+                # In Windows, introspecting terminated workers exitcodes seems
+                # unstable, therefore they are not appended in the exception
+                # message.
+                exit_codes = (
+                    "\nThe exit codes of the workers are "
+                    f"{get_exitcodes_terminated_worker(self.processes)}"
+                )
+            mp.util.debug(
+                "A worker unexpectedly terminated. Workers that "
+                "might have caused the breakage: "
+                + str(
+                    {
+                        p.name: p.exitcode
+                        for p in list(self.processes.values())
+                        if p is not None and p.sentinel in ready
+                    }
+                )
+            )
+            bpe = TerminatedWorkerError(
+                "A worker process managed by the executor was unexpectedly "
+                "terminated. This could be caused by a segmentation fault "
+                "while calling the function or by an excessive memory usage "
+                "causing the Operating System to kill the worker.\n"
+                f"{exit_codes}\n"
+                "Detailed tracebacks of the workers should have been printed "
+                "to stderr in the executor process if faulthandler was not "
+                "disabled."
+            )
+
+        self.thread_wakeup.clear()
+
+        return result_item, is_broken, bpe
+
+    def process_result_item(self, result_item):
+        # Process the received a result_item. This can be either the PID of a
+        # worker that exited gracefully or a _ResultItem
+
+        if isinstance(result_item, int):
+            # Clean shutdown of a worker using its PID, either on request
+            # by the executor.shutdown method or by the timeout of the worker
+            # itself: we should not mark the executor as broken.
+            with self.processes_management_lock:
+                p = self.processes.pop(result_item, None)
+
+            # p can be None if the executor is concurrently shutting down.
+            if p is not None:
+                p._worker_exit_lock.release()
+                mp.util.debug(
+                    f"joining {p.name} when processing {p.pid} as result_item"
+                )
+                p.join()
+                del p
+
+            # Make sure the executor have the right number of worker, even if a
+            # worker timeout while some jobs were submitted. If some work is
+            # pending or there is less processes than running items, we need to
+            # start a new Process and raise a warning.
+            n_pending = len(self.pending_work_items)
+            n_running = len(self.running_work_items)
+            if n_pending - n_running > 0 or n_running > len(self.processes):
+                executor = self.executor_reference()
+                if (
+                    executor is not None
+                    and len(self.processes) < executor._max_workers
+                ):
+                    warnings.warn(
+                        "A worker stopped while some jobs were given to the "
+                        "executor. This can be caused by a too short worker "
+                        "timeout or by a memory leak.",
+                        UserWarning,
+                    )
+                    with executor._processes_management_lock:
+                        executor._adjust_process_count()
+                    executor = None
+        else:
+            # Received a _ResultItem so mark the future as completed.
+            work_item = self.pending_work_items.pop(result_item.work_id, None)
+            # work_item can be None if another process terminated (see above)
+            if work_item is not None:
+                if result_item.exception:
+                    work_item.future.set_exception(result_item.exception)
+                else:
+                    work_item.future.set_result(result_item.result)
+                self.running_work_items.remove(result_item.work_id)
+
+    def is_shutting_down(self):
+        # Check whether we should start shutting down the executor.
+        executor = self.executor_reference()
+        # No more work items can be added if:
+        #   - The interpreter is shutting down OR
+        #   - The executor that owns this thread is not broken AND
+        #        * The executor that owns this worker has been collected OR
+        #        * The executor that owns this worker has been shutdown.
+        # If the executor is broken, it should be detected in the next loop.
+        return _global_shutdown or (
+            (executor is None or self.executor_flags.shutdown)
+            and not self.executor_flags.broken
+        )
+
+    def terminate_broken(self, bpe):
+        # Terminate the executor because it is in a broken state. The bpe
+        # argument can be used to display more information on the error that
+        # lead the executor into becoming broken.
+
+        # Mark the process pool broken so that submits fail right now.
+        self.executor_flags.flag_as_broken(bpe)
+
+        # Mark pending tasks as failed.
+        for work_item in self.pending_work_items.values():
+            work_item.future.set_exception(bpe)
+            # Delete references to object. See issue16284
+            del work_item
+        self.pending_work_items.clear()
+
+        # Terminate remaining workers forcibly: the queues or their
+        # locks may be in a dirty state and block forever.
+        self.kill_workers(reason="broken executor")
+
+        # clean up resources
+        self.join_executor_internals()
+
+    def flag_executor_shutting_down(self):
+        # Flag the executor as shutting down and cancel remaining tasks if
+        # requested as early as possible if it is not gc-ed yet.
+        self.executor_flags.flag_as_shutting_down()
+
+        # Cancel pending work items if requested.
+        if self.executor_flags.kill_workers:
+            while self.pending_work_items:
+                _, work_item = self.pending_work_items.popitem()
+                work_item.future.set_exception(
+                    ShutdownExecutorError(
+                        "The Executor was shutdown with `kill_workers=True` "
+                        "before this job could complete."
+                    )
+                )
+                del work_item
+
+            # Kill the remaining worker forcibly to no waste time joining them
+            self.kill_workers(reason="executor shutting down")
+
+    def kill_workers(self, reason=""):
+        # Terminate the remaining workers using SIGKILL. This function also
+        # terminates descendant workers of the children in case there is some
+        # nested parallelism.
+        while self.processes:
+            _, p = self.processes.popitem()
+            mp.util.debug(f"terminate process {p.name}, reason: {reason}")
+            try:
+                kill_process_tree(p)
+            except ProcessLookupError:  # pragma: no cover
+                pass
+
+    def shutdown_workers(self):
+        # shutdown all workers in self.processes
+
+        # Create a list to avoid RuntimeError due to concurrent modification of
+        # processes. nb_children_alive is thus an upper bound. Also release the
+        # processes' _worker_exit_lock to accelerate the shutdown procedure, as
+        # there is no need for hand-shake here.
+        with self.processes_management_lock:
+            n_children_to_stop = 0
+            for p in list(self.processes.values()):
+                mp.util.debug(f"releasing worker exit lock on {p.name}")
+                p._worker_exit_lock.release()
+                n_children_to_stop += 1
+
+        mp.util.debug(f"found {n_children_to_stop} processes to stop")
+
+        # Send the right number of sentinels, to make sure all children are
+        # properly terminated. Do it with a mechanism that avoid hanging on
+        # Full queue when all workers have already been shutdown.
+        n_sentinels_sent = 0
+        cooldown_time = 0.001
+        while (
+            n_sentinels_sent < n_children_to_stop
+            and self.get_n_children_alive() > 0
+        ):
+            for _ in range(n_children_to_stop - n_sentinels_sent):
+                try:
+                    self.call_queue.put_nowait(None)
+                    n_sentinels_sent += 1
+                except queue.Full as e:
+                    if cooldown_time > 5.0:
+                        mp.util.info(
+                            "failed to send all sentinels and exit with error."
+                            f"\ncall_queue size={self.call_queue._maxsize}; "
+                            f" full is {self.call_queue.full()}; "
+                        )
+                        raise e
+                    mp.util.info(
+                        "full call_queue prevented to send all sentinels at "
+                        "once, waiting..."
+                    )
+                    sleep(cooldown_time)
+                    cooldown_time *= 1.2
+                    break
+
+        mp.util.debug(f"sent {n_sentinels_sent} sentinels to the call queue")
+
+    def join_executor_internals(self):
+        self.shutdown_workers()
+
+        # Release the queue's resources as soon as possible. Flag the feeder
+        # thread for clean exit to avoid having the crash detection thread flag
+        # the Executor as broken during the shutdown. This is safe as either:
+        #  * We don't need to communicate with the workers anymore
+        #  * There is nothing left in the Queue buffer except None sentinels
+        mp.util.debug("closing call_queue")
+        self.call_queue.close()
+        self.call_queue.join_thread()
+
+        # Closing result_queue
+        mp.util.debug("closing result_queue")
+        self.result_queue.close()
+
+        mp.util.debug("closing thread_wakeup")
+        with self.shutdown_lock:
+            self.thread_wakeup.close()
+
+        # If .join() is not called on the created processes then
+        # some ctx.Queue methods may deadlock on macOS.
+        with self.processes_management_lock:
+            mp.util.debug(f"joining {len(self.processes)} processes")
+            n_joined_processes = 0
+            while True:
+                try:
+                    pid, p = self.processes.popitem()
+                    mp.util.debug(f"joining process {p.name} with pid {pid}")
+                    p.join()
+                    n_joined_processes += 1
+                except KeyError:
+                    break
+
+            mp.util.debug(
+                "executor management thread clean shutdown of "
+                f"{n_joined_processes} workers"
+            )
+
+    def get_n_children_alive(self):
+        # This is an upper bound on the number of children alive.
+        with self.processes_management_lock:
+            return sum(p.is_alive() for p in list(self.processes.values()))
+
+
+_system_limits_checked = False
+_system_limited = None
+
+
+def _check_system_limits():
+    global _system_limits_checked, _system_limited
+    if _system_limits_checked and _system_limited:
+        raise NotImplementedError(_system_limited)
+    _system_limits_checked = True
+    try:
+        nsems_max = os.sysconf("SC_SEM_NSEMS_MAX")
+    except (AttributeError, ValueError):
+        # sysconf not available or setting not available
+        return
+    if nsems_max == -1:
+        # undetermined limit, assume that limit is determined
+        # by available memory only
+        return
+    if nsems_max >= 256:
+        # minimum number of semaphores available
+        # according to POSIX
+        return
+    _system_limited = (
+        f"system provides too few semaphores ({nsems_max} available, "
+        "256 necessary)"
+    )
+    raise NotImplementedError(_system_limited)
+
+
+def _chain_from_iterable_of_lists(iterable):
+    """
+    Specialized implementation of itertools.chain.from_iterable.
+    Each item in *iterable* should be a list.  This function is
+    careful not to keep references to yielded objects.
+    """
+    for element in iterable:
+        element.reverse()
+        while element:
+            yield element.pop()
+
+
+def _check_max_depth(context):
+    # Limit the maxmal recursion level
+    global _CURRENT_DEPTH
+    if context.get_start_method() == "fork" and _CURRENT_DEPTH > 0:
+        raise LokyRecursionError(
+            "Could not spawn extra nested processes at depth superior to "
+            "MAX_DEPTH=1. It is not possible to increase this limit when "
+            "using the 'fork' start method."
+        )
+
+    if 0 < MAX_DEPTH and _CURRENT_DEPTH + 1 > MAX_DEPTH:
+        raise LokyRecursionError(
+            "Could not spawn extra nested processes at depth superior to "
+            f"MAX_DEPTH={MAX_DEPTH}. If this is intendend, you can change "
+            "this limit with the LOKY_MAX_DEPTH environment variable."
+        )
+
+
+class LokyRecursionError(RuntimeError):
+    """A process tries to spawn too many levels of nested processes."""
+
+
+class BrokenProcessPool(_BPPException):
+    """
+    Raised when the executor is broken while a future was in the running state.
+    The cause can an error raised when unpickling the task in the worker
+    process or when unpickling the result value in the parent process. It can
+    also be caused by a worker process being terminated unexpectedly.
+    """
+
+
+class TerminatedWorkerError(BrokenProcessPool):
+    """
+    Raised when a process in a ProcessPoolExecutor terminated abruptly
+    while a future was in the running state.
+    """
+
+
+# Alias for backward compat (for code written for loky 1.1.4 and earlier). Do
+# not use in new code.
+BrokenExecutor = BrokenProcessPool
+
+
+class ShutdownExecutorError(RuntimeError):
+    """
+    Raised when a ProcessPoolExecutor is shutdown while a future was in the
+    running or pending state.
+    """
+
+
+class ProcessPoolExecutor(Executor):
+
+    _at_exit = None
+
+    def __init__(
+        self,
+        max_workers=None,
+        job_reducers=None,
+        result_reducers=None,
+        timeout=None,
+        context=None,
+        initializer=None,
+        initargs=(),
+        env=None,
+    ):
+        """Initializes a new ProcessPoolExecutor instance.
+
+        Args:
+            max_workers: int, optional (default: cpu_count())
+                The maximum number of processes that can be used to execute the
+                given calls. If None or not given then as many worker processes
+                will be created as the number of CPUs the current process
+                can use.
+            job_reducers, result_reducers: dict(type: reducer_func)
+                Custom reducer for pickling the jobs and the results from the
+                Executor. If only `job_reducers` is provided, `result_reducer`
+                will use the same reducers
+            timeout: int, optional (default: None)
+                Idle workers exit after timeout seconds. If a new job is
+                submitted after the timeout, the executor will start enough
+                new Python processes to make sure the pool of workers is full.
+            context: A multiprocessing context to launch the workers. This
+                object should provide SimpleQueue, Queue and Process.
+            initializer: An callable used to initialize worker processes.
+            initargs: A tuple of arguments to pass to the initializer.
+            env: A dict of environment variable to overwrite in the child
+                process. The environment variables are set before any module is
+                loaded. Note that this only works with the loky context.
+        """
+        _check_system_limits()
+
+        if max_workers is None:
+            self._max_workers = cpu_count()
+        else:
+            if max_workers <= 0:
+                raise ValueError("max_workers must be greater than 0")
+            self._max_workers = max_workers
+
+        if (
+            sys.platform == "win32"
+            and self._max_workers > _MAX_WINDOWS_WORKERS
+        ):
+            warnings.warn(
+                f"On Windows, max_workers cannot exceed {_MAX_WINDOWS_WORKERS} "
+                "due to limitations of the operating system."
+            )
+            self._max_workers = _MAX_WINDOWS_WORKERS
+
+        if context is None:
+            context = get_context()
+        self._context = context
+        self._env = env
+
+        self._initializer, self._initargs = _prepare_initializer(
+            initializer, initargs
+        )
+        _check_max_depth(self._context)
+
+        if result_reducers is None:
+            result_reducers = job_reducers
+
+        # Timeout
+        self._timeout = timeout
+
+        # Management thread
+        self._executor_manager_thread = None
+
+        # Map of pids to processes
+        self._processes = {}
+
+        # Internal variables of the ProcessPoolExecutor
+        self._processes = {}
+        self._queue_count = 0
+        self._pending_work_items = {}
+        self._running_work_items = []
+        self._work_ids = queue.Queue()
+        self._processes_management_lock = self._context.Lock()
+        self._executor_manager_thread = None
+        self._shutdown_lock = threading.Lock()
+
+        # _ThreadWakeup is a communication channel used to interrupt the wait
+        # of the main loop of executor_manager_thread from another thread (e.g.
+        # when calling executor.submit or executor.shutdown). We do not use the
+        # _result_queue to send wakeup signals to the executor_manager_thread
+        # as it could result in a deadlock if a worker process dies with the
+        # _result_queue write lock still acquired.
+        #
+        # _shutdown_lock must be locked to access _ThreadWakeup.wakeup.
+        self._executor_manager_thread_wakeup = _ThreadWakeup()
+
+        # Flag to hold the state of the Executor. This permits to introspect
+        # the Executor state even once it has been garbage collected.
+        self._flags = _ExecutorFlags(self._shutdown_lock)
+
+        # Finally setup the queues for interprocess communication
+        self._setup_queues(job_reducers, result_reducers)
+
+        mp.util.debug("ProcessPoolExecutor is setup")
+
+    def _setup_queues(self, job_reducers, result_reducers, queue_size=None):
+        # Make the call queue slightly larger than the number of processes to
+        # prevent the worker processes from idling. But don't make it too big
+        # because futures in the call queue cannot be cancelled.
+        if queue_size is None:
+            queue_size = 2 * self._max_workers + EXTRA_QUEUED_CALLS
+        self._call_queue = _SafeQueue(
+            max_size=queue_size,
+            pending_work_items=self._pending_work_items,
+            running_work_items=self._running_work_items,
+            thread_wakeup=self._executor_manager_thread_wakeup,
+            shutdown_lock=self._shutdown_lock,
+            reducers=job_reducers,
+            ctx=self._context,
+        )
+        # Killed worker processes can produce spurious "broken pipe"
+        # tracebacks in the queue's own worker thread. But we detect killed
+        # processes anyway, so silence the tracebacks.
+        self._call_queue._ignore_epipe = True
+
+        self._result_queue = SimpleQueue(
+            reducers=result_reducers, ctx=self._context
+        )
+
+    def _start_executor_manager_thread(self):
+        if self._executor_manager_thread is None:
+            mp.util.debug("_start_executor_manager_thread called")
+
+            # Start the processes so that their sentinels are known.
+            self._executor_manager_thread = _ExecutorManagerThread(self)
+            self._executor_manager_thread.start()
+
+            # register this executor in a mechanism that ensures it will wakeup
+            # when the interpreter is exiting.
+            _threads_wakeups[self._executor_manager_thread] = (
+                self._shutdown_lock,
+                self._executor_manager_thread_wakeup,
+            )
+
+            global process_pool_executor_at_exit
+            if process_pool_executor_at_exit is None:
+                # Ensure that the _python_exit function will be called before
+                # the multiprocessing.Queue._close finalizers which have an
+                # exitpriority of 10.
+
+                if sys.version_info < (3, 9):
+                    process_pool_executor_at_exit = mp.util.Finalize(
+                        None, _python_exit, exitpriority=20
+                    )
+                else:
+                    process_pool_executor_at_exit = threading._register_atexit(
+                        _python_exit
+                    )
+
+    def _adjust_process_count(self):
+        while len(self._processes) < self._max_workers:
+            worker_exit_lock = self._context.BoundedSemaphore(1)
+            args = (
+                self._call_queue,
+                self._result_queue,
+                self._initializer,
+                self._initargs,
+                self._processes_management_lock,
+                self._timeout,
+                worker_exit_lock,
+                _CURRENT_DEPTH + 1,
+            )
+            worker_exit_lock.acquire()
+            try:
+                # Try to spawn the process with some environment variable to
+                # overwrite but it only works with the loky context for now.
+                p = self._context.Process(
+                    target=_process_worker, args=args, env=self._env
+                )
+            except TypeError:
+                p = self._context.Process(target=_process_worker, args=args)
+            p._worker_exit_lock = worker_exit_lock
+            p.start()
+            self._processes[p.pid] = p
+        mp.util.debug(
+            f"Adjusted process count to {self._max_workers}: "
+            f"{[(p.name, pid) for pid, p in self._processes.items()]}"
+        )
+
+    def _ensure_executor_running(self):
+        """ensures all workers and management thread are running"""
+        with self._processes_management_lock:
+            if len(self._processes) != self._max_workers:
+                self._adjust_process_count()
+            self._start_executor_manager_thread()
+
+    def submit(self, fn, *args, **kwargs):
+        with self._flags.shutdown_lock:
+            if self._flags.broken is not None:
+                raise self._flags.broken
+            if self._flags.shutdown:
+                raise ShutdownExecutorError(
+                    "cannot schedule new futures after shutdown"
+                )
+
+            # Cannot submit a new calls once the interpreter is shutting down.
+            # This check avoids spawning new processes at exit.
+            if _global_shutdown:
+                raise RuntimeError(
+                    "cannot schedule new futures after interpreter shutdown"
+                )
+
+            f = Future()
+            w = _WorkItem(f, fn, args, kwargs)
+
+            self._pending_work_items[self._queue_count] = w
+            self._work_ids.put(self._queue_count)
+            self._queue_count += 1
+            # Wake up queue management thread
+            self._executor_manager_thread_wakeup.wakeup()
+
+            self._ensure_executor_running()
+            return f
+
+    submit.__doc__ = Executor.submit.__doc__
+
+    def map(self, fn, *iterables, **kwargs):
+        """Returns an iterator equivalent to map(fn, iter).
+
+        Args:
+            fn: A callable that will take as many arguments as there are
+                passed iterables.
+            timeout: The maximum number of seconds to wait. If None, then there
+                is no limit on the wait time.
+            chunksize: If greater than one, the iterables will be chopped into
+                chunks of size chunksize and submitted to the process pool.
+                If set to one, the items in the list will be sent one at a
+                time.
+
+        Returns:
+            An iterator equivalent to: map(func, *iterables) but the calls may
+            be evaluated out-of-order.
+
+        Raises:
+            TimeoutError: If the entire result iterator could not be generated
+                before the given timeout.
+            Exception: If fn(*args) raises for any values.
+        """
+        timeout = kwargs.get("timeout", None)
+        chunksize = kwargs.get("chunksize", 1)
+        if chunksize < 1:
+            raise ValueError("chunksize must be >= 1.")
+
+        results = super().map(
+            partial(_process_chunk, fn),
+            _get_chunks(chunksize, *iterables),
+            timeout=timeout,
+        )
+        return _chain_from_iterable_of_lists(results)
+
+    def shutdown(self, wait=True, kill_workers=False):
+        mp.util.debug(f"shutting down executor {self}")
+
+        self._flags.flag_as_shutting_down(kill_workers)
+        executor_manager_thread = self._executor_manager_thread
+        executor_manager_thread_wakeup = self._executor_manager_thread_wakeup
+
+        if executor_manager_thread_wakeup is not None:
+            # Wake up queue management thread
+            with self._shutdown_lock:
+                self._executor_manager_thread_wakeup.wakeup()
+
+        if executor_manager_thread is not None and wait:
+            # This locks avoids concurrent join if the interpreter
+            # is shutting down.
+            with _global_shutdown_lock:
+                executor_manager_thread.join()
+                _threads_wakeups.pop(executor_manager_thread, None)
+
+        # To reduce the risk of opening too many files, remove references to
+        # objects that use file descriptors.
+        self._executor_manager_thread = None
+        self._executor_manager_thread_wakeup = None
+        self._call_queue = None
+        self._result_queue = None
+        self._processes_management_lock = None
+
+    shutdown.__doc__ = Executor.shutdown.__doc__
+```
+
+## joblib/joblib/externals/loky/reusable_executor.py.notice.txt
+
+```text
+###############################################################################
+# Reusable ProcessPoolExecutor
+#
+# author: Thomas Moreau and Olivier Grisel
+#
+import time
+import warnings
+import threading
+import multiprocessing as mp
+
+from .process_executor import ProcessPoolExecutor, EXTRA_QUEUED_CALLS
+from .backend.context import cpu_count
+from .backend import get_context
+
+__all__ = ["get_reusable_executor"]
+
+# Singleton executor and id management
+_executor_lock = threading.RLock()
+_next_executor_id = 0
+_executor = None
+_executor_kwargs = None
+
+
+def _get_next_executor_id():
+    """Ensure that each successive executor instance has a unique, monotonic id.
+
+    The purpose of this monotonic id is to help debug and test automated
+    instance creation.
+    """
+    global _next_executor_id
+    with _executor_lock:
+        executor_id = _next_executor_id
+        _next_executor_id += 1
+        return executor_id
+
+
+def get_reusable_executor(
+    max_workers=None,
+    context=None,
+    timeout=10,
+    kill_workers=False,
+    reuse="auto",
+    job_reducers=None,
+    result_reducers=None,
+    initializer=None,
+    initargs=(),
+    env=None,
+):
+    """Return the current ReusableExectutor instance.
+
+    Start a new instance if it has not been started already or if the previous
+    instance was left in a broken state.
+
+    If the previous instance does not have the requested number of workers, the
+    executor is dynamically resized to adjust the number of workers prior to
+    returning.
+
+    Reusing a singleton instance spares the overhead of starting new worker
+    processes and importing common python packages each time.
+
+    ``max_workers`` controls the maximum number of tasks that can be running in
+    parallel in worker processes. By default this is set to the number of
+    CPUs on the host.
+
+    Setting ``timeout`` (in seconds) makes idle workers automatically shutdown
+    so as to release system resources. New workers are respawn upon submission
+    of new tasks so that ``max_workers`` are available to accept the newly
+    submitted tasks. Setting ``timeout`` to around 100 times the time required
+    to spawn new processes and import packages in them (on the order of 100ms)
+    ensures that the overhead of spawning workers is negligible.
+
+    Setting ``kill_workers=True`` makes it possible to forcibly interrupt
+    previously spawned jobs to get a new instance of the reusable executor
+    with new constructor argument values.
+
+    The ``job_reducers`` and ``result_reducers`` are used to customize the
+    pickling of tasks and results send to the executor.
+
+    When provided, the ``initializer`` is run first in newly spawned
+    processes with argument ``initargs``.
+
+    The environment variable in the child process are a copy of the values in
+    the main process. One can provide a dict ``{ENV: VAL}`` where ``ENV`` and
+    ``VAL`` are string literals to overwrite the environment variable ``ENV``
+    in the child processes to value ``VAL``. The environment variables are set
+    in the children before any module is loaded. This only works with the
+    ``loky`` context.
+    """
+    _executor, _ = _ReusablePoolExecutor.get_reusable_executor(
+        max_workers=max_workers,
+        context=context,
+        timeout=timeout,
+        kill_workers=kill_workers,
+        reuse=reuse,
+        job_reducers=job_reducers,
+        result_reducers=result_reducers,
+        initializer=initializer,
+        initargs=initargs,
+        env=env,
+    )
+    return _executor
+
+
+class _ReusablePoolExecutor(ProcessPoolExecutor):
+    def __init__(
+        self,
+        submit_resize_lock,
+        max_workers=None,
+        context=None,
+        timeout=None,
+        executor_id=0,
+        job_reducers=None,
+        result_reducers=None,
+        initializer=None,
+        initargs=(),
+        env=None,
+    ):
+        super().__init__(
+            max_workers=max_workers,
+            context=context,
+            timeout=timeout,
+            job_reducers=job_reducers,
+            result_reducers=result_reducers,
+            initializer=initializer,
+            initargs=initargs,
+            env=env,
+        )
+        self.executor_id = executor_id
+        self._submit_resize_lock = submit_resize_lock
+
+    @classmethod
+    def get_reusable_executor(
+        cls,
+        max_workers=None,
+        context=None,
+        timeout=10,
+        kill_workers=False,
+        reuse="auto",
+        job_reducers=None,
+        result_reducers=None,
+        initializer=None,
+        initargs=(),
+        env=None,
+    ):
+        with _executor_lock:
+            global _executor, _executor_kwargs
+            executor = _executor
+
+            if max_workers is None:
+                if reuse is True and executor is not None:
+                    max_workers = executor._max_workers
+                else:
+                    max_workers = cpu_count()
+            elif max_workers <= 0:
+                raise ValueError(
+                    f"max_workers must be greater than 0, got {max_workers}."
+                )
+
+            if isinstance(context, str):
+                context = get_context(context)
+            if context is not None and context.get_start_method() == "fork":
+                raise ValueError(
+                    "Cannot use reusable executor with the 'fork' context"
+                )
+
+            kwargs = dict(
+                context=context,
+                timeout=timeout,
+                job_reducers=job_reducers,
+                result_reducers=result_reducers,
+                initializer=initializer,
+                initargs=initargs,
+                env=env,
+            )
+            if executor is None:
+                is_reused = False
+                mp.util.debug(
+                    f"Create a executor with max_workers={max_workers}."
+                )
+                executor_id = _get_next_executor_id()
+                _executor_kwargs = kwargs
+                _executor = executor = cls(
+                    _executor_lock,
+                    max_workers=max_workers,
+                    executor_id=executor_id,
+                    **kwargs,
+                )
+            else:
+                if reuse == "auto":
+                    reuse = kwargs == _executor_kwargs
+                if (
+                    executor._flags.broken
+                    or executor._flags.shutdown
+                    or not reuse
+                    or executor.queue_size < max_workers
+                ):
+                    if executor._flags.broken:
+                        reason = "broken"
+                    elif executor._flags.shutdown:
+                        reason = "shutdown"
+                    elif executor.queue_size < max_workers:
+                        # Do not reuse the executor if the queue size is too
+                        # small as this would lead to limited parallelism.
+                        reason = "queue size is too small"
+                    else:
+                        reason = "arguments have changed"
+                    mp.util.debug(
+                        "Creating a new executor with max_workers="
+                        f"{max_workers} as the previous instance cannot be "
+                        f"reused ({reason})."
+                    )
+                    executor.shutdown(wait=True, kill_workers=kill_workers)
+                    _executor = executor = _executor_kwargs = None
+                    # Recursive call to build a new instance
+                    return cls.get_reusable_executor(
+                        max_workers=max_workers, **kwargs
+                    )
+                else:
+                    mp.util.debug(
+                        "Reusing existing executor with "
+                        f"max_workers={executor._max_workers}."
+                    )
+                    is_reused = True
+                    executor._resize(max_workers)
+
+        return executor, is_reused
+
+    def submit(self, fn, *args, **kwargs):
+        with self._submit_resize_lock:
+            return super().submit(fn, *args, **kwargs)
+
+    def _resize(self, max_workers):
+        with self._submit_resize_lock:
+            if max_workers is None:
+                raise ValueError("Trying to resize with max_workers=None")
+            elif max_workers == self._max_workers:
+                return
+
+            if self._executor_manager_thread is None:
+                # If the executor_manager_thread has not been started
+                # then no processes have been spawned and we can just
+                # update _max_workers and return
+                self._max_workers = max_workers
+                return
+
+            self._wait_job_completion()
+
+            # Some process might have returned due to timeout so check how many
+            # children are still alive. Use the _process_management_lock to
+            # ensure that no process are spawned or timeout during the resize.
+            with self._processes_management_lock:
+                processes = list(self._processes.values())
+                nb_children_alive = sum(p.is_alive() for p in processes)
+                self._max_workers = max_workers
+                for _ in range(max_workers, nb_children_alive):
+                    self._call_queue.put(None)
+            while (
+                len(self._processes) > max_workers and not self._flags.broken
+            ):
+                time.sleep(1e-3)
+
+            self._adjust_process_count()
+            processes = list(self._processes.values())
+            while not all(p.is_alive() for p in processes):
+                time.sleep(1e-3)
+
+    def _wait_job_completion(self):
+        """Wait for the cache to be empty before resizing the pool."""
+        # Issue a warning to the user about the bad effect of this usage.
+        if self._pending_work_items:
+            warnings.warn(
+                "Trying to resize an executor with running jobs: "
+                "waiting for jobs completion before resizing.",
+                UserWarning,
+            )
+            mp.util.debug(
+                f"Executor {self.executor_id} waiting for jobs completion "
+                "before resizing"
+            )
+        # Wait for the completion of the jobs
+        while self._pending_work_items:
+            time.sleep(1e-3)
+
+    def _setup_queues(self, job_reducers, result_reducers):
+        # As this executor can be resized, use a large queue size to avoid
+        # underestimating capacity and introducing overhead
+        # Also handle the case where the user set max_workers to a value larger
+        # than cpu_count(), to avoid limiting the number of parallel jobs.
+
+        min_queue_size = max(cpu_count(), self._max_workers)
+        self.queue_size = 2 * min_queue_size + EXTRA_QUEUED_CALLS
+        super()._setup_queues(
+            job_reducers, result_reducers, queue_size=self.queue_size
+        )
 ```
 
 ## lmcpp-LICENSE
@@ -18143,6 +24683,8742 @@ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+```
+
+## scikit-learn/COPYING
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2007-2024 The scikit-learn developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scikit-learn/sklearn/externals/array_api_compat/LICENSE
+
+```text
+MIT License
+
+Copyright (c) 2022 Consortium for Python Data API Standards
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## scikit-learn/sklearn/externals/array_api_extra/LICENSE
+
+```text
+MIT License
+
+Copyright (c) 2024 Consortium for Python Data API Standards
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## scikit-learn/sklearn/svm/src/liblinear/COPYRIGHT
+
+```text
+
+Copyright (c) 2007-2014 The LIBLINEAR Project.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Neither name of copyright holders nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## scikit-learn/sklearn/svm/src/liblinear/_cython_blas_helpers.h.notice.txt
+
+```text
+#ifndef _CYTHON_BLAS_HELPERS_H
+#define _CYTHON_BLAS_HELPERS_H
+
+typedef double (*dot_func)(int, const double*, int, const double*, int);
+typedef void (*axpy_func)(int, double, const double*, int, double*, int);
+typedef void (*scal_func)(int, double, const double*, int);
+typedef double (*nrm2_func)(int, const double*, int);
+
+typedef struct BlasFunctions{
+    dot_func dot;
+    axpy_func axpy;
+    scal_func scal;
+    nrm2_func nrm2;
+} BlasFunctions;
+
+#endif
+```
+
+## scikit-learn/sklearn/svm/src/liblinear/liblinear_helper.c.notice.txt
+
+```text
+#include <stdlib.h>
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include "linear.h"
+
+
+/*
+ * Convert matrix to sparse representation suitable for liblinear. x is
+ * expected to be an array of length n_samples*n_features.
+ *
+ * Whether the matrix is densely or sparsely populated, the fastest way to
+ * convert it to liblinear's sparse format is to calculate the amount of memory
+ * needed and allocate a single big block.
+ *
+ * Special care must be taken with indices, since liblinear indices start at 1
+ * and not at 0.
+ *
+ * If bias is > 0, we append an item at the end.
+ */
+static struct feature_node **dense_to_sparse(char *x, int double_precision,
+        int n_samples, int n_features, int n_nonzero, double bias)
+{
+    float *x32 = (float *)x;
+    double *x64 = (double *)x;
+    struct feature_node **sparse;
+    int i, j;                           /* number of nonzero elements in row i */
+    struct feature_node *T;             /* pointer to the top of the stack */
+    int have_bias = (bias > 0);
+
+    sparse = malloc (n_samples * sizeof(struct feature_node *));
+    if (sparse == NULL)
+        return NULL;
+
+    n_nonzero += (have_bias+1) * n_samples;
+    T = malloc (n_nonzero * sizeof(struct feature_node));
+    if (T == NULL) {
+        free(sparse);
+        return NULL;
+    }
+
+    for (i=0; i<n_samples; ++i) {
+        sparse[i] = T;
+
+        for (j=1; j<=n_features; ++j) {
+            if (double_precision) {
+                if (*x64 != 0) {
+                    T->value = *x64;
+                    T->index = j;
+                    ++ T;
+                }
+                ++ x64; /* go to next element */
+            } else {
+                if (*x32 != 0) {
+                    T->value = *x32;
+                    T->index = j;
+                    ++ T;
+                }
+                ++ x32; /* go to next element */
+            }
+        }
+
+        /* set bias element */
+        if (have_bias) {
+                T->value = bias;
+                T->index = j;
+                ++ T;
+            }
+
+        /* set sentinel */
+        T->index = -1;
+        ++ T;
+    }
+
+    return sparse;
+}
+
+
+/*
+ * Convert scipy.sparse.csr to liblinear's sparse data structure
+ */
+static struct feature_node **csr_to_sparse(char *x, int double_precision,
+        int *indices, int *indptr, int n_samples, int n_features, int n_nonzero,
+        double bias)
+{
+    float *x32 = (float *)x;
+    double *x64 = (double *)x;
+    struct feature_node **sparse;
+    int i, j=0, k=0, n;
+    struct feature_node *T;
+    int have_bias = (bias > 0);
+
+    sparse = malloc (n_samples * sizeof(struct feature_node *));
+    if (sparse == NULL)
+        return NULL;
+
+    n_nonzero += (have_bias+1) * n_samples;
+    T = malloc (n_nonzero * sizeof(struct feature_node));
+    if (T == NULL) {
+        free(sparse);
+        return NULL;
+    }
+
+    for (i=0; i<n_samples; ++i) {
+        sparse[i] = T;
+        n = indptr[i+1] - indptr[i]; /* count elements in row i */
+
+        for (j=0; j<n; ++j) {
+            T->value = double_precision ? x64[k] : x32[k];
+            T->index = indices[k] + 1; /* liblinear uses 1-based indexing */
+            ++T;
+            ++k;
+        }
+
+        if (have_bias) {
+            T->value = bias;
+            T->index = n_features + 1;
+            ++T;
+            ++j;
+        }
+
+        /* set sentinel */
+        T->index = -1;
+        ++T;
+    }
+
+    return sparse;
+}
+
+struct problem * set_problem(char *X, int double_precision_X, int n_samples,
+        int n_features, int n_nonzero, double bias, char* sample_weight,
+        char *Y)
+{
+    struct problem *problem;
+    /* not performant but simple */
+    problem = malloc(sizeof(struct problem));
+    if (problem == NULL) return NULL;
+    problem->l = n_samples;
+    problem->n = n_features + (bias > 0);
+    problem->y = (double *) Y;
+    problem->W = (double *) sample_weight;
+    problem->x = dense_to_sparse(X, double_precision_X, n_samples, n_features,
+                        n_nonzero, bias);
+    problem->bias = bias;
+
+    if (problem->x == NULL) {
+        free(problem);
+        return NULL;
+    }
+
+    return problem;
+}
+
+struct problem * csr_set_problem (char *X, int double_precision_X,
+        char *indices, char *indptr, int n_samples, int n_features,
+        int n_nonzero, double bias, char *sample_weight, char *Y)
+{
+    struct problem *problem;
+    problem = malloc (sizeof (struct problem));
+    if (problem == NULL) return NULL;
+    problem->l = n_samples;
+    problem->n = n_features + (bias > 0);
+    problem->y = (double *) Y;
+    problem->W = (double *) sample_weight;
+    problem->x = csr_to_sparse(X, double_precision_X, (int *) indices,
+                        (int *) indptr, n_samples, n_features, n_nonzero, bias);
+    problem->bias = bias;
+
+    if (problem->x == NULL) {
+        free(problem);
+        return NULL;
+    }
+
+    return problem;
+}
+
+
+/* Create a parameter struct with and return it */
+struct parameter *set_parameter(int solver_type, double eps, double C,
+                                Py_ssize_t nr_weight, char *weight_label,
+                                char *weight, int max_iter, unsigned seed,
+                                double epsilon)
+{
+    struct parameter *param = malloc(sizeof(struct parameter));
+    if (param == NULL)
+        return NULL;
+
+    set_seed(seed);
+    param->solver_type = solver_type;
+    param->eps = eps;
+    param->C = C;
+    param->p = epsilon;  // epsilon for epsilon-SVR
+    param->nr_weight = (int) nr_weight;
+    param->weight_label = (int *) weight_label;
+    param->weight = (double *) weight;
+    param->max_iter = max_iter;
+    return param;
+}
+
+void copy_w(void *data, struct model *model, int len)
+{
+    memcpy(data, model->w, len * sizeof(double));
+}
+
+double get_bias(struct model *model)
+{
+    return model->bias;
+}
+
+void free_problem(struct problem *problem)
+{
+    free(problem->x[0]);
+    free(problem->x);
+    free(problem);
+}
+
+void free_parameter(struct parameter *param)
+{
+    free(param);
+}
+
+/* rely on built-in facility to control verbose output */
+static void print_null(const char *s) {}
+
+static void print_string_stdout(const char *s)
+{
+    fputs(s ,stdout);
+    fflush(stdout);
+}
+
+/* provide convenience wrapper */
+void set_verbosity(int verbosity_flag){
+    if (verbosity_flag)
+        set_print_string_function(&print_string_stdout);
+    else
+        set_print_string_function(&print_null);
+}
+```
+
+## scikit-learn/sklearn/svm/src/liblinear/linear.cpp.notice.txt
+
+```text
+/*
+   Modified 2011:
+
+   - Make labels sorted in group_classes, Dan Yamins.
+
+   Modified 2012:
+
+   - Changes roles of +1 and -1 to match scikit API, Andreas Mueller
+        See issue 546: https://github.com/scikit-learn/scikit-learn/pull/546
+   - Also changed roles for pairwise class weights, Andreas Mueller
+        See issue 1491: https://github.com/scikit-learn/scikit-learn/pull/1491
+
+   Modified 2014:
+
+   - Remove the hard-coded value of max_iter (1000), that allows max_iter
+     to be passed as a parameter from the classes LogisticRegression and
+     LinearSVC, Manoj Kumar
+   - Added function get_n_iter that exposes the number of iterations.
+        See issue 3499: https://github.com/scikit-learn/scikit-learn/issues/3499
+        See pull 3501: https://github.com/scikit-learn/scikit-learn/pull/3501
+
+   Modified 2015:
+   - Patched liblinear for sample_weights - Manoj Kumar
+     See https://github.com/scikit-learn/scikit-learn/pull/5274
+
+   Modified 2020:
+   - Improved random number generator by using a mersenne twister + tweaked
+     lemire postprocessor. This fixed a convergence issue on windows targets.
+     Sylvain Marie, Schneider Electric
+     See <https://github.com/scikit-learn/scikit-learn/pull/13511#issuecomment-481729756>
+
+ */
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <locale.h>
+#include "linear.h"
+#include "tron.h"
+#include <climits>
+#include <random>
+#include "../newrand/newrand.h"
+
+typedef signed char schar;
+template <class T> static inline void swap(T& x, T& y) { T t=x; x=y; y=t; }
+#ifndef min
+template <class T> static inline T min(T x,T y) { return (x<y)?x:y; }
+#endif
+#ifndef max
+template <class T> static inline T max(T x,T y) { return (x>y)?x:y; }
+#endif
+template <class S, class T> static inline void clone(T*& dst, S* src, int n)
+{
+	dst = new T[n];
+	memcpy((void *)dst,(void *)src,sizeof(T)*n);
+}
+#define Malloc(type,n) (type *)malloc((n)*sizeof(type))
+#define INF HUGE_VAL
+
+static void print_string_stdout(const char *s)
+{
+	fputs(s,stdout);
+	fflush(stdout);
+}
+
+static void (*liblinear_print_string) (const char *) = &print_string_stdout;
+
+#if 1
+static void info(const char *fmt,...)
+{
+	char buf[BUFSIZ];
+	va_list ap;
+	va_start(ap,fmt);
+	vsprintf(buf,fmt,ap);
+	va_end(ap);
+	(*liblinear_print_string)(buf);
+}
+#else
+static void info(const char *fmt,...) {}
+#endif
+
+class l2r_lr_fun: public function
+{
+public:
+	l2r_lr_fun(const problem *prob, double *C);
+	~l2r_lr_fun();
+
+	double fun(double *w);
+	void grad(double *w, double *g);
+	void Hv(double *s, double *Hs);
+
+	int get_nr_variable(void);
+
+private:
+	void Xv(double *v, double *Xv);
+	void XTv(double *v, double *XTv);
+
+	double *C;
+	double *z;
+	double *D;
+	const problem *prob;
+};
+
+l2r_lr_fun::l2r_lr_fun(const problem *prob, double *C)
+{
+	int l=prob->l;
+
+	this->prob = prob;
+
+	z = new double[l];
+	D = new double[l];
+	this->C = C;
+}
+
+l2r_lr_fun::~l2r_lr_fun()
+{
+	delete[] z;
+	delete[] D;
+}
+
+
+double l2r_lr_fun::fun(double *w)
+{
+	int i;
+	double f=0;
+	double *y=prob->y;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+
+	Xv(w, z);
+
+	for(i=0;i<w_size;i++)
+		f += w[i]*w[i];
+	f /= 2.0;
+	for(i=0;i<l;i++)
+	{
+		double yz = y[i]*z[i];
+		if (yz >= 0)
+			f += C[i]*log(1 + exp(-yz));
+		else
+			f += C[i]*(-yz+log(1 + exp(yz)));
+	}
+
+	return(f);
+}
+
+void l2r_lr_fun::grad(double *w, double *g)
+{
+	int i;
+	double *y=prob->y;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+
+	for(i=0;i<l;i++)
+	{
+		z[i] = 1/(1 + exp(-y[i]*z[i]));
+		D[i] = z[i]*(1-z[i]);
+		z[i] = C[i]*(z[i]-1)*y[i];
+	}
+	XTv(z, g);
+
+	for(i=0;i<w_size;i++)
+		g[i] = w[i] + g[i];
+}
+
+int l2r_lr_fun::get_nr_variable(void)
+{
+	return prob->n;
+}
+
+void l2r_lr_fun::Hv(double *s, double *Hs)
+{
+	int i;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+	double *wa = new double[l];
+
+	Xv(s, wa);
+	for(i=0;i<l;i++)
+		wa[i] = C[i]*D[i]*wa[i];
+
+	XTv(wa, Hs);
+	for(i=0;i<w_size;i++)
+		Hs[i] = s[i] + Hs[i];
+	delete[] wa;
+}
+
+void l2r_lr_fun::Xv(double *v, double *Xv)
+{
+	int i;
+	int l=prob->l;
+	feature_node **x=prob->x;
+
+	for(i=0;i<l;i++)
+	{
+		feature_node *s=x[i];
+		Xv[i]=0;
+		while(s->index!=-1)
+		{
+			Xv[i]+=v[s->index-1]*s->value;
+			s++;
+		}
+	}
+}
+
+void l2r_lr_fun::XTv(double *v, double *XTv)
+{
+	int i;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+	feature_node **x=prob->x;
+
+	for(i=0;i<w_size;i++)
+		XTv[i]=0;
+	for(i=0;i<l;i++)
+	{
+		feature_node *s=x[i];
+		while(s->index!=-1)
+		{
+			XTv[s->index-1]+=v[i]*s->value;
+			s++;
+		}
+	}
+}
+
+class l2r_l2_svc_fun: public function
+{
+public:
+	l2r_l2_svc_fun(const problem *prob, double *C);
+	~l2r_l2_svc_fun();
+
+	double fun(double *w);
+	void grad(double *w, double *g);
+	void Hv(double *s, double *Hs);
+
+	int get_nr_variable(void);
+
+protected:
+	void Xv(double *v, double *Xv);
+	void subXv(double *v, double *Xv);
+	void subXTv(double *v, double *XTv);
+
+	double *C;
+	double *z;
+	double *D;
+	int *I;
+	int sizeI;
+	const problem *prob;
+};
+
+l2r_l2_svc_fun::l2r_l2_svc_fun(const problem *prob, double *C)
+{
+	int l=prob->l;
+
+	this->prob = prob;
+
+	z = new double[l];
+	D = new double[l];
+	I = new int[l];
+	this->C = C;
+}
+
+l2r_l2_svc_fun::~l2r_l2_svc_fun()
+{
+	delete[] z;
+	delete[] D;
+	delete[] I;
+}
+
+double l2r_l2_svc_fun::fun(double *w)
+{
+	int i;
+	double f=0;
+	double *y=prob->y;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+
+	Xv(w, z);
+
+	for(i=0;i<w_size;i++)
+		f += w[i]*w[i];
+	f /= 2.0;
+	for(i=0;i<l;i++)
+	{
+		z[i] = y[i]*z[i];
+		double d = 1-z[i];
+		if (d > 0)
+			f += C[i]*d*d;
+	}
+
+	return(f);
+}
+
+void l2r_l2_svc_fun::grad(double *w, double *g)
+{
+	int i;
+	double *y=prob->y;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+
+	sizeI = 0;
+	for (i=0;i<l;i++)
+		if (z[i] < 1)
+		{
+			z[sizeI] = C[i]*y[i]*(z[i]-1);
+			I[sizeI] = i;
+			sizeI++;
+		}
+	subXTv(z, g);
+
+	for(i=0;i<w_size;i++)
+		g[i] = w[i] + 2*g[i];
+}
+
+int l2r_l2_svc_fun::get_nr_variable(void)
+{
+	return prob->n;
+}
+
+void l2r_l2_svc_fun::Hv(double *s, double *Hs)
+{
+	int i;
+	int w_size=get_nr_variable();
+	double *wa = new double[sizeI];
+
+	subXv(s, wa);
+	for(i=0;i<sizeI;i++)
+		wa[i] = C[I[i]]*wa[i];
+
+	subXTv(wa, Hs);
+	for(i=0;i<w_size;i++)
+		Hs[i] = s[i] + 2*Hs[i];
+	delete[] wa;
+}
+
+void l2r_l2_svc_fun::Xv(double *v, double *Xv)
+{
+	int i;
+	int l=prob->l;
+	feature_node **x=prob->x;
+
+	for(i=0;i<l;i++)
+	{
+		feature_node *s=x[i];
+		Xv[i]=0;
+		while(s->index!=-1)
+		{
+			Xv[i]+=v[s->index-1]*s->value;
+			s++;
+		}
+	}
+}
+
+void l2r_l2_svc_fun::subXv(double *v, double *Xv)
+{
+	int i;
+	feature_node **x=prob->x;
+
+	for(i=0;i<sizeI;i++)
+	{
+		feature_node *s=x[I[i]];
+		Xv[i]=0;
+		while(s->index!=-1)
+		{
+			Xv[i]+=v[s->index-1]*s->value;
+			s++;
+		}
+	}
+}
+
+void l2r_l2_svc_fun::subXTv(double *v, double *XTv)
+{
+	int i;
+	int w_size=get_nr_variable();
+	feature_node **x=prob->x;
+
+	for(i=0;i<w_size;i++)
+		XTv[i]=0;
+	for(i=0;i<sizeI;i++)
+	{
+		feature_node *s=x[I[i]];
+		while(s->index!=-1)
+		{
+			XTv[s->index-1]+=v[i]*s->value;
+			s++;
+		}
+	}
+}
+
+class l2r_l2_svr_fun: public l2r_l2_svc_fun
+{
+public:
+	l2r_l2_svr_fun(const problem *prob, double *C, double p);
+
+	double fun(double *w);
+	void grad(double *w, double *g);
+
+private:
+	double p;
+};
+
+l2r_l2_svr_fun::l2r_l2_svr_fun(const problem *prob, double *C, double p):
+	l2r_l2_svc_fun(prob, C)
+{
+	this->p = p;
+}
+
+double l2r_l2_svr_fun::fun(double *w)
+{
+	int i;
+	double f=0;
+	double *y=prob->y;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+	double d;
+
+	Xv(w, z);
+
+	for(i=0;i<w_size;i++)
+		f += w[i]*w[i];
+	f /= 2;
+	for(i=0;i<l;i++)
+	{
+		d = z[i] - y[i];
+		if(d < -p)
+			f += C[i]*(d+p)*(d+p);
+		else if(d > p)
+			f += C[i]*(d-p)*(d-p);
+	}
+
+	return(f);
+}
+
+void l2r_l2_svr_fun::grad(double *w, double *g)
+{
+	int i;
+	double *y=prob->y;
+	int l=prob->l;
+	int w_size=get_nr_variable();
+	double d;
+
+	sizeI = 0;
+	for(i=0;i<l;i++)
+	{
+		d = z[i] - y[i];
+
+		// generate index set I
+		if(d < -p)
+		{
+			z[sizeI] = C[i]*(d+p);
+			I[sizeI] = i;
+			sizeI++;
+		}
+		else if(d > p)
+		{
+			z[sizeI] = C[i]*(d-p);
+			I[sizeI] = i;
+			sizeI++;
+		}
+
+	}
+	subXTv(z, g);
+
+	for(i=0;i<w_size;i++)
+		g[i] = w[i] + 2*g[i];
+}
+
+// A coordinate descent algorithm for
+// multi-class support vector machines by Crammer and Singer
+//
+//  min_{\alpha}  0.5 \sum_m ||w_m(\alpha)||^2 + \sum_i \sum_m e^m_i alpha^m_i
+//    s.t.     \alpha^m_i <= C^m_i \forall m,i , \sum_m \alpha^m_i=0 \forall i
+//
+//  where e^m_i = 0 if y_i  = m,
+//        e^m_i = 1 if y_i != m,
+//  C^m_i = C if m  = y_i,
+//  C^m_i = 0 if m != y_i,
+//  and w_m(\alpha) = \sum_i \alpha^m_i x_i
+//
+// Given:
+// x, y, C
+// eps is the stopping tolerance
+//
+// solution will be put in w
+//
+// See Appendix of LIBLINEAR paper, Fan et al. (2008)
+
+#define GETI(i) (i)
+// To support weights for instances, use GETI(i) (i)
+
+class Solver_MCSVM_CS
+{
+	public:
+		Solver_MCSVM_CS(const problem *prob, int nr_class, double *C, double eps=0.1, int max_iter=100000);
+		~Solver_MCSVM_CS();
+		int Solve(double *w);
+	private:
+		void solve_sub_problem(double A_i, int yi, double C_yi, int active_i, double *alpha_new);
+		bool be_shrunk(int i, int m, int yi, double alpha_i, double minG);
+		double *B, *C, *G;
+		int w_size, l;
+		int nr_class;
+		int max_iter;
+		double eps;
+		const problem *prob;
+};
+
+Solver_MCSVM_CS::Solver_MCSVM_CS(const problem *prob, int nr_class, double *weighted_C, double eps, int max_iter)
+{
+	this->w_size = prob->n;
+	this->l = prob->l;
+	this->nr_class = nr_class;
+	this->eps = eps;
+	this->max_iter = max_iter;
+	this->prob = prob;
+	this->B = new double[nr_class];
+	this->G = new double[nr_class];
+	this->C = new double[prob->l];
+	for(int i = 0; i < prob->l; i++)
+		this->C[i] = prob->W[i] * weighted_C[(int)prob->y[i]];
+}
+
+Solver_MCSVM_CS::~Solver_MCSVM_CS()
+{
+	delete[] B;
+	delete[] G;
+	delete[] C;
+}
+
+int compare_double(const void *a, const void *b)
+{
+	if(*(double *)a > *(double *)b)
+		return -1;
+	if(*(double *)a < *(double *)b)
+		return 1;
+	return 0;
+}
+
+void Solver_MCSVM_CS::solve_sub_problem(double A_i, int yi, double C_yi, int active_i, double *alpha_new)
+{
+	int r;
+	double *D;
+
+	clone(D, B, active_i);
+	if(yi < active_i)
+		D[yi] += A_i*C_yi;
+	qsort(D, active_i, sizeof(double), compare_double);
+
+	double beta = D[0] - A_i*C_yi;
+	for(r=1;r<active_i && beta<r*D[r];r++)
+		beta += D[r];
+	beta /= r;
+
+	for(r=0;r<active_i;r++)
+	{
+		if(r == yi)
+			alpha_new[r] = min(C_yi, (beta-B[r])/A_i);
+		else
+			alpha_new[r] = min((double)0, (beta - B[r])/A_i);
+	}
+	delete[] D;
+}
+
+bool Solver_MCSVM_CS::be_shrunk(int i, int m, int yi, double alpha_i, double minG)
+{
+	double bound = 0;
+	if(m == yi)
+		bound = C[GETI(i)];
+	if(alpha_i == bound && G[m] < minG)
+		return true;
+	return false;
+}
+
+int Solver_MCSVM_CS::Solve(double *w)
+{
+	int i, m, s;
+	int iter = 0;
+	double *alpha =  new double[l*nr_class];
+	double *alpha_new = new double[nr_class];
+	int *index = new int[l];
+	double *QD = new double[l];
+	int *d_ind = new int[nr_class];
+	double *d_val = new double[nr_class];
+	int *alpha_index = new int[nr_class*l];
+	int *y_index = new int[l];
+	int active_size = l;
+	int *active_size_i = new int[l];
+	double eps_shrink = max(10.0*eps, 1.0); // stopping tolerance for shrinking
+	bool start_from_all = true;
+
+	// Initial alpha can be set here. Note that
+	// sum_m alpha[i*nr_class+m] = 0, for all i=1,...,l-1
+	// alpha[i*nr_class+m] <= C[GETI(i)] if prob->y[i] == m
+	// alpha[i*nr_class+m] <= 0 if prob->y[i] != m
+	// If initial alpha isn't zero, uncomment the for loop below to initialize w
+	for(i=0;i<l*nr_class;i++)
+		alpha[i] = 0;
+
+	for(i=0;i<w_size*nr_class;i++)
+		w[i] = 0;
+	for(i=0;i<l;i++)
+	{
+		for(m=0;m<nr_class;m++)
+			alpha_index[i*nr_class+m] = m;
+		feature_node *xi = prob->x[i];
+		QD[i] = 0;
+		while(xi->index != -1)
+		{
+			double val = xi->value;
+			QD[i] += val*val;
+
+			// Uncomment the for loop if initial alpha isn't zero
+			// for(m=0; m<nr_class; m++)
+			//	w[(xi->index-1)*nr_class+m] += alpha[i*nr_class+m]*val;
+			xi++;
+		}
+		active_size_i[i] = nr_class;
+		y_index[i] = (int)prob->y[i];
+		index[i] = i;
+	}
+
+	while(iter < max_iter)
+	{
+		double stopping = -INF;
+		for(i=0;i<active_size;i++)
+		{
+			int j = i+bounded_rand_int(active_size-i);
+			swap(index[i], index[j]);
+		}
+		for(s=0;s<active_size;s++)
+		{
+			i = index[s];
+			double Ai = QD[i];
+			double *alpha_i = &alpha[i*nr_class];
+			int *alpha_index_i = &alpha_index[i*nr_class];
+
+			if(Ai > 0)
+			{
+				for(m=0;m<active_size_i[i];m++)
+					G[m] = 1;
+				if(y_index[i] < active_size_i[i])
+					G[y_index[i]] = 0;
+
+				feature_node *xi = prob->x[i];
+				while(xi->index!= -1)
+				{
+					double *w_i = &w[(xi->index-1)*nr_class];
+					for(m=0;m<active_size_i[i];m++)
+						G[m] += w_i[alpha_index_i[m]]*(xi->value);
+					xi++;
+				}
+
+				double minG = INF;
+				double maxG = -INF;
+				for(m=0;m<active_size_i[i];m++)
+				{
+					if(alpha_i[alpha_index_i[m]] < 0 && G[m] < minG)
+						minG = G[m];
+					if(G[m] > maxG)
+						maxG = G[m];
+				}
+				if(y_index[i] < active_size_i[i])
+					if(alpha_i[(int) prob->y[i]] < C[GETI(i)] && G[y_index[i]] < minG)
+						minG = G[y_index[i]];
+
+				for(m=0;m<active_size_i[i];m++)
+				{
+					if(be_shrunk(i, m, y_index[i], alpha_i[alpha_index_i[m]], minG))
+					{
+						active_size_i[i]--;
+						while(active_size_i[i]>m)
+						{
+							if(!be_shrunk(i, active_size_i[i], y_index[i],
+											alpha_i[alpha_index_i[active_size_i[i]]], minG))
+							{
+								swap(alpha_index_i[m], alpha_index_i[active_size_i[i]]);
+								swap(G[m], G[active_size_i[i]]);
+								if(y_index[i] == active_size_i[i])
+									y_index[i] = m;
+								else if(y_index[i] == m)
+									y_index[i] = active_size_i[i];
+								break;
+							}
+							active_size_i[i]--;
+						}
+					}
+				}
+
+				if(active_size_i[i] <= 1)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+
+				if(maxG-minG <= 1e-12)
+					continue;
+				else
+					stopping = max(maxG - minG, stopping);
+
+				for(m=0;m<active_size_i[i];m++)
+					B[m] = G[m] - Ai*alpha_i[alpha_index_i[m]] ;
+
+				solve_sub_problem(Ai, y_index[i], C[GETI(i)], active_size_i[i], alpha_new);
+				int nz_d = 0;
+				for(m=0;m<active_size_i[i];m++)
+				{
+					double d = alpha_new[m] - alpha_i[alpha_index_i[m]];
+					alpha_i[alpha_index_i[m]] = alpha_new[m];
+					if(fabs(d) >= 1e-12)
+					{
+						d_ind[nz_d] = alpha_index_i[m];
+						d_val[nz_d] = d;
+						nz_d++;
+					}
+				}
+
+				xi = prob->x[i];
+				while(xi->index != -1)
+				{
+					double *w_i = &w[(xi->index-1)*nr_class];
+					for(m=0;m<nz_d;m++)
+						w_i[d_ind[m]] += d_val[m]*xi->value;
+					xi++;
+				}
+			}
+		}
+
+		iter++;
+		if(iter % 10 == 0)
+		{
+			info(".");
+		}
+
+		if(stopping < eps_shrink)
+		{
+			if(stopping < eps && start_from_all == true)
+				break;
+			else
+			{
+				active_size = l;
+				for(i=0;i<l;i++)
+					active_size_i[i] = nr_class;
+				info("*");
+				eps_shrink = max(eps_shrink/2, eps);
+				start_from_all = true;
+			}
+		}
+		else
+			start_from_all = false;
+	}
+
+	info("\noptimization finished, #iter = %d\n",iter);
+	if (iter >= max_iter)
+		info("\nWARNING: reaching max number of iterations\n");
+
+	// calculate objective value
+	double v = 0;
+	int nSV = 0;
+	for(i=0;i<w_size*nr_class;i++)
+		v += w[i]*w[i];
+	v = 0.5*v;
+	for(i=0;i<l*nr_class;i++)
+	{
+		v += alpha[i];
+		if(fabs(alpha[i]) > 0)
+			nSV++;
+	}
+	for(i=0;i<l;i++)
+		v -= alpha[i*nr_class+(int)prob->y[i]];
+	info("Objective value = %lf\n",v);
+	info("nSV = %d\n",nSV);
+
+	delete [] alpha;
+	delete [] alpha_new;
+	delete [] index;
+	delete [] QD;
+	delete [] d_ind;
+	delete [] d_val;
+	delete [] alpha_index;
+	delete [] y_index;
+	delete [] active_size_i;
+	return iter;
+}
+
+// A coordinate descent algorithm for
+// L1-loss and L2-loss SVM dual problems
+//
+//  min_\alpha  0.5(\alpha^T (Q + D)\alpha) - e^T \alpha,
+//    s.t.      0 <= \alpha_i <= upper_bound_i,
+//
+//  where Qij = yi yj xi^T xj and
+//  D is a diagonal matrix
+//
+// In L1-SVM case:
+// 		upper_bound_i = Cp if y_i = 1
+// 		upper_bound_i = Cn if y_i = -1
+// 		D_ii = 0
+// In L2-SVM case:
+// 		upper_bound_i = INF
+// 		D_ii = 1/(2*Cp)	if y_i = 1
+// 		D_ii = 1/(2*Cn)	if y_i = -1
+//
+// Given:
+// x, y, Cp, Cn
+// eps is the stopping tolerance
+//
+// solution will be put in w
+//
+// See Algorithm 3 of Hsieh et al., ICML 2008
+
+#undef GETI
+#define GETI(i) (i)
+// To support weights for instances, use GETI(i) (i)
+
+static int solve_l2r_l1l2_svc(
+	const problem *prob, double *w, double eps,
+	double Cp, double Cn, int solver_type, int max_iter)
+{
+	int l = prob->l;
+	int w_size = prob->n;
+	int i, s, iter = 0;
+	double C, d, G;
+	double *QD = new double[l];
+	int *index = new int[l];
+	double *alpha = new double[l];
+	schar *y = new schar[l];
+	int active_size = l;
+
+	// PG: projected gradient, for shrinking and stopping
+	double PG;
+	double PGmax_old = INF;
+	double PGmin_old = -INF;
+	double PGmax_new, PGmin_new;
+
+	// default solver_type: L2R_L2LOSS_SVC_DUAL
+	double *diag = new double[l];
+	double *upper_bound = new double[l];
+	double *C_ = new double[l];
+	for(i=0; i<l; i++)
+	{
+		if(prob->y[i]>0)
+			C_[i] = prob->W[i] * Cp;
+		else
+			C_[i] = prob->W[i] * Cn;
+		diag[i] = 0.5/C_[i];
+		upper_bound[i] = INF;
+	}
+	if(solver_type == L2R_L1LOSS_SVC_DUAL)
+	{
+		for(i=0; i<l; i++)
+		{
+			diag[i] = 0;
+			upper_bound[i] = C_[i];
+		}
+	}
+
+	for(i=0; i<l; i++)
+	{
+		if(prob->y[i] > 0)
+		{
+			y[i] = +1;
+		}
+		else
+		{
+			y[i] = -1;
+		}
+	}
+
+	// Initial alpha can be set here. Note that
+	// 0 <= alpha[i] <= upper_bound[GETI(i)]
+	for(i=0; i<l; i++)
+		alpha[i] = 0;
+
+	for(i=0; i<w_size; i++)
+		w[i] = 0;
+	for(i=0; i<l; i++)
+	{
+		QD[i] = diag[GETI(i)];
+
+		feature_node *xi = prob->x[i];
+		while (xi->index != -1)
+		{
+			double val = xi->value;
+			QD[i] += val*val;
+			w[xi->index-1] += y[i]*alpha[i]*val;
+			xi++;
+		}
+		index[i] = i;
+	}
+
+	while (iter < max_iter)
+	{
+		PGmax_new = -INF;
+		PGmin_new = INF;
+
+		for (i=0; i<active_size; i++)
+		{
+			int j = i+bounded_rand_int(active_size-i);
+			swap(index[i], index[j]);
+		}
+
+		for (s=0; s<active_size; s++)
+		{
+			i = index[s];
+			G = 0;
+			schar yi = y[i];
+
+			feature_node *xi = prob->x[i];
+			while(xi->index!= -1)
+			{
+				G += w[xi->index-1]*(xi->value);
+				xi++;
+			}
+			G = G*yi-1;
+
+			C = upper_bound[GETI(i)];
+			G += alpha[i]*diag[GETI(i)];
+
+			PG = 0;
+			if (alpha[i] == 0)
+			{
+				if (G > PGmax_old)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+				else if (G < 0)
+					PG = G;
+			}
+			else if (alpha[i] == C)
+			{
+				if (G < PGmin_old)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+				else if (G > 0)
+					PG = G;
+			}
+			else
+				PG = G;
+
+			PGmax_new = max(PGmax_new, PG);
+			PGmin_new = min(PGmin_new, PG);
+
+			if(fabs(PG) > 1.0e-12)
+			{
+				double alpha_old = alpha[i];
+				alpha[i] = min(max(alpha[i] - G/QD[i], 0.0), C);
+				d = (alpha[i] - alpha_old)*yi;
+				xi = prob->x[i];
+				while (xi->index != -1)
+				{
+					w[xi->index-1] += d*xi->value;
+					xi++;
+				}
+			}
+		}
+
+		iter++;
+		if(iter % 10 == 0)
+			info(".");
+
+		if(PGmax_new - PGmin_new <= eps)
+		{
+			if(active_size == l)
+				break;
+			else
+			{
+				active_size = l;
+				info("*");
+				PGmax_old = INF;
+				PGmin_old = -INF;
+				continue;
+			}
+		}
+		PGmax_old = PGmax_new;
+		PGmin_old = PGmin_new;
+		if (PGmax_old <= 0)
+			PGmax_old = INF;
+		if (PGmin_old >= 0)
+			PGmin_old = -INF;
+	}
+
+	info("\noptimization finished, #iter = %d\n",iter);
+	if (iter >= max_iter)
+		info("\nWARNING: reaching max number of iterations\nUsing -s 2 may be faster (also see FAQ)\n\n");
+
+	// calculate objective value
+
+	double v = 0;
+	int nSV = 0;
+	for(i=0; i<w_size; i++)
+		v += w[i]*w[i];
+	for(i=0; i<l; i++)
+	{
+		v += alpha[i]*(alpha[i]*diag[GETI(i)] - 2);
+		if(alpha[i] > 0)
+			++nSV;
+	}
+	info("Objective value = %lf\n",v/2);
+	info("nSV = %d\n",nSV);
+
+	delete [] QD;
+	delete [] alpha;
+	delete [] y;
+	delete [] index;
+	delete [] diag;
+	delete [] upper_bound;
+	delete [] C_;
+	return iter;
+}
+
+
+// A coordinate descent algorithm for
+// L1-loss and L2-loss epsilon-SVR dual problem
+//
+//  min_\beta  0.5\beta^T (Q + diag(lambda)) \beta - p \sum_{i=1}^l|\beta_i| + \sum_{i=1}^l yi\beta_i,
+//    s.t.      -upper_bound_i <= \beta_i <= upper_bound_i,
+//
+//  where Qij = xi^T xj and
+//  D is a diagonal matrix
+//
+// In L1-SVM case:
+// 		upper_bound_i = C
+// 		lambda_i = 0
+// In L2-SVM case:
+// 		upper_bound_i = INF
+// 		lambda_i = 1/(2*C)
+//
+// Given:
+// x, y, p, C
+// eps is the stopping tolerance
+//
+// solution will be put in w
+//
+// See Algorithm 4 of Ho and Lin, 2012
+
+#undef GETI
+#define GETI(i) (i)
+// To support weights for instances, use GETI(i) (i)
+
+static int solve_l2r_l1l2_svr(
+	const problem *prob, double *w, const parameter *param,
+	int solver_type, int max_iter)
+{
+	int l = prob->l;
+	double C = param->C;
+	double p = param->p;
+	int w_size = prob->n;
+	double eps = param->eps;
+	int i, s, iter = 0;
+	int active_size = l;
+	int *index = new int[l];
+
+	double d, G, H;
+	double Gmax_old = INF;
+	double Gmax_new, Gnorm1_new;
+	double Gnorm1_init = -1.0; // Gnorm1_init is initialized at the first iteration
+	double *beta = new double[l];
+	double *QD = new double[l];
+	double *y = prob->y;
+
+	// L2R_L2LOSS_SVR_DUAL
+	double *lambda = new double[l];
+	double *upper_bound = new double[l];
+	double *C_ = new double[l];
+	for (i=0; i<l; i++)
+	{
+		C_[i] = prob->W[i] * C;
+		lambda[i] = 0.5/C_[i];
+		upper_bound[i] = INF;
+	}
+	if(solver_type == L2R_L1LOSS_SVR_DUAL)
+	{
+		for (i=0; i<l; i++)
+		{
+			lambda[i] = 0;
+			upper_bound[i] = C_[i];
+		}
+	}
+
+	// Initial beta can be set here. Note that
+	// -upper_bound <= beta[i] <= upper_bound
+	for(i=0; i<l; i++)
+		beta[i] = 0;
+
+	for(i=0; i<w_size; i++)
+		w[i] = 0;
+	for(i=0; i<l; i++)
+	{
+		QD[i] = 0;
+		feature_node *xi = prob->x[i];
+		while(xi->index != -1)
+		{
+			double val = xi->value;
+			QD[i] += val*val;
+			w[xi->index-1] += beta[i]*val;
+			xi++;
+		}
+
+		index[i] = i;
+	}
+
+
+	while(iter < max_iter)
+	{
+		Gmax_new = 0;
+		Gnorm1_new = 0;
+
+		for(i=0; i<active_size; i++)
+		{
+			int j = i+bounded_rand_int(active_size-i);
+			swap(index[i], index[j]);
+		}
+
+		for(s=0; s<active_size; s++)
+		{
+			i = index[s];
+			G = -y[i] + lambda[GETI(i)]*beta[i];
+			H = QD[i] + lambda[GETI(i)];
+
+			feature_node *xi = prob->x[i];
+			while(xi->index != -1)
+			{
+				int ind = xi->index-1;
+				double val = xi->value;
+				G += val*w[ind];
+				xi++;
+			}
+
+			double Gp = G+p;
+			double Gn = G-p;
+			double violation = 0;
+			if(beta[i] == 0)
+			{
+				if(Gp < 0)
+					violation = -Gp;
+				else if(Gn > 0)
+					violation = Gn;
+				else if(Gp>Gmax_old && Gn<-Gmax_old)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+			}
+			else if(beta[i] >= upper_bound[GETI(i)])
+			{
+				if(Gp > 0)
+					violation = Gp;
+				else if(Gp < -Gmax_old)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+			}
+			else if(beta[i] <= -upper_bound[GETI(i)])
+			{
+				if(Gn < 0)
+					violation = -Gn;
+				else if(Gn > Gmax_old)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+			}
+			else if(beta[i] > 0)
+				violation = fabs(Gp);
+			else
+				violation = fabs(Gn);
+
+			Gmax_new = max(Gmax_new, violation);
+			Gnorm1_new += violation;
+
+			// obtain Newton direction d
+			if(Gp < H*beta[i])
+				d = -Gp/H;
+			else if(Gn > H*beta[i])
+				d = -Gn/H;
+			else
+				d = -beta[i];
+
+			if(fabs(d) < 1.0e-12)
+				continue;
+
+			double beta_old = beta[i];
+			beta[i] = min(max(beta[i]+d, -upper_bound[GETI(i)]), upper_bound[GETI(i)]);
+			d = beta[i]-beta_old;
+
+			if(d != 0)
+			{
+				xi = prob->x[i];
+				while(xi->index != -1)
+				{
+					w[xi->index-1] += d*xi->value;
+					xi++;
+				}
+			}
+		}
+
+		if(iter == 0)
+			Gnorm1_init = Gnorm1_new;
+		iter++;
+		if(iter % 10 == 0)
+			info(".");
+
+		if(Gnorm1_new <= eps*Gnorm1_init)
+		{
+			if(active_size == l)
+				break;
+			else
+			{
+				active_size = l;
+				info("*");
+				Gmax_old = INF;
+				continue;
+			}
+		}
+
+		Gmax_old = Gmax_new;
+	}
+
+	info("\noptimization finished, #iter = %d\n", iter);
+	if(iter >= max_iter)
+		info("\nWARNING: reaching max number of iterations\nUsing -s 11 may be faster\n\n");
+
+	// calculate objective value
+	double v = 0;
+	int nSV = 0;
+	for(i=0; i<w_size; i++)
+		v += w[i]*w[i];
+	v = 0.5*v;
+	for(i=0; i<l; i++)
+	{
+		v += p*fabs(beta[i]) - y[i]*beta[i] + 0.5*lambda[GETI(i)]*beta[i]*beta[i];
+		if(beta[i] != 0)
+			nSV++;
+	}
+
+	info("Objective value = %lf\n", v);
+	info("nSV = %d\n",nSV);
+
+	delete [] beta;
+	delete [] QD;
+	delete [] index;
+	delete [] lambda;
+	delete [] upper_bound;
+	delete [] C_;
+	return iter;
+}
+
+
+// A coordinate descent algorithm for
+// the dual of L2-regularized logistic regression problems
+//
+//  min_\alpha  0.5(\alpha^T Q \alpha) + \sum \alpha_i log (\alpha_i) + (upper_bound_i - \alpha_i) log (upper_bound_i - \alpha_i),
+//    s.t.      0 <= \alpha_i <= upper_bound_i,
+//
+//  where Qij = yi yj xi^T xj and
+//  upper_bound_i = Cp if y_i = 1
+//  upper_bound_i = Cn if y_i = -1
+//
+// Given:
+// x, y, Cp, Cn
+// eps is the stopping tolerance
+//
+// solution will be put in w
+//
+// See Algorithm 5 of Yu et al., MLJ 2010
+
+#undef GETI
+#define GETI(i) (i)
+// To support weights for instances, use GETI(i) (i)
+
+int solve_l2r_lr_dual(const problem *prob, double *w, double eps, double Cp, double Cn,
+					   int max_iter)
+{
+	int l = prob->l;
+	int w_size = prob->n;
+	int i, s, iter = 0;
+	double *xTx = new double[l];
+	int *index = new int[l];
+	double *alpha = new double[2*l]; // store alpha and C - alpha
+	schar *y = new schar[l];
+	int max_inner_iter = 100; // for inner Newton
+	double innereps = 1e-2;
+	double innereps_min = min(1e-8, eps);
+	double *upper_bound = new double [l];
+
+	for(i=0; i<l; i++)
+	{
+		if(prob->y[i] > 0)
+		{
+			upper_bound[i] = prob->W[i] * Cp;
+			y[i] = +1;
+		}
+		else
+		{
+			upper_bound[i] = prob->W[i] * Cn;
+			y[i] = -1;
+		}
+	}
+
+	// Initial alpha can be set here. Note that
+	// 0 < alpha[i] < upper_bound[GETI(i)]
+	// alpha[2*i] + alpha[2*i+1] = upper_bound[GETI(i)]
+	for(i=0; i<l; i++)
+	{
+		alpha[2*i] = min(0.001*upper_bound[GETI(i)], 1e-8);
+		alpha[2*i+1] = upper_bound[GETI(i)] - alpha[2*i];
+	}
+
+	for(i=0; i<w_size; i++)
+		w[i] = 0;
+	for(i=0; i<l; i++)
+	{
+		xTx[i] = 0;
+		feature_node *xi = prob->x[i];
+		while (xi->index != -1)
+		{
+			double val = xi->value;
+			xTx[i] += val*val;
+			w[xi->index-1] += y[i]*alpha[2*i]*val;
+			xi++;
+		}
+		index[i] = i;
+	}
+
+	while (iter < max_iter)
+	{
+		for (i=0; i<l; i++)
+		{
+			int j = i+bounded_rand_int(l-i);
+			swap(index[i], index[j]);
+		}
+		int newton_iter = 0;
+		double Gmax = 0;
+		for (s=0; s<l; s++)
+		{
+			i = index[s];
+			schar yi = y[i];
+			double C = upper_bound[GETI(i)];
+			double ywTx = 0, xisq = xTx[i];
+			feature_node *xi = prob->x[i];
+			while (xi->index != -1)
+			{
+				ywTx += w[xi->index-1]*xi->value;
+				xi++;
+			}
+			ywTx *= y[i];
+			double a = xisq, b = ywTx;
+
+			// Decide to minimize g_1(z) or g_2(z)
+			int ind1 = 2*i, ind2 = 2*i+1, sign = 1;
+			if(0.5*a*(alpha[ind2]-alpha[ind1])+b < 0)
+			{
+				ind1 = 2*i+1;
+				ind2 = 2*i;
+				sign = -1;
+			}
+
+			//  g_t(z) = z*log(z) + (C-z)*log(C-z) + 0.5a(z-alpha_old)^2 + sign*b(z-alpha_old)
+			double alpha_old = alpha[ind1];
+			double z = alpha_old;
+			if(C - z < 0.5 * C)
+				z = 0.1*z;
+			double gp = a*(z-alpha_old)+sign*b+log(z/(C-z));
+			Gmax = max(Gmax, fabs(gp));
+
+			// Newton method on the sub-problem
+			const double eta = 0.1; // xi in the paper
+			int inner_iter = 0;
+			while (inner_iter <= max_inner_iter)
+			{
+				if(fabs(gp) < innereps)
+					break;
+				double gpp = a + C/(C-z)/z;
+				double tmpz = z - gp/gpp;
+				if(tmpz <= 0)
+					z *= eta;
+				else // tmpz in (0, C)
+					z = tmpz;
+				gp = a*(z-alpha_old)+sign*b+log(z/(C-z));
+				newton_iter++;
+				inner_iter++;
+			}
+
+			if(inner_iter > 0) // update w
+			{
+				alpha[ind1] = z;
+				alpha[ind2] = C-z;
+				xi = prob->x[i];
+				while (xi->index != -1)
+				{
+					w[xi->index-1] += sign*(z-alpha_old)*yi*xi->value;
+					xi++;
+				}
+			}
+		}
+
+		iter++;
+		if(iter % 10 == 0)
+			info(".");
+
+		if(Gmax < eps)
+			break;
+
+		if(newton_iter <= l/10)
+			innereps = max(innereps_min, 0.1*innereps);
+
+	}
+
+	info("\noptimization finished, #iter = %d\n",iter);
+	if (iter >= max_iter)
+		info("\nWARNING: reaching max number of iterations\nUsing -s 0 may be faster (also see FAQ)\n\n");
+
+	// calculate objective value
+
+	double v = 0;
+	for(i=0; i<w_size; i++)
+		v += w[i] * w[i];
+	v *= 0.5;
+	for(i=0; i<l; i++)
+		v += alpha[2*i] * log(alpha[2*i]) + alpha[2*i+1] * log(alpha[2*i+1])
+			- upper_bound[GETI(i)] * log(upper_bound[GETI(i)]);
+	info("Objective value = %lf\n", v);
+
+	delete [] xTx;
+	delete [] alpha;
+	delete [] y;
+	delete [] index;
+	delete [] upper_bound;
+	return iter;
+}
+
+// A coordinate descent algorithm for
+// L1-regularized L2-loss support vector classification
+//
+//  min_w \sum |wj| + C \sum max(0, 1-yi w^T xi)^2,
+//
+// Given:
+// x, y, Cp, Cn
+// eps is the stopping tolerance
+//
+// solution will be put in w
+//
+// See Yuan et al. (2010) and appendix of LIBLINEAR paper, Fan et al. (2008)
+
+#undef GETI
+#define GETI(i) (i)
+// To support weights for instances, use GETI(i) (i)
+
+static int solve_l1r_l2_svc(
+	problem *prob_col, double *w, double eps,
+	double Cp, double Cn, int max_iter)
+{
+	int l = prob_col->l;
+	int w_size = prob_col->n;
+	int j, s, iter = 0;
+	int active_size = w_size;
+	int max_num_linesearch = 20;
+
+	double sigma = 0.01;
+	double d, G_loss, G, H;
+	double Gmax_old = INF;
+	double Gmax_new, Gnorm1_new;
+	double Gnorm1_init = -1.0; // Gnorm1_init is initialized at the first iteration
+	double d_old, d_diff;
+	double loss_old, loss_new;
+	double appxcond, cond;
+
+	int *index = new int[w_size];
+	schar *y = new schar[l];
+	double *b = new double[l]; // b = 1-ywTx
+	double *xj_sq = new double[w_size];
+	feature_node *x;
+
+	double *C = new double[l];
+
+	// Initial w can be set here.
+	for(j=0; j<w_size; j++)
+		w[j] = 0;
+
+	for(j=0; j<l; j++)
+	{
+		b[j] = 1;
+		if(prob_col->y[j] > 0)
+		{
+			y[j] = 1;
+			C[j] = prob_col->W[j] * Cp;
+		}
+		else
+		{
+			y[j] = -1;
+			C[j] = prob_col->W[j] * Cn;
+		}
+	}
+	for(j=0; j<w_size; j++)
+	{
+		index[j] = j;
+		xj_sq[j] = 0;
+		x = prob_col->x[j];
+		while(x->index != -1)
+		{
+			int ind = x->index-1;
+			x->value *= y[ind]; // x->value stores yi*xij
+			double val = x->value;
+			b[ind] -= w[j]*val;
+			xj_sq[j] += C[GETI(ind)]*val*val;
+			x++;
+		}
+	}
+
+	while(iter < max_iter)
+	{
+		Gmax_new = 0;
+		Gnorm1_new = 0;
+
+		for(j=0; j<active_size; j++)
+		{
+			int i = j+bounded_rand_int(active_size-j);
+			swap(index[i], index[j]);
+		}
+
+		for(s=0; s<active_size; s++)
+		{
+			j = index[s];
+			G_loss = 0;
+			H = 0;
+
+			x = prob_col->x[j];
+			while(x->index != -1)
+			{
+				int ind = x->index-1;
+				if(b[ind] > 0)
+				{
+					double val = x->value;
+					double tmp = C[GETI(ind)]*val;
+					G_loss -= tmp*b[ind];
+					H += tmp*val;
+				}
+				x++;
+			}
+			G_loss *= 2;
+
+			G = G_loss;
+			H *= 2;
+			H = max(H, 1e-12);
+
+			double Gp = G+1;
+			double Gn = G-1;
+			double violation = 0;
+			if(w[j] == 0)
+			{
+				if(Gp < 0)
+					violation = -Gp;
+				else if(Gn > 0)
+					violation = Gn;
+				else if(Gp>Gmax_old/l && Gn<-Gmax_old/l)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+			}
+			else if(w[j] > 0)
+				violation = fabs(Gp);
+			else
+				violation = fabs(Gn);
+
+			Gmax_new = max(Gmax_new, violation);
+			Gnorm1_new += violation;
+
+			// obtain Newton direction d
+			if(Gp < H*w[j])
+				d = -Gp/H;
+			else if(Gn > H*w[j])
+				d = -Gn/H;
+			else
+				d = -w[j];
+
+			if(fabs(d) < 1.0e-12)
+				continue;
+
+			double delta = fabs(w[j]+d)-fabs(w[j]) + G*d;
+			d_old = 0;
+			int num_linesearch;
+			for(num_linesearch=0; num_linesearch < max_num_linesearch; num_linesearch++)
+			{
+				d_diff = d_old - d;
+				cond = fabs(w[j]+d)-fabs(w[j]) - sigma*delta;
+
+				appxcond = xj_sq[j]*d*d + G_loss*d + cond;
+				if(appxcond <= 0)
+				{
+					x = prob_col->x[j];
+					while(x->index != -1)
+					{
+						b[x->index-1] += d_diff*x->value;
+						x++;
+					}
+					break;
+				}
+
+				if(num_linesearch == 0)
+				{
+					loss_old = 0;
+					loss_new = 0;
+					x = prob_col->x[j];
+					while(x->index != -1)
+					{
+						int ind = x->index-1;
+						if(b[ind] > 0)
+							loss_old += C[GETI(ind)]*b[ind]*b[ind];
+						double b_new = b[ind] + d_diff*x->value;
+						b[ind] = b_new;
+						if(b_new > 0)
+							loss_new += C[GETI(ind)]*b_new*b_new;
+						x++;
+					}
+				}
+				else
+				{
+					loss_new = 0;
+					x = prob_col->x[j];
+					while(x->index != -1)
+					{
+						int ind = x->index-1;
+						double b_new = b[ind] + d_diff*x->value;
+						b[ind] = b_new;
+						if(b_new > 0)
+							loss_new += C[GETI(ind)]*b_new*b_new;
+						x++;
+					}
+				}
+
+				cond = cond + loss_new - loss_old;
+				if(cond <= 0)
+					break;
+				else
+				{
+					d_old = d;
+					d *= 0.5;
+					delta *= 0.5;
+				}
+			}
+
+			w[j] += d;
+
+			// recompute b[] if line search takes too many steps
+			if(num_linesearch >= max_num_linesearch)
+			{
+				info("#");
+				for(int i=0; i<l; i++)
+					b[i] = 1;
+
+				for(int i=0; i<w_size; i++)
+				{
+					if(w[i]==0) continue;
+					x = prob_col->x[i];
+					while(x->index != -1)
+					{
+						b[x->index-1] -= w[i]*x->value;
+						x++;
+					}
+				}
+			}
+		}
+
+		if(iter == 0)
+			Gnorm1_init = Gnorm1_new;
+		iter++;
+		if(iter % 10 == 0)
+			info(".");
+
+		if(Gnorm1_new <= eps*Gnorm1_init)
+		{
+			if(active_size == w_size)
+				break;
+			else
+			{
+				active_size = w_size;
+				info("*");
+				Gmax_old = INF;
+				continue;
+			}
+		}
+
+		Gmax_old = Gmax_new;
+	}
+
+	info("\noptimization finished, #iter = %d\n", iter);
+	if(iter >= max_iter)
+		info("\nWARNING: reaching max number of iterations\n");
+
+	// calculate objective value
+
+	double v = 0;
+	int nnz = 0;
+	for(j=0; j<w_size; j++)
+	{
+		x = prob_col->x[j];
+		while(x->index != -1)
+		{
+			x->value *= prob_col->y[x->index-1]; // restore x->value
+			x++;
+		}
+		if(w[j] != 0)
+		{
+			v += fabs(w[j]);
+			nnz++;
+		}
+	}
+	for(j=0; j<l; j++)
+		if(b[j] > 0)
+			v += C[GETI(j)]*b[j]*b[j];
+
+	info("Objective value = %lf\n", v);
+	info("#nonzeros/#features = %d/%d\n", nnz, w_size);
+
+	delete [] index;
+	delete [] y;
+	delete [] b;
+	delete [] xj_sq;
+	delete [] C;
+	return iter;
+}
+
+// A coordinate descent algorithm for
+// L1-regularized logistic regression problems
+//
+//  min_w \sum |wj| + C \sum log(1+exp(-yi w^T xi)),
+//
+// Given:
+// x, y, Cp, Cn
+// eps is the stopping tolerance
+//
+// solution will be put in w
+//
+// See Yuan et al. (2011) and appendix of LIBLINEAR paper, Fan et al. (2008)
+
+#undef GETI
+#define GETI(i) (i)
+// To support weights for instances, use GETI(i) (i)
+
+static int solve_l1r_lr(
+	const problem *prob_col, double *w, double eps,
+	double Cp, double Cn, int max_newton_iter)
+{
+	int l = prob_col->l;
+	int w_size = prob_col->n;
+	int j, s, newton_iter=0, iter=0;
+	int max_iter = 1000;
+	int max_num_linesearch = 20;
+	int active_size;
+	int QP_active_size;
+	int QP_no_change = 0;
+
+	double nu = 1e-12;
+	double inner_eps = 1;
+	double sigma = 0.01;
+	double w_norm, w_norm_new;
+	double z, G, H;
+	double Gnorm1_init = -1.0; // Gnorm1_init is initialized at the first iteration
+	double Gmax_old = INF;
+	double Gmax_new, Gnorm1_new;
+	double QP_Gmax_old = INF;
+	double QP_Gmax_new, QP_Gnorm1_new;
+	double delta, negsum_xTd, cond;
+
+	int *index = new int[w_size];
+	schar *y = new schar[l];
+	double *Hdiag = new double[w_size];
+	double *Grad = new double[w_size];
+	double *wpd = new double[w_size];
+	double *xjneg_sum = new double[w_size];
+	double *xTd = new double[l];
+	double *exp_wTx = new double[l];
+	double *exp_wTx_new = new double[l];
+	double *tau = new double[l];
+	double *D = new double[l];
+	feature_node *x;
+
+	double *C = new double[l];
+
+	// Initial w can be set here.
+	for(j=0; j<w_size; j++)
+		w[j] = 0;
+
+	for(j=0; j<l; j++)
+	{
+		if(prob_col->y[j] > 0)
+		{
+			y[j] = 1;
+			C[j] = prob_col->W[j] * Cp;
+		}
+		else
+		{
+			y[j] = -1;
+			C[j] = prob_col->W[j] * Cn;
+		}
+
+		exp_wTx[j] = 0;
+	}
+
+	w_norm = 0;
+	for(j=0; j<w_size; j++)
+	{
+		w_norm += fabs(w[j]);
+		wpd[j] = w[j];
+		index[j] = j;
+		xjneg_sum[j] = 0;
+		x = prob_col->x[j];
+		while(x->index != -1)
+		{
+			int ind = x->index-1;
+			double val = x->value;
+			exp_wTx[ind] += w[j]*val;
+			if(y[ind] == -1)
+				xjneg_sum[j] += C[GETI(ind)]*val;
+			x++;
+		}
+	}
+	for(j=0; j<l; j++)
+	{
+		exp_wTx[j] = exp(exp_wTx[j]);
+		double tau_tmp = 1/(1+exp_wTx[j]);
+		tau[j] = C[GETI(j)]*tau_tmp;
+		D[j] = C[GETI(j)]*exp_wTx[j]*tau_tmp*tau_tmp;
+	}
+
+	while(newton_iter < max_newton_iter)
+	{
+		Gmax_new = 0;
+		Gnorm1_new = 0;
+		active_size = w_size;
+
+		for(s=0; s<active_size; s++)
+		{
+			j = index[s];
+			Hdiag[j] = nu;
+			Grad[j] = 0;
+
+			double tmp = 0;
+			x = prob_col->x[j];
+			while(x->index != -1)
+			{
+				int ind = x->index-1;
+				Hdiag[j] += x->value*x->value*D[ind];
+				tmp += x->value*tau[ind];
+				x++;
+			}
+			Grad[j] = -tmp + xjneg_sum[j];
+
+			double Gp = Grad[j]+1;
+			double Gn = Grad[j]-1;
+			double violation = 0;
+			if(w[j] == 0)
+			{
+				if(Gp < 0)
+					violation = -Gp;
+				else if(Gn > 0)
+					violation = Gn;
+				//outer-level shrinking
+				else if(Gp>Gmax_old/l && Gn<-Gmax_old/l)
+				{
+					active_size--;
+					swap(index[s], index[active_size]);
+					s--;
+					continue;
+				}
+			}
+			else if(w[j] > 0)
+				violation = fabs(Gp);
+			else
+				violation = fabs(Gn);
+
+			Gmax_new = max(Gmax_new, violation);
+			Gnorm1_new += violation;
+		}
+
+		if(newton_iter == 0)
+			Gnorm1_init = Gnorm1_new;
+
+		// Break outer-loop if the accumulated violation is small.
+		// Also break if no update in QP inner-loop ten times in a row.
+		if(Gnorm1_new <= eps*Gnorm1_init || QP_no_change >= 10)
+			break;
+
+		QP_no_change++;
+
+		iter = 0;
+		QP_Gmax_old = INF;
+		QP_active_size = active_size;
+
+		for(int i=0; i<l; i++)
+			xTd[i] = 0;
+
+		// optimize QP over wpd
+		while(iter < max_iter)
+		{
+			QP_Gmax_new = 0;
+			QP_Gnorm1_new = 0;
+
+			for(j=0; j<QP_active_size; j++)
+			{
+				int i = j+bounded_rand_int(QP_active_size-j);
+				swap(index[i], index[j]);
+			}
+
+			for(s=0; s<QP_active_size; s++)
+			{
+				j = index[s];
+				H = Hdiag[j];
+
+				x = prob_col->x[j];
+				G = Grad[j] + (wpd[j]-w[j])*nu;
+				while(x->index != -1)
+				{
+					int ind = x->index-1;
+					G += x->value*D[ind]*xTd[ind];
+					x++;
+				}
+
+				double Gp = G+1;
+				double Gn = G-1;
+				double violation = 0;
+				if(wpd[j] == 0)
+				{
+					if(Gp < 0)
+						violation = -Gp;
+					else if(Gn > 0)
+						violation = Gn;
+					//inner-level shrinking
+					else if(Gp>QP_Gmax_old/l && Gn<-QP_Gmax_old/l)
+					{
+						QP_active_size--;
+						swap(index[s], index[QP_active_size]);
+						s--;
+						continue;
+					}
+				}
+				else if(wpd[j] > 0)
+					violation = fabs(Gp);
+				else
+					violation = fabs(Gn);
+
+				// obtain solution of one-variable problem
+				if(Gp < H*wpd[j])
+					z = -Gp/H;
+				else if(Gn > H*wpd[j])
+					z = -Gn/H;
+				else
+					z = -wpd[j];
+
+				if(fabs(z) < 1.0e-12)
+					continue;
+				z = min(max(z,-10.0),10.0);
+
+				QP_no_change = 0;
+				QP_Gmax_new = max(QP_Gmax_new, violation);
+				QP_Gnorm1_new += violation;
+
+				wpd[j] += z;
+
+				x = prob_col->x[j];
+				while(x->index != -1)
+				{
+					int ind = x->index-1;
+					xTd[ind] += x->value*z;
+					x++;
+				}
+			}
+
+			iter++;
+
+			if(QP_Gnorm1_new <= inner_eps*Gnorm1_init)
+			{
+				//inner stopping
+				if(QP_active_size == active_size)
+					break;
+				//active set reactivation
+				else
+				{
+					QP_active_size = active_size;
+					QP_Gmax_old = INF;
+					continue;
+				}
+			}
+
+			QP_Gmax_old = QP_Gmax_new;
+		}
+
+		if(iter >= max_iter)
+			info("WARNING: reaching max number of inner iterations\n");
+
+		delta = 0;
+		w_norm_new = 0;
+		for(j=0; j<w_size; j++)
+		{
+			delta += Grad[j]*(wpd[j]-w[j]);
+			if(wpd[j] != 0)
+				w_norm_new += fabs(wpd[j]);
+		}
+		delta += (w_norm_new-w_norm);
+
+		negsum_xTd = 0;
+		for(int i=0; i<l; i++)
+			if(y[i] == -1)
+				negsum_xTd += C[GETI(i)]*xTd[i];
+
+		int num_linesearch;
+		for(num_linesearch=0; num_linesearch < max_num_linesearch; num_linesearch++)
+		{
+			cond = w_norm_new - w_norm + negsum_xTd - sigma*delta;
+
+			for(int i=0; i<l; i++)
+			{
+				double exp_xTd = exp(xTd[i]);
+				exp_wTx_new[i] = exp_wTx[i]*exp_xTd;
+				cond += C[GETI(i)]*log((1+exp_wTx_new[i])/(exp_xTd+exp_wTx_new[i]));
+			}
+
+			if(cond <= 0)
+			{
+				w_norm = w_norm_new;
+				for(j=0; j<w_size; j++)
+					w[j] = wpd[j];
+				for(int i=0; i<l; i++)
+				{
+					exp_wTx[i] = exp_wTx_new[i];
+					double tau_tmp = 1/(1+exp_wTx[i]);
+					tau[i] = C[GETI(i)]*tau_tmp;
+					D[i] = C[GETI(i)]*exp_wTx[i]*tau_tmp*tau_tmp;
+				}
+				break;
+			}
+			else
+			{
+				w_norm_new = 0;
+				for(j=0; j<w_size; j++)
+				{
+					wpd[j] = (w[j]+wpd[j])*0.5;
+					if(wpd[j] != 0)
+						w_norm_new += fabs(wpd[j]);
+				}
+				delta *= 0.5;
+				negsum_xTd *= 0.5;
+				for(int i=0; i<l; i++)
+					xTd[i] *= 0.5;
+			}
+		}
+
+		// Recompute some info due to too many line search steps
+		if(num_linesearch >= max_num_linesearch)
+		{
+			for(int i=0; i<l; i++)
+				exp_wTx[i] = 0;
+
+			for(int i=0; i<w_size; i++)
+			{
+				if(w[i]==0) continue;
+				x = prob_col->x[i];
+				while(x->index != -1)
+				{
+					exp_wTx[x->index-1] += w[i]*x->value;
+					x++;
+				}
+			}
+
+			for(int i=0; i<l; i++)
+				exp_wTx[i] = exp(exp_wTx[i]);
+		}
+
+		if(iter == 1)
+			inner_eps *= 0.25;
+
+		newton_iter++;
+		Gmax_old = Gmax_new;
+
+		info("iter %3d  #CD cycles %d\n", newton_iter, iter);
+	}
+
+	info("=========================\n");
+	info("optimization finished, #iter = %d\n", newton_iter);
+	if(newton_iter >= max_newton_iter)
+		info("WARNING: reaching max number of iterations\n");
+
+	// calculate objective value
+
+	double v = 0;
+	int nnz = 0;
+	for(j=0; j<w_size; j++)
+		if(w[j] != 0)
+		{
+			v += fabs(w[j]);
+			nnz++;
+		}
+	for(j=0; j<l; j++)
+		if(y[j] == 1)
+			v += C[GETI(j)]*log(1+1/exp_wTx[j]);
+		else
+			v += C[GETI(j)]*log(1+exp_wTx[j]);
+
+	info("Objective value = %lf\n", v);
+	info("#nonzeros/#features = %d/%d\n", nnz, w_size);
+
+	delete [] index;
+	delete [] y;
+	delete [] Hdiag;
+	delete [] Grad;
+	delete [] wpd;
+	delete [] xjneg_sum;
+	delete [] xTd;
+	delete [] exp_wTx;
+	delete [] exp_wTx_new;
+	delete [] tau;
+	delete [] D;
+	delete [] C;
+	return newton_iter;
+}
+
+// transpose matrix X from row format to column format
+static void transpose(const problem *prob, feature_node **x_space_ret, problem *prob_col)
+{
+	int i;
+	int l = prob->l;
+	int n = prob->n;
+	size_t nnz = 0;
+	size_t *col_ptr = new size_t [n+1];
+	feature_node *x_space;
+	prob_col->l = l;
+	prob_col->n = n;
+	prob_col->y = new double[l];
+	prob_col->x = new feature_node*[n];
+	prob_col->W = new double[l];
+
+	for(i=0; i<l; i++)
+	{
+		prob_col->y[i] = prob->y[i];
+		prob_col->W[i] = prob->W[i];
+	}
+
+	for(i=0; i<n+1; i++)
+		col_ptr[i] = 0;
+	for(i=0; i<l; i++)
+	{
+		feature_node *x = prob->x[i];
+		while(x->index != -1)
+		{
+			nnz++;
+			col_ptr[x->index]++;
+			x++;
+		}
+	}
+	for(i=1; i<n+1; i++)
+		col_ptr[i] += col_ptr[i-1] + 1;
+
+	x_space = new feature_node[nnz+n];
+	for(i=0; i<n; i++)
+		prob_col->x[i] = &x_space[col_ptr[i]];
+
+	for(i=0; i<l; i++)
+	{
+		feature_node *x = prob->x[i];
+		while(x->index != -1)
+		{
+			int ind = x->index-1;
+			x_space[col_ptr[ind]].index = i+1; // starts from 1
+			x_space[col_ptr[ind]].value = x->value;
+			col_ptr[ind]++;
+			x++;
+		}
+	}
+	for(i=0; i<n; i++)
+		x_space[col_ptr[i]].index = -1;
+
+	*x_space_ret = x_space;
+
+	delete [] col_ptr;
+}
+
+// label: label name, start: begin of each class, count: #data of classes, perm: indices to the original data
+// perm, length l, must be allocated before calling this subroutine
+static void group_classes(const problem *prob, int *nr_class_ret, int **label_ret, int **start_ret, int **count_ret, int *perm)
+{
+	int l = prob->l;
+	int max_nr_class = 16;
+	int nr_class = 0;
+	int *label = Malloc(int,max_nr_class);
+	int *count = Malloc(int,max_nr_class);
+	int *data_label = Malloc(int,l);
+	int i;
+
+	for(i=0;i<l;i++)
+	{
+		int this_label = (int)prob->y[i];
+		int j;
+		for(j=0;j<nr_class;j++)
+		{
+			if(this_label == label[j])
+			{
+				++count[j];
+				break;
+			}
+		}
+		data_label[i] = j;
+		if(j == nr_class)
+		{
+			if(nr_class == max_nr_class)
+			{
+				max_nr_class *= 2;
+				label = (int *)realloc(label,max_nr_class*sizeof(int));
+				count = (int *)realloc(count,max_nr_class*sizeof(int));
+			}
+			label[nr_class] = this_label;
+			count[nr_class] = 1;
+			++nr_class;
+		}
+	}
+
+        /* START MOD: Sort labels and apply to array count --dyamins */
+
+        int j;
+        for (j=1; j<nr_class; j++)
+        {
+                i = j-1;
+                int this_label = label[j];
+                int this_count = count[j];
+                while(i>=0 && label[i] > this_label)
+                {
+                        label[i+1] = label[i];
+                        count[i+1] = count[i];
+                        i--;
+                }
+                label[i+1] = this_label;
+                count[i+1] = this_count;
+        }
+
+        for (i=0; i <l; i++)
+        {
+                j = 0;
+                int this_label = (int)prob->y[i];
+                while(this_label != label[j])
+                {
+                        j++;
+                }
+                data_label[i] = j;
+
+        }
+
+        /* END MOD */
+
+#if 0
+	//
+	// Labels are ordered by their first occurrence in the training set.
+	// However, for two-class sets with -1/+1 labels and -1 appears first,
+	// we swap labels to ensure that internally the binary SVM has positive data corresponding to the +1 instances.
+	//
+	if (nr_class == 2 && label[0] == -1 && label[1] == 1)
+	{
+		swap(label[0],label[1]);
+		swap(count[0],count[1]);
+		for(i=0;i<l;i++)
+		{
+			if(data_label[i] == 0)
+				data_label[i] = 1;
+			else
+				data_label[i] = 0;
+		}
+	}
+#endif
+
+	int *start = Malloc(int,nr_class);
+	start[0] = 0;
+	for(i=1;i<nr_class;i++)
+		start[i] = start[i-1]+count[i-1];
+	for(i=0;i<l;i++)
+	{
+		perm[start[data_label[i]]] = i;
+		++start[data_label[i]];
+	}
+	start[0] = 0;
+	for(i=1;i<nr_class;i++)
+		start[i] = start[i-1]+count[i-1];
+
+	*nr_class_ret = nr_class;
+	*label_ret = label;
+	*start_ret = start;
+	*count_ret = count;
+	free(data_label);
+}
+
+static int train_one(const problem *prob, const parameter *param, double *w, double Cp, double Cn, BlasFunctions *blas_functions)
+{
+	double eps=param->eps;
+	int max_iter=param->max_iter;
+	int pos = 0;
+	int neg = 0;
+	int n_iter = -1;
+	for(int i=0;i<prob->l;i++)
+		if(prob->y[i] > 0)
+			pos++;
+	neg = prob->l - pos;
+
+	double primal_solver_tol = eps*max(min(pos,neg), 1)/prob->l;
+
+	function *fun_obj=NULL;
+	switch(param->solver_type)
+	{
+		case L2R_LR:
+		{
+			double *C = new double[prob->l];
+			for(int i = 0; i < prob->l; i++)
+			{
+				if(prob->y[i] > 0)
+					C[i] = prob->W[i] * Cp;
+				else
+					C[i] = prob->W[i] * Cn;
+			}
+
+			fun_obj=new l2r_lr_fun(prob, C);
+			TRON tron_obj(fun_obj, primal_solver_tol, max_iter, blas_functions);
+			tron_obj.set_print_string(liblinear_print_string);
+			n_iter=tron_obj.tron(w);
+			delete fun_obj;
+			delete[] C;
+			break;
+		}
+		case L2R_L2LOSS_SVC:
+		{
+			double *C = new double[prob->l];
+			for(int i = 0; i < prob->l; i++)
+			{
+				if(prob->y[i] > 0)
+					C[i] = prob->W[i] * Cp;
+				else
+					C[i] = prob->W[i] * Cn;
+			}
+			fun_obj=new l2r_l2_svc_fun(prob, C);
+			TRON tron_obj(fun_obj, primal_solver_tol, max_iter, blas_functions);
+			tron_obj.set_print_string(liblinear_print_string);
+			n_iter=tron_obj.tron(w);
+			delete fun_obj;
+			delete[] C;
+			break;
+		}
+		case L2R_L2LOSS_SVC_DUAL:
+			n_iter=solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, L2R_L2LOSS_SVC_DUAL, max_iter);
+			break;
+		case L2R_L1LOSS_SVC_DUAL:
+			n_iter=solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, L2R_L1LOSS_SVC_DUAL, max_iter);
+			break;
+		case L1R_L2LOSS_SVC:
+		{
+			problem prob_col;
+			feature_node *x_space = NULL;
+			transpose(prob, &x_space ,&prob_col);
+			n_iter=solve_l1r_l2_svc(&prob_col, w, primal_solver_tol, Cp, Cn, max_iter);
+			delete [] prob_col.y;
+			delete [] prob_col.x;
+			delete [] prob_col.W;
+			delete [] x_space;
+			break;
+		}
+		case L1R_LR:
+		{
+			problem prob_col;
+			feature_node *x_space = NULL;
+			transpose(prob, &x_space ,&prob_col);
+			n_iter=solve_l1r_lr(&prob_col, w, primal_solver_tol, Cp, Cn, max_iter);
+			delete [] prob_col.y;
+			delete [] prob_col.x;
+			delete [] prob_col.W;
+			delete [] x_space;
+			break;
+		}
+		case L2R_LR_DUAL:
+			n_iter=solve_l2r_lr_dual(prob, w, eps, Cp, Cn, max_iter);
+			break;
+		case L2R_L2LOSS_SVR:
+		{
+			double *C = new double[prob->l];
+			for(int i = 0; i < prob->l; i++)
+				C[i] = prob->W[i] * param->C;
+
+			fun_obj=new l2r_l2_svr_fun(prob, C, param->p);
+			TRON tron_obj(fun_obj, param->eps, max_iter, blas_functions);
+			tron_obj.set_print_string(liblinear_print_string);
+			n_iter=tron_obj.tron(w);
+			delete fun_obj;
+			delete[] C;
+			break;
+
+		}
+		case L2R_L1LOSS_SVR_DUAL:
+			n_iter=solve_l2r_l1l2_svr(prob, w, param, L2R_L1LOSS_SVR_DUAL, max_iter);
+			break;
+		case L2R_L2LOSS_SVR_DUAL:
+			n_iter=solve_l2r_l1l2_svr(prob, w, param, L2R_L2LOSS_SVR_DUAL, max_iter);
+			break;
+		default:
+			fprintf(stderr, "ERROR: unknown solver_type\n");
+			break;
+	}
+	return n_iter;
+}
+
+//
+// Remove zero weighed data as libsvm and some liblinear solvers require C > 0.
+//
+static void remove_zero_weight(problem *newprob, const problem *prob)
+{
+	int i;
+	int l = 0;
+	for(i=0;i<prob->l;i++)
+		if(prob->W[i] > 0) l++;
+	*newprob = *prob;
+	newprob->l = l;
+	newprob->x = Malloc(feature_node*,l);
+	newprob->y = Malloc(double,l);
+	newprob->W = Malloc(double,l);
+
+	int j = 0;
+	for(i=0;i<prob->l;i++)
+		if(prob->W[i] > 0)
+		{
+			newprob->x[j] = prob->x[i];
+			newprob->y[j] = prob->y[i];
+			newprob->W[j] = prob->W[i];
+			j++;
+		}
+}
+
+//
+// Interface functions
+//
+model* train(const problem *prob, const parameter *param, BlasFunctions *blas_functions)
+{
+	problem newprob;
+	remove_zero_weight(&newprob, prob);
+	prob = &newprob;
+	int i,j;
+	int l = prob->l;
+	int n = prob->n;
+	int w_size = prob->n;
+	model *model_ = Malloc(model,1);
+
+	if(prob->bias>=0)
+		model_->nr_feature=n-1;
+	else
+		model_->nr_feature=n;
+	model_->param = *param;
+	model_->bias = prob->bias;
+
+	if(check_regression_model(model_))
+	{
+		model_->w = Malloc(double, w_size);
+		model_->n_iter = Malloc(int, 1);
+		model_->nr_class = 2;
+		model_->label = NULL;
+		model_->n_iter[0] =train_one(prob, param, &model_->w[0], 0, 0, blas_functions);
+	}
+	else
+	{
+		int nr_class;
+		int *label = NULL;
+		int *start = NULL;
+		int *count = NULL;
+		int *perm = Malloc(int,l);
+
+		// group training data of the same class
+		group_classes(prob,&nr_class,&label,&start,&count,perm);
+
+		model_->nr_class=nr_class;
+		model_->label = Malloc(int,nr_class);
+		for(i=0;i<nr_class;i++)
+			model_->label[i] = label[i];
+
+		// calculate weighted C
+		double *weighted_C = Malloc(double, nr_class);
+		for(i=0;i<nr_class;i++)
+			weighted_C[i] = param->C;
+		for(i=0;i<param->nr_weight;i++)
+		{
+			for(j=0;j<nr_class;j++)
+				if(param->weight_label[i] == label[j])
+					break;
+			if(j == nr_class)
+				fprintf(stderr,"WARNING: class label %d specified in weight is not found\n", param->weight_label[i]);
+			else
+				weighted_C[j] *= param->weight[i];
+		}
+
+		// constructing the subproblem
+		feature_node **x = Malloc(feature_node *,l);
+		for(i=0;i<l;i++)
+			x[i] = prob->x[perm[i]];
+
+		int k;
+		problem sub_prob;
+		sub_prob.l = l;
+		sub_prob.n = n;
+		sub_prob.x = Malloc(feature_node *,sub_prob.l);
+		sub_prob.y = Malloc(double,sub_prob.l);
+		sub_prob.W = Malloc(double,sub_prob.l);
+		for(k=0; k<sub_prob.l; k++){
+			sub_prob.x[k] = x[k];
+			sub_prob.W[k] = prob->W[perm[k]];
+		}
+
+		// multi-class svm by Crammer and Singer
+		if(param->solver_type == MCSVM_CS)
+		{
+			model_->w=Malloc(double, n*nr_class);
+			model_->n_iter=Malloc(int, 1);
+			for(i=0;i<nr_class;i++)
+				for(j=start[i];j<start[i]+count[i];j++)
+					sub_prob.y[j] = i;
+			Solver_MCSVM_CS Solver(&sub_prob, nr_class, weighted_C, param->eps);
+			model_->n_iter[0]=Solver.Solve(model_->w);
+		}
+		else
+		{
+			if(nr_class == 2)
+			{
+				model_->w=Malloc(double, w_size);
+				model_->n_iter=Malloc(int, 1);
+				int e0 = start[0]+count[0];
+				k=0;
+				for(; k<e0; k++)
+					sub_prob.y[k] = -1;
+				for(; k<sub_prob.l; k++)
+					sub_prob.y[k] = +1;
+
+				model_->n_iter[0]=train_one(&sub_prob, param, &model_->w[0], weighted_C[1], weighted_C[0], blas_functions);
+			}
+			else
+			{
+				model_->w=Malloc(double, w_size*nr_class);
+				double *w=Malloc(double, w_size);
+				model_->n_iter=Malloc(int, nr_class);
+				for(i=0;i<nr_class;i++)
+				{
+					int si = start[i];
+					int ei = si+count[i];
+
+					k=0;
+					for(; k<si; k++)
+						sub_prob.y[k] = -1;
+					for(; k<ei; k++)
+						sub_prob.y[k] = +1;
+					for(; k<sub_prob.l; k++)
+						sub_prob.y[k] = -1;
+
+					model_->n_iter[i]=train_one(&sub_prob, param, w, weighted_C[i], param->C, blas_functions);
+
+					for(int j=0;j<w_size;j++)
+						model_->w[j*nr_class+i] = w[j];
+				}
+				free(w);
+			}
+
+		}
+
+		free(x);
+		free(label);
+		free(start);
+		free(count);
+		free(perm);
+		free(sub_prob.x);
+		free(sub_prob.y);
+		free(sub_prob.W);
+		free(weighted_C);
+		free(newprob.x);
+		free(newprob.y);
+		free(newprob.W);
+	}
+	return model_;
+}
+
+#if 0
+void cross_validation(const problem *prob, const parameter *param, int nr_fold, double *target)
+{
+	int i;
+	int *fold_start;
+	int l = prob->l;
+	int *perm = Malloc(int,l);
+	if (nr_fold > l)
+	{
+		nr_fold = l;
+		fprintf(stderr,"WARNING: # folds > # data. Will use # folds = # data instead (i.e., leave-one-out cross validation)\n");
+	}
+	fold_start = Malloc(int,nr_fold+1);
+	for(i=0;i<l;i++) perm[i]=i;
+	for(i=0;i<l;i++)
+	{
+		int j = i+bounded_rand_int(l-i);
+		swap(perm[i],perm[j]);
+	}
+	for(i=0;i<=nr_fold;i++)
+		fold_start[i]=i*l/nr_fold;
+
+	for(i=0;i<nr_fold;i++)
+	{
+		int begin = fold_start[i];
+		int end = fold_start[i+1];
+		int j,k;
+		struct problem subprob;
+
+		subprob.bias = prob->bias;
+		subprob.n = prob->n;
+		subprob.l = l-(end-begin);
+		subprob.x = Malloc(struct feature_node*,subprob.l);
+		subprob.y = Malloc(double,subprob.l);
+
+		k=0;
+		for(j=0;j<begin;j++)
+		{
+			subprob.x[k] = prob->x[perm[j]];
+			subprob.y[k] = prob->y[perm[j]];
+			++k;
+		}
+		for(j=end;j<l;j++)
+		{
+			subprob.x[k] = prob->x[perm[j]];
+			subprob.y[k] = prob->y[perm[j]];
+			++k;
+		}
+		struct model *submodel = train(&subprob,param);
+		for(j=begin;j<end;j++)
+			target[perm[j]] = predict(submodel,prob->x[perm[j]]);
+		free_and_destroy_model(&submodel);
+		free(subprob.x);
+		free(subprob.y);
+	}
+	free(fold_start);
+	free(perm);
+}
+
+double predict_values(const struct model *model_, const struct feature_node *x, double *dec_values)
+{
+	int idx;
+	int n;
+	if(model_->bias>=0)
+		n=model_->nr_feature+1;
+	else
+		n=model_->nr_feature;
+	double *w=model_->w;
+	int nr_class=model_->nr_class;
+	int i;
+	int nr_w;
+	if(nr_class==2 && model_->param.solver_type != MCSVM_CS)
+		nr_w = 1;
+	else
+		nr_w = nr_class;
+
+	const feature_node *lx=x;
+	for(i=0;i<nr_w;i++)
+		dec_values[i] = 0;
+	for(; (idx=lx->index)!=-1; lx++)
+	{
+		// the dimension of testing data may exceed that of training
+		if(idx<=n)
+			for(i=0;i<nr_w;i++)
+				dec_values[i] += w[(idx-1)*nr_w+i]*lx->value;
+	}
+
+	if(nr_class==2)
+	{
+		if(check_regression_model(model_))
+			return dec_values[0];
+		else
+			return (dec_values[0]>0)?model_->label[0]:model_->label[1];
+	}
+	else
+	{
+		int dec_max_idx = 0;
+		for(i=1;i<nr_class;i++)
+		{
+			if(dec_values[i] > dec_values[dec_max_idx])
+				dec_max_idx = i;
+		}
+		return model_->label[dec_max_idx];
+	}
+}
+
+double predict(const model *model_, const feature_node *x)
+{
+	double *dec_values = Malloc(double, model_->nr_class);
+	double label=predict_values(model_, x, dec_values);
+	free(dec_values);
+	return label;
+}
+
+double predict_probability(const struct model *model_, const struct feature_node *x, double* prob_estimates)
+{
+	if(check_probability_model(model_))
+	{
+		int i;
+		int nr_class=model_->nr_class;
+		int nr_w;
+		if(nr_class==2)
+			nr_w = 1;
+		else
+			nr_w = nr_class;
+
+		double label=predict_values(model_, x, prob_estimates);
+		for(i=0;i<nr_w;i++)
+			prob_estimates[i]=1/(1+exp(-prob_estimates[i]));
+
+		if(nr_class==2) // for binary classification
+			prob_estimates[1]=1.-prob_estimates[0];
+		else
+		{
+			double sum=0;
+			for(i=0; i<nr_class; i++)
+				sum+=prob_estimates[i];
+
+			for(i=0; i<nr_class; i++)
+				prob_estimates[i]=prob_estimates[i]/sum;
+		}
+
+		return label;
+	}
+	else
+		return 0;
+}
+
+static const char *solver_type_table[]=
+{
+	"L2R_LR", "L2R_L2LOSS_SVC_DUAL", "L2R_L2LOSS_SVC", "L2R_L1LOSS_SVC_DUAL", "MCSVM_CS",
+	"L1R_L2LOSS_SVC", "L1R_LR", "L2R_LR_DUAL",
+	"", "", "",
+	"L2R_L2LOSS_SVR", "L2R_L2LOSS_SVR_DUAL", "L2R_L1LOSS_SVR_DUAL", NULL
+};
+
+int save_model(const char *model_file_name, const struct model *model_)
+{
+	int i;
+	int nr_feature=model_->nr_feature;
+	int n;
+	const parameter& param = model_->param;
+
+	if(model_->bias>=0)
+		n=nr_feature+1;
+	else
+		n=nr_feature;
+	int w_size = n;
+	FILE *fp = fopen(model_file_name,"w");
+	if(fp==NULL) return -1;
+
+	char *old_locale = strdup(setlocale(LC_ALL, NULL));
+	setlocale(LC_ALL, "C");
+
+	int nr_w;
+	if(model_->nr_class==2 && model_->param.solver_type != MCSVM_CS)
+		nr_w=1;
+	else
+		nr_w=model_->nr_class;
+
+	fprintf(fp, "solver_type %s\n", solver_type_table[param.solver_type]);
+	fprintf(fp, "nr_class %d\n", model_->nr_class);
+
+	if(model_->label)
+	{
+		fprintf(fp, "label");
+		for(i=0; i<model_->nr_class; i++)
+			fprintf(fp, " %d", model_->label[i]);
+		fprintf(fp, "\n");
+	}
+
+	fprintf(fp, "nr_feature %d\n", nr_feature);
+
+	fprintf(fp, "bias %.16g\n", model_->bias);
+
+	fprintf(fp, "w\n");
+	for(i=0; i<w_size; i++)
+	{
+		int j;
+		for(j=0; j<nr_w; j++)
+			fprintf(fp, "%.16g ", model_->w[i*nr_w+j]);
+		fprintf(fp, "\n");
+	}
+
+	setlocale(LC_ALL, old_locale);
+	free(old_locale);
+
+	if (ferror(fp) != 0 || fclose(fp) != 0) return -1;
+	else return 0;
+}
+
+struct model *load_model(const char *model_file_name)
+{
+	FILE *fp = fopen(model_file_name,"r");
+	if(fp==NULL) return NULL;
+
+	int i;
+	int nr_feature;
+	int n;
+	int nr_class;
+	double bias;
+	model *model_ = Malloc(model,1);
+	parameter& param = model_->param;
+
+	model_->label = NULL;
+
+	char *old_locale = strdup(setlocale(LC_ALL, NULL));
+	setlocale(LC_ALL, "C");
+
+	char cmd[81];
+	while(1)
+	{
+		fscanf(fp,"%80s",cmd);
+		if(strcmp(cmd,"solver_type")==0)
+		{
+			fscanf(fp,"%80s",cmd);
+			int i;
+			for(i=0;solver_type_table[i];i++)
+			{
+				if(strcmp(solver_type_table[i],cmd)==0)
+				{
+					param.solver_type=i;
+					break;
+				}
+			}
+			if(solver_type_table[i] == NULL)
+			{
+				fprintf(stderr,"unknown solver type.\n");
+
+				setlocale(LC_ALL, old_locale);
+				free(model_->label);
+				free(model_);
+				free(old_locale);
+				return NULL;
+			}
+		}
+		else if(strcmp(cmd,"nr_class")==0)
+		{
+			fscanf(fp,"%d",&nr_class);
+			model_->nr_class=nr_class;
+		}
+		else if(strcmp(cmd,"nr_feature")==0)
+		{
+			fscanf(fp,"%d",&nr_feature);
+			model_->nr_feature=nr_feature;
+		}
+		else if(strcmp(cmd,"bias")==0)
+		{
+			fscanf(fp,"%lf",&bias);
+			model_->bias=bias;
+		}
+		else if(strcmp(cmd,"w")==0)
+		{
+			break;
+		}
+		else if(strcmp(cmd,"label")==0)
+		{
+			int nr_class = model_->nr_class;
+			model_->label = Malloc(int,nr_class);
+			for(int i=0;i<nr_class;i++)
+				fscanf(fp,"%d",&model_->label[i]);
+		}
+		else
+		{
+			fprintf(stderr,"unknown text in model file: [%s]\n",cmd);
+			setlocale(LC_ALL, old_locale);
+			free(model_->label);
+			free(model_);
+			free(old_locale);
+			return NULL;
+		}
+	}
+
+	nr_feature=model_->nr_feature;
+	if(model_->bias>=0)
+		n=nr_feature+1;
+	else
+		n=nr_feature;
+	int w_size = n;
+	int nr_w;
+	if(nr_class==2 && param.solver_type != MCSVM_CS)
+		nr_w = 1;
+	else
+		nr_w = nr_class;
+
+	model_->w=Malloc(double, w_size*nr_w);
+	for(i=0; i<w_size; i++)
+	{
+		int j;
+		for(j=0; j<nr_w; j++)
+			fscanf(fp, "%lf ", &model_->w[i*nr_w+j]);
+		fscanf(fp, "\n");
+	}
+
+	setlocale(LC_ALL, old_locale);
+	free(old_locale);
+
+	if (ferror(fp) != 0 || fclose(fp) != 0) return NULL;
+
+	return model_;
+}
+#endif
+
+int get_nr_feature(const model *model_)
+{
+	return model_->nr_feature;
+}
+
+int get_nr_class(const model *model_)
+{
+	return model_->nr_class;
+}
+
+void get_labels(const model *model_, int* label)
+{
+	if (model_->label != NULL)
+		for(int i=0;i<model_->nr_class;i++)
+			label[i] = model_->label[i];
+}
+
+void get_n_iter(const model *model_, int* n_iter)
+{
+    int labels;
+    labels = model_->nr_class;
+    if (labels == 2)
+        labels = 1;
+
+    if (model_->n_iter != NULL)
+        for(int i=0;i<labels;i++)
+            n_iter[i] = model_->n_iter[i];
+}
+
+#if 0
+// use inline here for better performance (around 20% faster than the non-inline one)
+static inline double get_w_value(const struct model *model_, int idx, int label_idx)
+{
+	int nr_class = model_->nr_class;
+	int solver_type = model_->param.solver_type;
+	const double *w = model_->w;
+
+	if(idx < 0 || idx > model_->nr_feature)
+		return 0;
+	if(check_regression_model(model_))
+		return w[idx];
+	else
+	{
+		if(label_idx < 0 || label_idx >= nr_class)
+			return 0;
+		if(nr_class == 2 && solver_type != MCSVM_CS)
+		{
+			if(label_idx == 0)
+				return w[idx];
+			else
+				return -w[idx];
+		}
+		else
+			return w[idx*nr_class+label_idx];
+	}
+}
+
+// feat_idx: starting from 1 to nr_feature
+// label_idx: starting from 0 to nr_class-1 for classification models;
+//            for regression models, label_idx is ignored.
+double get_decfun_coef(const struct model *model_, int feat_idx, int label_idx)
+{
+	if(feat_idx > model_->nr_feature)
+		return 0;
+	return get_w_value(model_, feat_idx-1, label_idx);
+}
+
+double get_decfun_bias(const struct model *model_, int label_idx)
+{
+	int bias_idx = model_->nr_feature;
+	double bias = model_->bias;
+	if(bias <= 0)
+		return 0;
+	else
+		return bias*get_w_value(model_, bias_idx, label_idx);
+}
+#endif
+
+void free_model_content(struct model *model_ptr)
+{
+	if(model_ptr->w != NULL)
+		free(model_ptr->w);
+	if(model_ptr->label != NULL)
+		free(model_ptr->label);
+	if(model_ptr->n_iter != NULL)
+	    free(model_ptr->n_iter);
+}
+
+void free_and_destroy_model(struct model **model_ptr_ptr)
+{
+	struct model *model_ptr = *model_ptr_ptr;
+	if(model_ptr != NULL)
+	{
+		free_model_content(model_ptr);
+		free(model_ptr);
+	}
+}
+
+void destroy_param(parameter* param)
+{
+	if(param->weight_label != NULL)
+		free(param->weight_label);
+	if(param->weight != NULL)
+		free(param->weight);
+}
+
+const char *check_parameter(const problem *prob, const parameter *param)
+{
+	if(param->eps <= 0)
+		return "eps <= 0";
+
+	if(param->C <= 0)
+		return "C <= 0";
+
+	if(param->p < 0)
+		return "p < 0";
+
+	if(param->solver_type != L2R_LR
+		&& param->solver_type != L2R_L2LOSS_SVC_DUAL
+		&& param->solver_type != L2R_L2LOSS_SVC
+		&& param->solver_type != L2R_L1LOSS_SVC_DUAL
+		&& param->solver_type != MCSVM_CS
+		&& param->solver_type != L1R_L2LOSS_SVC
+		&& param->solver_type != L1R_LR
+		&& param->solver_type != L2R_LR_DUAL
+		&& param->solver_type != L2R_L2LOSS_SVR
+		&& param->solver_type != L2R_L2LOSS_SVR_DUAL
+		&& param->solver_type != L2R_L1LOSS_SVR_DUAL)
+		return "unknown solver type";
+
+	return NULL;
+}
+
+#if 0
+int check_probability_model(const struct model *model_)
+{
+	return (model_->param.solver_type==L2R_LR ||
+			model_->param.solver_type==L2R_LR_DUAL ||
+			model_->param.solver_type==L1R_LR);
+}
+#endif
+
+int check_regression_model(const struct model *model_)
+{
+	return (model_->param.solver_type==L2R_L2LOSS_SVR ||
+			model_->param.solver_type==L2R_L1LOSS_SVR_DUAL ||
+			model_->param.solver_type==L2R_L2LOSS_SVR_DUAL);
+}
+
+void set_print_string_function(void (*print_func)(const char*))
+{
+	if (print_func == NULL)
+		liblinear_print_string = &print_string_stdout;
+	else
+		liblinear_print_string = print_func;
+}
+```
+
+## scikit-learn/sklearn/svm/src/liblinear/linear.h.notice.txt
+
+```text
+#ifndef _LIBLINEAR_H
+#define _LIBLINEAR_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "_cython_blas_helpers.h"
+
+struct feature_node
+{
+	int index;
+	double value;
+};
+
+struct problem
+{
+	int l, n;
+	double *y;
+	struct feature_node **x;
+	double bias;            /* < 0 if no bias term */
+	double *W;
+};
+
+enum { L2R_LR, L2R_L2LOSS_SVC_DUAL, L2R_L2LOSS_SVC, L2R_L1LOSS_SVC_DUAL, MCSVM_CS, L1R_L2LOSS_SVC, L1R_LR, L2R_LR_DUAL, L2R_L2LOSS_SVR = 11, L2R_L2LOSS_SVR_DUAL, L2R_L1LOSS_SVR_DUAL }; /* solver_type */
+
+struct parameter
+{
+	int solver_type;
+
+	/* these are for training only */
+	double eps;	        /* stopping criteria */
+	double C;
+	int nr_weight;
+	int *weight_label;
+	double* weight;
+	int max_iter;
+	double p;
+};
+
+struct model
+{
+	struct parameter param;
+	int nr_class;		/* number of classes */
+	int nr_feature;
+	double *w;
+	int *label;		/* label of each class */
+	double bias;
+	int *n_iter;    /* no. of iterations of each class */
+};
+
+void set_seed(unsigned seed);
+
+struct model* train(const struct problem *prob, const struct parameter *param, BlasFunctions *blas_functions);
+void cross_validation(const struct problem *prob, const struct parameter *param, int nr_fold, double *target);
+
+double predict_values(const struct model *model_, const struct feature_node *x, double* dec_values);
+double predict(const struct model *model_, const struct feature_node *x);
+double predict_probability(const struct model *model_, const struct feature_node *x, double* prob_estimates);
+
+int save_model(const char *model_file_name, const struct model *model_);
+struct model *load_model(const char *model_file_name);
+
+int get_nr_feature(const struct model *model_);
+int get_nr_class(const struct model *model_);
+void get_labels(const struct model *model_, int* label);
+void get_n_iter(const struct model *model_, int* n_iter);
+#if 0
+double get_decfun_coef(const struct model *model_, int feat_idx, int label_idx);
+double get_decfun_bias(const struct model *model_, int label_idx);
+#endif
+
+void free_model_content(struct model *model_ptr);
+void free_and_destroy_model(struct model **model_ptr_ptr);
+void destroy_param(struct parameter *param);
+
+const char *check_parameter(const struct problem *prob, const struct parameter *param);
+int check_probability_model(const struct model *model);
+int check_regression_model(const struct model *model);
+void set_print_string_function(void (*print_func) (const char*));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _LIBLINEAR_H */
+```
+
+## scikit-learn/sklearn/svm/src/liblinear/tron.cpp.notice.txt
+
+```text
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#include "tron.h"
+
+#ifndef min
+template <class T> static inline T min(T x,T y) { return (x<y)?x:y; }
+#endif
+
+#ifndef max
+template <class T> static inline T max(T x,T y) { return (x>y)?x:y; }
+#endif
+
+static void default_print(const char *buf)
+{
+	fputs(buf,stdout);
+	fflush(stdout);
+}
+
+void TRON::info(const char *fmt,...)
+{
+	char buf[BUFSIZ];
+	va_list ap;
+	va_start(ap,fmt);
+	vsprintf(buf,fmt,ap);
+	va_end(ap);
+	(*tron_print_string)(buf);
+}
+
+TRON::TRON(const function *fun_obj, double eps, int max_iter, BlasFunctions *blas)
+{
+	this->fun_obj=const_cast<function *>(fun_obj);
+	this->eps=eps;
+	this->max_iter=max_iter;
+	this->blas=blas;
+	tron_print_string = default_print;
+}
+
+TRON::~TRON()
+{
+}
+
+int TRON::tron(double *w)
+{
+	// Parameters for updating the iterates.
+	double eta0 = 1e-4, eta1 = 0.25, eta2 = 0.75;
+
+	// Parameters for updating the trust region size delta.
+	double sigma1 = 0.25, sigma2 = 0.5, sigma3 = 4;
+
+	int n = fun_obj->get_nr_variable();
+	int i, cg_iter;
+	double delta, snorm;
+	double alpha, f, fnew, prered, actred, gs;
+	int search = 1, iter = 1, inc = 1;
+	double *s = new double[n];
+	double *r = new double[n];
+	double *w_new = new double[n];
+	double *g = new double[n];
+
+	for (i=0; i<n; i++)
+		w[i] = 0;
+
+	f = fun_obj->fun(w);
+	fun_obj->grad(w, g);
+	delta = blas->nrm2(n, g, inc);
+	double gnorm1 = delta;
+	double gnorm = gnorm1;
+
+	if (gnorm <= eps*gnorm1)
+		search = 0;
+
+	iter = 1;
+
+	while (iter <= max_iter && search)
+	{
+		cg_iter = trcg(delta, g, s, r);
+
+		memcpy(w_new, w, sizeof(double)*n);
+		blas->axpy(n, 1.0, s, inc, w_new, inc);
+
+		gs = blas->dot(n, g, inc, s, inc);
+		prered = -0.5*(gs - blas->dot(n, s, inc, r, inc));
+		fnew = fun_obj->fun(w_new);
+
+		// Compute the actual reduction.
+		actred = f - fnew;
+
+		// On the first iteration, adjust the initial step bound.
+		snorm = blas->nrm2(n, s, inc);
+		if (iter == 1)
+			delta = min(delta, snorm);
+
+		// Compute prediction alpha*snorm of the step.
+		if (fnew - f - gs <= 0)
+			alpha = sigma3;
+		else
+			alpha = max(sigma1, -0.5*(gs/(fnew - f - gs)));
+
+		// Update the trust region bound according to the ratio of actual to predicted reduction.
+		if (actred < eta0*prered)
+			delta = min(max(alpha, sigma1)*snorm, sigma2*delta);
+		else if (actred < eta1*prered)
+			delta = max(sigma1*delta, min(alpha*snorm, sigma2*delta));
+		else if (actred < eta2*prered)
+			delta = max(sigma1*delta, min(alpha*snorm, sigma3*delta));
+		else
+			delta = max(delta, min(alpha*snorm, sigma3*delta));
+
+		info("iter %2d act %5.3e pre %5.3e delta %5.3e f %5.3e |g| %5.3e CG %3d\n", iter, actred, prered, delta, f, gnorm, cg_iter);
+
+		if (actred > eta0*prered)
+		{
+			iter++;
+			memcpy(w, w_new, sizeof(double)*n);
+			f = fnew;
+			fun_obj->grad(w, g);
+
+			gnorm = blas->nrm2(n, g, inc);
+			if (gnorm <= eps*gnorm1)
+				break;
+		}
+		if (f < -1.0e+32)
+		{
+			info("WARNING: f < -1.0e+32\n");
+			break;
+		}
+		if (fabs(actred) <= 0 && prered <= 0)
+		{
+			info("WARNING: actred and prered <= 0\n");
+			break;
+		}
+		if (fabs(actred) <= 1.0e-12*fabs(f) &&
+		    fabs(prered) <= 1.0e-12*fabs(f))
+		{
+			info("WARNING: actred and prered too small\n");
+			break;
+		}
+	}
+
+	delete[] g;
+	delete[] r;
+	delete[] w_new;
+	delete[] s;
+	return --iter;
+}
+
+int TRON::trcg(double delta, double *g, double *s, double *r)
+{
+	int i, inc = 1;
+	int n = fun_obj->get_nr_variable();
+	double *d = new double[n];
+	double *Hd = new double[n];
+	double rTr, rnewTrnew, alpha, beta, cgtol;
+
+	for (i=0; i<n; i++)
+	{
+		s[i] = 0;
+		r[i] = -g[i];
+		d[i] = r[i];
+	}
+	cgtol = 0.1 * blas->nrm2(n, g, inc);
+
+	int cg_iter = 0;
+	rTr = blas->dot(n, r, inc, r, inc);
+	while (1)
+	{
+		if (blas->nrm2(n, r, inc) <= cgtol)
+			break;
+		cg_iter++;
+		fun_obj->Hv(d, Hd);
+
+		alpha = rTr / blas->dot(n, d, inc, Hd, inc);
+		blas->axpy(n, alpha, d, inc, s, inc);
+		if (blas->nrm2(n, s, inc) > delta)
+		{
+			info("cg reaches trust region boundary\n");
+			alpha = -alpha;
+			blas->axpy(n, alpha, d, inc, s, inc);
+
+			double std = blas->dot(n, s, inc, d, inc);
+			double sts = blas->dot(n, s, inc, s, inc);
+			double dtd = blas->dot(n, d, inc, d, inc);
+			double dsq = delta*delta;
+			double rad = sqrt(std*std + dtd*(dsq-sts));
+			if (std >= 0)
+				alpha = (dsq - sts)/(std + rad);
+			else
+				alpha = (rad - std)/dtd;
+			blas->axpy(n, alpha, d, inc, s, inc);
+			alpha = -alpha;
+			blas->axpy(n, alpha, Hd, inc, r, inc);
+			break;
+		}
+		alpha = -alpha;
+		blas->axpy(n, alpha, Hd, inc, r, inc);
+		rnewTrnew = blas->dot(n, r, inc, r, inc);
+		beta = rnewTrnew/rTr;
+		blas->scal(n, beta, d, inc);
+		blas->axpy(n, 1.0, r, inc, d, inc);
+		rTr = rnewTrnew;
+	}
+
+	delete[] d;
+	delete[] Hd;
+
+	return(cg_iter);
+}
+
+double TRON::norm_inf(int n, double *x)
+{
+	double dmax = fabs(x[0]);
+	for (int i=1; i<n; i++)
+		if (fabs(x[i]) >= dmax)
+			dmax = fabs(x[i]);
+	return(dmax);
+}
+
+void TRON::set_print_string(void (*print_string) (const char *buf))
+{
+	tron_print_string = print_string;
+}
+```
+
+## scikit-learn/sklearn/svm/src/liblinear/tron.h.notice.txt
+
+```text
+#ifndef _TRON_H
+#define _TRON_H
+
+#include "_cython_blas_helpers.h"
+
+class function
+{
+public:
+	virtual double fun(double *w) = 0 ;
+	virtual void grad(double *w, double *g) = 0 ;
+	virtual void Hv(double *s, double *Hs) = 0 ;
+
+	virtual int get_nr_variable(void) = 0 ;
+	virtual ~function(void){}
+};
+
+class TRON
+{
+public:
+	TRON(const function *fun_obj, double eps = 0.1, int max_iter = 1000, BlasFunctions *blas = 0);
+	~TRON();
+
+	int tron(double *w);
+	void set_print_string(void (*i_print) (const char *buf));
+
+private:
+	int trcg(double delta, double *g, double *s, double *r);
+	double norm_inf(int n, double *x);
+
+	double eps;
+	int max_iter;
+	function *fun_obj;
+	BlasFunctions *blas;
+	void info(const char *fmt,...);
+	void (*tron_print_string)(const char *buf);
+};
+#endif
+```
+
+## scikit-learn/sklearn/svm/src/libsvm/_svm_cython_blas_helpers.h.notice.txt
+
+```text
+#ifndef _SVM_CYTHON_BLAS_HELPERS_H
+#define _SVM_CYTHON_BLAS_HELPERS_H
+
+typedef double (*dot_func)(int, const double*, int, const double*, int);
+typedef struct BlasFunctions{
+    dot_func dot;
+} BlasFunctions;
+
+#endif
+```
+
+## scikit-learn/sklearn/svm/src/libsvm/libsvm_helper.c.notice.txt
+
+```text
+#include <stdlib.h>
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include "svm.h"
+#include "_svm_cython_blas_helpers.h"
+
+
+#ifndef MAX
+    #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#endif
+
+
+/*
+ * Some helper methods for libsvm bindings.
+ *
+ * We need to access from python some parameters stored in svm_model
+ * but libsvm does not expose this structure, so we define it here
+ * along some utilities to convert from numpy arrays.
+ *
+ * Authors: The scikit-learn developers
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+
+/*
+ * Convert matrix to sparse representation suitable for libsvm. x is
+ * expected to be an array of length nrow*ncol.
+ *
+ * Typically the matrix will be dense, so we speed up the routine for
+ * this case. We create a temporary array temp that collects non-zero
+ * elements and after we just memcpy that to the proper array.
+ *
+ * Special care must be taken with indinces, since libsvm indices start
+ * at 1 and not at 0.
+ *
+ * Strictly speaking, the C standard does not require that structs are
+ * contiguous, but in practice its a reasonable assumption.
+ *
+ */
+struct svm_node *dense_to_libsvm (double *x, Py_ssize_t *dims)
+{
+    struct svm_node *node;
+    Py_ssize_t len_row = dims[1];
+    double *tx = x;
+    int i;
+
+    node = malloc (dims[0] * sizeof(struct svm_node));
+
+    if (node == NULL) return NULL;
+    for (i=0; i<dims[0]; ++i) {
+        node[i].values = tx;
+        node[i].dim = (int) len_row;
+        node[i].ind = i; /* only used if kernel=precomputed, but not
+                            too much overhead */
+        tx += len_row;
+    }
+
+    return node;
+}
+
+
+/*
+ * Fill an svm_parameter struct.
+ */
+void set_parameter(struct svm_parameter *param, int svm_type, int kernel_type, int degree,
+		double gamma, double coef0, double nu, double cache_size, double C,
+		double eps, double p, int shrinking, int probability, int nr_weight,
+		char *weight_label, char *weight, int max_iter, int random_seed)
+{
+    param->svm_type = svm_type;
+    param->kernel_type = kernel_type;
+    param->degree = degree;
+    param->coef0 = coef0;
+    param->nu = nu;
+    param->cache_size = cache_size;
+    param->C = C;
+    param->eps = eps;
+    param->p = p;
+    param->shrinking = shrinking;
+    param->probability = probability;
+    param->nr_weight = nr_weight;
+    param->weight_label = (int *) weight_label;
+    param->weight = (double *) weight;
+    param->gamma = gamma;
+    param->max_iter = max_iter;
+    param->random_seed = random_seed;
+}
+
+/*
+ * Fill an svm_problem struct. problem->x will be malloc'd.
+ */
+void set_problem(struct svm_problem *problem, char *X, char *Y, char *sample_weight, Py_ssize_t *dims, int kernel_type)
+{
+    if (problem == NULL) return;
+    problem->l = (int) dims[0]; /* number of samples */
+    problem->y = (double *) Y;
+    problem->x = dense_to_libsvm((double *) X, dims); /* implicit call to malloc */
+    problem->W = (double *) sample_weight;
+}
+
+/*
+ * Create and return an instance of svm_model.
+ *
+ * The copy of model->sv_coef should be straightforward, but
+ * unfortunately to represent a matrix numpy and libsvm use different
+ * approaches, so it requires some iteration.
+ *
+ * Possible issue: on 64 bits, the number of columns that numpy can
+ * store is a long, but libsvm enforces this number (model->l) to be
+ * an int, so we might have numpy matrices that do not fit into libsvm's
+ * data structure.
+ *
+ */
+struct svm_model *set_model(struct svm_parameter *param, int nr_class,
+                            char *SV, Py_ssize_t *SV_dims,
+                            char *support, Py_ssize_t *support_dims,
+                            Py_ssize_t *sv_coef_strides,
+                            char *sv_coef, char *rho, char *nSV,
+                            char *probA, char *probB)
+{
+    struct svm_model *model;
+    double *dsv_coef = (double *) sv_coef;
+    int i, m;
+
+    m = nr_class * (nr_class-1)/2;
+
+    if ((model = malloc(sizeof(struct svm_model))) == NULL)
+        goto model_error;
+    if ((model->nSV = malloc(nr_class * sizeof(int))) == NULL)
+        goto nsv_error;
+    if ((model->label = malloc(nr_class * sizeof(int))) == NULL)
+        goto label_error;
+    if ((model->sv_coef = malloc((nr_class-1)*sizeof(double *))) == NULL)
+        goto sv_coef_error;
+    if ((model->rho = malloc( m * sizeof(double))) == NULL)
+        goto rho_error;
+
+    // This is only allocated in dynamic memory while training.
+    model->n_iter = NULL;
+
+    model->nr_class = nr_class;
+    model->param = *param;
+    model->l = (int) support_dims[0];
+
+    if (param->kernel_type == PRECOMPUTED) {
+        if ((model->SV = malloc ((model->l) * sizeof(struct svm_node))) == NULL)
+            goto SV_error;
+        for (i=0; i<model->l; ++i) {
+            model->SV[i].ind = ((int *) support)[i];
+            model->SV[i].values = NULL;
+        }
+    } else {
+        model->SV = dense_to_libsvm((double *) SV, SV_dims);
+    }
+    /*
+     * regression and one-class does not use nSV, label.
+     * TODO: does this provoke memory leaks (we just malloc'ed them)?
+     */
+    if (param->svm_type < 2) {
+        memcpy(model->nSV, nSV,     model->nr_class * sizeof(int));
+        for(i=0; i < model->nr_class; i++)
+            model->label[i] = i;
+    }
+
+    for (i=0; i < model->nr_class-1; i++) {
+        model->sv_coef[i] = dsv_coef + i*(model->l);
+    }
+
+    for (i=0; i<m; ++i) {
+        (model->rho)[i] = -((double *) rho)[i];
+    }
+
+    /*
+     * just to avoid segfaults, these features are not wrapped but
+     * svm_destroy_model will try to free them.
+     */
+
+    if (param->probability) {
+        if ((model->probA = malloc(m * sizeof(double))) == NULL)
+            goto probA_error;
+        memcpy(model->probA, probA, m * sizeof(double));
+        if ((model->probB = malloc(m * sizeof(double))) == NULL)
+            goto probB_error;
+        memcpy(model->probB, probB, m * sizeof(double));
+    } else {
+        model->probA = NULL;
+        model->probB = NULL;
+    }
+
+    /* We'll free SV ourselves */
+    model->free_sv = 0;
+    return model;
+
+probB_error:
+    free(model->probA);
+probA_error:
+    free(model->SV);
+SV_error:
+    free(model->rho);
+rho_error:
+    free(model->sv_coef);
+sv_coef_error:
+    free(model->label);
+label_error:
+    free(model->nSV);
+nsv_error:
+    free(model);
+model_error:
+    return NULL;
+}
+
+
+
+/*
+ * Get the number of support vectors in a model.
+ */
+Py_ssize_t get_l(struct svm_model *model)
+{
+    return (Py_ssize_t) model->l;
+}
+
+/*
+ * Get the number of classes in a model, = 2 in regression/one class
+ * svm.
+ */
+Py_ssize_t get_nr(struct svm_model *model)
+{
+    return (Py_ssize_t) model->nr_class;
+}
+
+/*
+ * Get the number of iterations run in optimization
+ */
+void copy_n_iter(char *data, struct svm_model *model)
+{
+    const int n_models = MAX(1, model->nr_class * (model->nr_class-1) / 2);
+    memcpy(data, model->n_iter, n_models * sizeof(int));
+}
+
+/*
+ * Some helpers to convert from libsvm sparse data structures
+ * model->sv_coef is a double **, whereas data is just a double *,
+ * so we have to do some stupid copying.
+ */
+void copy_sv_coef(char *data, struct svm_model *model)
+{
+    int i, len = model->nr_class-1;
+    double *temp = (double *) data;
+    for(i=0; i<len; ++i) {
+        memcpy(temp, model->sv_coef[i], sizeof(double) * model->l);
+        temp += model->l;
+    }
+}
+
+void copy_intercept(char *data, struct svm_model *model, Py_ssize_t *dims)
+{
+    /* intercept = -rho */
+    Py_ssize_t i, n = dims[0];
+    double t, *ddata = (double *) data;
+    for (i=0; i<n; ++i) {
+        t = model->rho[i];
+        /* we do this to avoid ugly -0.0 */
+        *ddata = (t != 0) ? -t : 0;
+        ++ddata;
+    }
+}
+
+/*
+ * This is a bit more complex since SV are stored as sparse
+ * structures, so we have to do the conversion on the fly and also
+ * iterate fast over data.
+ */
+void copy_SV(char *data, struct svm_model *model, Py_ssize_t *dims)
+{
+    int i, n = model->l;
+    double *tdata = (double *) data;
+    int dim = model->SV[0].dim;
+    for (i=0; i<n; ++i) {
+        memcpy (tdata, model->SV[i].values, dim * sizeof(double));
+        tdata += dim;
+    }
+}
+
+void copy_support (char *data, struct svm_model *model)
+{
+    memcpy (data, model->sv_ind, (model->l) * sizeof(int));
+}
+
+/*
+ * copy svm_model.nSV, an array with the number of SV for each class
+ * will be NULL in the case of SVR, OneClass
+ */
+void copy_nSV(char *data, struct svm_model *model)
+{
+    if (model->label == NULL) return;
+    memcpy(data, model->nSV, model->nr_class * sizeof(int));
+}
+
+void copy_probA(char *data, struct svm_model *model, Py_ssize_t * dims)
+{
+    memcpy(data, model->probA, dims[0] * sizeof(double));
+}
+
+void copy_probB(char *data, struct svm_model *model, Py_ssize_t * dims)
+{
+    memcpy(data, model->probB, dims[0] * sizeof(double));
+}
+
+/*
+ * Predict using model.
+ *
+ *  It will return -1 if we run out of memory.
+ */
+int copy_predict(char *predict, struct svm_model *model, Py_ssize_t *predict_dims,
+                 char *dec_values, BlasFunctions *blas_functions)
+{
+    double *t = (double *) dec_values;
+    struct svm_node *predict_nodes;
+    Py_ssize_t i;
+
+    predict_nodes = dense_to_libsvm((double *) predict, predict_dims);
+
+    if (predict_nodes == NULL)
+        return -1;
+    for(i=0; i<predict_dims[0]; ++i) {
+        *t = svm_predict(model, &predict_nodes[i], blas_functions);
+        ++t;
+    }
+    free(predict_nodes);
+    return 0;
+}
+
+int copy_predict_values(char *predict, struct svm_model *model,
+                        Py_ssize_t *predict_dims, char *dec_values, int nr_class, BlasFunctions *blas_functions)
+{
+    Py_ssize_t i;
+    struct svm_node *predict_nodes;
+    predict_nodes = dense_to_libsvm((double *) predict, predict_dims);
+    if (predict_nodes == NULL)
+        return -1;
+    for(i=0; i<predict_dims[0]; ++i) {
+        svm_predict_values(model, &predict_nodes[i],
+                                ((double *) dec_values) + i*nr_class,
+				blas_functions);
+    }
+
+    free(predict_nodes);
+    return 0;
+}
+
+
+
+int copy_predict_proba(char *predict, struct svm_model *model, Py_ssize_t *predict_dims,
+                 char *dec_values, BlasFunctions *blas_functions)
+{
+    Py_ssize_t i, n, m;
+    struct svm_node *predict_nodes;
+    n = predict_dims[0];
+    m = (Py_ssize_t) model->nr_class;
+    predict_nodes = dense_to_libsvm((double *) predict, predict_dims);
+    if (predict_nodes == NULL)
+        return -1;
+    for(i=0; i<n; ++i) {
+        svm_predict_probability(model, &predict_nodes[i],
+                                ((double *) dec_values) + i*m,
+				blas_functions);
+    }
+    free(predict_nodes);
+    return 0;
+}
+
+
+/*
+ * Some free routines. Some of them are nontrivial since a lot of
+ * sharing happens across objects (they *must* be called in the
+ * correct order)
+ */
+
+int free_model(struct svm_model *model)
+{
+    /* like svm_free_and_destroy_model, but does not free sv_coef[i] */
+    if (model == NULL) return -1;
+    free(model->SV);
+
+    /* We don't free sv_ind and n_iter, since we did not create them in
+       set_model */
+    /* free(model->sv_ind);
+     * free(model->n_iter);
+     */
+    free(model->sv_coef);
+    free(model->rho);
+    free(model->label);
+    free(model->probA);
+    free(model->probB);
+    free(model->nSV);
+    free(model);
+
+    return 0;
+}
+
+int free_param(struct svm_parameter *param)
+{
+    if (param == NULL) return -1;
+    free(param);
+    return 0;
+}
+
+
+/* borrowed from original libsvm code */
+static void print_null(const char *s) {}
+
+static void print_string_stdout(const char *s)
+{
+	fputs(s,stdout);
+	fflush(stdout);
+}
+
+/* provide convenience wrapper */
+void set_verbosity(int verbosity_flag){
+	if (verbosity_flag)
+		svm_set_print_string_function(&print_string_stdout);
+	else
+		svm_set_print_string_function(&print_null);
+}
+```
+
+## scikit-learn/sklearn/svm/src/libsvm/libsvm_sparse_helper.c.notice.txt
+
+```text
+#include <stdlib.h>
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include "svm.h"
+#include "_svm_cython_blas_helpers.h"
+
+
+#ifndef MAX
+    #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#endif
+
+
+/*
+ * Convert scipy.sparse.csr to libsvm's sparse data structure
+ */
+struct svm_csr_node **csr_to_libsvm (double *values, int* indices, int* indptr, int n_samples)
+{
+    struct svm_csr_node **sparse, *temp;
+    int i, j=0, k=0, n;
+    sparse = malloc (n_samples * sizeof(struct svm_csr_node *));
+
+    if (sparse == NULL)
+        return NULL;
+
+    for (i=0; i<n_samples; ++i) {
+        n = indptr[i+1] - indptr[i]; /* count elements in row i */
+        temp = malloc ((n+1) * sizeof(struct svm_csr_node));
+
+        if (temp == NULL) {
+            for (j=0; j<i; j++)
+                free(sparse[j]);
+            free(sparse);
+            return NULL;
+        }
+
+        for (j=0; j<n; ++j) {
+            temp[j].value = values[k];
+            temp[j].index = indices[k] + 1; /* libsvm uses 1-based indexing */
+            ++k;
+        }
+        /* set sentinel */
+        temp[n].index = -1;
+        sparse[i] = temp;
+    }
+
+    return sparse;
+}
+
+
+
+struct svm_parameter * set_parameter(int svm_type, int kernel_type, int degree,
+		double gamma, double coef0, double nu, double cache_size, double C,
+		double eps, double p, int shrinking, int probability, int nr_weight,
+		char *weight_label, char *weight, int max_iter, int random_seed)
+{
+    struct svm_parameter *param;
+    param = malloc(sizeof(struct svm_parameter));
+    if (param == NULL) return NULL;
+    param->svm_type = svm_type;
+    param->kernel_type = kernel_type;
+    param->degree = degree;
+    param->coef0 = coef0;
+    param->nu = nu;
+    param->cache_size = cache_size;
+    param->C = C;
+    param->eps = eps;
+    param->p = p;
+    param->shrinking = shrinking;
+    param->probability = probability;
+    param->nr_weight = nr_weight;
+    param->weight_label = (int *) weight_label;
+    param->weight = (double *) weight;
+    param->gamma = gamma;
+    param->max_iter = max_iter;
+    param->random_seed = random_seed;
+    return param;
+}
+
+
+/*
+ * Create and return a svm_csr_problem struct from a scipy.sparse.csr matrix. It is
+ * up to the user to free resulting structure.
+ *
+ * TODO: precomputed kernel.
+ */
+struct svm_csr_problem * csr_set_problem (char *values, Py_ssize_t *n_indices,
+		char *indices, Py_ssize_t *n_indptr, char *indptr, char *Y,
+                char *sample_weight, int kernel_type) {
+
+    struct svm_csr_problem *problem;
+    problem = malloc (sizeof (struct svm_csr_problem));
+    if (problem == NULL) return NULL;
+    problem->l = (int) n_indptr[0] - 1;
+    problem->y = (double *) Y;
+    problem->x = csr_to_libsvm((double *) values, (int *) indices,
+                               (int *) indptr, problem->l);
+    /* should be removed once we implement weighted samples */
+    problem->W = (double *) sample_weight;
+
+    if (problem->x == NULL) {
+        free(problem);
+        return NULL;
+    }
+    return problem;
+}
+
+
+struct svm_csr_model *csr_set_model(struct svm_parameter *param, int nr_class,
+                            char *SV_data, Py_ssize_t *SV_indices_dims,
+                            char *SV_indices, Py_ssize_t *SV_indptr_dims,
+                            char *SV_intptr,
+                            char *sv_coef, char *rho, char *nSV,
+                            char *probA, char *probB)
+{
+    struct svm_csr_model *model;
+    double *dsv_coef = (double *) sv_coef;
+    int i, m;
+
+    m = nr_class * (nr_class-1)/2;
+
+    if ((model = malloc(sizeof(struct svm_csr_model))) == NULL)
+        goto model_error;
+    if ((model->nSV = malloc(nr_class * sizeof(int))) == NULL)
+        goto nsv_error;
+    if ((model->label = malloc(nr_class * sizeof(int))) == NULL)
+        goto label_error;
+    if ((model->sv_coef = malloc((nr_class-1)*sizeof(double *))) == NULL)
+        goto sv_coef_error;
+    if ((model->rho = malloc( m * sizeof(double))) == NULL)
+        goto rho_error;
+
+    // This is only allocated in dynamic memory while training.
+    model->n_iter = NULL;
+
+    /* in the case of precomputed kernels we do not use
+       dense_to_precomputed because we don't want the leading 0. As
+       indices start at 1 (not at 0) this will work */
+    model->l = (int) SV_indptr_dims[0] - 1;
+    model->SV = csr_to_libsvm((double *) SV_data, (int *) SV_indices,
+                              (int *) SV_intptr, model->l);
+    model->nr_class = nr_class;
+    model->param = *param;
+
+    /*
+     * regression and one-class does not use nSV, label.
+     */
+    if (param->svm_type < 2) {
+        memcpy(model->nSV,   nSV,   model->nr_class * sizeof(int));
+        for(i=0; i < model->nr_class; i++)
+            model->label[i] = i;
+    }
+
+    for (i=0; i < model->nr_class-1; i++) {
+        /*
+         * We cannot squash all this mallocs in a single call since
+         * svm_destroy_model will free each element of the array.
+         */
+        if ((model->sv_coef[i] = malloc((model->l) * sizeof(double))) == NULL) {
+            int j;
+            for (j=0; j<i; j++)
+                free(model->sv_coef[j]);
+            goto sv_coef_i_error;
+        }
+        memcpy(model->sv_coef[i], dsv_coef, (model->l) * sizeof(double));
+        dsv_coef += model->l;
+    }
+
+    for (i=0; i<m; ++i) {
+        (model->rho)[i] = -((double *) rho)[i];
+    }
+
+    /*
+     * just to avoid segfaults, these features are not wrapped but
+     * svm_destroy_model will try to free them.
+     */
+
+    if (param->probability) {
+        if ((model->probA = malloc(m * sizeof(double))) == NULL)
+            goto probA_error;
+        memcpy(model->probA, probA, m * sizeof(double));
+        if ((model->probB = malloc(m * sizeof(double))) == NULL)
+            goto probB_error;
+        memcpy(model->probB, probB, m * sizeof(double));
+    } else {
+        model->probA = NULL;
+        model->probB = NULL;
+    }
+
+    /* We'll free SV ourselves */
+    model->free_sv = 0;
+    return model;
+
+probB_error:
+    free(model->probA);
+probA_error:
+    for (i=0; i < model->nr_class-1; i++)
+        free(model->sv_coef[i]);
+sv_coef_i_error:
+    free(model->rho);
+rho_error:
+    free(model->sv_coef);
+sv_coef_error:
+    free(model->label);
+label_error:
+    free(model->nSV);
+nsv_error:
+    free(model);
+model_error:
+    return NULL;
+}
+
+
+/*
+ * Copy support vectors into a scipy.sparse.csr matrix
+ */
+int csr_copy_SV (char *data, Py_ssize_t *n_indices,
+		char *indices, Py_ssize_t *n_indptr, char *indptr,
+		struct svm_csr_model *model, int n_features)
+{
+	int i, j, k=0, index;
+	double *dvalues = (double *) data;
+	int *iindices = (int *) indices;
+	int *iindptr  = (int *) indptr;
+	iindptr[0] = 0;
+	for (i=0; i<model->l; ++i) { /* iterate over support vectors */
+		index = model->SV[i][0].index;
+        for(j=0; index >=0 ; ++j) {
+        	iindices[k] = index - 1;
+            dvalues[k] = model->SV[i][j].value;
+            index = model->SV[i][j+1].index;
+            ++k;
+        }
+        iindptr[i+1] = k;
+	}
+
+	return 0;
+}
+
+/* get number of nonzero coefficients in support vectors */
+Py_ssize_t get_nonzero_SV (struct svm_csr_model *model) {
+	int i, j;
+	Py_ssize_t count=0;
+	for (i=0; i<model->l; ++i) {
+		j = 0;
+		while (model->SV[i][j].index != -1) {
+			++j;
+			++count;
+		}
+	}
+	return count;
+}
+
+
+/*
+ * Predict using a model, where data is expected to be encoded into a csr matrix.
+ */
+int csr_copy_predict (Py_ssize_t *data_size, char *data, Py_ssize_t *index_size,
+		char *index, Py_ssize_t *intptr_size, char *intptr, struct svm_csr_model *model,
+		char *dec_values, BlasFunctions *blas_functions) {
+    double *t = (double *) dec_values;
+    struct svm_csr_node **predict_nodes;
+    Py_ssize_t i;
+
+    predict_nodes = csr_to_libsvm((double *) data, (int *) index,
+                                  (int *) intptr, intptr_size[0]-1);
+
+    if (predict_nodes == NULL)
+        return -1;
+    for(i=0; i < intptr_size[0] - 1; ++i) {
+        *t = svm_csr_predict(model, predict_nodes[i], blas_functions);
+        free(predict_nodes[i]);
+        ++t;
+    }
+    free(predict_nodes);
+    return 0;
+}
+
+int csr_copy_predict_values (Py_ssize_t *data_size, char *data, Py_ssize_t *index_size,
+                char *index, Py_ssize_t *intptr_size, char *intptr, struct svm_csr_model *model,
+                char *dec_values, int nr_class, BlasFunctions *blas_functions) {
+    struct svm_csr_node **predict_nodes;
+    Py_ssize_t i;
+
+    predict_nodes = csr_to_libsvm((double *) data, (int *) index,
+                                  (int *) intptr, intptr_size[0]-1);
+
+    if (predict_nodes == NULL)
+        return -1;
+    for(i=0; i < intptr_size[0] - 1; ++i) {
+        svm_csr_predict_values(model, predict_nodes[i],
+                               ((double *) dec_values) + i*nr_class,
+			       blas_functions);
+        free(predict_nodes[i]);
+    }
+    free(predict_nodes);
+
+    return 0;
+}
+
+int csr_copy_predict_proba (Py_ssize_t *data_size, char *data, Py_ssize_t *index_size,
+		char *index, Py_ssize_t *intptr_size, char *intptr, struct svm_csr_model *model,
+		char *dec_values, BlasFunctions *blas_functions) {
+
+    struct svm_csr_node **predict_nodes;
+    Py_ssize_t i;
+    int m = model->nr_class;
+
+    predict_nodes = csr_to_libsvm((double *) data, (int *) index,
+                                  (int *) intptr, intptr_size[0]-1);
+
+    if (predict_nodes == NULL)
+        return -1;
+    for(i=0; i < intptr_size[0] - 1; ++i) {
+        svm_csr_predict_probability(
+		model, predict_nodes[i], ((double *) dec_values) + i*m, blas_functions);
+        free(predict_nodes[i]);
+    }
+    free(predict_nodes);
+    return 0;
+}
+
+
+Py_ssize_t get_nr(struct svm_csr_model *model)
+{
+    return (Py_ssize_t) model->nr_class;
+}
+
+void copy_intercept(char *data, struct svm_csr_model *model, Py_ssize_t *dims)
+{
+    /* intercept = -rho */
+    Py_ssize_t i, n = dims[0];
+    double t, *ddata = (double *) data;
+    for (i=0; i<n; ++i) {
+        t = model->rho[i];
+        /* we do this to avoid ugly -0.0 */
+        *ddata = (t != 0) ? -t : 0;
+        ++ddata;
+    }
+}
+
+void copy_support (char *data, struct svm_csr_model *model)
+{
+    memcpy (data, model->sv_ind, (model->l) * sizeof(int));
+}
+
+/*
+ * Some helpers to convert from libsvm sparse data structures
+ * model->sv_coef is a double **, whereas data is just a double *,
+ * so we have to do some stupid copying.
+ */
+void copy_sv_coef(char *data, struct svm_csr_model *model)
+{
+    int i, len = model->nr_class-1;
+    double *temp = (double *) data;
+    for(i=0; i<len; ++i) {
+        memcpy(temp, model->sv_coef[i], sizeof(double) * model->l);
+        temp += model->l;
+    }
+}
+
+/*
+ * Get the number of iterations run in optimization
+ */
+void copy_n_iter(char *data, struct svm_csr_model *model)
+{
+    const int n_models = MAX(1, model->nr_class * (model->nr_class-1) / 2);
+    memcpy(data, model->n_iter, n_models * sizeof(int));
+}
+
+/*
+ * Get the number of support vectors in a model.
+ */
+Py_ssize_t get_l(struct svm_csr_model *model)
+{
+    return (Py_ssize_t) model->l;
+}
+
+void copy_nSV(char *data, struct svm_csr_model *model)
+{
+    if (model->label == NULL) return;
+    memcpy(data, model->nSV, model->nr_class * sizeof(int));
+}
+
+/*
+ * same as above with model->label
+ * TODO: merge in the cython layer
+ */
+void copy_label(char *data, struct svm_csr_model *model)
+{
+    if (model->label == NULL) return;
+    memcpy(data, model->label, model->nr_class * sizeof(int));
+}
+
+void copy_probA(char *data, struct svm_csr_model *model, Py_ssize_t * dims)
+{
+    memcpy(data, model->probA, dims[0] * sizeof(double));
+}
+
+void copy_probB(char *data, struct svm_csr_model *model, Py_ssize_t * dims)
+{
+    memcpy(data, model->probB, dims[0] * sizeof(double));
+}
+
+
+/*
+ * Some free routines. Some of them are nontrivial since a lot of
+ * sharing happens across objects (they *must* be called in the
+ * correct order)
+ */
+int free_problem(struct svm_csr_problem *problem)
+{
+    int i;
+    if (problem == NULL) return -1;
+    for (i=0; i<problem->l; ++i)
+        free (problem->x[i]);
+    free (problem->x);
+    free (problem);
+    return 0;
+}
+
+int free_model(struct svm_csr_model *model)
+{
+    /* like svm_free_and_destroy_model, but does not free sv_coef[i] */
+    /* We don't free n_iter, since we did not create them in set_model. */
+    if (model == NULL) return -1;
+    free(model->SV);
+    free(model->sv_coef);
+    free(model->rho);
+    free(model->label);
+    free(model->probA);
+    free(model->probB);
+    free(model->nSV);
+    free(model);
+
+    return 0;
+}
+
+int free_param(struct svm_parameter *param)
+{
+    if (param == NULL) return -1;
+    free(param);
+    return 0;
+}
+
+
+int free_model_SV(struct svm_csr_model *model)
+{
+    int i;
+    for (i=model->l-1; i>=0; --i) free(model->SV[i]);
+    /* svn_destroy_model frees model->SV */
+    for (i=0; i < model->nr_class-1 ; ++i) free(model->sv_coef[i]);
+    /* svn_destroy_model frees model->sv_coef */
+    return 0;
+}
+
+
+/* borrowed from original libsvm code */
+static void print_null(const char *s) {}
+
+static void print_string_stdout(const char *s)
+{
+	fputs(s,stdout);
+	fflush(stdout);
+}
+
+/* provide convenience wrapper */
+void set_verbosity(int verbosity_flag){
+	if (verbosity_flag)
+		svm_set_print_string_function(&print_string_stdout);
+	else
+		svm_set_print_string_function(&print_null);
+}
+```
+
+## scikit-learn/sklearn/svm/src/libsvm/libsvm_template.cpp.notice.txt
+
+```text
+
+/* this is a hack to generate libsvm with both sparse and dense
+   methods in the same binary*/
+
+#define _DENSE_REP
+#include "svm.cpp"
+#undef _DENSE_REP
+#include "svm.cpp"
+```
+
+## scikit-learn/sklearn/svm/src/libsvm/svm.cpp.notice.txt
+
+```text
+/*
+Copyright (c) 2000-2009 Chih-Chung Chang and Chih-Jen Lin
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Neither name of copyright holders nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/*
+   Modified 2010:
+
+   - Support for dense data by Ming-Fang Weng
+
+   - Return indices for support vectors, Fabian Pedregosa
+     <fabian.pedregosa@inria.fr>
+
+   - Fixes to avoid name collision, Fabian Pedregosa
+
+   - Add support for instance weights, Fabian Pedregosa based on work
+     by Ming-Wei Chang, Hsuan-Tien Lin, Ming-Hen Tsai, Chia-Hua Ho and
+     Hsiang-Fu Yu,
+     <https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#weights_for_data_instances>.
+
+   - Make labels sorted in svm_group_classes, Fabian Pedregosa.
+
+   Modified 2020:
+
+   - Improved random number generator by using a mersenne twister + tweaked
+     lemire postprocessor. This fixed a convergence issue on windows targets.
+     Sylvain Marie, Schneider Electric
+     see <https://github.com/scikit-learn/scikit-learn/pull/13511#issuecomment-481729756>
+
+   Modified 2021:
+
+   - Exposed number of iterations run in optimization, Juan Martín Loyola.
+     See <https://github.com/scikit-learn/scikit-learn/pull/21408/>
+ */
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <float.h>
+#include <string.h>
+#include <stdarg.h>
+#include <climits>
+#include <random>
+#include "svm.h"
+#include "_svm_cython_blas_helpers.h"
+#include "../newrand/newrand.h"
+
+
+#ifndef _LIBSVM_CPP
+typedef float Qfloat;
+typedef signed char schar;
+#ifndef min
+template <class T> static inline T min(T x,T y) { return (x<y)?x:y; }
+#endif
+#ifndef max
+template <class T> static inline T max(T x,T y) { return (x>y)?x:y; }
+#endif
+template <class T> static inline void swap(T& x, T& y) { T t=x; x=y; y=t; }
+template <class S, class T> static inline void clone(T*& dst, S* src, int n)
+{
+	dst = new T[n];
+	memcpy((void *)dst,(void *)src,sizeof(T)*n);
+}
+static inline double powi(double base, int times)
+{
+	double tmp = base, ret = 1.0;
+
+	for(int t=times; t>0; t/=2)
+	{
+		if(t%2==1) ret*=tmp;
+		tmp = tmp * tmp;
+	}
+	return ret;
+}
+#define INF HUGE_VAL
+#define TAU 1e-12
+#define Malloc(type,n) (type *)malloc((n)*sizeof(type))
+
+static void print_string_stdout(const char *s)
+{
+	fputs(s,stdout);
+	fflush(stdout);
+}
+static void (*svm_print_string) (const char *) = &print_string_stdout;
+
+static void info(const char *fmt,...)
+{
+	char buf[BUFSIZ];
+	va_list ap;
+	va_start(ap,fmt);
+	vsprintf(buf,fmt,ap);
+	va_end(ap);
+	(*svm_print_string)(buf);
+}
+#endif
+#define _LIBSVM_CPP
+
+
+/* yeah, this is ugly.  It helps us to have unique names for both sparse
+and dense versions of this library */
+#ifdef _DENSE_REP
+  #ifdef PREFIX
+    #undef PREFIX
+  #endif
+  #ifdef NAMESPACE
+    #undef NAMESPACE
+  #endif
+  #define PREFIX(name) svm_##name
+  #define NAMESPACE svm
+  namespace svm {
+#else
+  /* sparse representation */
+  #ifdef PREFIX
+    #undef PREFIX
+  #endif
+  #ifdef NAMESPACE
+    #undef NAMESPACE
+  #endif
+  #define PREFIX(name) svm_csr_##name
+  #define NAMESPACE svm_csr
+  namespace svm_csr {
+#endif
+
+
+//
+// Kernel Cache
+//
+// l is the number of total data items
+// size is the cache size limit in bytes
+//
+class Cache
+{
+public:
+	Cache(int l,long int size);
+	~Cache();
+
+	// request data [0,len)
+	// return some position p where [p,len) need to be filled
+	// (p >= len if nothing needs to be filled)
+	int get_data(const int index, Qfloat **data, int len);
+	void swap_index(int i, int j);
+private:
+	int l;
+	long int size;
+	struct head_t
+	{
+		head_t *prev, *next;	// a circular list
+		Qfloat *data;
+		int len;		// data[0,len) is cached in this entry
+	};
+
+	head_t *head;
+	head_t lru_head;
+	void lru_delete(head_t *h);
+	void lru_insert(head_t *h);
+};
+
+Cache::Cache(int l_,long int size_):l(l_),size(size_)
+{
+	head = (head_t *)calloc(l,sizeof(head_t));	// initialized to 0
+	size /= sizeof(Qfloat);
+	size -= l * sizeof(head_t) / sizeof(Qfloat);
+	size = max(size, 2 * (long int) l);	// cache must be large enough for two columns
+	lru_head.next = lru_head.prev = &lru_head;
+}
+
+Cache::~Cache()
+{
+	for(head_t *h = lru_head.next; h != &lru_head; h=h->next)
+		free(h->data);
+	free(head);
+}
+
+void Cache::lru_delete(head_t *h)
+{
+	// delete from current location
+	h->prev->next = h->next;
+	h->next->prev = h->prev;
+}
+
+void Cache::lru_insert(head_t *h)
+{
+	// insert to last position
+	h->next = &lru_head;
+	h->prev = lru_head.prev;
+	h->prev->next = h;
+	h->next->prev = h;
+}
+
+int Cache::get_data(const int index, Qfloat **data, int len)
+{
+	head_t *h = &head[index];
+	if(h->len) lru_delete(h);
+	int more = len - h->len;
+
+	if(more > 0)
+	{
+		// free old space
+		while(size < more)
+		{
+			head_t *old = lru_head.next;
+			lru_delete(old);
+			free(old->data);
+			size += old->len;
+			old->data = 0;
+			old->len = 0;
+		}
+
+		// allocate new space
+		h->data = (Qfloat *)realloc(h->data,sizeof(Qfloat)*len);
+		size -= more;
+		swap(h->len,len);
+	}
+
+	lru_insert(h);
+	*data = h->data;
+	return len;
+}
+
+void Cache::swap_index(int i, int j)
+{
+	if(i==j) return;
+
+	if(head[i].len) lru_delete(&head[i]);
+	if(head[j].len) lru_delete(&head[j]);
+	swap(head[i].data,head[j].data);
+	swap(head[i].len,head[j].len);
+	if(head[i].len) lru_insert(&head[i]);
+	if(head[j].len) lru_insert(&head[j]);
+
+	if(i>j) swap(i,j);
+	for(head_t *h = lru_head.next; h!=&lru_head; h=h->next)
+	{
+		if(h->len > i)
+		{
+			if(h->len > j)
+				swap(h->data[i],h->data[j]);
+			else
+			{
+				// give up
+				lru_delete(h);
+				free(h->data);
+				size += h->len;
+				h->data = 0;
+				h->len = 0;
+			}
+		}
+	}
+}
+
+//
+// Kernel evaluation
+//
+// the static method k_function is for doing single kernel evaluation
+// the constructor of Kernel prepares to calculate the l*l kernel matrix
+// the member function get_Q is for getting one column from the Q Matrix
+//
+class QMatrix {
+public:
+	virtual Qfloat *get_Q(int column, int len) const = 0;
+	virtual double *get_QD() const = 0;
+	virtual void swap_index(int i, int j) const = 0;
+	virtual ~QMatrix() {}
+};
+
+class Kernel: public QMatrix {
+public:
+#ifdef _DENSE_REP
+	Kernel(int l, PREFIX(node) * x, const svm_parameter& param, BlasFunctions *blas_functions);
+#else
+	Kernel(int l, PREFIX(node) * const * x, const svm_parameter& param, BlasFunctions *blas_functions);
+#endif
+	virtual ~Kernel();
+
+	static double k_function(const PREFIX(node) *x, const PREFIX(node) *y,
+				 const svm_parameter& param, BlasFunctions *blas_functions);
+	virtual Qfloat *get_Q(int column, int len) const = 0;
+	virtual double *get_QD() const = 0;
+	virtual void swap_index(int i, int j) const	// no so const...
+	{
+		swap(x[i],x[j]);
+		if(x_square) swap(x_square[i],x_square[j]);
+	}
+protected:
+
+	double (Kernel::*kernel_function)(int i, int j) const;
+
+private:
+#ifdef _DENSE_REP
+	PREFIX(node) *x;
+#else
+	const PREFIX(node) **x;
+#endif
+	double *x_square;
+	// scipy blas pointer
+	BlasFunctions *m_blas;
+
+	// svm_parameter
+	const int kernel_type;
+	const int degree;
+	const double gamma;
+	const double coef0;
+
+	static double dot(const PREFIX(node) *px, const PREFIX(node) *py, BlasFunctions *blas_functions);
+#ifdef _DENSE_REP
+	static double dot(const PREFIX(node) &px, const PREFIX(node) &py, BlasFunctions *blas_functions);
+#endif
+
+	double kernel_linear(int i, int j) const
+	{
+		return dot(x[i],x[j],m_blas);
+	}
+	double kernel_poly(int i, int j) const
+	{
+		return powi(gamma*dot(x[i],x[j],m_blas)+coef0,degree);
+	}
+	double kernel_rbf(int i, int j) const
+	{
+		return exp(-gamma*(x_square[i]+x_square[j]-2*dot(x[i],x[j],m_blas)));
+	}
+	double kernel_sigmoid(int i, int j) const
+	{
+		return tanh(gamma*dot(x[i],x[j],m_blas)+coef0);
+	}
+	double kernel_precomputed(int i, int j) const
+	{
+#ifdef _DENSE_REP
+		return (x+i)->values[x[j].ind];
+#else
+		return x[i][(int)(x[j][0].value)].value;
+#endif
+	}
+};
+
+#ifdef _DENSE_REP
+Kernel::Kernel(int l, PREFIX(node) * x_, const svm_parameter& param, BlasFunctions *blas_functions)
+#else
+Kernel::Kernel(int l, PREFIX(node) * const * x_, const svm_parameter& param, BlasFunctions *blas_functions)
+#endif
+:kernel_type(param.kernel_type), degree(param.degree),
+ gamma(param.gamma), coef0(param.coef0)
+{
+	m_blas = blas_functions;
+	switch(kernel_type)
+	{
+		case LINEAR:
+			kernel_function = &Kernel::kernel_linear;
+			break;
+		case POLY:
+			kernel_function = &Kernel::kernel_poly;
+			break;
+		case RBF:
+			kernel_function = &Kernel::kernel_rbf;
+			break;
+		case SIGMOID:
+			kernel_function = &Kernel::kernel_sigmoid;
+			break;
+		case PRECOMPUTED:
+			kernel_function = &Kernel::kernel_precomputed;
+			break;
+	}
+
+	clone(x,x_,l);
+
+	if(kernel_type == RBF)
+	{
+		x_square = new double[l];
+		for(int i=0;i<l;i++)
+			x_square[i] = dot(x[i],x[i],blas_functions);
+	}
+	else
+		x_square = 0;
+}
+
+Kernel::~Kernel()
+{
+	delete[] x;
+	delete[] x_square;
+}
+
+#ifdef _DENSE_REP
+double Kernel::dot(const PREFIX(node) *px, const PREFIX(node) *py, BlasFunctions *blas_functions)
+{
+	double sum = 0;
+
+	int dim = min(px->dim, py->dim);
+	sum = blas_functions->dot(dim, px->values, 1, py->values, 1);
+	return sum;
+}
+
+double Kernel::dot(const PREFIX(node) &px, const PREFIX(node) &py, BlasFunctions *blas_functions)
+{
+	double sum = 0;
+
+	int dim = min(px.dim, py.dim);
+	sum = blas_functions->dot(dim, px.values, 1, py.values, 1);
+	return sum;
+}
+#else
+double Kernel::dot(const PREFIX(node) *px, const PREFIX(node) *py, BlasFunctions *blas_functions)
+{
+	double sum = 0;
+	while(px->index != -1 && py->index != -1)
+	{
+		if(px->index == py->index)
+		{
+			sum += px->value * py->value;
+			++px;
+			++py;
+		}
+		else
+		{
+			if(px->index > py->index)
+				++py;
+			else
+				++px;
+		}
+	}
+	return sum;
+}
+#endif
+
+double Kernel::k_function(const PREFIX(node) *x, const PREFIX(node) *y,
+			  const svm_parameter& param, BlasFunctions *blas_functions)
+{
+	switch(param.kernel_type)
+	{
+		case LINEAR:
+			return dot(x,y,blas_functions);
+		case POLY:
+			return powi(param.gamma*dot(x,y,blas_functions)+param.coef0,param.degree);
+		case RBF:
+		{
+			double sum = 0;
+#ifdef _DENSE_REP
+			int dim = min(x->dim, y->dim), i;
+			double* m_array = (double*)malloc(sizeof(double)*dim);
+			for (i = 0; i < dim; i++)
+			{
+				m_array[i] = x->values[i] - y->values[i];
+			}
+			sum = blas_functions->dot(dim, m_array, 1, m_array, 1);
+			free(m_array);
+			for (; i < x->dim; i++)
+				sum += x->values[i] * x->values[i];
+			for (; i < y->dim; i++)
+				sum += y->values[i] * y->values[i];
+#else
+			while(x->index != -1 && y->index !=-1)
+			{
+				if(x->index == y->index)
+				{
+					double d = x->value - y->value;
+					sum += d*d;
+					++x;
+					++y;
+				}
+				else
+				{
+					if(x->index > y->index)
+					{
+						sum += y->value * y->value;
+						++y;
+					}
+					else
+					{
+						sum += x->value * x->value;
+						++x;
+					}
+				}
+			}
+
+			while(x->index != -1)
+			{
+				sum += x->value * x->value;
+				++x;
+			}
+
+			while(y->index != -1)
+			{
+				sum += y->value * y->value;
+				++y;
+			}
+#endif
+			return exp(-param.gamma*sum);
+		}
+		case SIGMOID:
+			return tanh(param.gamma*dot(x,y,blas_functions)+param.coef0);
+		case PRECOMPUTED:  //x: test (validation), y: SV
+                    {
+#ifdef _DENSE_REP
+			return x->values[y->ind];
+#else
+			return x[(int)(y->value)].value;
+#endif
+                    }
+		default:
+			return 0;  // Unreachable
+	}
+}
+// An SMO algorithm in Fan et al., JMLR 6(2005), p. 1889--1918
+// Solves:
+//
+//	min 0.5(\alpha^T Q \alpha) + p^T \alpha
+//
+//		y^T \alpha = \delta
+//		y_i = +1 or -1
+//		0 <= alpha_i <= Cp for y_i = 1
+//		0 <= alpha_i <= Cn for y_i = -1
+//
+// Given:
+//
+//	Q, p, y, Cp, Cn, and an initial feasible point \alpha
+//	l is the size of vectors and matrices
+//	eps is the stopping tolerance
+//
+// solution will be put in \alpha, objective value will be put in obj
+//
+
+class Solver {
+public:
+	Solver() {};
+	virtual ~Solver() {};
+
+	struct SolutionInfo {
+		double obj;
+		double rho;
+                double *upper_bound;
+		double r;	// for Solver_NU
+                bool solve_timed_out;
+		int n_iter;
+	};
+
+	void Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
+		   double *alpha_, const double *C_, double eps,
+		   SolutionInfo* si, int shrinking, int max_iter);
+protected:
+	int active_size;
+	schar *y;
+	double *G;		// gradient of objective function
+	enum { LOWER_BOUND, UPPER_BOUND, FREE };
+	char *alpha_status;	// LOWER_BOUND, UPPER_BOUND, FREE
+	double *alpha;
+	const QMatrix *Q;
+	const double *QD;
+	double eps;
+	double Cp,Cn;
+        double *C;
+	double *p;
+	int *active_set;
+	double *G_bar;		// gradient, if we treat free variables as 0
+	int l;
+	bool unshrink;	// XXX
+
+	double get_C(int i)
+	{
+		return C[i];
+	}
+	void update_alpha_status(int i)
+	{
+		if(alpha[i] >= get_C(i))
+			alpha_status[i] = UPPER_BOUND;
+		else if(alpha[i] <= 0)
+			alpha_status[i] = LOWER_BOUND;
+		else alpha_status[i] = FREE;
+	}
+	bool is_upper_bound(int i) { return alpha_status[i] == UPPER_BOUND; }
+	bool is_lower_bound(int i) { return alpha_status[i] == LOWER_BOUND; }
+	bool is_free(int i) { return alpha_status[i] == FREE; }
+	void swap_index(int i, int j);
+	void reconstruct_gradient();
+	virtual int select_working_set(int &i, int &j);
+	virtual double calculate_rho();
+	virtual void do_shrinking();
+private:
+	bool be_shrunk(int i, double Gmax1, double Gmax2);
+};
+
+void Solver::swap_index(int i, int j)
+{
+	Q->swap_index(i,j);
+	swap(y[i],y[j]);
+	swap(G[i],G[j]);
+	swap(alpha_status[i],alpha_status[j]);
+	swap(alpha[i],alpha[j]);
+	swap(p[i],p[j]);
+	swap(active_set[i],active_set[j]);
+	swap(G_bar[i],G_bar[j]);
+        swap(C[i], C[j]);
+}
+
+void Solver::reconstruct_gradient()
+{
+	// reconstruct inactive elements of G from G_bar and free variables
+
+	if(active_size == l) return;
+
+	int i,j;
+	int nr_free = 0;
+
+	for(j=active_size;j<l;j++)
+		G[j] = G_bar[j] + p[j];
+
+	for(j=0;j<active_size;j++)
+		if(is_free(j))
+			nr_free++;
+
+	if(2*nr_free < active_size)
+		info("\nWarning: using -h 0 may be faster\n");
+
+	if (nr_free*l > 2*active_size*(l-active_size))
+	{
+		for(i=active_size;i<l;i++)
+		{
+			const Qfloat *Q_i = Q->get_Q(i,active_size);
+			for(j=0;j<active_size;j++)
+				if(is_free(j))
+					G[i] += alpha[j] * Q_i[j];
+		}
+	}
+	else
+	{
+		for(i=0;i<active_size;i++)
+			if(is_free(i))
+			{
+				const Qfloat *Q_i = Q->get_Q(i,l);
+				double alpha_i = alpha[i];
+				for(j=active_size;j<l;j++)
+					G[j] += alpha_i * Q_i[j];
+			}
+	}
+}
+
+void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
+		   double *alpha_, const double *C_, double eps,
+		   SolutionInfo* si, int shrinking, int max_iter)
+{
+	this->l = l;
+	this->Q = &Q;
+	QD=Q.get_QD();
+	clone(p, p_,l);
+	clone(y, y_,l);
+	clone(alpha,alpha_,l);
+        clone(C, C_, l);
+	this->eps = eps;
+	unshrink = false;
+        si->solve_timed_out = false;
+
+	// initialize alpha_status
+	{
+		alpha_status = new char[l];
+		for(int i=0;i<l;i++)
+			update_alpha_status(i);
+	}
+
+	// initialize active set (for shrinking)
+	{
+		active_set = new int[l];
+		for(int i=0;i<l;i++)
+			active_set[i] = i;
+		active_size = l;
+	}
+
+	// initialize gradient
+	{
+		G = new double[l];
+		G_bar = new double[l];
+		int i;
+		for(i=0;i<l;i++)
+		{
+			G[i] = p[i];
+			G_bar[i] = 0;
+		}
+		for(i=0;i<l;i++)
+			if(!is_lower_bound(i))
+			{
+				const Qfloat *Q_i = Q.get_Q(i,l);
+				double alpha_i = alpha[i];
+				int j;
+				for(j=0;j<l;j++)
+					G[j] += alpha_i*Q_i[j];
+				if(is_upper_bound(i))
+					for(j=0;j<l;j++)
+						G_bar[j] += get_C(i) * Q_i[j];
+			}
+	}
+
+	// optimization step
+
+	int iter = 0;
+	int counter = min(l,1000)+1;
+
+	while(1)
+	{
+                // set max_iter to -1 to disable the mechanism
+                if ((max_iter != -1) && (iter >= max_iter)) {
+                    info("WARN: libsvm Solver reached max_iter");
+                    si->solve_timed_out = true;
+                    break;
+                }
+
+		// show progress and do shrinking
+
+		if(--counter == 0)
+		{
+			counter = min(l,1000);
+			if(shrinking) do_shrinking();
+			info(".");
+		}
+
+		int i,j;
+		if(select_working_set(i,j)!=0)
+		{
+			// reconstruct the whole gradient
+			reconstruct_gradient();
+			// reset active set size and check
+			active_size = l;
+			info("*");
+			if(select_working_set(i,j)!=0)
+				break;
+			else
+				counter = 1;	// do shrinking next iteration
+		}
+
+		++iter;
+
+		// update alpha[i] and alpha[j], handle bounds carefully
+
+		const Qfloat *Q_i = Q.get_Q(i,active_size);
+		const Qfloat *Q_j = Q.get_Q(j,active_size);
+
+		double C_i = get_C(i);
+		double C_j = get_C(j);
+
+		double old_alpha_i = alpha[i];
+		double old_alpha_j = alpha[j];
+
+		if(y[i]!=y[j])
+		{
+			double quad_coef = QD[i]+QD[j]+2*Q_i[j];
+			if (quad_coef <= 0)
+				quad_coef = TAU;
+			double delta = (-G[i]-G[j])/quad_coef;
+			double diff = alpha[i] - alpha[j];
+			alpha[i] += delta;
+			alpha[j] += delta;
+
+			if(diff > 0)
+			{
+				if(alpha[j] < 0)
+				{
+					alpha[j] = 0;
+					alpha[i] = diff;
+				}
+			}
+			else
+			{
+				if(alpha[i] < 0)
+				{
+					alpha[i] = 0;
+					alpha[j] = -diff;
+				}
+			}
+			if(diff > C_i - C_j)
+			{
+				if(alpha[i] > C_i)
+				{
+					alpha[i] = C_i;
+					alpha[j] = C_i - diff;
+				}
+			}
+			else
+			{
+				if(alpha[j] > C_j)
+				{
+					alpha[j] = C_j;
+					alpha[i] = C_j + diff;
+				}
+			}
+		}
+		else
+		{
+			double quad_coef = QD[i]+QD[j]-2*Q_i[j];
+			if (quad_coef <= 0)
+				quad_coef = TAU;
+			double delta = (G[i]-G[j])/quad_coef;
+			double sum = alpha[i] + alpha[j];
+			alpha[i] -= delta;
+			alpha[j] += delta;
+
+			if(sum > C_i)
+			{
+				if(alpha[i] > C_i)
+				{
+					alpha[i] = C_i;
+					alpha[j] = sum - C_i;
+				}
+			}
+			else
+			{
+				if(alpha[j] < 0)
+				{
+					alpha[j] = 0;
+					alpha[i] = sum;
+				}
+			}
+			if(sum > C_j)
+			{
+				if(alpha[j] > C_j)
+				{
+					alpha[j] = C_j;
+					alpha[i] = sum - C_j;
+				}
+			}
+			else
+			{
+				if(alpha[i] < 0)
+				{
+					alpha[i] = 0;
+					alpha[j] = sum;
+				}
+			}
+		}
+
+		// update G
+
+		double delta_alpha_i = alpha[i] - old_alpha_i;
+		double delta_alpha_j = alpha[j] - old_alpha_j;
+
+		for(int k=0;k<active_size;k++)
+		{
+			G[k] += Q_i[k]*delta_alpha_i + Q_j[k]*delta_alpha_j;
+		}
+
+		// update alpha_status and G_bar
+
+		{
+			bool ui = is_upper_bound(i);
+			bool uj = is_upper_bound(j);
+			update_alpha_status(i);
+			update_alpha_status(j);
+			int k;
+			if(ui != is_upper_bound(i))
+			{
+				Q_i = Q.get_Q(i,l);
+				if(ui)
+					for(k=0;k<l;k++)
+						G_bar[k] -= C_i * Q_i[k];
+				else
+					for(k=0;k<l;k++)
+						G_bar[k] += C_i * Q_i[k];
+			}
+
+			if(uj != is_upper_bound(j))
+			{
+				Q_j = Q.get_Q(j,l);
+				if(uj)
+					for(k=0;k<l;k++)
+						G_bar[k] -= C_j * Q_j[k];
+				else
+					for(k=0;k<l;k++)
+						G_bar[k] += C_j * Q_j[k];
+			}
+		}
+	}
+
+	// calculate rho
+
+	si->rho = calculate_rho();
+
+	// calculate objective value
+	{
+		double v = 0;
+		int i;
+		for(i=0;i<l;i++)
+			v += alpha[i] * (G[i] + p[i]);
+
+		si->obj = v/2;
+	}
+
+	// put back the solution
+	{
+		for(int i=0;i<l;i++)
+			alpha_[active_set[i]] = alpha[i];
+	}
+
+	// juggle everything back
+	/*{
+		for(int i=0;i<l;i++)
+			while(active_set[i] != i)
+				swap_index(i,active_set[i]);
+				// or Q.swap_index(i,active_set[i]);
+	}*/
+
+	for(int i=0;i<l;i++)
+		si->upper_bound[i] = C[i];
+
+	// store number of iterations
+	si->n_iter = iter;
+
+	info("\noptimization finished, #iter = %d\n",iter);
+
+	delete[] p;
+	delete[] y;
+	delete[] alpha;
+	delete[] alpha_status;
+	delete[] active_set;
+	delete[] G;
+	delete[] G_bar;
+	delete[] C;
+}
+
+// return 1 if already optimal, return 0 otherwise
+int Solver::select_working_set(int &out_i, int &out_j)
+{
+	// return i,j such that
+	// i: maximizes -y_i * grad(f)_i, i in I_up(\alpha)
+	// j: minimizes the decrease of obj value
+	//    (if quadratic coefficient <= 0, replace it with tau)
+	//    -y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
+
+	double Gmax = -INF;
+	double Gmax2 = -INF;
+	int Gmax_idx = -1;
+	int Gmin_idx = -1;
+	double obj_diff_min = INF;
+
+	for(int t=0;t<active_size;t++)
+		if(y[t]==+1)
+		{
+			if(!is_upper_bound(t))
+				if(-G[t] >= Gmax)
+				{
+					Gmax = -G[t];
+					Gmax_idx = t;
+				}
+		}
+		else
+		{
+			if(!is_lower_bound(t))
+				if(G[t] >= Gmax)
+				{
+					Gmax = G[t];
+					Gmax_idx = t;
+				}
+		}
+
+	int i = Gmax_idx;
+	const Qfloat *Q_i = NULL;
+	if(i != -1) // NULL Q_i not accessed: Gmax=-INF if i=-1
+		Q_i = Q->get_Q(i,active_size);
+
+	for(int j=0;j<active_size;j++)
+	{
+		if(y[j]==+1)
+		{
+			if (!is_lower_bound(j))
+			{
+				double grad_diff=Gmax+G[j];
+				if (G[j] >= Gmax2)
+					Gmax2 = G[j];
+				if (grad_diff > 0)
+				{
+					double obj_diff;
+					double quad_coef = QD[i]+QD[j]-2.0*y[i]*Q_i[j];
+					if (quad_coef > 0)
+						obj_diff = -(grad_diff*grad_diff)/quad_coef;
+					else
+						obj_diff = -(grad_diff*grad_diff)/TAU;
+
+					if (obj_diff <= obj_diff_min)
+					{
+						Gmin_idx=j;
+						obj_diff_min = obj_diff;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (!is_upper_bound(j))
+			{
+				double grad_diff= Gmax-G[j];
+				if (-G[j] >= Gmax2)
+					Gmax2 = -G[j];
+				if (grad_diff > 0)
+				{
+					double obj_diff;
+					double quad_coef = QD[i]+QD[j]+2.0*y[i]*Q_i[j];
+					if (quad_coef > 0)
+						obj_diff = -(grad_diff*grad_diff)/quad_coef;
+					else
+						obj_diff = -(grad_diff*grad_diff)/TAU;
+
+					if (obj_diff <= obj_diff_min)
+					{
+						Gmin_idx=j;
+						obj_diff_min = obj_diff;
+					}
+				}
+			}
+		}
+	}
+
+	if(Gmax+Gmax2 < eps || Gmin_idx == -1)
+		return 1;
+
+	out_i = Gmax_idx;
+	out_j = Gmin_idx;
+	return 0;
+}
+
+bool Solver::be_shrunk(int i, double Gmax1, double Gmax2)
+{
+	if(is_upper_bound(i))
+	{
+		if(y[i]==+1)
+			return(-G[i] > Gmax1);
+		else
+			return(-G[i] > Gmax2);
+	}
+	else if(is_lower_bound(i))
+	{
+		if(y[i]==+1)
+			return(G[i] > Gmax2);
+		else
+			return(G[i] > Gmax1);
+	}
+	else
+		return(false);
+}
+
+void Solver::do_shrinking()
+{
+	int i;
+	double Gmax1 = -INF;		// max { -y_i * grad(f)_i | i in I_up(\alpha) }
+	double Gmax2 = -INF;		// max { y_i * grad(f)_i | i in I_low(\alpha) }
+
+	// find maximal violating pair first
+	for(i=0;i<active_size;i++)
+	{
+		if(y[i]==+1)
+		{
+			if(!is_upper_bound(i))
+			{
+				if(-G[i] >= Gmax1)
+					Gmax1 = -G[i];
+			}
+			if(!is_lower_bound(i))
+			{
+				if(G[i] >= Gmax2)
+					Gmax2 = G[i];
+			}
+		}
+		else
+		{
+			if(!is_upper_bound(i))
+			{
+				if(-G[i] >= Gmax2)
+					Gmax2 = -G[i];
+			}
+			if(!is_lower_bound(i))
+			{
+				if(G[i] >= Gmax1)
+					Gmax1 = G[i];
+			}
+		}
+	}
+
+	if(unshrink == false && Gmax1 + Gmax2 <= eps*10)
+	{
+		unshrink = true;
+		reconstruct_gradient();
+		active_size = l;
+		info("*");
+	}
+
+	for(i=0;i<active_size;i++)
+		if (be_shrunk(i, Gmax1, Gmax2))
+		{
+			active_size--;
+			while (active_size > i)
+			{
+				if (!be_shrunk(active_size, Gmax1, Gmax2))
+				{
+					swap_index(i,active_size);
+					break;
+				}
+				active_size--;
+			}
+		}
+}
+
+double Solver::calculate_rho()
+{
+	double r;
+	int nr_free = 0;
+	double ub = INF, lb = -INF, sum_free = 0;
+	for(int i=0;i<active_size;i++)
+	{
+		double yG = y[i]*G[i];
+
+		if(is_upper_bound(i))
+		{
+			if(y[i]==-1)
+				ub = min(ub,yG);
+			else
+				lb = max(lb,yG);
+		}
+		else if(is_lower_bound(i))
+		{
+			if(y[i]==+1)
+				ub = min(ub,yG);
+			else
+				lb = max(lb,yG);
+		}
+		else
+		{
+			++nr_free;
+			sum_free += yG;
+		}
+	}
+
+	if(nr_free>0)
+		r = sum_free/nr_free;
+	else
+		r = (ub+lb)/2;
+
+	return r;
+}
+
+//
+// Solver for nu-svm classification and regression
+//
+// additional constraint: e^T \alpha = constant
+//
+class Solver_NU : public Solver
+{
+public:
+	Solver_NU() {}
+	void Solve(int l, const QMatrix& Q, const double *p, const schar *y,
+		   double *alpha, const double *C_, double eps,
+		   SolutionInfo* si, int shrinking, int max_iter)
+	{
+		this->si = si;
+		Solver::Solve(l,Q,p,y,alpha,C_,eps,si,shrinking,max_iter);
+	}
+private:
+	SolutionInfo *si;
+	int select_working_set(int &i, int &j);
+	double calculate_rho();
+	bool be_shrunk(int i, double Gmax1, double Gmax2, double Gmax3, double Gmax4);
+	void do_shrinking();
+};
+
+// return 1 if already optimal, return 0 otherwise
+int Solver_NU::select_working_set(int &out_i, int &out_j)
+{
+	// return i,j such that y_i = y_j and
+	// i: maximizes -y_i * grad(f)_i, i in I_up(\alpha)
+	// j: minimizes the decrease of obj value
+	//    (if quadratic coefficient <= 0, replace it with tau)
+	//    -y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
+
+	double Gmaxp = -INF;
+	double Gmaxp2 = -INF;
+	int Gmaxp_idx = -1;
+
+	double Gmaxn = -INF;
+	double Gmaxn2 = -INF;
+	int Gmaxn_idx = -1;
+
+	int Gmin_idx = -1;
+	double obj_diff_min = INF;
+
+	for(int t=0;t<active_size;t++)
+		if(y[t]==+1)
+		{
+			if(!is_upper_bound(t))
+				if(-G[t] >= Gmaxp)
+				{
+					Gmaxp = -G[t];
+					Gmaxp_idx = t;
+				}
+		}
+		else
+		{
+			if(!is_lower_bound(t))
+				if(G[t] >= Gmaxn)
+				{
+					Gmaxn = G[t];
+					Gmaxn_idx = t;
+				}
+		}
+
+	int ip = Gmaxp_idx;
+	int in = Gmaxn_idx;
+	const Qfloat *Q_ip = NULL;
+	const Qfloat *Q_in = NULL;
+	if(ip != -1) // NULL Q_ip not accessed: Gmaxp=-INF if ip=-1
+		Q_ip = Q->get_Q(ip,active_size);
+	if(in != -1)
+		Q_in = Q->get_Q(in,active_size);
+
+	for(int j=0;j<active_size;j++)
+	{
+		if(y[j]==+1)
+		{
+			if (!is_lower_bound(j))
+			{
+				double grad_diff=Gmaxp+G[j];
+				if (G[j] >= Gmaxp2)
+					Gmaxp2 = G[j];
+				if (grad_diff > 0)
+				{
+					double obj_diff;
+					double quad_coef = QD[ip]+QD[j]-2*Q_ip[j];
+					if (quad_coef > 0)
+						obj_diff = -(grad_diff*grad_diff)/quad_coef;
+					else
+						obj_diff = -(grad_diff*grad_diff)/TAU;
+
+					if (obj_diff <= obj_diff_min)
+					{
+						Gmin_idx=j;
+						obj_diff_min = obj_diff;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (!is_upper_bound(j))
+			{
+				double grad_diff=Gmaxn-G[j];
+				if (-G[j] >= Gmaxn2)
+					Gmaxn2 = -G[j];
+				if (grad_diff > 0)
+				{
+					double obj_diff;
+					double quad_coef = QD[in]+QD[j]-2*Q_in[j];
+					if (quad_coef > 0)
+						obj_diff = -(grad_diff*grad_diff)/quad_coef;
+					else
+						obj_diff = -(grad_diff*grad_diff)/TAU;
+
+					if (obj_diff <= obj_diff_min)
+					{
+						Gmin_idx=j;
+						obj_diff_min = obj_diff;
+					}
+				}
+			}
+		}
+	}
+
+	if(max(Gmaxp+Gmaxp2,Gmaxn+Gmaxn2) < eps || Gmin_idx == -1)
+		return 1;
+
+	if (y[Gmin_idx] == +1)
+		out_i = Gmaxp_idx;
+	else
+		out_i = Gmaxn_idx;
+	out_j = Gmin_idx;
+
+	return 0;
+}
+
+bool Solver_NU::be_shrunk(int i, double Gmax1, double Gmax2, double Gmax3, double Gmax4)
+{
+	if(is_upper_bound(i))
+	{
+		if(y[i]==+1)
+			return(-G[i] > Gmax1);
+		else
+			return(-G[i] > Gmax4);
+	}
+	else if(is_lower_bound(i))
+	{
+		if(y[i]==+1)
+			return(G[i] > Gmax2);
+		else
+			return(G[i] > Gmax3);
+	}
+	else
+		return(false);
+}
+
+void Solver_NU::do_shrinking()
+{
+	double Gmax1 = -INF;	// max { -y_i * grad(f)_i | y_i = +1, i in I_up(\alpha) }
+	double Gmax2 = -INF;	// max { y_i * grad(f)_i | y_i = +1, i in I_low(\alpha) }
+	double Gmax3 = -INF;	// max { -y_i * grad(f)_i | y_i = -1, i in I_up(\alpha) }
+	double Gmax4 = -INF;	// max { y_i * grad(f)_i | y_i = -1, i in I_low(\alpha) }
+
+	// find maximal violating pair first
+	int i;
+	for(i=0;i<active_size;i++)
+	{
+		if(!is_upper_bound(i))
+		{
+			if(y[i]==+1)
+			{
+				if(-G[i] > Gmax1) Gmax1 = -G[i];
+			}
+			else	if(-G[i] > Gmax4) Gmax4 = -G[i];
+		}
+		if(!is_lower_bound(i))
+		{
+			if(y[i]==+1)
+			{
+				if(G[i] > Gmax2) Gmax2 = G[i];
+			}
+			else	if(G[i] > Gmax3) Gmax3 = G[i];
+		}
+	}
+
+	if(unshrink == false && max(Gmax1+Gmax2,Gmax3+Gmax4) <= eps*10)
+	{
+		unshrink = true;
+		reconstruct_gradient();
+		active_size = l;
+	}
+
+	for(i=0;i<active_size;i++)
+		if (be_shrunk(i, Gmax1, Gmax2, Gmax3, Gmax4))
+		{
+			active_size--;
+			while (active_size > i)
+			{
+				if (!be_shrunk(active_size, Gmax1, Gmax2, Gmax3, Gmax4))
+				{
+					swap_index(i,active_size);
+					break;
+				}
+				active_size--;
+			}
+		}
+}
+
+double Solver_NU::calculate_rho()
+{
+	int nr_free1 = 0,nr_free2 = 0;
+	double ub1 = INF, ub2 = INF;
+	double lb1 = -INF, lb2 = -INF;
+	double sum_free1 = 0, sum_free2 = 0;
+
+	for(int i=0;i<active_size;i++)
+	{
+		if(y[i]==+1)
+		{
+			if(is_upper_bound(i))
+				lb1 = max(lb1,G[i]);
+			else if(is_lower_bound(i))
+				ub1 = min(ub1,G[i]);
+			else
+			{
+				++nr_free1;
+				sum_free1 += G[i];
+			}
+		}
+		else
+		{
+			if(is_upper_bound(i))
+				lb2 = max(lb2,G[i]);
+			else if(is_lower_bound(i))
+				ub2 = min(ub2,G[i]);
+			else
+			{
+				++nr_free2;
+				sum_free2 += G[i];
+			}
+		}
+	}
+
+	double r1,r2;
+	if(nr_free1 > 0)
+		r1 = sum_free1/nr_free1;
+	else
+		r1 = (ub1+lb1)/2;
+
+	if(nr_free2 > 0)
+		r2 = sum_free2/nr_free2;
+	else
+		r2 = (ub2+lb2)/2;
+
+	si->r = (r1+r2)/2;
+	return (r1-r2)/2;
+}
+
+//
+// Q matrices for various formulations
+//
+class SVC_Q: public Kernel
+{
+public:
+	SVC_Q(const PREFIX(problem)& prob, const svm_parameter& param, const schar *y_, BlasFunctions *blas_functions)
+	:Kernel(prob.l, prob.x, param, blas_functions)
+	{
+		clone(y,y_,prob.l);
+		cache = new Cache(prob.l,(long int)(param.cache_size*(1<<20)));
+		QD = new double[prob.l];
+		for(int i=0;i<prob.l;i++)
+			QD[i] = (this->*kernel_function)(i,i);
+	}
+
+	Qfloat *get_Q(int i, int len) const
+	{
+		Qfloat *data;
+		int start, j;
+		if((start = cache->get_data(i,&data,len)) < len)
+		{
+			for(j=start;j<len;j++)
+				data[j] = (Qfloat)(y[i]*y[j]*(this->*kernel_function)(i,j));
+		}
+		return data;
+	}
+
+	double *get_QD() const
+	{
+		return QD;
+	}
+
+	void swap_index(int i, int j) const
+	{
+		cache->swap_index(i,j);
+		Kernel::swap_index(i,j);
+		swap(y[i],y[j]);
+		swap(QD[i],QD[j]);
+	}
+
+	~SVC_Q()
+	{
+		delete[] y;
+		delete cache;
+		delete[] QD;
+	}
+private:
+	schar *y;
+	Cache *cache;
+	double *QD;
+};
+
+class ONE_CLASS_Q: public Kernel
+{
+public:
+	ONE_CLASS_Q(const PREFIX(problem)& prob, const svm_parameter& param, BlasFunctions *blas_functions)
+	:Kernel(prob.l, prob.x, param, blas_functions)
+	{
+		cache = new Cache(prob.l,(long int)(param.cache_size*(1<<20)));
+		QD = new double[prob.l];
+		for(int i=0;i<prob.l;i++)
+			QD[i] = (this->*kernel_function)(i,i);
+	}
+
+	Qfloat *get_Q(int i, int len) const
+	{
+		Qfloat *data;
+		int start, j;
+		if((start = cache->get_data(i,&data,len)) < len)
+		{
+			for(j=start;j<len;j++)
+				data[j] = (Qfloat)(this->*kernel_function)(i,j);
+		}
+		return data;
+	}
+
+	double *get_QD() const
+	{
+		return QD;
+	}
+
+	void swap_index(int i, int j) const
+	{
+		cache->swap_index(i,j);
+		Kernel::swap_index(i,j);
+		swap(QD[i],QD[j]);
+	}
+
+	~ONE_CLASS_Q()
+	{
+		delete cache;
+		delete[] QD;
+	}
+private:
+	Cache *cache;
+	double *QD;
+};
+
+class SVR_Q: public Kernel
+{
+public:
+	SVR_Q(const PREFIX(problem)& prob, const svm_parameter& param, BlasFunctions *blas_functions)
+	:Kernel(prob.l, prob.x, param, blas_functions)
+	{
+		l = prob.l;
+		cache = new Cache(l,(long int)(param.cache_size*(1<<20)));
+		QD = new double[2*l];
+		sign = new schar[2*l];
+		index = new int[2*l];
+		for(int k=0;k<l;k++)
+		{
+			sign[k] = 1;
+			sign[k+l] = -1;
+			index[k] = k;
+			index[k+l] = k;
+			QD[k] = (this->*kernel_function)(k,k);
+			QD[k+l] = QD[k];
+		}
+		buffer[0] = new Qfloat[2*l];
+		buffer[1] = new Qfloat[2*l];
+		next_buffer = 0;
+	}
+
+	void swap_index(int i, int j) const
+	{
+		swap(sign[i],sign[j]);
+		swap(index[i],index[j]);
+		swap(QD[i],QD[j]);
+	}
+
+	Qfloat *get_Q(int i, int len) const
+	{
+		Qfloat *data;
+		int j, real_i = index[i];
+		if(cache->get_data(real_i,&data,l) < l)
+		{
+			for(j=0;j<l;j++)
+				data[j] = (Qfloat)(this->*kernel_function)(real_i,j);
+		}
+
+		// reorder and copy
+		Qfloat *buf = buffer[next_buffer];
+		next_buffer = 1 - next_buffer;
+		schar si = sign[i];
+		for(j=0;j<len;j++)
+			buf[j] = (Qfloat) si * (Qfloat) sign[j] * data[index[j]];
+		return buf;
+	}
+
+	double *get_QD() const
+	{
+		return QD;
+	}
+
+	~SVR_Q()
+	{
+		delete cache;
+		delete[] sign;
+		delete[] index;
+		delete[] buffer[0];
+		delete[] buffer[1];
+		delete[] QD;
+	}
+private:
+	int l;
+	Cache *cache;
+	schar *sign;
+	int *index;
+	mutable int next_buffer;
+	Qfloat *buffer[2];
+	double *QD;
+};
+
+//
+// construct and solve various formulations
+//
+static void solve_c_svc(
+	const PREFIX(problem) *prob, const svm_parameter* param,
+	double *alpha, Solver::SolutionInfo* si, double Cp, double Cn, BlasFunctions *blas_functions)
+{
+	int l = prob->l;
+	double *minus_ones = new double[l];
+	schar *y = new schar[l];
+        double *C = new double[l];
+
+	int i;
+
+	for(i=0;i<l;i++)
+	{
+		alpha[i] = 0;
+		minus_ones[i] = -1;
+		if(prob->y[i] > 0)
+		{
+			y[i] = +1;
+			C[i] = prob->W[i]*Cp;
+		}
+		else
+		{
+			y[i] = -1;
+			C[i] = prob->W[i]*Cn;
+		}
+	}
+
+	Solver s;
+	s.Solve(l, SVC_Q(*prob,*param,y, blas_functions), minus_ones, y,
+		alpha, C, param->eps, si, param->shrinking,
+                param->max_iter);
+
+        /*
+	double sum_alpha=0;
+	for(i=0;i<l;i++)
+		sum_alpha += alpha[i];
+
+	if (Cp==Cn)
+		info("nu = %f\n", sum_alpha/(Cp*prob->l));
+        */
+
+	for(i=0;i<l;i++)
+		alpha[i] *= y[i];
+
+        delete[] C;
+	delete[] minus_ones;
+	delete[] y;
+}
+
+static void solve_nu_svc(
+	const PREFIX(problem) *prob, const svm_parameter *param,
+	double *alpha, Solver::SolutionInfo* si, BlasFunctions *blas_functions)
+{
+	int i;
+	int l = prob->l;
+	double nu = param->nu;
+
+	schar *y = new schar[l];
+        double *C = new double[l];
+
+	for(i=0;i<l;i++)
+        {
+		if(prob->y[i]>0)
+			y[i] = +1;
+		else
+			y[i] = -1;
+
+		C[i] = prob->W[i];
+	}
+
+	double nu_l = 0;
+	for(i=0;i<l;i++) nu_l += nu*C[i];
+	double sum_pos = nu_l/2;
+	double sum_neg = nu_l/2;
+
+	for(i=0;i<l;i++)
+		if(y[i] == +1)
+		{
+			alpha[i] = min(C[i],sum_pos);
+			sum_pos -= alpha[i];
+		}
+		else
+		{
+			alpha[i] = min(C[i],sum_neg);
+			sum_neg -= alpha[i];
+		}
+
+	double *zeros = new double[l];
+
+	for(i=0;i<l;i++)
+		zeros[i] = 0;
+
+	Solver_NU s;
+	s.Solve(l, SVC_Q(*prob,*param,y,blas_functions), zeros, y,
+		alpha, C, param->eps, si,  param->shrinking, param->max_iter);
+	double r = si->r;
+
+	info("C = %f\n",1/r);
+
+	for(i=0;i<l;i++)
+        {
+		alpha[i] *= y[i]/r;
+		si->upper_bound[i] /= r;
+        }
+
+	si->rho /= r;
+	si->obj /= (r*r);
+
+        delete[] C;
+	delete[] y;
+	delete[] zeros;
+}
+
+static void solve_one_class(
+	const PREFIX(problem) *prob, const svm_parameter *param,
+	double *alpha, Solver::SolutionInfo* si, BlasFunctions *blas_functions)
+{
+	int l = prob->l;
+	double *zeros = new double[l];
+	schar *ones = new schar[l];
+	double *C = new double[l];
+	int i;
+
+	double nu_l = 0;
+
+	for(i=0;i<l;i++)
+	{
+		C[i] = prob->W[i];
+		nu_l += C[i] * param->nu;
+	}
+
+	i = 0;
+	while(nu_l > 0)
+	{
+		alpha[i] = min(C[i],nu_l);
+		nu_l -= alpha[i];
+		++i;
+	}
+	for(;i<l;i++)
+		alpha[i] = 0;
+
+	for(i=0;i<l;i++)
+	{
+		zeros[i] = 0;
+		ones[i] = 1;
+	}
+
+	Solver s;
+	s.Solve(l, ONE_CLASS_Q(*prob,*param,blas_functions), zeros, ones,
+		alpha, C, param->eps, si, param->shrinking, param->max_iter);
+
+        delete[] C;
+	delete[] zeros;
+	delete[] ones;
+}
+
+static void solve_epsilon_svr(
+	const PREFIX(problem) *prob, const svm_parameter *param,
+	double *alpha, Solver::SolutionInfo* si, BlasFunctions *blas_functions)
+{
+	int l = prob->l;
+	double *alpha2 = new double[2*l];
+	double *linear_term = new double[2*l];
+	schar *y = new schar[2*l];
+        double *C = new double[2*l];
+        int i;
+
+	for(i=0;i<l;i++)
+	{
+		alpha2[i] = 0;
+		linear_term[i] = param->p - prob->y[i];
+		y[i] = 1;
+                C[i] = prob->W[i]*param->C;
+
+		alpha2[i+l] = 0;
+		linear_term[i+l] = param->p + prob->y[i];
+		y[i+l] = -1;
+                C[i+l] = prob->W[i]*param->C;
+	}
+
+	Solver s;
+	s.Solve(2*l, SVR_Q(*prob,*param,blas_functions), linear_term, y,
+		alpha2, C, param->eps, si, param->shrinking, param->max_iter);
+
+	double sum_alpha = 0;
+	for(i=0;i<l;i++)
+	{
+		alpha[i] = alpha2[i] - alpha2[i+l];
+		sum_alpha += fabs(alpha[i]);
+	}
+
+
+	delete[] alpha2;
+	delete[] linear_term;
+        delete[] C;
+	delete[] y;
+}
+
+static void solve_nu_svr(
+	const PREFIX(problem) *prob, const svm_parameter *param,
+	double *alpha, Solver::SolutionInfo* si, BlasFunctions *blas_functions)
+{
+	int l = prob->l;
+	double *C = new double[2*l];
+	double *alpha2 = new double[2*l];
+	double *linear_term = new double[2*l];
+	schar *y = new schar[2*l];
+	int i;
+
+	double sum = 0;
+	for(i=0;i<l;i++)
+	{
+		C[i] = C[i+l] = prob->W[i]*param->C;
+		sum += C[i] * param->nu;
+	}
+	sum /= 2;
+
+	for(i=0;i<l;i++)
+	{
+		alpha2[i] = alpha2[i+l] = min(sum,C[i]);
+		sum -= alpha2[i];
+
+		linear_term[i] = - prob->y[i];
+		y[i] = 1;
+
+		linear_term[i+l] = prob->y[i];
+		y[i+l] = -1;
+	}
+
+	Solver_NU s;
+	s.Solve(2*l, SVR_Q(*prob,*param,blas_functions), linear_term, y,
+		alpha2, C, param->eps, si, param->shrinking, param->max_iter);
+
+	info("epsilon = %f\n",-si->r);
+
+	for(i=0;i<l;i++)
+		alpha[i] = alpha2[i] - alpha2[i+l];
+
+	delete[] alpha2;
+	delete[] linear_term;
+        delete[] C;
+	delete[] y;
+}
+
+//
+// decision_function
+//
+struct decision_function
+{
+	double *alpha;
+	double rho;
+	int n_iter;
+};
+
+static decision_function svm_train_one(
+	const PREFIX(problem) *prob, const svm_parameter *param,
+	double Cp, double Cn, int *status, BlasFunctions *blas_functions)
+{
+	double *alpha = Malloc(double,prob->l);
+	Solver::SolutionInfo si;
+	switch(param->svm_type)
+	{
+ 		case C_SVC:
+			si.upper_bound = Malloc(double,prob->l);
+ 			solve_c_svc(prob,param,alpha,&si,Cp,Cn,blas_functions);
+ 			break;
+ 		case NU_SVC:
+			si.upper_bound = Malloc(double,prob->l);
+ 			solve_nu_svc(prob,param,alpha,&si,blas_functions);
+ 			break;
+ 		case ONE_CLASS:
+			si.upper_bound = Malloc(double,prob->l);
+ 			solve_one_class(prob,param,alpha,&si,blas_functions);
+ 			break;
+ 		case EPSILON_SVR:
+			si.upper_bound = Malloc(double,2*prob->l);
+ 			solve_epsilon_svr(prob,param,alpha,&si,blas_functions);
+ 			break;
+ 		case NU_SVR:
+			si.upper_bound = Malloc(double,2*prob->l);
+ 			solve_nu_svr(prob,param,alpha,&si,blas_functions);
+ 			break;
+	}
+
+        *status |= si.solve_timed_out;
+
+	info("obj = %f, rho = %f\n",si.obj,si.rho);
+
+	// output SVs
+
+	int nSV = 0;
+	int nBSV = 0;
+	for(int i=0;i<prob->l;i++)
+	{
+		if(fabs(alpha[i]) > 0)
+		{
+			++nSV;
+			if(prob->y[i] > 0)
+			{
+				if(fabs(alpha[i]) >= si.upper_bound[i])
+					++nBSV;
+			}
+			else
+			{
+				if(fabs(alpha[i]) >= si.upper_bound[i])
+					++nBSV;
+			}
+		}
+	}
+
+        free(si.upper_bound);
+
+	info("nSV = %d, nBSV = %d\n",nSV,nBSV);
+
+	decision_function f;
+	f.alpha = alpha;
+	f.rho = si.rho;
+	f.n_iter = si.n_iter;
+	return f;
+}
+
+// Platt's binary SVM Probabilistic Output: an improvement from Lin et al.
+static void sigmoid_train(
+	int l, const double *dec_values, const double *labels,
+	double& A, double& B)
+{
+	double prior1=0, prior0 = 0;
+	int i;
+
+	for (i=0;i<l;i++)
+		if (labels[i] > 0) prior1+=1;
+		else prior0+=1;
+
+	int max_iter=100;	// Maximal number of iterations
+	double min_step=1e-10;	// Minimal step taken in line search
+	double sigma=1e-12;	// For numerically strict PD of Hessian
+	double eps=1e-5;
+	double hiTarget=(prior1+1.0)/(prior1+2.0);
+	double loTarget=1/(prior0+2.0);
+	double *t=Malloc(double,l);
+	double fApB,p,q,h11,h22,h21,g1,g2,det,dA,dB,gd,stepsize;
+	double newA,newB,newf,d1,d2;
+	int iter;
+
+	// Initial Point and Initial Fun Value
+	A=0.0; B=log((prior0+1.0)/(prior1+1.0));
+	double fval = 0.0;
+
+	for (i=0;i<l;i++)
+	{
+		if (labels[i]>0) t[i]=hiTarget;
+		else t[i]=loTarget;
+		fApB = dec_values[i]*A+B;
+		if (fApB>=0)
+			fval += t[i]*fApB + log(1+exp(-fApB));
+		else
+			fval += (t[i] - 1)*fApB +log(1+exp(fApB));
+	}
+	for (iter=0;iter<max_iter;iter++)
+	{
+		// Update Gradient and Hessian (use H' = H + sigma I)
+		h11=sigma; // numerically ensures strict PD
+		h22=sigma;
+		h21=0.0;g1=0.0;g2=0.0;
+		for (i=0;i<l;i++)
+		{
+			fApB = dec_values[i]*A+B;
+			if (fApB >= 0)
+			{
+				p=exp(-fApB)/(1.0+exp(-fApB));
+				q=1.0/(1.0+exp(-fApB));
+			}
+			else
+			{
+				p=1.0/(1.0+exp(fApB));
+				q=exp(fApB)/(1.0+exp(fApB));
+			}
+			d2=p*q;
+			h11+=dec_values[i]*dec_values[i]*d2;
+			h22+=d2;
+			h21+=dec_values[i]*d2;
+			d1=t[i]-p;
+			g1+=dec_values[i]*d1;
+			g2+=d1;
+		}
+
+		// Stopping Criteria
+		if (fabs(g1)<eps && fabs(g2)<eps)
+			break;
+
+		// Finding Newton direction: -inv(H') * g
+		det=h11*h22-h21*h21;
+		dA=-(h22*g1 - h21 * g2) / det;
+		dB=-(-h21*g1+ h11 * g2) / det;
+		gd=g1*dA+g2*dB;
+
+
+		stepsize = 1;		// Line Search
+		while (stepsize >= min_step)
+		{
+			newA = A + stepsize * dA;
+			newB = B + stepsize * dB;
+
+			// New function value
+			newf = 0.0;
+			for (i=0;i<l;i++)
+			{
+				fApB = dec_values[i]*newA+newB;
+				if (fApB >= 0)
+					newf += t[i]*fApB + log(1+exp(-fApB));
+				else
+					newf += (t[i] - 1)*fApB +log(1+exp(fApB));
+			}
+			// Check sufficient decrease
+			if (newf<fval+0.0001*stepsize*gd)
+			{
+				A=newA;B=newB;fval=newf;
+				break;
+			}
+			else
+				stepsize = stepsize / 2.0;
+		}
+
+		if (stepsize < min_step)
+		{
+			info("Line search fails in two-class probability estimates\n");
+			break;
+		}
+	}
+
+	if (iter>=max_iter)
+		info("Reaching maximal iterations in two-class probability estimates\n");
+	free(t);
+}
+
+static double sigmoid_predict(double decision_value, double A, double B)
+{
+	double fApB = decision_value*A+B;
+	// 1-p used later; avoid catastrophic cancellation
+	if (fApB >= 0)
+		return exp(-fApB)/(1.0+exp(-fApB));
+	else
+		return 1.0/(1+exp(fApB)) ;
+}
+
+// Method 2 from the multiclass_prob paper by Wu, Lin, and Weng
+static void multiclass_probability(int k, double **r, double *p)
+{
+	int t,j;
+	int iter = 0, max_iter=max(100,k);
+	double **Q=Malloc(double *,k);
+	double *Qp=Malloc(double,k);
+	double pQp, eps=0.005/k;
+
+	for (t=0;t<k;t++)
+	{
+		p[t]=1.0/k;  // Valid if k = 1
+		Q[t]=Malloc(double,k);
+		Q[t][t]=0;
+		for (j=0;j<t;j++)
+		{
+			Q[t][t]+=r[j][t]*r[j][t];
+			Q[t][j]=Q[j][t];
+		}
+		for (j=t+1;j<k;j++)
+		{
+			Q[t][t]+=r[j][t]*r[j][t];
+			Q[t][j]=-r[j][t]*r[t][j];
+		}
+	}
+	for (iter=0;iter<max_iter;iter++)
+	{
+		// stopping condition, recalculate QP,pQP for numerical accuracy
+		pQp=0;
+		for (t=0;t<k;t++)
+		{
+			Qp[t]=0;
+			for (j=0;j<k;j++)
+				Qp[t]+=Q[t][j]*p[j];
+			pQp+=p[t]*Qp[t];
+		}
+		double max_error=0;
+		for (t=0;t<k;t++)
+		{
+			double error=fabs(Qp[t]-pQp);
+			if (error>max_error)
+				max_error=error;
+		}
+		if (max_error<eps) break;
+
+		for (t=0;t<k;t++)
+		{
+			double diff=(-Qp[t]+pQp)/Q[t][t];
+			p[t]+=diff;
+			pQp=(pQp+diff*(diff*Q[t][t]+2*Qp[t]))/(1+diff)/(1+diff);
+			for (j=0;j<k;j++)
+			{
+				Qp[j]=(Qp[j]+diff*Q[t][j])/(1+diff);
+				p[j]/=(1+diff);
+			}
+		}
+	}
+	if (iter>=max_iter)
+		info("Exceeds max_iter in multiclass_prob\n");
+	for(t=0;t<k;t++) free(Q[t]);
+	free(Q);
+	free(Qp);
+}
+
+// Cross-validation decision values for probability estimates
+static void svm_binary_svc_probability(
+	const PREFIX(problem) *prob, const svm_parameter *param,
+	double Cp, double Cn, double& probA, double& probB, int * status, BlasFunctions *blas_functions)
+{
+	int i;
+	int nr_fold = 5;
+	int *perm = Malloc(int,prob->l);
+	double *dec_values = Malloc(double,prob->l);
+
+	// random shuffle
+	for(i=0;i<prob->l;i++) perm[i]=i;
+	for(i=0;i<prob->l;i++)
+	{
+		int j = i+bounded_rand_int(prob->l-i);
+		swap(perm[i],perm[j]);
+	}
+	for(i=0;i<nr_fold;i++)
+	{
+		int begin = i*prob->l/nr_fold;
+		int end = (i+1)*prob->l/nr_fold;
+		int j,k;
+		struct PREFIX(problem) subprob;
+
+		subprob.l = prob->l-(end-begin);
+#ifdef _DENSE_REP
+		subprob.x = Malloc(struct PREFIX(node),subprob.l);
+#else
+		subprob.x = Malloc(struct PREFIX(node)*,subprob.l);
+#endif
+		subprob.y = Malloc(double,subprob.l);
+                subprob.W = Malloc(double,subprob.l);
+
+		k=0;
+		for(j=0;j<begin;j++)
+		{
+			subprob.x[k] = prob->x[perm[j]];
+			subprob.y[k] = prob->y[perm[j]];
+			subprob.W[k] = prob->W[perm[j]];
+			++k;
+		}
+		for(j=end;j<prob->l;j++)
+		{
+			subprob.x[k] = prob->x[perm[j]];
+			subprob.y[k] = prob->y[perm[j]];
+			subprob.W[k] = prob->W[perm[j]];
+			++k;
+		}
+		int p_count=0,n_count=0;
+		for(j=0;j<k;j++)
+			if(subprob.y[j]>0)
+				p_count++;
+			else
+				n_count++;
+
+		if(p_count==0 && n_count==0)
+			for(j=begin;j<end;j++)
+				dec_values[perm[j]] = 0;
+		else if(p_count > 0 && n_count == 0)
+			for(j=begin;j<end;j++)
+				dec_values[perm[j]] = 1;
+		else if(p_count == 0 && n_count > 0)
+			for(j=begin;j<end;j++)
+				dec_values[perm[j]] = -1;
+		else
+		{
+			svm_parameter subparam = *param;
+			subparam.probability=0;
+			subparam.C=1.0;
+			subparam.nr_weight=2;
+			subparam.weight_label = Malloc(int,2);
+			subparam.weight = Malloc(double,2);
+			subparam.weight_label[0]=+1;
+			subparam.weight_label[1]=-1;
+			subparam.weight[0]=Cp;
+			subparam.weight[1]=Cn;
+			struct PREFIX(model) *submodel = PREFIX(train)(&subprob,&subparam, status, blas_functions);
+			for(j=begin;j<end;j++)
+			{
+#ifdef _DENSE_REP
+                                PREFIX(predict_values)(submodel,(prob->x+perm[j]),&(dec_values[perm[j]]), blas_functions);
+#else
+				PREFIX(predict_values)(submodel,prob->x[perm[j]],&(dec_values[perm[j]]), blas_functions);
+#endif
+				// ensure +1 -1 order; reason not using CV subroutine
+				dec_values[perm[j]] *= submodel->label[0];
+			}
+			PREFIX(free_and_destroy_model)(&submodel);
+			PREFIX(destroy_param)(&subparam);
+		}
+		free(subprob.x);
+		free(subprob.y);
+                free(subprob.W);
+	}
+	sigmoid_train(prob->l,dec_values,prob->y,probA,probB);
+	free(dec_values);
+	free(perm);
+}
+
+// Return parameter of a Laplace distribution
+static double svm_svr_probability(
+	const PREFIX(problem) *prob, const svm_parameter *param, BlasFunctions *blas_functions)
+{
+	int i;
+	int nr_fold = 5;
+	double *ymv = Malloc(double,prob->l);
+	double mae = 0;
+
+	svm_parameter newparam = *param;
+	newparam.probability = 0;
+    newparam.random_seed = -1; // This is called from train, which already sets
+                               // the seed.
+	PREFIX(cross_validation)(prob,&newparam,nr_fold,ymv, blas_functions);
+	for(i=0;i<prob->l;i++)
+	{
+		ymv[i]=prob->y[i]-ymv[i];
+		mae += fabs(ymv[i]);
+	}
+	mae /= prob->l;
+	double std=sqrt(2*mae*mae);
+	int count=0;
+	mae=0;
+	for(i=0;i<prob->l;i++)
+		if (fabs(ymv[i]) > 5*std)
+			count=count+1;
+		else
+			mae+=fabs(ymv[i]);
+	mae /= (prob->l-count);
+	info("Prob. model for test data: target value = predicted value + z,\nz: Laplace distribution e^(-|z|/sigma)/(2sigma),sigma= %g\n",mae);
+	free(ymv);
+	return mae;
+}
+
+
+
+// label: label name, start: begin of each class, count: #data of classes, perm: indices to the original data
+// perm, length l, must be allocated before calling this subroutine
+static void svm_group_classes(const PREFIX(problem) *prob, int *nr_class_ret, int **label_ret, int **start_ret, int **count_ret, int *perm)
+{
+	int l = prob->l;
+	int max_nr_class = 16;
+	int nr_class = 0;
+	int *label = Malloc(int,max_nr_class);
+	int *count = Malloc(int,max_nr_class);
+	int *data_label = Malloc(int,l);
+	int i, j, this_label, this_count;
+
+	for(i=0;i<l;i++)
+	{
+		this_label = (int)prob->y[i];
+		for(j=0;j<nr_class;j++)
+		{
+			if(this_label == label[j])
+			{
+				++count[j];
+				break;
+			}
+		}
+		if(j == nr_class)
+		{
+			if(nr_class == max_nr_class)
+			{
+				max_nr_class *= 2;
+				label = (int *)realloc(label,max_nr_class*sizeof(int));
+				count = (int *)realloc(count,max_nr_class*sizeof(int));
+			}
+			label[nr_class] = this_label;
+			count[nr_class] = 1;
+			++nr_class;
+		}
+	}
+
+        /*
+         * Sort labels by straight insertion and apply the same
+         * transformation to array count.
+         */
+        for(j=1; j<nr_class; j++)
+        {
+                i = j-1;
+                this_label = label[j];
+                this_count = count[j];
+                while(i>=0 && label[i] > this_label)
+                {
+                        label[i+1] = label[i];
+                        count[i+1] = count[i];
+                        i--;
+                }
+                label[i+1] = this_label;
+                count[i+1] = this_count;
+        }
+
+        for (i=0; i<l; i++)
+        {
+                j = 0;
+                this_label = (int)prob->y[i];
+                while(this_label != label[j]){
+                        j ++;
+                }
+                data_label[i] = j;
+        }
+
+	int *start = Malloc(int,nr_class);
+	start[0] = 0;
+	for(i=1;i<nr_class;i++)
+		start[i] = start[i-1]+count[i-1];
+	for(i=0;i<l;i++)
+	{
+		perm[start[data_label[i]]] = i;
+		++start[data_label[i]];
+	}
+
+	start[0] = 0;
+	for(i=1;i<nr_class;i++)
+		start[i] = start[i-1]+count[i-1];
+
+	*nr_class_ret = nr_class;
+	*label_ret = label;
+	*start_ret = start;
+	*count_ret = count;
+	free(data_label);
+}
+
+} /* end namespace */
+
+// Remove zero weighed data as libsvm and some liblinear solvers require C > 0.
+//
+static void remove_zero_weight(PREFIX(problem) *newprob, const PREFIX(problem) *prob)
+{
+	int i;
+	int l = 0;
+	for(i=0;i<prob->l;i++)
+		if(prob->W[i] > 0) l++;
+	*newprob = *prob;
+	newprob->l = l;
+#ifdef _DENSE_REP
+	newprob->x = Malloc(PREFIX(node),l);
+#else
+      	newprob->x = Malloc(PREFIX(node) *,l);
+#endif
+	newprob->y = Malloc(double,l);
+	newprob->W = Malloc(double,l);
+
+	int j = 0;
+	for(i=0;i<prob->l;i++)
+		if(prob->W[i] > 0)
+		{
+			newprob->x[j] = prob->x[i];
+			newprob->y[j] = prob->y[i];
+			newprob->W[j] = prob->W[i];
+			j++;
+		}
+}
+
+//
+// Interface functions
+//
+PREFIX(model) *PREFIX(train)(const PREFIX(problem) *prob, const svm_parameter *param,
+        int *status, BlasFunctions *blas_functions)
+{
+	PREFIX(problem) newprob;
+	remove_zero_weight(&newprob, prob);
+	prob = &newprob;
+
+	PREFIX(model) *model = Malloc(PREFIX(model),1);
+	model->param = *param;
+	model->free_sv = 0;	// XXX
+
+    if(param->random_seed >= 0)
+    {
+        set_seed(param->random_seed);
+    }
+
+	if(param->svm_type == ONE_CLASS ||
+	   param->svm_type == EPSILON_SVR ||
+	   param->svm_type == NU_SVR)
+	{
+		// regression or one-class-svm
+		model->nr_class = 2;
+		model->label = NULL;
+		model->nSV = NULL;
+		model->probA = NULL; model->probB = NULL;
+		model->sv_coef = Malloc(double *,1);
+
+		if(param->probability &&
+		   (param->svm_type == EPSILON_SVR ||
+		    param->svm_type == NU_SVR))
+		{
+			model->probA = Malloc(double,1);
+			model->probA[0] = NAMESPACE::svm_svr_probability(prob,param,blas_functions);
+		}
+
+                NAMESPACE::decision_function f = NAMESPACE::svm_train_one(prob,param,0,0, status,blas_functions);
+		model->rho = Malloc(double,1);
+		model->rho[0] = f.rho;
+		model->n_iter = Malloc(int,1);
+		model->n_iter[0] = f.n_iter;
+
+		int nSV = 0;
+		int i;
+		for(i=0;i<prob->l;i++)
+			if(fabs(f.alpha[i]) > 0) ++nSV;
+		model->l = nSV;
+#ifdef _DENSE_REP
+		model->SV = Malloc(PREFIX(node),nSV);
+#else
+		model->SV = Malloc(PREFIX(node) *,nSV);
+#endif
+                model->sv_ind = Malloc(int, nSV);
+		model->sv_coef[0] = Malloc(double, nSV);
+		int j = 0;
+		for(i=0;i<prob->l;i++)
+			if(fabs(f.alpha[i]) > 0)
+			{
+				model->SV[j] = prob->x[i];
+                                model->sv_ind[j] = i;
+				model->sv_coef[0][j] = f.alpha[i];
+				++j;
+			}
+
+		free(f.alpha);
+	}
+	else
+	{
+		// classification
+		int l = prob->l;
+		int nr_class;
+		int *label = NULL;
+		int *start = NULL;
+		int *count = NULL;
+		int *perm = Malloc(int,l);
+
+		// group training data of the same class
+                NAMESPACE::svm_group_classes(prob,&nr_class,&label,&start,&count,perm);
+#ifdef _DENSE_REP
+		PREFIX(node) *x = Malloc(PREFIX(node),l);
+#else
+		PREFIX(node) **x = Malloc(PREFIX(node) *,l);
+#endif
+                double *W = Malloc(double, l);
+
+		int i;
+		for(i=0;i<l;i++)
+                {
+			x[i] = prob->x[perm[i]];
+			W[i] = prob->W[perm[i]];
+                }
+
+		// calculate weighted C
+
+		double *weighted_C = Malloc(double, nr_class);
+		for(i=0;i<nr_class;i++)
+			weighted_C[i] = param->C;
+		for(i=0;i<param->nr_weight;i++)
+		{
+			int j;
+			for(j=0;j<nr_class;j++)
+				if(param->weight_label[i] == label[j])
+					break;
+			if(j == nr_class)
+				fprintf(stderr,"warning: class label %d specified in weight is not found\n", param->weight_label[i]);
+			else
+				weighted_C[j] *= param->weight[i];
+		}
+
+		// train k*(k-1)/2 models
+
+		bool *nonzero = Malloc(bool,l);
+		for(i=0;i<l;i++)
+			nonzero[i] = false;
+                NAMESPACE::decision_function *f = Malloc(NAMESPACE::decision_function,nr_class*(nr_class-1)/2);
+
+		double *probA=NULL,*probB=NULL;
+		if (param->probability)
+		{
+			probA=Malloc(double,nr_class*(nr_class-1)/2);
+			probB=Malloc(double,nr_class*(nr_class-1)/2);
+		}
+
+		int p = 0;
+		for(i=0;i<nr_class;i++)
+			for(int j=i+1;j<nr_class;j++)
+			{
+				PREFIX(problem) sub_prob;
+				int si = start[i], sj = start[j];
+				int ci = count[i], cj = count[j];
+				sub_prob.l = ci+cj;
+#ifdef _DENSE_REP
+				sub_prob.x = Malloc(PREFIX(node),sub_prob.l);
+#else
+				sub_prob.x = Malloc(PREFIX(node) *,sub_prob.l);
+#endif
+				sub_prob.W = Malloc(double,sub_prob.l);
+				sub_prob.y = Malloc(double,sub_prob.l);
+				int k;
+				for(k=0;k<ci;k++)
+				{
+					sub_prob.x[k] = x[si+k];
+					sub_prob.y[k] = +1;
+					sub_prob.W[k] = W[si+k];
+				}
+				for(k=0;k<cj;k++)
+				{
+					sub_prob.x[ci+k] = x[sj+k];
+					sub_prob.y[ci+k] = -1;
+					sub_prob.W[ci+k] = W[sj+k];
+				}
+
+				if(param->probability)
+                                    NAMESPACE::svm_binary_svc_probability(&sub_prob,param,weighted_C[i],weighted_C[j],probA[p],probB[p], status, blas_functions);
+
+				f[p] = NAMESPACE::svm_train_one(&sub_prob,param,weighted_C[i],weighted_C[j], status, blas_functions);
+				for(k=0;k<ci;k++)
+					if(!nonzero[si+k] && fabs(f[p].alpha[k]) > 0)
+						nonzero[si+k] = true;
+				for(k=0;k<cj;k++)
+					if(!nonzero[sj+k] && fabs(f[p].alpha[ci+k]) > 0)
+						nonzero[sj+k] = true;
+				free(sub_prob.x);
+				free(sub_prob.y);
+                                free(sub_prob.W);
+				++p;
+			}
+
+		// build output
+
+		model->nr_class = nr_class;
+
+		model->label = Malloc(int,nr_class);
+		for(i=0;i<nr_class;i++)
+			model->label[i] = label[i];
+
+		model->rho = Malloc(double,nr_class*(nr_class-1)/2);
+		model->n_iter = Malloc(int,nr_class*(nr_class-1)/2);
+		for(i=0;i<nr_class*(nr_class-1)/2;i++)
+		{
+			model->rho[i] = f[i].rho;
+			model->n_iter[i] = f[i].n_iter;
+		}
+
+		if(param->probability)
+		{
+			model->probA = Malloc(double,nr_class*(nr_class-1)/2);
+			model->probB = Malloc(double,nr_class*(nr_class-1)/2);
+			for(i=0;i<nr_class*(nr_class-1)/2;i++)
+			{
+				model->probA[i] = probA[i];
+				model->probB[i] = probB[i];
+			}
+		}
+		else
+		{
+			model->probA=NULL;
+			model->probB=NULL;
+		}
+
+		int total_sv = 0;
+		int *nz_count = Malloc(int,nr_class);
+		model->nSV = Malloc(int,nr_class);
+		for(i=0;i<nr_class;i++)
+		{
+			int nSV = 0;
+			for(int j=0;j<count[i];j++)
+				if(nonzero[start[i]+j])
+				{
+					++nSV;
+					++total_sv;
+				}
+			model->nSV[i] = nSV;
+			nz_count[i] = nSV;
+		}
+
+                info("Total nSV = %d\n",total_sv);
+
+		model->l = total_sv;
+                model->sv_ind = Malloc(int, total_sv);
+#ifdef _DENSE_REP
+		model->SV = Malloc(PREFIX(node),total_sv);
+#else
+		model->SV = Malloc(PREFIX(node) *,total_sv);
+#endif
+		p = 0;
+		for(i=0;i<l;i++) {
+			if(nonzero[i]) {
+                                model->SV[p] = x[i];
+                                model->sv_ind[p] = perm[i];
+                                ++p;
+                        }
+                }
+
+		int *nz_start = Malloc(int,nr_class);
+		nz_start[0] = 0;
+		for(i=1;i<nr_class;i++)
+			nz_start[i] = nz_start[i-1]+nz_count[i-1];
+
+		model->sv_coef = Malloc(double *,nr_class-1);
+		for(i=0;i<nr_class-1;i++)
+			model->sv_coef[i] = Malloc(double,total_sv);
+
+		p = 0;
+		for(i=0;i<nr_class;i++)
+			for(int j=i+1;j<nr_class;j++)
+			{
+				// classifier (i,j): coefficients with
+				// i are in sv_coef[j-1][nz_start[i]...],
+				// j are in sv_coef[i][nz_start[j]...]
+
+				int si = start[i];
+				int sj = start[j];
+				int ci = count[i];
+				int cj = count[j];
+
+				int q = nz_start[i];
+				int k;
+				for(k=0;k<ci;k++)
+					if(nonzero[si+k])
+						model->sv_coef[j-1][q++] = f[p].alpha[k];
+				q = nz_start[j];
+				for(k=0;k<cj;k++)
+					if(nonzero[sj+k])
+						model->sv_coef[i][q++] = f[p].alpha[ci+k];
+				++p;
+			}
+
+		free(label);
+		free(probA);
+		free(probB);
+		free(count);
+		free(perm);
+		free(start);
+                free(W);
+		free(x);
+		free(weighted_C);
+		free(nonzero);
+		for(i=0;i<nr_class*(nr_class-1)/2;i++)
+			free(f[i].alpha);
+		free(f);
+		free(nz_count);
+		free(nz_start);
+	}
+	free(newprob.x);
+	free(newprob.y);
+	free(newprob.W);
+	return model;
+}
+
+// Stratified cross validation
+void PREFIX(cross_validation)(const PREFIX(problem) *prob, const svm_parameter *param, int nr_fold, double *target, BlasFunctions *blas_functions)
+{
+	int i;
+	int *fold_start = Malloc(int,nr_fold+1);
+	int l = prob->l;
+	int *perm = Malloc(int,l);
+	int nr_class;
+    if(param->random_seed >= 0)
+    {
+        set_seed(param->random_seed);
+    }
+
+	// stratified cv may not give leave-one-out rate
+	// Each class to l folds -> some folds may have zero elements
+	if((param->svm_type == C_SVC ||
+	    param->svm_type == NU_SVC) && nr_fold < l)
+	{
+		int *start = NULL;
+		int *label = NULL;
+		int *count = NULL;
+                NAMESPACE::svm_group_classes(prob,&nr_class,&label,&start,&count,perm);
+
+		// random shuffle and then data grouped by fold using the array perm
+		int *fold_count = Malloc(int,nr_fold);
+		int c;
+		int *index = Malloc(int,l);
+		for(i=0;i<l;i++)
+			index[i]=perm[i];
+		for (c=0; c<nr_class; c++)
+			for(i=0;i<count[c];i++)
+			{
+				int j = i+bounded_rand_int(count[c]-i);
+				swap(index[start[c]+j],index[start[c]+i]);
+			}
+		for(i=0;i<nr_fold;i++)
+		{
+			fold_count[i] = 0;
+			for (c=0; c<nr_class;c++)
+				fold_count[i]+=(i+1)*count[c]/nr_fold-i*count[c]/nr_fold;
+		}
+		fold_start[0]=0;
+		for (i=1;i<=nr_fold;i++)
+			fold_start[i] = fold_start[i-1]+fold_count[i-1];
+		for (c=0; c<nr_class;c++)
+			for(i=0;i<nr_fold;i++)
+			{
+				int begin = start[c]+i*count[c]/nr_fold;
+				int end = start[c]+(i+1)*count[c]/nr_fold;
+				for(int j=begin;j<end;j++)
+				{
+					perm[fold_start[i]] = index[j];
+					fold_start[i]++;
+				}
+			}
+		fold_start[0]=0;
+		for (i=1;i<=nr_fold;i++)
+			fold_start[i] = fold_start[i-1]+fold_count[i-1];
+		free(start);
+		free(label);
+		free(count);
+		free(index);
+		free(fold_count);
+	}
+	else
+	{
+		for(i=0;i<l;i++) perm[i]=i;
+		for(i=0;i<l;i++)
+		{
+			int j = i+bounded_rand_int(l-i);
+			swap(perm[i],perm[j]);
+		}
+		for(i=0;i<=nr_fold;i++)
+			fold_start[i]=i*l/nr_fold;
+	}
+
+	for(i=0;i<nr_fold;i++)
+	{
+		int begin = fold_start[i];
+		int end = fold_start[i+1];
+		int j,k;
+		struct PREFIX(problem) subprob;
+
+		subprob.l = l-(end-begin);
+#ifdef _DENSE_REP
+		subprob.x = Malloc(struct PREFIX(node),subprob.l);
+#else
+		subprob.x = Malloc(struct PREFIX(node)*,subprob.l);
+#endif
+		subprob.y = Malloc(double,subprob.l);
+		subprob.W = Malloc(double,subprob.l);
+
+		k=0;
+		for(j=0;j<begin;j++)
+		{
+			subprob.x[k] = prob->x[perm[j]];
+			subprob.y[k] = prob->y[perm[j]];
+			subprob.W[k] = prob->W[perm[j]];
+			++k;
+		}
+		for(j=end;j<l;j++)
+		{
+			subprob.x[k] = prob->x[perm[j]];
+			subprob.y[k] = prob->y[perm[j]];
+			subprob.W[k] = prob->W[perm[j]];
+			++k;
+		}
+                int dummy_status = 0; // IGNORES TIMEOUT ERRORS
+		struct PREFIX(model) *submodel = PREFIX(train)(&subprob,param, &dummy_status, blas_functions);
+		if(param->probability &&
+		   (param->svm_type == C_SVC || param->svm_type == NU_SVC))
+		{
+			double *prob_estimates=Malloc(double, PREFIX(get_nr_class)(submodel));
+			for(j=begin;j<end;j++)
+#ifdef _DENSE_REP
+				target[perm[j]] = PREFIX(predict_probability)(submodel,(prob->x + perm[j]),prob_estimates, blas_functions);
+#else
+                                target[perm[j]] = PREFIX(predict_probability)(submodel,prob->x[perm[j]],prob_estimates, blas_functions);
+#endif
+			free(prob_estimates);
+		}
+		else
+			for(j=begin;j<end;j++)
+#ifdef _DENSE_REP
+				target[perm[j]] = PREFIX(predict)(submodel,prob->x+perm[j],blas_functions);
+#else
+                target[perm[j]] = PREFIX(predict)(submodel,prob->x[perm[j]],blas_functions);
+#endif
+		PREFIX(free_and_destroy_model)(&submodel);
+		free(subprob.x);
+		free(subprob.y);
+                free(subprob.W);
+	}
+	free(fold_start);
+	free(perm);
+}
+
+
+int PREFIX(get_svm_type)(const PREFIX(model) *model)
+{
+	return model->param.svm_type;
+}
+
+int PREFIX(get_nr_class)(const PREFIX(model) *model)
+{
+	return model->nr_class;
+}
+
+void PREFIX(get_labels)(const PREFIX(model) *model, int* label)
+{
+	if (model->label != NULL)
+		for(int i=0;i<model->nr_class;i++)
+			label[i] = model->label[i];
+}
+
+double PREFIX(get_svr_probability)(const PREFIX(model) *model)
+{
+	if ((model->param.svm_type == EPSILON_SVR || model->param.svm_type == NU_SVR) &&
+	    model->probA!=NULL)
+		return model->probA[0];
+	else
+	{
+		fprintf(stderr,"Model doesn't contain information for SVR probability inference\n");
+		return 0;
+	}
+}
+
+double PREFIX(predict_values)(const PREFIX(model) *model, const PREFIX(node) *x, double* dec_values, BlasFunctions *blas_functions)
+{
+	int i;
+	if(model->param.svm_type == ONE_CLASS ||
+	   model->param.svm_type == EPSILON_SVR ||
+	   model->param.svm_type == NU_SVR)
+	{
+		double *sv_coef = model->sv_coef[0];
+		double sum = 0;
+
+		for(i=0;i<model->l;i++)
+#ifdef _DENSE_REP
+                    sum += sv_coef[i] * NAMESPACE::Kernel::k_function(x,model->SV+i,model->param,blas_functions);
+#else
+                sum += sv_coef[i] * NAMESPACE::Kernel::k_function(x,model->SV[i],model->param,blas_functions);
+#endif
+		sum -= model->rho[0];
+		*dec_values = sum;
+
+		if(model->param.svm_type == ONE_CLASS)
+			return (sum>0)?1:-1;
+		else
+			return sum;
+	}
+	else
+	{
+		int nr_class = model->nr_class;
+		int l = model->l;
+
+		double *kvalue = Malloc(double,l);
+		for(i=0;i<l;i++)
+#ifdef _DENSE_REP
+                    kvalue[i] = NAMESPACE::Kernel::k_function(x,model->SV+i,model->param,blas_functions);
+#else
+                kvalue[i] = NAMESPACE::Kernel::k_function(x,model->SV[i],model->param,blas_functions);
+#endif
+
+		int *start = Malloc(int,nr_class);
+		start[0] = 0;
+		for(i=1;i<nr_class;i++)
+			start[i] = start[i-1]+model->nSV[i-1];
+
+		int *vote = Malloc(int,nr_class);
+		for(i=0;i<nr_class;i++)
+			vote[i] = 0;
+
+		int p=0;
+		for(i=0;i<nr_class;i++)
+			for(int j=i+1;j<nr_class;j++)
+			{
+				double sum = 0;
+				int si = start[i];
+				int sj = start[j];
+				int ci = model->nSV[i];
+				int cj = model->nSV[j];
+
+				int k;
+				double *coef1 = model->sv_coef[j-1];
+				double *coef2 = model->sv_coef[i];
+				for(k=0;k<ci;k++)
+					sum += coef1[si+k] * kvalue[si+k];
+				for(k=0;k<cj;k++)
+					sum += coef2[sj+k] * kvalue[sj+k];
+				sum -= model->rho[p];
+				dec_values[p] = sum;
+
+				if(dec_values[p] > 0)
+					++vote[i];
+				else
+					++vote[j];
+				p++;
+			}
+
+		int vote_max_idx = 0;
+		for(i=1;i<nr_class;i++)
+			if(vote[i] > vote[vote_max_idx])
+				vote_max_idx = i;
+
+		free(kvalue);
+		free(start);
+		free(vote);
+		return model->label[vote_max_idx];
+	}
+}
+
+double PREFIX(predict)(const PREFIX(model) *model, const PREFIX(node) *x, BlasFunctions *blas_functions)
+{
+	int nr_class = model->nr_class;
+	double *dec_values;
+	if(model->param.svm_type == ONE_CLASS ||
+	   model->param.svm_type == EPSILON_SVR ||
+	   model->param.svm_type == NU_SVR)
+		dec_values = Malloc(double, 1);
+	else
+		dec_values = Malloc(double, nr_class*(nr_class-1)/2);
+	double pred_result = PREFIX(predict_values)(model, x, dec_values, blas_functions);
+	free(dec_values);
+	return pred_result;
+}
+
+double PREFIX(predict_probability)(
+	const PREFIX(model) *model, const PREFIX(node) *x, double *prob_estimates, BlasFunctions *blas_functions)
+{
+	if ((model->param.svm_type == C_SVC || model->param.svm_type == NU_SVC) &&
+	    model->probA!=NULL && model->probB!=NULL)
+	{
+		int i;
+		int nr_class = model->nr_class;
+		double *dec_values = Malloc(double, nr_class*(nr_class-1)/2);
+		PREFIX(predict_values)(model, x, dec_values, blas_functions);
+
+		double min_prob=1e-7;
+		double **pairwise_prob=Malloc(double *,nr_class);
+		for(i=0;i<nr_class;i++)
+			pairwise_prob[i]=Malloc(double,nr_class);
+		int k=0;
+		for(i=0;i<nr_class;i++)
+			for(int j=i+1;j<nr_class;j++)
+			{
+                            pairwise_prob[i][j]=min(max(NAMESPACE::sigmoid_predict(dec_values[k],model->probA[k],model->probB[k]),min_prob),1-min_prob);
+				pairwise_prob[j][i]=1-pairwise_prob[i][j];
+				k++;
+			}
+                NAMESPACE::multiclass_probability(nr_class,pairwise_prob,prob_estimates);
+
+		int prob_max_idx = 0;
+		for(i=1;i<nr_class;i++)
+			if(prob_estimates[i] > prob_estimates[prob_max_idx])
+				prob_max_idx = i;
+		for(i=0;i<nr_class;i++)
+			free(pairwise_prob[i]);
+		free(dec_values);
+		free(pairwise_prob);
+		return model->label[prob_max_idx];
+	}
+	else
+		return PREFIX(predict)(model, x, blas_functions);
+}
+
+
+void PREFIX(free_model_content)(PREFIX(model)* model_ptr)
+{
+	if(model_ptr->free_sv && model_ptr->l > 0 && model_ptr->SV != NULL)
+#ifdef _DENSE_REP
+		for (int i = 0; i < model_ptr->l; i++)
+			free(model_ptr->SV[i].values);
+#else
+		free((void *)(model_ptr->SV[0]));
+#endif
+
+	if(model_ptr->sv_coef)
+	{
+		for(int i=0;i<model_ptr->nr_class-1;i++)
+			free(model_ptr->sv_coef[i]);
+	}
+
+	free(model_ptr->SV);
+	model_ptr->SV = NULL;
+
+	free(model_ptr->sv_coef);
+	model_ptr->sv_coef = NULL;
+
+	free(model_ptr->sv_ind);
+	model_ptr->sv_ind = NULL;
+
+	free(model_ptr->rho);
+	model_ptr->rho = NULL;
+
+	free(model_ptr->label);
+	model_ptr->label= NULL;
+
+	free(model_ptr->probA);
+	model_ptr->probA = NULL;
+
+	free(model_ptr->probB);
+	model_ptr->probB= NULL;
+
+	free(model_ptr->nSV);
+	model_ptr->nSV = NULL;
+
+	free(model_ptr->n_iter);
+	model_ptr->n_iter = NULL;
+}
+
+void PREFIX(free_and_destroy_model)(PREFIX(model)** model_ptr_ptr)
+{
+	if(model_ptr_ptr != NULL && *model_ptr_ptr != NULL)
+	{
+		PREFIX(free_model_content)(*model_ptr_ptr);
+		free(*model_ptr_ptr);
+		*model_ptr_ptr = NULL;
+	}
+}
+
+void PREFIX(destroy_param)(svm_parameter* param)
+{
+	free(param->weight_label);
+	free(param->weight);
+}
+
+const char *PREFIX(check_parameter)(const PREFIX(problem) *prob, const svm_parameter *param)
+{
+	// svm_type
+
+	int svm_type = param->svm_type;
+	if(svm_type != C_SVC &&
+	   svm_type != NU_SVC &&
+	   svm_type != ONE_CLASS &&
+	   svm_type != EPSILON_SVR &&
+	   svm_type != NU_SVR)
+		return "unknown svm type";
+
+	// kernel_type, degree
+
+	int kernel_type = param->kernel_type;
+	if(kernel_type != LINEAR &&
+	   kernel_type != POLY &&
+	   kernel_type != RBF &&
+	   kernel_type != SIGMOID &&
+	   kernel_type != PRECOMPUTED)
+		return "unknown kernel type";
+
+	if(param->gamma < 0)
+		return "gamma < 0";
+
+	if(param->degree < 0)
+		return "degree of polynomial kernel < 0";
+
+	// cache_size,eps,C,nu,p,shrinking
+
+	if(param->cache_size <= 0)
+		return "cache_size <= 0";
+
+	if(param->eps <= 0)
+		return "eps <= 0";
+
+	if(svm_type == C_SVC ||
+	   svm_type == EPSILON_SVR ||
+	   svm_type == NU_SVR)
+		if(param->C <= 0)
+			return "C <= 0";
+
+	if(svm_type == NU_SVC ||
+	   svm_type == ONE_CLASS ||
+	   svm_type == NU_SVR)
+		if(param->nu <= 0 || param->nu > 1)
+			return "nu <= 0 or nu > 1";
+
+	if(svm_type == EPSILON_SVR)
+		if(param->p < 0)
+			return "p < 0";
+
+	if(param->shrinking != 0 &&
+	   param->shrinking != 1)
+		return "shrinking != 0 and shrinking != 1";
+
+	if(param->probability != 0 &&
+	   param->probability != 1)
+		return "probability != 0 and probability != 1";
+
+	if(param->probability == 1 &&
+	   svm_type == ONE_CLASS)
+		return "one-class SVM probability output not supported yet";
+
+
+	// check whether nu-svc is feasible
+
+	if(svm_type == NU_SVC)
+	{
+		int l = prob->l;
+		int max_nr_class = 16;
+		int nr_class = 0;
+		int *label = Malloc(int,max_nr_class);
+		double *count = Malloc(double,max_nr_class);
+
+		int i;
+		for(i=0;i<l;i++)
+		{
+			int this_label = (int)prob->y[i];
+			int j;
+			for(j=0;j<nr_class;j++)
+				if(this_label == label[j])
+				{
+					count[j] += prob->W[i];
+					break;
+				}
+			if(j == nr_class)
+			{
+				if(nr_class == max_nr_class)
+				{
+					max_nr_class *= 2;
+					label = (int *)realloc(label,max_nr_class*sizeof(int));
+					count = (double *)realloc(count,max_nr_class*sizeof(double));
+
+				}
+				label[nr_class] = this_label;
+				count[nr_class] = prob->W[i];
+				++nr_class;
+			}
+		}
+
+		for(i=0;i<nr_class;i++)
+		{
+			double n1 = count[i];
+			for(int j=i+1;j<nr_class;j++)
+			{
+				double n2 = count[j];
+				if(param->nu*(n1+n2)/2 > min(n1,n2))
+				{
+					free(label);
+					free(count);
+					return "specified nu is infeasible";
+				}
+			}
+		}
+		free(label);
+		free(count);
+	}
+
+	if(svm_type == C_SVC ||
+	   svm_type == EPSILON_SVR ||
+	   svm_type == NU_SVR ||
+	   svm_type == ONE_CLASS)
+	{
+		PREFIX(problem) newprob;
+		// filter samples with negative and null weights
+		remove_zero_weight(&newprob, prob);
+
+		// all samples were removed
+		if(newprob.l == 0) {
+			free(newprob.x);
+			free(newprob.y);
+			free(newprob.W);
+			return "Invalid input - all samples have zero or negative weights.";
+		}
+		else if(prob->l != newprob.l &&
+		        svm_type == C_SVC)
+		{
+			bool only_one_label = true;
+			int first_label = newprob.y[0];
+			for(int i=1;i<newprob.l;i++)
+			{
+				if(newprob.y[i] != first_label)
+				{
+					only_one_label = false;
+					break;
+				}
+			}
+			if(only_one_label) {
+				free(newprob.x);
+				free(newprob.y);
+				free(newprob.W);
+				return "Invalid input - all samples with positive weights belong to the same class.";
+			}
+		}
+
+		free(newprob.x);
+		free(newprob.y);
+		free(newprob.W);
+	}
+	return NULL;
+}
+
+void PREFIX(set_print_string_function)(void (*print_func)(const char *))
+{
+	if(print_func == NULL)
+		svm_print_string = &print_string_stdout;
+	else
+		svm_print_string = print_func;
+}
+```
+
+## scikit-learn/sklearn/svm/src/libsvm/svm.h.notice.txt
+
+```text
+#ifndef _LIBSVM_H
+#define _LIBSVM_H
+
+#define LIBSVM_VERSION 310
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "_svm_cython_blas_helpers.h"
+
+struct svm_node
+{
+	int dim;
+	int ind; /* index. A bit redundant, but needed if using a
+                    precomputed kernel */
+	double *values;
+};
+
+struct svm_problem
+{
+	int l;
+	double *y;
+	struct svm_node *x;
+	double *W; /* instance weights */
+};
+
+
+struct svm_csr_node
+{
+	int index;
+	double value;
+};
+
+struct svm_csr_problem
+{
+	int l;
+	double *y;
+	struct svm_csr_node **x;
+        double *W; /* instance weights */
+};
+
+
+enum { C_SVC, NU_SVC, ONE_CLASS, EPSILON_SVR, NU_SVR };	/* svm_type */
+enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED }; /* kernel_type */
+
+struct svm_parameter
+{
+	int svm_type;
+	int kernel_type;
+	int degree;	/* for poly */
+	double gamma;	/* for poly/rbf/sigmoid */
+	double coef0;	/* for poly/sigmoid */
+
+	/* these are for training only */
+	double cache_size; /* in MB */
+	double eps;	/* stopping criteria */
+	double C;	/* for C_SVC, EPSILON_SVR and NU_SVR */
+	int nr_weight;		/* for C_SVC */
+	int *weight_label;	/* for C_SVC */
+	double* weight;		/* for C_SVC */
+	double nu;	/* for NU_SVC, ONE_CLASS, and NU_SVR */
+	double p;	/* for EPSILON_SVR */
+	int shrinking;	/* use the shrinking heuristics */
+	int probability; /* do probability estimates */
+	int max_iter; /* ceiling on Solver runtime */
+    int random_seed; /* seed for random number generator */
+};
+
+//
+// svm_model
+//
+struct svm_model
+{
+	struct svm_parameter param;	/* parameter */
+	int nr_class;		/* number of classes, = 2 in regression/one class svm */
+	int l;			/* total #SV */
+	struct svm_node *SV;		/* SVs (SV[l]) */
+	double **sv_coef;	/* coefficients for SVs in decision functions (sv_coef[k-1][l]) */
+	int *n_iter;		/* number of iterations run by the optimization routine to fit the model */
+
+	int *sv_ind;            /* index of support vectors */
+
+	double *rho;		/* constants in decision functions (rho[k*(k-1)/2]) */
+	double *probA;		/* pairwise probability information */
+	double *probB;
+
+	/* for classification only */
+
+	int *label;		/* label of each class (label[k]) */
+	int *nSV;		/* number of SVs for each class (nSV[k]) */
+				/* nSV[0] + nSV[1] + ... + nSV[k-1] = l */
+	/* XXX */
+	int free_sv;		/* 1 if svm_model is created by svm_load_model*/
+				/* 0 if svm_model is created by svm_train */
+};
+
+
+struct svm_csr_model
+{
+	struct svm_parameter param;	/* parameter */
+	int nr_class;		/* number of classes, = 2 in regression/one class svm */
+	int l;			/* total #SV */
+	struct svm_csr_node **SV;		/* SVs (SV[l]) */
+	double **sv_coef;	/* coefficients for SVs in decision functions (sv_coef[k-1][l]) */
+	int *n_iter;		/* number of iterations run by the optimization routine to fit the model */
+
+        int *sv_ind;            /* index of support vectors */
+
+	double *rho;		/* constants in decision functions (rho[k*(k-1)/2]) */
+	double *probA;		/* pairwise probability information */
+	double *probB;
+
+	/* for classification only */
+
+	int *label;		/* label of each class (label[k]) */
+	int *nSV;		/* number of SVs for each class (nSV[k]) */
+				/* nSV[0] + nSV[1] + ... + nSV[k-1] = l */
+	/* XXX */
+	int free_sv;		/* 1 if svm_model is created by svm_load_model*/
+				/* 0 if svm_model is created by svm_train */
+};
+
+/* svm_ functions are defined by libsvm_template.cpp from generic versions in svm.cpp */
+struct svm_model *svm_train(const struct svm_problem *prob, const struct svm_parameter *param, int *status, BlasFunctions *blas_functions);
+void svm_cross_validation(const struct svm_problem *prob, const struct svm_parameter *param, int nr_fold, double *target, BlasFunctions *blas_functions);
+
+int svm_save_model(const char *model_file_name, const struct svm_model *model);
+struct svm_model *svm_load_model(const char *model_file_name);
+
+int svm_get_svm_type(const struct svm_model *model);
+int svm_get_nr_class(const struct svm_model *model);
+void svm_get_labels(const struct svm_model *model, int *label);
+double svm_get_svr_probability(const struct svm_model *model);
+
+double svm_predict_values(const struct svm_model *model, const struct svm_node *x, double* dec_values, BlasFunctions *blas_functions);
+double svm_predict(const struct svm_model *model, const struct svm_node *x, BlasFunctions *blas_functions);
+double svm_predict_probability(const struct svm_model *model, const struct svm_node *x, double* prob_estimates, BlasFunctions *blas_functions);
+
+void svm_free_model_content(struct svm_model *model_ptr);
+void svm_free_and_destroy_model(struct svm_model **model_ptr_ptr);
+void svm_destroy_param(struct svm_parameter *param);
+
+const char *svm_check_parameter(const struct svm_problem *prob, const struct svm_parameter *param);
+
+void svm_set_print_string_function(void (*print_func)(const char *));
+
+
+/* sparse version */
+
+/* svm_csr_ functions are defined by libsvm_template.cpp from generic versions in svm.cpp */
+struct svm_csr_model *svm_csr_train(const struct svm_csr_problem *prob, const struct svm_parameter *param, int *status, BlasFunctions *blas_functions);
+void svm_csr_cross_validation(const struct svm_csr_problem *prob, const struct svm_parameter *param, int nr_fold, double *target, BlasFunctions *blas_functions);
+
+int svm_csr_get_svm_type(const struct svm_csr_model *model);
+int svm_csr_get_nr_class(const struct svm_csr_model *model);
+void svm_csr_get_labels(const struct svm_csr_model *model, int *label);
+double svm_csr_get_svr_probability(const struct svm_csr_model *model);
+
+double svm_csr_predict_values(const struct svm_csr_model *model, const struct svm_csr_node *x, double* dec_values, BlasFunctions *blas_functions);
+double svm_csr_predict(const struct svm_csr_model *model, const struct svm_csr_node *x, BlasFunctions *blas_functions);
+double svm_csr_predict_probability(const struct svm_csr_model *model, const struct svm_csr_node *x, double* prob_estimates, BlasFunctions *blas_functions);
+
+void svm_csr_free_model_content(struct svm_csr_model *model_ptr);
+void svm_csr_free_and_destroy_model(struct svm_csr_model **model_ptr_ptr);
+void svm_csr_destroy_param(struct svm_parameter *param);
+
+const char *svm_csr_check_parameter(const struct svm_csr_problem *prob, const struct svm_parameter *param);
+
+/* end sparse version */
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _LIBSVM_H */
+```
+
+## scikit-learn/sklearn/svm/src/newrand/newrand.h.notice.txt
+
+```text
+/*
+   Creation, 2020:
+   - New random number generator using a mersenne twister + tweaked lemire
+     postprocessor. This fixed a convergence issue on windows targets for
+     libsvm and liblinear.
+     Sylvain Marie, Schneider Electric
+     See <https://github.com/scikit-learn/scikit-learn/pull/13511#issuecomment-481729756>
+ */
+#ifndef _NEWRAND_H
+#define _NEWRAND_H
+
+#ifdef __cplusplus
+#include <random>  // needed for cython to generate a .cpp file from newrand.h
+extern "C" {
+#endif
+
+// Scikit-Learn-specific random number generator replacing `rand()` originally
+// used in LibSVM / LibLinear, to ensure the same behaviour on windows-linux,
+// with increased speed
+// - (1) Init a `mt_rand` object
+std::mt19937 mt_rand(std::mt19937::default_seed);
+
+// - (2) public `set_seed()` function that should be used instead of `srand()` to set a new seed.
+void set_seed(unsigned custom_seed) {
+    mt_rand.seed(custom_seed);
+}
+
+// - (3) New internal `bounded_rand_int` function, used instead of rand() everywhere.
+inline uint32_t bounded_rand_int(uint32_t range) {
+    // "LibSVM / LibLinear Original way" - make a 31bit positive
+    // random number and use modulo to make it fit in the range
+    // return abs( (int)mt_rand()) % range;
+
+    // "Better way": tweaked Lemire post-processor
+    // from http://www.pcg-random.org/posts/bounded-rands.html
+    uint32_t x = mt_rand();
+    uint64_t m = uint64_t(x) * uint64_t(range);
+    uint32_t l = uint32_t(m);
+    if (l < range) {
+        uint32_t t = -range;
+        if (t >= range) {
+            t -= range;
+            if (t >= range)
+                t %= range;
+        }
+        while (l < t) {
+            x = mt_rand();
+            m = uint64_t(x) * uint64_t(range);
+            l = uint32_t(m);
+        }
+    }
+    return m >> 32;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _NEWRAND_H */
+```
+
+## scikit-learn/sklearn/utils/murmurhash.pyx.notice.txt
+
+```text
+"""Cython wrapper for MurmurHash3 non-cryptographic hash function.
+
+MurmurHash is an extensively tested and very fast hash function that has
+good distribution properties suitable for machine learning use cases
+such as feature hashing and random projections.
+
+The original C++ code by Austin Appleby is released the public domain
+and can be found here:
+
+  https://code.google.com/p/smhasher/
+
+"""
+# Authors: The scikit-learn developers
+# SPDX-License-Identifier: BSD-3-Clause
+
+from ..utils._typedefs cimport int32_t, uint32_t
+
+import numpy as np
+
+cdef extern from "src/MurmurHash3.h":
+    void MurmurHash3_x86_32(void *key, int len, uint32_t seed, void *out)
+    void MurmurHash3_x86_128(void *key, int len, uint32_t seed, void *out)
+    void MurmurHash3_x64_128 (void *key, int len, uint32_t seed, void *out)
+
+
+cpdef uint32_t murmurhash3_int_u32(int key, unsigned int seed):
+    """Compute the 32bit murmurhash3 of a int key at seed."""
+    cdef uint32_t out
+    MurmurHash3_x86_32(&key, sizeof(int), seed, &out)
+    return out
+
+
+cpdef int32_t murmurhash3_int_s32(int key, unsigned int seed):
+    """Compute the 32bit murmurhash3 of a int key at seed."""
+    cdef int32_t out
+    MurmurHash3_x86_32(&key, sizeof(int), seed, &out)
+    return out
+
+
+cpdef uint32_t murmurhash3_bytes_u32(bytes key, unsigned int seed):
+    """Compute the 32bit murmurhash3 of a bytes key at seed."""
+    cdef uint32_t out
+    MurmurHash3_x86_32(<char*> key, len(key), seed, &out)
+    return out
+
+
+cpdef int32_t murmurhash3_bytes_s32(bytes key, unsigned int seed):
+    """Compute the 32bit murmurhash3 of a bytes key at seed."""
+    cdef int32_t out
+    MurmurHash3_x86_32(<char*> key, len(key), seed, &out)
+    return out
+
+
+def _murmurhash3_bytes_array_u32(
+    const int32_t[:] key,
+    unsigned int seed,
+):
+    """Compute 32bit murmurhash3 hashes of a key int array at seed."""
+    # TODO make it possible to pass preallocated output array
+    cdef:
+        uint32_t[:] out = np.zeros(key.size, np.uint32)
+        Py_ssize_t i
+    for i in range(key.shape[0]):
+        out[i] = murmurhash3_int_u32(key[i], seed)
+    return np.asarray(out)
+
+
+def _murmurhash3_bytes_array_s32(
+    const int32_t[:] key,
+    unsigned int seed,
+):
+    """Compute 32bit murmurhash3 hashes of a key int array at seed."""
+    # TODO make it possible to pass preallocated output array
+    cdef:
+        int32_t[:] out = np.zeros(key.size, np.int32)
+        Py_ssize_t i
+    for i in range(key.shape[0]):
+        out[i] = murmurhash3_int_s32(key[i], seed)
+    return np.asarray(out)
+
+
+def murmurhash3_32(key, seed=0, positive=False):
+    """Compute the 32bit murmurhash3 of key at seed.
+
+    The underlying implementation is MurmurHash3_x86_32 generating low
+    latency 32bits hash suitable for implementing lookup tables, Bloom
+    filters, count min sketch or feature hashing.
+
+    Parameters
+    ----------
+    key : np.int32, bytes, unicode or ndarray of dtype=np.int32
+        The physical object to hash.
+
+    seed : int, default=0
+        Integer seed for the hashing algorithm.
+
+    positive : bool, default=False
+        True: the results is casted to an unsigned int
+          from 0 to 2 ** 32 - 1
+        False: the results is casted to a signed int
+          from -(2 ** 31) to 2 ** 31 - 1
+
+    Examples
+    --------
+    >>> from sklearn.utils import murmurhash3_32
+    >>> murmurhash3_32(b"Hello World!", seed=42)
+    3565178
+    """
+    if isinstance(key, bytes):
+        if positive:
+            return murmurhash3_bytes_u32(key, seed)
+        else:
+            return murmurhash3_bytes_s32(key, seed)
+    elif isinstance(key, unicode):
+        if positive:
+            return murmurhash3_bytes_u32(key.encode('utf-8'), seed)
+        else:
+            return murmurhash3_bytes_s32(key.encode('utf-8'), seed)
+    elif isinstance(key, int) or isinstance(key, np.int32):
+        if positive:
+            return murmurhash3_int_u32(<int32_t>key, seed)
+        else:
+            return murmurhash3_int_s32(<int32_t>key, seed)
+    elif isinstance(key, np.ndarray):
+        if key.dtype != np.int32:
+            raise TypeError(
+                "key.dtype should be int32, got %s" % key.dtype)
+        if positive:
+            return _murmurhash3_bytes_array_u32(key.ravel(), seed).reshape(key.shape)
+        else:
+            return _murmurhash3_bytes_array_s32(key.ravel(), seed).reshape(key.shape)
+    else:
+        raise TypeError(
+            "key %r with type %s is not supported. "
+            "Explicit conversion to bytes is required" % (key, type(key)))
+```
+
+## scikit-learn/sklearn/utils/src/MurmurHash3.cpp.notice.txt
+
+```text
+//-----------------------------------------------------------------------------
+// MurmurHash3 was written by Austin Appleby, and is placed in the public
+// domain. The author hereby disclaims copyright to this source code.
+
+// Note - The x86 and x64 versions do _not_ produce the same results, as the
+// algorithms are optimized for their respective platforms. You can still
+// compile and run any of them on any platform, but your performance with the
+// non-native version will be less than optimal.
+
+#include "MurmurHash3.h"
+
+//-----------------------------------------------------------------------------
+// Platform-specific functions and macros
+
+// Microsoft Visual Studio
+
+#if defined(_MSC_VER)
+
+#define FORCE_INLINE	__forceinline
+
+#include <stdlib.h>
+
+#define ROTL32(x,y)	_rotl(x,y)
+#define ROTL64(x,y)	_rotl64(x,y)
+
+#define BIG_CONSTANT(x) (x)
+
+// Other compilers
+
+#else	// defined(_MSC_VER)
+
+#if defined(GNUC) && ((GNUC > 4) || (GNUC == 4 && GNUC_MINOR >= 4))
+
+/* gcc version >= 4.4 4.1 = RHEL 5, 4.4 = RHEL 6.
+ * Don't inline for RHEL 5 gcc which is 4.1 */
+#define FORCE_INLINE attribute((always_inline))
+
+#else
+
+#define FORCE_INLINE
+
+#endif
+
+
+inline uint32_t rotl32 ( uint32_t x, int8_t r )
+{
+  return (x << r) | (x >> (32 - r));
+}
+
+inline uint64_t rotl64 ( uint64_t x, int8_t r )
+{
+  return (x << r) | (x >> (64 - r));
+}
+
+#define	ROTL32(x,y)	rotl32(x,y)
+#define ROTL64(x,y)	rotl64(x,y)
+
+#define BIG_CONSTANT(x) (x##LLU)
+
+#endif // !defined(_MSC_VER)
+
+//-----------------------------------------------------------------------------
+// Block read - if your platform needs to do endian-swapping or can only
+// handle aligned reads, do the conversion here
+
+FORCE_INLINE uint32_t getblock ( const uint32_t * p, int i )
+{
+  return p[i];
+}
+
+FORCE_INLINE uint64_t getblock ( const uint64_t * p, int i )
+{
+  return p[i];
+}
+
+//-----------------------------------------------------------------------------
+// Finalization mix - force all bits of a hash block to avalanche
+
+FORCE_INLINE uint32_t fmix ( uint32_t h )
+{
+  h ^= h >> 16;
+  h *= 0x85ebca6b;
+  h ^= h >> 13;
+  h *= 0xc2b2ae35;
+  h ^= h >> 16;
+
+  return h;
+}
+
+//----------
+
+FORCE_INLINE uint64_t fmix ( uint64_t k )
+{
+  k ^= k >> 33;
+  k *= BIG_CONSTANT(0xff51afd7ed558ccd);
+  k ^= k >> 33;
+  k *= BIG_CONSTANT(0xc4ceb9fe1a85ec53);
+  k ^= k >> 33;
+
+  return k;
+}
+
+//-----------------------------------------------------------------------------
+
+void MurmurHash3_x86_32 ( const void * key, int len,
+                          uint32_t seed, void * out )
+{
+  const uint8_t * data = (const uint8_t*)key;
+  const int nblocks = len / 4;
+
+  uint32_t h1 = seed;
+
+  uint32_t c1 = 0xcc9e2d51;
+  uint32_t c2 = 0x1b873593;
+
+  //----------
+  // body
+
+  const uint32_t * blocks = (const uint32_t *)(data + nblocks*4);
+
+  for(int i = -nblocks; i; i++)
+  {
+    uint32_t k1 = getblock(blocks,i);
+
+    k1 *= c1;
+    k1 = ROTL32(k1,15);
+    k1 *= c2;
+
+    h1 ^= k1;
+    h1 = ROTL32(h1,13);
+    h1 = h1*5+0xe6546b64;
+  }
+
+  //----------
+  // tail
+
+  const uint8_t * tail = (const uint8_t*)(data + nblocks*4);
+
+  uint32_t k1 = 0;
+
+  switch(len & 3)
+  {
+  case 3: k1 ^= tail[2] << 16;
+  case 2: k1 ^= tail[1] << 8;
+  case 1: k1 ^= tail[0];
+          k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+  }
+
+  //----------
+  // finalization
+
+  h1 ^= len;
+
+  h1 = fmix(h1);
+
+  *(uint32_t*)out = h1;
+}
+
+//-----------------------------------------------------------------------------
+
+void MurmurHash3_x86_128 ( const void * key, const int len,
+                           uint32_t seed, void * out )
+{
+  const uint8_t * data = (const uint8_t*)key;
+  const int nblocks = len / 16;
+
+  uint32_t h1 = seed;
+  uint32_t h2 = seed;
+  uint32_t h3 = seed;
+  uint32_t h4 = seed;
+
+  uint32_t c1 = 0x239b961b;
+  uint32_t c2 = 0xab0e9789;
+  uint32_t c3 = 0x38b34ae5;
+  uint32_t c4 = 0xa1e38b93;
+
+  //----------
+  // body
+
+  const uint32_t * blocks = (const uint32_t *)(data + nblocks*16);
+
+  for(int i = -nblocks; i; i++)
+  {
+    uint32_t k1 = getblock(blocks,i*4+0);
+    uint32_t k2 = getblock(blocks,i*4+1);
+    uint32_t k3 = getblock(blocks,i*4+2);
+    uint32_t k4 = getblock(blocks,i*4+3);
+
+    k1 *= c1; k1  = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+
+    h1 = ROTL32(h1,19); h1 += h2; h1 = h1*5+0x561ccd1b;
+
+    k2 *= c2; k2  = ROTL32(k2,16); k2 *= c3; h2 ^= k2;
+
+    h2 = ROTL32(h2,17); h2 += h3; h2 = h2*5+0x0bcaa747;
+
+    k3 *= c3; k3  = ROTL32(k3,17); k3 *= c4; h3 ^= k3;
+
+    h3 = ROTL32(h3,15); h3 += h4; h3 = h3*5+0x96cd1c35;
+
+    k4 *= c4; k4  = ROTL32(k4,18); k4 *= c1; h4 ^= k4;
+
+    h4 = ROTL32(h4,13); h4 += h1; h4 = h4*5+0x32ac3b17;
+  }
+
+  //----------
+  // tail
+
+  const uint8_t * tail = (const uint8_t*)(data + nblocks*16);
+
+  uint32_t k1 = 0;
+  uint32_t k2 = 0;
+  uint32_t k3 = 0;
+  uint32_t k4 = 0;
+
+  switch(len & 15)
+  {
+  case 15: k4 ^= tail[14] << 16;
+  case 14: k4 ^= tail[13] << 8;
+  case 13: k4 ^= tail[12] << 0;
+           k4 *= c4; k4  = ROTL32(k4,18); k4 *= c1; h4 ^= k4;
+
+  case 12: k3 ^= tail[11] << 24;
+  case 11: k3 ^= tail[10] << 16;
+  case 10: k3 ^= tail[ 9] << 8;
+  case  9: k3 ^= tail[ 8] << 0;
+           k3 *= c3; k3  = ROTL32(k3,17); k3 *= c4; h3 ^= k3;
+
+  case  8: k2 ^= tail[ 7] << 24;
+  case  7: k2 ^= tail[ 6] << 16;
+  case  6: k2 ^= tail[ 5] << 8;
+  case  5: k2 ^= tail[ 4] << 0;
+           k2 *= c2; k2  = ROTL32(k2,16); k2 *= c3; h2 ^= k2;
+
+  case  4: k1 ^= tail[ 3] << 24;
+  case  3: k1 ^= tail[ 2] << 16;
+  case  2: k1 ^= tail[ 1] << 8;
+  case  1: k1 ^= tail[ 0] << 0;
+           k1 *= c1; k1  = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+  }
+
+  //----------
+  // finalization
+
+  h1 ^= len; h2 ^= len; h3 ^= len; h4 ^= len;
+
+  h1 += h2; h1 += h3; h1 += h4;
+  h2 += h1; h3 += h1; h4 += h1;
+
+  h1 = fmix(h1);
+  h2 = fmix(h2);
+  h3 = fmix(h3);
+  h4 = fmix(h4);
+
+  h1 += h2; h1 += h3; h1 += h4;
+  h2 += h1; h3 += h1; h4 += h1;
+
+  ((uint32_t*)out)[0] = h1;
+  ((uint32_t*)out)[1] = h2;
+  ((uint32_t*)out)[2] = h3;
+  ((uint32_t*)out)[3] = h4;
+}
+
+//-----------------------------------------------------------------------------
+
+void MurmurHash3_x64_128 ( const void * key, const int len,
+                           const uint32_t seed, void * out )
+{
+  const uint8_t * data = (const uint8_t*)key;
+  const int nblocks = len / 16;
+
+  uint64_t h1 = seed;
+  uint64_t h2 = seed;
+
+  uint64_t c1 = BIG_CONSTANT(0x87c37b91114253d5);
+  uint64_t c2 = BIG_CONSTANT(0x4cf5ad432745937f);
+
+  //----------
+  // body
+
+  const uint64_t * blocks = (const uint64_t *)(data);
+
+  for(int i = 0; i < nblocks; i++)
+  {
+    uint64_t k1 = getblock(blocks,i*2+0);
+    uint64_t k2 = getblock(blocks,i*2+1);
+
+    k1 *= c1; k1  = ROTL64(k1,31); k1 *= c2; h1 ^= k1;
+
+    h1 = ROTL64(h1,27); h1 += h2; h1 = h1*5+0x52dce729;
+
+    k2 *= c2; k2  = ROTL64(k2,33); k2 *= c1; h2 ^= k2;
+
+    h2 = ROTL64(h2,31); h2 += h1; h2 = h2*5+0x38495ab5;
+  }
+
+  //----------
+  // tail
+
+  const uint8_t * tail = (const uint8_t*)(data + nblocks*16);
+
+  uint64_t k1 = 0;
+  uint64_t k2 = 0;
+
+  switch(len & 15)
+  {
+  case 15: k2 ^= uint64_t(tail[14]) << 48;
+  case 14: k2 ^= uint64_t(tail[13]) << 40;
+  case 13: k2 ^= uint64_t(tail[12]) << 32;
+  case 12: k2 ^= uint64_t(tail[11]) << 24;
+  case 11: k2 ^= uint64_t(tail[10]) << 16;
+  case 10: k2 ^= uint64_t(tail[ 9]) << 8;
+  case  9: k2 ^= uint64_t(tail[ 8]) << 0;
+           k2 *= c2; k2  = ROTL64(k2,33); k2 *= c1; h2 ^= k2;
+
+  case  8: k1 ^= uint64_t(tail[ 7]) << 56;
+  case  7: k1 ^= uint64_t(tail[ 6]) << 48;
+  case  6: k1 ^= uint64_t(tail[ 5]) << 40;
+  case  5: k1 ^= uint64_t(tail[ 4]) << 32;
+  case  4: k1 ^= uint64_t(tail[ 3]) << 24;
+  case  3: k1 ^= uint64_t(tail[ 2]) << 16;
+  case  2: k1 ^= uint64_t(tail[ 1]) << 8;
+  case  1: k1 ^= uint64_t(tail[ 0]) << 0;
+           k1 *= c1; k1  = ROTL64(k1,31); k1 *= c2; h1 ^= k1;
+  }
+
+  //----------
+  // finalization
+
+  h1 ^= len; h2 ^= len;
+
+  h1 += h2;
+  h2 += h1;
+
+  h1 = fmix(h1);
+  h2 = fmix(h2);
+
+  h1 += h2;
+  h2 += h1;
+
+  ((uint64_t*)out)[0] = h1;
+  ((uint64_t*)out)[1] = h2;
+}
+
+//-----------------------------------------------------------------------------
+```
+
+## scikit-learn/sklearn/utils/src/MurmurHash3.h.notice.txt
+
+```text
+//-----------------------------------------------------------------------------
+// MurmurHash3 was written by Austin Appleby, and is placed in the public
+// domain. The author hereby disclaims copyright to this source code.
+
+#ifndef _MURMURHASH3_H_
+#define _MURMURHASH3_H_
+
+//-----------------------------------------------------------------------------
+// Platform-specific functions and macros
+
+// Microsoft Visual Studio
+
+#if defined(_MSC_VER)
+
+typedef unsigned char uint8_t;
+typedef unsigned long uint32_t;
+typedef unsigned __int64 uint64_t;
+
+// Other compilers
+
+#else	// defined(_MSC_VER)
+
+#include <stdint.h>
+
+#endif // !defined(_MSC_VER)
+
+//-----------------------------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+void MurmurHash3_x86_32  ( const void * key, int len, uint32_t seed, void * out );
+
+void MurmurHash3_x86_128 ( const void * key, int len, uint32_t seed, void * out );
+
+void MurmurHash3_x64_128 ( const void * key, int len, uint32_t seed, void * out );
+
+#ifdef __cplusplus
+}
+#endif
+
+//-----------------------------------------------------------------------------
+
+#endif // _MURMURHASH3_H_
 ```
 
 ## scipy/LICENSE.txt
@@ -34023,6 +49299,35 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## threadpoolctl/LICENSE
+
+```text
+Copyright (c) 2019, threadpoolctl contributors
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of copyright holder nor the names of its contributors
+      may be used to endorse or promote products derived from this software
+      without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
 FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER

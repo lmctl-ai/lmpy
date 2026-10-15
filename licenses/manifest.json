@@ -1,4 +1,36 @@
 {
+  "joblib": {
+    "files": {
+      "LICENSE.txt": "42612911c1872c5e4b43f6ae0e8ee59467cd350332241cf72ce90640264fae6a",
+      "joblib/externals/__init__.py.notice.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "joblib/externals/cloudpickle/__init__.py.notice.txt": "2332a6f4cce58df847f9098dfe8fb33f9422993c1bb6025e4636bc9eb1856a74",
+      "joblib/externals/cloudpickle/cloudpickle.py.notice.txt": "70d10129d8c10e5cc571efedbd92fcf3dbafef50275d3cf55c1ce48ca012493a",
+      "joblib/externals/cloudpickle/cloudpickle_fast.py.notice.txt": "008e5929fd806cb3710fc957c8b0e9299cb3799da87c5b5d2b565616afde7357",
+      "joblib/externals/loky/__init__.py.notice.txt": "f0bcc14c5a587d116b8c3d65a08429445f5043ff30c0492cb0923a8587066df1",
+      "joblib/externals/loky/_base.py.notice.txt": "2ec42712829628685d7aa1a131cebc02ac33e0cad39c4b36d0a0186c58941f3a",
+      "joblib/externals/loky/backend/__init__.py.notice.txt": "231f4a4e157509893bf8ce4e42727f03f26baeb589f89a306be1cc31e19ba75f",
+      "joblib/externals/loky/backend/_posix_reduction.py.notice.txt": "c60092ac868b23493f308d1734e052a797b5a31d5637d89d82b59b916a4c52be",
+      "joblib/externals/loky/backend/_win_reduction.py.notice.txt": "5a6341d0d5edc89fe8fd6cdf3d410687974f85721e23a16412714d5d4c4edb0b",
+      "joblib/externals/loky/backend/context.py.notice.txt": "44f759bf390493b880d2bb5d0082d21cdce5eb0b07a66e970fa20bdf4a3000f1",
+      "joblib/externals/loky/backend/fork_exec.py.notice.txt": "e0367588b041fb6d6b960dd9e0a87d0d35598f7e493da585139af35996920f19",
+      "joblib/externals/loky/backend/popen_loky_posix.py.notice.txt": "dc6fb6ffea2f66d8d670723ec52c96e73423019fbf67d2068f363546b647e277",
+      "joblib/externals/loky/backend/popen_loky_win32.py.notice.txt": "6d8921440d30f2a51c605c287b3786c1c9e50a87047617965dce9267efeb571a",
+      "joblib/externals/loky/backend/process.py.notice.txt": "e3e63de04a08ae0e1bb6c8d33715011c01e147de8daee827ffbfcf18be9a539d",
+      "joblib/externals/loky/backend/queues.py.notice.txt": "7844c5bdb3c7c0a7dda18c8e80d402c8aabf6659be9731f77f0c2950887eff85",
+      "joblib/externals/loky/backend/reduction.py.notice.txt": "f3ad5dad001e7d74c98df1560045a66004b7d7977c940caa5b1d11832c45c3fd",
+      "joblib/externals/loky/backend/resource_tracker.py.notice.txt": "2736e66fca2d2d1edeb6a85e7cab99c40b3556f4f58d5f1de597aff2f51c57ab",
+      "joblib/externals/loky/backend/spawn.py.notice.txt": "b783f3109ded8f0a05f6df2a9d0505f51ed0f8b981a4304870751158dce7cfc3",
+      "joblib/externals/loky/backend/synchronize.py.notice.txt": "9e50f00682d907dde6fe5e79a9f64cfd097ee0bf383d26229a842ab794f3a439",
+      "joblib/externals/loky/backend/utils.py.notice.txt": "455b31ab2113e1325d6e373db941c999f865436bf852af9f893ff96f9adf0b4b",
+      "joblib/externals/loky/cloudpickle_wrapper.py.notice.txt": "8d49df857237a8c5d3942793533a4005096fd1538b3092f557b7e9465ab62e05",
+      "joblib/externals/loky/initializers.py.notice.txt": "76d2ad46c254995c2226ed3267e221d26f0fbd6fccc66a2e1bb99284472c4ad7",
+      "joblib/externals/loky/process_executor.py.notice.txt": "40f48a7add0e0805abea0ff67c7c0fb78ca341a009b237de25814f88a852f511",
+      "joblib/externals/loky/reusable_executor.py.notice.txt": "77d92cad39c94bce78f4eab9d221b4f2ee69121b8c6e1437a126144aad2dc0d4"
+    },
+    "sha256": "3faa5c39054b2f03ca547da9b2f52fde67c06240c31853f306aea97f13647b55",
+    "source": "https://files.pythonhosted.org/packages/e8/5d/447af5ea094b9e4c4054f82e223ada074c552335b9b4b2d14bd9b35a67c4/joblib-1.5.2.tar.gz",
+    "version": "1.5.2"
+  },
   "nlohmann/LICENSE.MIT": {
     "sha256": "86b998c792894ccb911a1cb7994f7a9652894e7a094c0b5e45be2f553f45cf14",
     "source": "https://raw.githubusercontent.com/nlohmann/json/v3.11.2/LICENSE.MIT"
@@ -98,6 +130,33 @@
     "source": "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz",
     "version": "2025.2"
   },
+  "scikit-learn": {
+    "files": {
+      "COPYING": "75684d16f4662ab842ed5af9482ac01939aee83c8243d89993616d959d3053f8",
+      "sklearn/externals/array_api_compat/LICENSE": "4ffd978e3fa18d058d98c66771cfea7ed634aaf7023cf9612b8b55eee9a8f0fe",
+      "sklearn/externals/array_api_extra/LICENSE": "58494398fe147fdce76a68b2decd4c08ce3a1ea237b6d6785001c15f822c6ed6",
+      "sklearn/svm/src/liblinear/COPYRIGHT": "36f048db5651dd450f03e513016b77036cc99a44a66b2fdcecf4f6418657e0e1",
+      "sklearn/svm/src/liblinear/_cython_blas_helpers.h.notice.txt": "c7b10be2e2ccf6ef6fd2226611a403149817121c4cfb79564356b1fbbf20b651",
+      "sklearn/svm/src/liblinear/liblinear_helper.c.notice.txt": "f6bb453a7203eab4ae28a9248f59062e13c0a9b034d7ea58201ff5e09b65444c",
+      "sklearn/svm/src/liblinear/linear.cpp.notice.txt": "f9eba9aae5115087466bef15285269bd734fd8597e0e90bc7e164b388f2df483",
+      "sklearn/svm/src/liblinear/linear.h.notice.txt": "c3bd0dfc7bbc35a4ec9b16137df5df3938296cad676dca73540893d4e3ac88db",
+      "sklearn/svm/src/liblinear/tron.cpp.notice.txt": "99e25ed8c2786f974ebadb21000c54d62f44299d655d8a787576e22ffce0c8fe",
+      "sklearn/svm/src/liblinear/tron.h.notice.txt": "ad7f79237bee6c2545be83da23cbc4ea3a9db164cebeae461f1f0551c3a24451",
+      "sklearn/svm/src/libsvm/_svm_cython_blas_helpers.h.notice.txt": "1f6e42785e06337150ab407abb7710a7515918088695b38e86016a9f84480059",
+      "sklearn/svm/src/libsvm/libsvm_helper.c.notice.txt": "7d55040f25abad7eb9837a6cb4fa67c5676f599948b01e01a03e17090e60cbe7",
+      "sklearn/svm/src/libsvm/libsvm_sparse_helper.c.notice.txt": "7d629533d1ff4cd3547158729a7ebbf17d8f6023384b52ab0fa02b7116dd5b52",
+      "sklearn/svm/src/libsvm/libsvm_template.cpp.notice.txt": "75ef87d8dc6fe952363fc297c808ab292f0801db4960a7ea3e80e7de631a2323",
+      "sklearn/svm/src/libsvm/svm.cpp.notice.txt": "90e3d3246222f5e0ea4d1f71459fe5bb42b12fd7c35bbf7dfba8a7c6780bbbcf",
+      "sklearn/svm/src/libsvm/svm.h.notice.txt": "5617f82d17ea2e9edd13cb302362e600a17795fe993a30ba2f5d24d485c9f7a2",
+      "sklearn/svm/src/newrand/newrand.h.notice.txt": "54617ffd5c4476b6024567a576f185d8041f99be834c7d9bc11dd09ec0268508",
+      "sklearn/utils/murmurhash.pyx.notice.txt": "6d1c8389532eae6287256df630d32ace6100f4c8fe78d47acc1a23e42e8ce0c5",
+      "sklearn/utils/src/MurmurHash3.cpp.notice.txt": "e4123f7ede995833a56e90c8f94d4c33e6efa87e46dacb0681f2c9583e5ba335",
+      "sklearn/utils/src/MurmurHash3.h.notice.txt": "bd7da25b4f5be256903b02305d2893bb5e307dd928c27753cca8030261d03e2e"
+    },
+    "sha256": "20e9e49ecd130598f1ca38a1d85090e1a600147b9c02fa6f15d69cb53d968fda",
+    "source": "https://files.pythonhosted.org/packages/98/c2/a7855e41c9d285dfe86dc50b250978105dce513d6e459ea66a6aeb0e1e0c/scikit_learn-1.7.2.tar.gz",
+    "version": "1.7.2"
+  },
   "scipy": {
     "files": {
       "LICENSE.txt": "221e59f5e910fd7f94e44f0dac77436a11338c285c6346232e4a850a50da0e94",
@@ -167,6 +226,14 @@
     "sha256": "4d17873d3e607d398b85126cd4ed7aad89e4e9d89fc744cdab1af3189a996c2a",
     "source": "https://files.pythonhosted.org/packages/0d/81/e8d74b34f85285f7335d30c5e3c2d7c0346997af9f3debf9a0a9a63de184/statsmodels-0.14.6.tar.gz",
     "version": "0.14.6"
+  },
+  "threadpoolctl": {
+    "files": {
+      "LICENSE": "81ac619075248b06e53660b652d10e485f4675f5d0ae0f97ea22370da1f7e23b"
+    },
+    "sha256": "8ab8b4aa3491d812b623328249fab5302a68d2d71745c8a4c719a2fcaba9f44e",
+    "source": "https://files.pythonhosted.org/packages/b7/4d/08c89e34946fce2aec4fbb45c9016efd5f4d7f24af8e5d93296e935631d8/threadpoolctl-3.6.0.tar.gz",
+    "version": "3.6.0"
   },
   "tzdata": {
     "files": {
