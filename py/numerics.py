@@ -307,11 +307,12 @@ class Guard:
 
     def tick(self):
         import time
-        self.count += 1
-        if self.count > self.max_evals:
+        # Checked before the evaluation it admits, so `count` never exceeds max_evals and no call starts after the deadline.
+        if self.count >= self.max_evals:
             raise EvalLimit('expression evaluation cap of %d reached' % self.max_evals)
         if time.monotonic() > self.deadline:
             raise TimeLimit('wall-clock budget exhausted after %d evaluations' % self.count)
+        self.count += 1
 
 
 class Context:
@@ -405,10 +406,13 @@ def opt_minimize(p):
             best['fun'], best['x'] = value, np.array(xv, dtype=float)
         return value
 
-    def gradient(xv):
+    def gradient_values(xv):
         guard.tick()
         env = ctx.bind(xv)
-        out = np.array([scalar_value(np, evaluate(g, env), 'gradient') for g in gradient_programs], dtype=float)
+        return np.array([scalar_value(np, evaluate(g, env), 'gradient') for g in gradient_programs], dtype=float)
+
+    def gradient(xv):
+        out = gradient_values(xv)
         if not np.isfinite(out).all():
             guard.nonfinite += 1
             raise NonFinite('non-finite gradient value')
@@ -420,43 +424,58 @@ def opt_minimize(p):
             return scalar_value(np, evaluate(program, ctx.bind(xv)), 'constraint')
         return g
 
+    def check_gradient_at_start(f0):
+        """A wrong analytic gradient is the usual reason a gradient-based run silently fails: compare with forward
+        differences at x0. Every evaluation is counted and budgeted like the solver's own."""
+        analytic = gradient_values(ctx.x0)
+        if not np.isfinite(analytic).all():
+            raise BadData('a gradient expression is not finite at x0', 'NONFINITE_GRADIENT')
+        numeric = np.full(ctx.x0.size, np.nan)
+        for i in range(ctx.x0.size):
+            up = ctx.x0.copy()
+            h = 1.4901161193847656e-8 * max(1.0, abs(up[i]))
+            up[i] += h
+            guard.tick()
+            value = scalar_value(np, evaluate(objective, ctx.bind(up)), 'objective')
+            if math.isfinite(value):
+                numeric[i] = (value - f0) / h
+        usable = np.isfinite(numeric)
+        if usable.any():
+            scale = max(1.0, float(np.max(np.abs(numeric[usable]))))
+            worst = float(np.max(np.abs(analytic[usable] - numeric[usable])))
+            if not worst <= 1e-4 * scale:
+                warnings.warn('gradient expressions disagree with finite differences at x0 (max difference %.3g)' % worst, NumericalWarning)
+
+    method = p['method']
+    stop, res, violation = None, None, None
+    xv, fun, message, nit, njev, status = best['x'], math.nan, '', None, None, 'OK'
     with np.errstate(all='ignore'):
-        f(ctx.x0)  # validates scalar-ness and finiteness at the start before any solver runs
-        state['at_start'] = False
-        if gradient_programs:
-            # A wrong analytic gradient is the usual reason a gradient-based run silently fails: compare at x0.
-            analytic = gradient(ctx.x0)
-            numeric = optimize.approx_fprime(ctx.x0, lambda v: evaluate(objective, ctx.bind(v)), 1.4901161193847656e-8)
-            scale = max(1.0, float(np.max(np.abs(numeric))))
-            if not float(np.max(np.abs(analytic - numeric))) <= 1e-4 * scale:
-                warnings.warn('gradient expressions disagree with finite differences at x0 (max difference %.3g)'
-                              % float(np.max(np.abs(analytic - numeric))), NumericalWarning)
-        method = p['method']
-        options = {'maxiter': p['maxiter']}
-        kwargs = {'method': method, 'options': options}
-        if 'tol' in p:
-            kwargs['tol'] = p['tol']
-        if gradient_programs:
-            kwargs['jac'] = gradient
-        bounds = ctx.bound_arrays(p)
-        if bounds is not None:
-            kwargs['bounds'] = optimize.Bounds(bounds[0], bounds[1])
-        if constraint_programs:
-            kwargs['constraints'] = [{'type': kind, 'fun': constraint_function(program)} for kind, program in constraint_programs]
-        stop = None
         try:
+            f0 = f(ctx.x0)  # validates scalar-ness and finiteness at the start before any solver runs
+            state['at_start'] = False
+            if gradient_programs:
+                check_gradient_at_start(f0)
+            kwargs = {'method': method, 'options': {'maxiter': p['maxiter']}}
+            if 'tol' in p:
+                kwargs['tol'] = p['tol']
+            if gradient_programs:
+                kwargs['jac'] = gradient
+            bounds = ctx.bound_arrays(p)
+            if bounds is not None:
+                kwargs['bounds'] = optimize.Bounds(bounds[0], bounds[1])
+            if constraint_programs:
+                kwargs['constraints'] = [{'type': kind, 'fun': constraint_function(program)} for kind, program in constraint_programs]
             res = optimize.minimize(f, ctx.x0, **kwargs)
             xv, fun = np.asarray(res.x, dtype=float), float(res.fun)
             message, nit, njev = str(res.get('message', '')), res.get('nit'), res.get('njev')
             status = 'OK' if res.get('success') else 'NO_CONVERGENCE'
-        except SolverStop as exc:
+        except SolverStop as exc:  # the start point, the gradient check and the solver all end here
             stop = exc
-            xv, fun, message, nit, njev = best['x'], best['fun'], exc.message, None, None
-            status = exc.status
+            xv, fun, message, status = best['x'], best['fun'], exc.message, exc.status
         if not stop and not (np.isfinite(xv).all() and math.isfinite(fun)):
             status, message = 'NUMERICAL_FAILURE', 'the solver returned a non-finite point'
-        violation = None
         if constraint_programs:
+            # Reporting the violation is bookkeeping after the stop, not part of the run: it bypasses the budget.
             env = ctx.bind(xv)
             values = [(kind, scalar_value(np, evaluate(program, env), 'constraint')) for kind, program in constraint_programs]
             violation = max([abs(v) if kind == 'eq' else max(0.0, -v) for kind, v in values] or [0.0])
@@ -464,7 +483,7 @@ def opt_minimize(p):
                 status, message = 'NO_CONVERGENCE', 'constraint violation %.3g exceeds 1e-6; %s' % (violation, message)
     warn_nonfinite(guard, 'objective')
     result = {'status': status, 'message': message, 'method': method, 'par': ctx.unpack(xv), 'fun': fun,
-              'nit': None if nit is None else int(nit), 'nfev': int(res.get('nfev', guard.count)) if not stop else guard.count,
+              'nit': None if nit is None else int(nit), 'nfev': int(res.get('nfev', guard.count)) if res is not None else guard.count,
               'evals': guard.count, 'nonfinite_evals': guard.nonfinite}
     if njev is not None:
         result['njev'] = int(njev)
@@ -473,50 +492,69 @@ def opt_minimize(p):
     return result
 
 
-def central_jacobian(np, residual, xv, r0, bounds):
-    """Central differences (error O(h^2)) at the solution; scipy's own 2-point Jacobian is only O(h) with an absolute
-    step, which costs ~5 digits of the standard errors for small parameters (NIST Misra1a b2 ~ 5e-4). One-sided at bounds."""
+def adaptive_jacobian(np, residual, xv, r_ref, scipy_jac, scale, bounds):
+    """Per-parameter central differences with a step ladder (factors 2^-2 .. 2^6) and the step whose neighbours agree best.
+    The base step is eps^(1/3) * max(|x_j|, 1e-4 * rho/||J_j||) where J_j is the solver's own Jacobian column and rho the
+    residual scale: a parameter that is ~0 at the solution still gets a step that moves the residuals well above rounding noise
+    (scipy's absolute floor and the earlier 1e-8 floor were both wrong in opposite directions). One-sided at bounds.
+    Returns (jacobian, columns_disagreeing_with_scipy)."""
     n = xv.size
-    lo, hi = (bounds if bounds is not None else (np.full(n, -np.inf), np.full(n, np.inf)))
-    columns = []
-    for i in range(n):
-        h = 6.0554544523933395e-6 * max(abs(xv[i]), 1e-8)  # eps**(1/3)
-        up, down = xv.copy(), xv.copy()
-        up[i] += h
-        down[i] -= h
-        if up[i] > hi[i]:
-            columns.append((r0 - residual(down)) / h)
-        elif down[i] < lo[i]:
-            columns.append((residual(up) - r0) / h)
-        else:
-            columns.append((residual(up) - residual(down)) / (2.0 * h))
-    return np.column_stack(columns)
+    lo, hi = bounds if bounds is not None else (np.full(n, -np.inf), np.full(n, np.inf))
+    columns, disagree = [], 0
+    for j in range(n):
+        norm = float(np.linalg.norm(scipy_jac[:, j]))
+        natural = scale / norm if norm > 0 else 1.0
+        base = 6.0554544523933395e-6 * max(abs(xv[j]), 1e-4 * natural)
+        estimates = []
+        for factor in (0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0):
+            h = base * factor
+            up, down = xv.copy(), xv.copy()
+            up[j] += h
+            down[j] -= h
+            if up[j] > hi[j]:
+                estimates.append((r_ref - residual(down)) / h)
+            elif down[j] < lo[j]:
+                estimates.append((residual(up) - r_ref) / h)
+            else:
+                estimates.append((residual(up) - residual(down)) / (2.0 * h))
+        errors = [float(np.linalg.norm(estimates[i] - estimates[i + 1])) for i in range(len(estimates) - 1)]
+        column = estimates[int(np.argmin(errors))]
+        columns.append(column)
+        if float(np.linalg.norm(column - scipy_jac[:, j])) > 1e-3 * max(norm, float(np.linalg.norm(column))):
+            disagree += 1
+    return np.column_stack(columns), disagree
 
 
 def covariance(np, jac, cost, m, n, absolute):
-    """curve_fit's convention: pinv(J'J) via SVD with a rank tolerance; scaled by 2*cost/(m-n) unless absolute."""
+    """curve_fit's convention: pinv(J'J) via SVD with a rank tolerance; scaled by 2*cost/(m-n) unless absolute.
+    Returns (cov or None, status, condition number of the column-equilibrated Jacobian)."""
     # Column equilibration first: rank decisions must not depend on parameter units. The relative threshold 1e-8 is
-    # well above the finite-difference noise of the Jacobian (~1e-10) so exactly collinear models are detected.
+    # well above the finite-difference noise of the Jacobian (~1e-10) so exactly collinear models are detected;
+    # legitimately worse-conditioned fits (high-degree polynomials) are reported as SINGULAR_JACOBIAN with the condition number.
     norms = np.linalg.norm(jac, axis=0)
     if not np.all(norms > 0):
-        return None, 'SINGULAR_JACOBIAN'
+        return None, 'SINGULAR_JACOBIAN', math.inf
     _, s, vt = np.linalg.svd(jac / norms, full_matrices=False)
+    condition = float(s[0] / s[-1]) if s[-1] > 0 else math.inf
     keep = s > 1e-8 * s[0]
     if keep.sum() < n:
-        return None, 'SINGULAR_JACOBIAN'
+        return None, 'SINGULAR_JACOBIAN', condition
     cov = (vt[keep].T / s[keep] ** 2) @ vt[keep]
     cov = cov / np.outer(norms, norms)
     if not absolute:
         if m <= n:
-            return None, 'NO_DOF'
+            return None, 'NO_DOF', condition
         cov = cov * (2.0 * cost / (m - n))
-    return cov, 'OK'
+    return cov, 'OK', condition
 
 
 def std_errors(ctx, errors):
     if errors is None:
         return {name: ('NA' if not length else ['NA'] * length) for name, length in ctx.layout}
     return ctx.unpack(errors)
+
+
+MAX_JACOBIAN_ENTRIES = 20_000_000  # m * n doubles: 160 MB per copy; scipy keeps several
 
 
 def opt_least_squares(p):
@@ -547,6 +585,8 @@ def opt_least_squares(p):
         r = np.ravel(r)
         if state['rows'] is None:
             state['rows'] = r.size
+            if r.size * n > MAX_JACOBIAN_ENTRIES:
+                raise BadData('%d residuals x %d unknowns exceeds the Jacobian cap of %d entries' % (r.size, n, MAX_JACOBIAN_ENTRIES), 'INPUT_TOO_LARGE')
         elif r.size != state['rows']:
             raise BadData('residual length changed between evaluations', 'BAD_DATA')
         if not np.isfinite(r).all():
@@ -560,20 +600,20 @@ def opt_least_squares(p):
         return r
 
     method = p['method']
+    stop, res, final, m = None, None, None, 0
+    xv, message, status = best['x'], '', 'OK'
+    bounds = ctx.bound_arrays(p)
     with np.errstate(all='ignore'):
-        r0 = residual(ctx.x0)
-        state['at_start'] = False
-        m = r0.size
-        if method == 'lm' and m < n:
-            raise BadData('method lm needs at least as many residuals as unknowns', 'BAD_DATA')
-        kwargs = {'method': method, 'loss': p['loss'], 'f_scale': p['f_scale'], 'ftol': p['tol'], 'xtol': p['tol'],
-                  'gtol': p['tol'], 'max_nfev': min(p['max_nfev'], p['max_evals']), 'x_scale': 'jac'}
-        bounds = ctx.bound_arrays(p)
-        if bounds is not None:
-            kwargs['bounds'] = bounds
-        stop = None
-        res = None
         try:
+            r0 = residual(ctx.x0)
+            state['at_start'] = False
+            m = r0.size
+            if method == 'lm' and m < n:
+                raise BadData('method lm needs at least as many residuals as unknowns', 'BAD_DATA')
+            kwargs = {'method': method, 'loss': p['loss'], 'f_scale': p['f_scale'], 'ftol': p['tol'], 'xtol': p['tol'],
+                      'gtol': p['tol'], 'max_nfev': min(p['max_nfev'], p['max_evals']), 'x_scale': 'jac'}
+            if bounds is not None:
+                kwargs['bounds'] = bounds
             res = optimize.least_squares(residual, ctx.x0, **kwargs)
             xv, message = np.asarray(res.x, dtype=float), str(res.message)
             status = 'OK' if res.status > 0 else 'NO_CONVERGENCE'
@@ -583,35 +623,48 @@ def opt_least_squares(p):
         finite = bool(np.isfinite(xv).all())
         if not finite:
             status, message = 'NUMERICAL_FAILURE', 'the solver returned a non-finite point'
-        final = residual(xv) if finite and not stop else None
-    result = {'status': status, 'message': message, 'method': method, 'loss': p['loss'], 'par': ctx.unpack(xv),
-              'n_residuals': int(m), 'n_parameters': int(n), 'evals': guard.count, 'nonfinite_evals': guard.nonfinite}
-    if res is not None and not stop:
-        cost = float(res.cost)
-        jac = res.jac
-        if p['loss'] == 'linear':  # robust losses keep scipy's loss-modified Jacobian (documented)
+        result = {'status': status, 'message': message, 'method': method, 'loss': p['loss'], 'par': ctx.unpack(xv),
+                  'n_residuals': int(m), 'n_parameters': int(n)}
+        cov_status, condition, errors = 'UNAVAILABLE', None, None
+        if res is not None and finite:
+            cost = float(res.cost)
             try:
-                with np.errstate(all='ignore'):
-                    jac = central_jacobian(np, residual, xv, final, bounds)
-                if not np.isfinite(jac).all():
-                    jac = res.jac
-            except SolverStop:
+                final = residual(xv)  # every post-solver evaluation is counted and budgeted too
                 jac = res.jac
-        cov, cov_status = covariance(np, jac, cost, m, n, bool(p['absolute_sigma']))
-        if status != 'OK':
-            warnings.warn('standard errors come from a non-converged iterate (%s) and are unreliable' % status, NumericalWarning)
-        result['std_err'] = std_errors(ctx, None if cov is None else np.sqrt(np.diag(cov)))
-        result.update({'cost': cost, 'rss': float(np.dot(final, final)), 'cov_status': cov_status, 'nfev': int(res.nfev),
-                       'optimality': float(res.optimality)})
-        if res.njev is not None:
-            result['njev'] = int(res.njev)
-    else:
-        result.update({'std_err': std_errors(ctx, None), 'cost': best['cost'], 'rss': 2.0 * best['cost'], 'cov_status': 'UNAVAILABLE', 'nfev': guard.count})
+                if p['loss'] == 'linear':  # robust losses keep scipy's loss-modified Jacobian (documented)
+                    scale = max(float(np.linalg.norm(r0)), float(np.linalg.norm(final)), 1e-300)
+                    jac, disagree = adaptive_jacobian(np, residual, xv, final, res.jac, scale, bounds)
+                    if not np.isfinite(jac).all():
+                        jac, disagree = res.jac, 0
+                else:
+                    disagree = 0
+                cov, cov_status, condition = covariance(np, jac, cost, m, n, bool(p['absolute_sigma']))
+                if cov is not None and disagree:
+                    cov_status = 'JACOBIAN_UNCERTAIN'
+                    warnings.warn('the finite-difference Jacobian disagrees with the solver\'s on %d column(s); standard errors are uncertain' % disagree, NumericalWarning)
+                if cov is not None and condition > 1e6:
+                    warnings.warn('the column-equilibrated Jacobian is ill-conditioned (condition number %.3g): standard errors may be inaccurate' % condition, NumericalWarning)
+                if status != 'OK':
+                    warnings.warn('standard errors come from a non-converged iterate (%s) and are unreliable' % status, NumericalWarning)
+                errors = None if cov is None else np.sqrt(np.diag(cov))
+                result['rss'] = float(np.dot(final, final))
+            except SolverStop as exc:
+                cov_status = 'UNAVAILABLE_BUDGET'
+                warnings.warn('standard errors skipped: %s' % exc.message, NumericalWarning)
+                result['rss'] = float(np.dot(res.fun, res.fun))
+            result.update({'cost': cost, 'nfev': int(res.nfev), 'optimality': float(res.optimality)})
+            if res.njev is not None:
+                result['njev'] = int(res.njev)
+        else:
+            result.update({'cost': best['cost'], 'rss': 2.0 * best['cost'], 'nfev': guard.count})
+    result.update({'std_err': std_errors(ctx, errors), 'cov_status': cov_status, 'evals': guard.count, 'nonfinite_evals': guard.nonfinite})
+    if condition is not None:
+        result['jacobian_condition'] = condition
     warn_nonfinite(guard, 'residual')
     return result
 
 
-def single_variable_function(ctx, program):
+def single_variable_function(ctx, program, hint=''):
     np = ctx.np
     guard = ctx.guard
 
@@ -623,7 +676,7 @@ def single_variable_function(ctx, program):
         value = float(value)
         if not math.isfinite(value):
             guard.nonfinite += 1
-            raise NonFinite('f(%r) is not finite' % x)
+            raise NonFinite('f(%r) is not finite%s' % (x, hint))
         return value
     return f
 
@@ -646,7 +699,9 @@ def num_quad(p):
     ctx = ScalarContext(p)
     np = ctx.np
     from scipy import integrate
-    f = single_variable_function(ctx, ctx.program(p['expression_ast']))
+    hint = ('; a singularity sitting on a Gauss-Kronrod node (for example the midpoint of a symmetric interval) is evaluated exactly: '
+            'pass points to isolate it')
+    f = single_variable_function(ctx, ctx.program(p['expression_ast']), hint)
     ends = {'Inf': np.inf, '-Inf': -np.inf}
     a, b = [ends[v] if isinstance(v, str) else float(v) for v in (p['a'], p['b'])]
     kwargs = {'epsabs': p['epsabs'], 'epsrel': p['epsrel'], 'limit': p['limit'], 'full_output': 1}
@@ -675,15 +730,19 @@ def num_root(p):
                 fa, fb = f(lower), f(upper)
             except NonFinite:
                 raise BadData('f is not finite at a bracket end', 'NONFINITE_BRACKET')
-            if fa * fb > 0:
+            for value, point in ((fa, lower), (fb, upper)):
+                if value == 0.0:  # an end is an exact root: scipy would return before filling in its iteration count
+                    return {'status': 'OK', 'message': '', 'method': p['method'], 'root': point, 'f_root': 0.0, 'iterations': 0,
+                            'function_calls': 2, 'evals': ctx.guard.count}
+            if math.copysign(1.0, fa) == math.copysign(1.0, fb):  # sign test, not fa*fb (which underflows for tiny values)
                 raise BadData('f(lower) and f(upper) must have opposite signs (or one must be zero)', 'BAD_INTERVAL')
             solver = {'brentq': optimize.brentq, 'bisect': optimize.bisect, 'ridder': optimize.ridder, 'toms748': optimize.toms748}[p['method']]
             root, info = solver(f, lower, upper, xtol=p['xtol'], rtol=p['rtol'], maxiter=p['maxiter'], full_output=True, disp=False)
         except SolverStop as exc:
             return {'status': exc.status, 'message': exc.message, 'method': p['method'], 'evals': ctx.guard.count}
     return {'status': 'OK' if info.converged else 'NO_CONVERGENCE', 'message': '' if info.converged else str(info.flag),
-            'method': p['method'], 'root': float(root), 'f_root': f_safe(f, root), 'iterations': int(info.iterations),
-            'function_calls': int(info.function_calls), 'evals': ctx.guard.count}
+            'method': p['method'], 'root': float(root), 'f_root': f_safe(f, root), 'iterations': max(0, int(info.iterations)),
+            'function_calls': max(0, int(info.function_calls)), 'evals': ctx.guard.count}
 
 
 def f_safe(f, x):

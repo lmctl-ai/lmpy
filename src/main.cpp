@@ -295,11 +295,12 @@ void check_variable_name(const std::string& name,const char* what="variable"){
     for(const auto& word:spec["reserved"])reserved=reserved||word.get<std::string>()==name;
     if(reserved)invalid(std::string(what)+" name collides with a function, constant or reserved word: "+name,"EXPR_NAME_COLLISION");
 }
-Json parse_expression(const std::string& text,const std::set<std::string>& names,const std::map<std::string,size_t>& dims,bool reducers,const std::string& param){
-    try{pycli_expr::Parser parser(text,names,reducers,dims);return parser.parse();}
+Json parse_expression(const std::string& text,const std::set<std::string>& names,const std::map<std::string,size_t>& dims,bool reducers,const std::string& param,std::set<std::string>* identifiers=nullptr){
+    try{pycli_expr::Parser parser(text,names,reducers,dims);Json ast=parser.parse();if(identifiers)*identifiers=parser.identifiers();return ast;}
     catch(const pycli_expr::ParseFailure& e){throw Error{ErrorCode::ValidationError,"invalid expression in "+param+": "+e.code+" at byte "+std::to_string(e.position),{{"tool_code",e.code},{"position",e.position},{"near",e.near},{"param",param}}};}
 }
 constexpr size_t MAX_VARIABLES=64, MAX_COLUMNS=32, MAX_CONSTRAINTS=16;
+constexpr uint64_t MAX_JACOBIAN_ENTRIES=20000000;  // residual rows x unknowns; the worker enforces the same cap on the real count
 struct Vars{std::vector<std::pair<std::string,size_t>> layout;std::vector<double> x0;std::set<std::string> names;std::map<std::string,size_t> dims;};
 Vars read_vars(const Json& x0){
     Vars v;if(!x0.is_object()||x0.empty())bad_param("x0 must be a nonempty object of start values");
@@ -335,13 +336,12 @@ Columns read_data(const Json* data,const Vars& v,std::map<std::string,Array>& ar
 }
 Json data_json(const Columns& c){Json out=Json::array();for(size_t i=0;i<c.names.size();++i)out.push_back({{"n",c.names[i]},{"key","d_"+std::to_string(i)}});return out;}
 std::set<std::string> all_names(const Vars& v,const Columns& c){auto names=v.names;for(const auto& n:c.names)names.insert(n);return names;}
-// bounds: {name: [lo, hi]} with null/"-Inf"/"Inf" for open ends; broadcast over vector components; returned as flat null-able arrays.
+// bounds: {name: [lo, hi]} with null/"-Inf"/"Inf" for open ends. A scalar takes one pair; a vector takes one pair (applied to every
+// component) or an array of exactly one pair per component. Returned as flat null-able arrays in layout order.
 void read_bounds(const Json& bounds,const Vars& v,Json& lb,Json& ub){
     if(!bounds.is_object())bad_param("bounds must be an object");
-    std::map<std::string,std::pair<double,double>> by_name;
-    for(auto it=bounds.begin();it!=bounds.end();++it){
-        if(!v.names.count(it.key()))invalid("bounds name is not an unknown: "+it.key(),"BAD_BOUNDS");
-        const Json& pair=it.value();if(!pair.is_array()||pair.size()!=2)invalid("bounds need [lower, upper]","BAD_BOUNDS");
+    auto read_pair=[](const Json& pair){
+        if(!pair.is_array()||pair.size()!=2)invalid("bounds need [lower, upper]","BAD_BOUNDS");
         double ends[2];
         for(int k=0;k<2;++k){
             const Json& e=pair[k];
@@ -350,13 +350,23 @@ void read_bounds(const Json& bounds,const Vars& v,Json& lb,Json& ub){
             else invalid("bound ends must be finite numbers, null, \"-Inf\" (lower) or \"Inf\" (upper)","BAD_BOUNDS");
         }
         if(!(ends[0]<ends[1]))invalid("lower bound must be strictly below the upper bound","BAD_BOUNDS");
-        by_name[it.key()]={ends[0],ends[1]};
+        return std::make_pair(ends[0],ends[1]);
+    };
+    std::map<std::string,std::vector<std::pair<double,double>>> by_name;
+    for(auto it=bounds.begin();it!=bounds.end();++it){
+        if(!v.names.count(it.key()))invalid("bounds name is not an unknown: "+it.key(),"BAD_BOUNDS");
+        const Json& value=it.value();auto dim=v.dims.find(it.key());
+        bool per_component=value.is_array()&&!value.empty()&&value[0].is_array();
+        if(per_component){
+            if(dim==v.dims.end()||value.size()!=dim->second)invalid("per-component bounds for "+it.key()+" need exactly one [lower, upper] pair per component","BAD_BOUNDS");
+            for(const auto& pair:value)by_name[it.key()].push_back(read_pair(pair));
+        }else by_name[it.key()].assign(dim==v.dims.end()?1:dim->second,read_pair(value));
     }
     lb=Json::array();ub=Json::array();size_t at=0;
     for(const auto& item:v.layout){
         size_t count=item.second?item.second:1;auto found=by_name.find(item.first);
         for(size_t k=0;k<count;++k,++at){
-            double lo=-INFINITY,hi=INFINITY;if(found!=by_name.end()){lo=found->second.first;hi=found->second.second;}
+            double lo=-INFINITY,hi=INFINITY;if(found!=by_name.end()){lo=found->second[k].first;hi=found->second[k].second;}
             if(v.x0[at]<lo||v.x0[at]>hi)invalid("x0 lies outside its bounds: "+item.first,"BAD_BOUNDS");
             lb.push_back(std::isinf(lo)?Json(nullptr):Json(lo));ub.push_back(std::isinf(hi)?Json(nullptr):Json(hi));
         }
@@ -408,6 +418,7 @@ Json prepare_least_squares(const Params& in,std::map<std::string,Array>& arrays)
         if(!in.contains("response")||!std::count(data.names.begin(),data.names.end(),in["response"].get<std::string>()))bad_param("model needs response naming a data column");
         request["model_ast"]=parse_expression(in["model"],names,v.dims,false,"model");request["response"]=in["response"];m=data.rows;
         if(m<1)bad_param("model needs data");
+        if(uint64_t(m)*v.x0.size()>MAX_JACOBIAN_ENTRIES)invalid("residuals x unknowns exceeds the Jacobian cap of "+std::to_string(MAX_JACOBIAN_ENTRIES)+" entries","INPUT_TOO_LARGE");
         if(in.contains("sigma")){
             const Json& sigma=in["sigma"];
             if(sigma.is_string()){
@@ -422,7 +433,15 @@ Json prepare_least_squares(const Params& in,std::map<std::string,Array>& arrays)
         if(in.contains("response")||in.contains("sigma"))bad_param("response and sigma apply to model only");
         const Json& list=in["residuals"];if(list.empty()||list.size()>MAX_VARIABLES)bad_param("residuals needs 1..64 expressions");
         request["residual_asts"]=Json::array();
-        for(size_t i=0;i<list.size();++i)request["residual_asts"].push_back(parse_expression(list[i],names,v.dims,false,"residuals["+std::to_string(i)+"]"));
+        // Upper bound on the residual count: an expression that touches a data column is a vector of `rows`, anything else a scalar.
+        uint64_t residual_count=0;
+        for(size_t i=0;i<list.size();++i){
+            std::set<std::string> used;
+            request["residual_asts"].push_back(parse_expression(list[i],names,v.dims,false,"residuals["+std::to_string(i)+"]",&used));
+            bool vector=false;for(const auto& column:data.names)vector=vector||used.count(column);
+            residual_count+=vector?data.rows:1;
+        }
+        if(residual_count*v.x0.size()>MAX_JACOBIAN_ENTRIES)invalid("up to "+std::to_string(residual_count)+" residuals x "+std::to_string(v.x0.size())+" unknowns exceeds the Jacobian cap of "+std::to_string(MAX_JACOBIAN_ENTRIES)+" entries; use fewer vector residuals, fewer rows or fewer unknowns","INPUT_TOO_LARGE");
     }
     if(method=="lm"&&model&&m<v.x0.size())invalid("method lm needs at least as many residuals as unknowns","BAD_DATA");
     if(in.contains("bounds")){Json lb,ub;read_bounds(in["bounds"],v,lb,ub);request["lb"]=lb;request["ub"]=ub;}
@@ -656,18 +675,18 @@ int main(int argc,char** argv){
     auto integer=[](const char* name,Json def,const char* text){return Param{name,Type::Integer,false,std::move(def),{},text};};
     const char* x0_text="Start values {name: number | [numbers]} (names [a-z][a-z0-9_]{0,31}; at most 64 scalars). A vector variable is used as name[0], name[1] with integer literals. Variables are ordered by name, vector components by index.";
     const char* data_text="Data columns {name: inline array (<=1000 numbers) | file.npy | file.safetensors#key}: finite vectors of equal length (<=200000), at most 32.";
-    spec.operations.push_back(Operation{"opt_minimize",Access::Read,"Minimise a scalar expression with scipy.optimize.minimize (closed method list). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE; gradients by finite differences unless gradient expressions are given. Result: par, fun, nit, nfev, evals, nonfinite_evals, constraint_violation","object",{
+    spec.operations.push_back(Operation{"opt_minimize",Access::Read,"Minimise a scalar expression with scipy.optimize.minimize (closed method list). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE; EVAL_LIMIT/TIME_LIMIT/NON_FINITE return the best point so far by objective value, which can be infeasible when constraints exist (see constraint_violation); gradients by finite differences unless gradient expressions are given (checked at x0, every evaluation counted). Result: par, fun, nit, nfev, evals, nonfinite_evals, constraint_violation","object",{
         Param{"objective",Type::String,true,nullptr,{},"Expression (<=2048 bytes, 512 nodes) in the unknowns and data columns; sum/mean/prod/min/max reducers only with data."},
         obj("x0",true,x0_text),
         Param{"method",Type::String,false,nullptr,{"Nelder-Mead","Powell","BFGS","L-BFGS-B","SLSQP","trust-constr"},"Default: SLSQP with constraints, L-BFGS-B with bounds, else BFGS. Bounds: not BFGS. Constraints: SLSQP, trust-constr. Gradient expressions: not Nelder-Mead/Powell."},
-        obj("bounds",false,"{name: [lower, upper]} with null/\"-Inf\"/\"Inf\" for open ends, applied to every component; lower < upper and x0 inside."),
+        obj("bounds",false,"{name: [lower, upper]} with null/\"-Inf\"/\"Inf\" for open ends; for a vector unknown one pair is applied to every component, or give per-component pairs [[lo0, hi0], [lo1, hi1], ...] (exactly one per component). lower < upper and x0 inside."),
         Param{"constraints",Type::Array,false,nullptr,{},"Up to 16 {\"type\":\"eq\"|\"ineq\",\"expr\":...}; ineq means expr >= 0.","",false,false,false,{},Type::Object},
         Param{"gradient",Type::Array,false,nullptr,{},"One expression per scalar unknown (sorted name order); checked against finite differences at x0.","",false,false,false,{},Type::String},
         obj("data",false,data_text),
         num("tol",nullptr,"Solver tolerance in (0, 1]; default is the method's own."),
         integer("maxiter",1000,"Iteration cap, 1..10000."),integer("max_evals",500000,"Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."),
         Param{"nonfinite",Type::String,false,"inf",{"inf","error"},"inf: a non-finite objective counts as +Inf; error: stop with status NON_FINITE."}}});
-    spec.operations.push_back(Operation{"opt_least_squares",Access::Read,"Nonlinear least squares with scipy.optimize.least_squares (trf/dogbox/lm): model y ~ f(data; params) or a residual expression list. Result: par, std_err (from the Jacobian: cov = (J'J)^-1 times 2*cost/(m-n) unless absolute_sigma), cost, rss, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE, cov_status","object",{
+    spec.operations.push_back(Operation{"opt_least_squares",Access::Read,"Nonlinear least squares with scipy.optimize.least_squares (trf/dogbox/lm): model y ~ f(data; params) or a residual expression list. Result: par, std_err (central-difference Jacobian with adaptive per-parameter steps: cov = (J'J)^-1 times 2*cost/(m-n) unless absolute_sigma; columns equilibrated and the Jacobian declared singular below a 1e-8 relative singular value, reported as cov_status SINGULAR_JACOBIAN with jacobian_condition), cost, rss, status OK/NO_CONVERGENCE/EVAL_LIMIT/TIME_LIMIT/NON_FINITE, cov_status","object",{
         Param{"model",Type::String,false,nullptr,{},"Expression in the unknowns and data columns; residual = (model - response)/sigma."},
         Param{"response",Type::String,false,nullptr,{},"Data column fitted by model."},
         Param{"residuals",Type::Array,false,nullptr,{},"Alternative to model: 1..64 residual expressions (each scalar or vector over data columns), concatenated.","",false,false,false,{},Type::String},
@@ -689,7 +708,7 @@ int main(int argc,char** argv){
         Param{"f",Type::String,true,nullptr,{},"Expression in x (no reducers, no data)."},
         Param{"lower",Type::Number,true,nullptr,{},"Bracket start (finite)."},Param{"upper",Type::Number,true,nullptr,{},"Bracket end (finite, > lower)."},
         Param{"method",Type::String,false,"brentq",{"brentq","bisect","ridder","toms748"},"Bracketing method."},
-        num("xtol",2e-12,"Absolute x tolerance, > 0."),num("rtol",8.881784197001252e-16,"Relative x tolerance, >= 4*eps."),integer("maxiter",100,"Iterations, 1..1000."),integer("max_evals",500000,"Cap on expression evaluations.")}});
+        num("xtol",2e-12,"Absolute tolerance on the bracket width (not on |f|): a loose xtol returns a root with f_root far from 0 and status OK. Must be > 0."),num("rtol",8.881784197001252e-16,"Relative x tolerance, >= 4*eps."),integer("maxiter",100,"Iterations, 1..1000."),integer("max_evals",500000,"Cap on expression evaluations.")}});
     for(auto& op:spec.operations){std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }
