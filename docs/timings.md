@@ -419,3 +419,31 @@ Acceptance on the final source: `./scripts/build.sh test` **0**; `docker run --r
 Runtime and acceptance binaries have the identical SHA256 `b08750accf6d3e01eaba56000f6b77697799be425881bee4858fe892558039e7`.
 The measurement harness initially assumed py_info had a status field (exit 1); that assertion was corrected and the complete timing run
 restarted, exit 0. Earlier incomplete build/test runs were superseded by the final acceptance above.
+
+
+## S6 review fixes (aarch64, 2026-10-15)
+
+Code revision `15d16b5`; runtime `05976918f958`: **634 MB** displayed, unchanged at Docker's rounded precision.
+`image inspect .Size` is **136467787 bytes**, **+9087 bytes** versus the review-start image `36d7cf272679` (136458700).
+Wheel locks/dependencies and resource caps are unchanged; amd64 was not executed.
+
+Ten sequential fresh processes per case through the hardened production shim, after all builds, CTest, recipes and targeted probes completed;
+warm filesystem caches. Raw results: [measurement-s6-review-shim.json](measurement-s6-review-shim.json), generated with
+`python3 scripts/measure-s6.py` (exit **0**). With ten samples the reported p95 is the sample maximum.
+
+| Operation / data | Shim p50 | Shim p95 | Worker import p50 |
+|---|---:|---:|---:|
+| py_info | 0.643 s | 0.662 s | 0.103 s |
+| ml_fit logistic, 40 x 1 | 1.970 s | 3.049 s | 1.188 s |
+| ml_predict predict_proba, 40 x 1 | 1.954 s | 2.028 s | 1.188 s |
+| ml_cv logistic, 4 folds, 40 x 1 | 2.072 s | 2.130 s | 1.272 s |
+
+The fit sample includes a **3.049 s shim maximum**, while its maximum worker elapsed time is **1.361 s**: the slow tail is outside worker
+computation/import. ML import sample maxima are <= **1.333 s**, below the 3 s split-worker gate. No speedup claim is inferred from these
+small samples. The cap/memory measurements above remain the original S6 measurements; this review run remeasured per-call latency.
+The linear oracle recipe now reads its two fitted parameters directly, eliminating two extra array_inspect/shim calls.
+
+Final acceptance: test build **0**; offline `docker run --rm --pull=never --network=none pycli:test` **0**, **27/27** targets (**1117.65 s**);
+original S6 **19 methods /124.17 s**, S6 review **19 methods /179.77 s**; runtime build **0**. All **13 recipes x real/check/dry-run =39**
+invocations exited **0**. Final runtime and acceptance binary SHA256:
+`6e75fcabcb74d634035700e881d0f74e3eb5e124e07f0bf8ed19ab297c1ec246`.

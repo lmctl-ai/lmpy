@@ -25,4 +25,16 @@ A further red fixture (exit 1) catches CV folds containing only the numeric-look
 
 Compatibility: new strict KNN classifier v1 files persist classes_. S6 prototype KNN models missing that tensor fail BAD_MODEL and need refitting. Other family attribute tables and wheel locks are unchanged. Canonical numeric string class labels now return integers; prefix them when textual identity is required. No new dependencies or relaxed resource caps.
 
-Acceptance and measurements are recorded below after final builds.
+## Final acceptance (aarch64)
+
+* `./scripts/build.sh test`: **0**; `./scripts/build.sh runtime`: **0**.
+* `docker run --rm --pull=never --network=none pycli:test`: **0**, **27/27**, **1117.65 s**. Includes original S6 **19 methods (124.17 s)** and review **19 methods (179.77 s)**; schema, notices and sanitizer gates green.
+* With `PATH=$PWD/bin:/home/ubuntu/repos/lmctlhq/rcli/bin:$PATH`, every `lmscript examples/x.lms`, `lmscript --check examples/x.lms` and `lmscript --dry-run examples/x.lms`: **0**, all **39 invocations /13 recipes**.
+* Exact Astra one-bit mutation through final hardened host shim: fit **0**, both predict kinds **2 / BAD_MODEL**, neither artifact exists. Valid one-row KNN prediction **0**, value **2**; mixed-text-label CV **0**, accuracy **1/3**. Probe harness **0**.
+* Real cross-tool recipes: OLS intercept/slope **[1,2]** in pycli and rcli; kmeans ARI **1** vs hand blobs and rcli; classification CV accuracy **0.975**, log_loss **0.20075185634341353**. Optional lmstats/lmda legs still skip with setup hints because no prebuilt binary is available.
+* Sequential timing harness **0**; runtime **634 MB**, `inspect .Size` **136467787** (+9087 bytes from review start). Fit/predict/CV p50 **1.970 /1.954 /2.072 s**; import p50 **1.188 /1.188 /1.272 s**. See [timings.md](timings.md#s6-review-fixes-aarch64-2026-10-15) and raw JSON; the fit shim p95 is **3.049 s**, not hidden as a worker-import regression.
+* Runtime `05976918f958` and test `02e865bf02c3` contain identical binary SHA256 `6e75fcabcb74d634035700e881d0f74e3eb5e124e07f0bf8ed19ab297c1ec246`. No amd64 execution claimed.
+
+An initial build exited 1 because the new documentation contract fixture needed docs admitted by .dockerignore; corrected before final acceptance. An earlier full run was deliberately stopped after 19 passing targets (exit 137) to include the additional fold-type regression; the complete run above supersedes it. Expected red-test failures are described above, not counted as acceptance failures.
+
+Temporary host build trees/bytecode and retired pycli images were removed; project-labelled dangling builder cache was pruned after all builds and measurements. Final test/runtime tags retained. Local commits only; no push.

@@ -1,0 +1,73 @@
+{
+  "image_inspect_bytes": 136467787,
+  "image_display_size": "634MB",
+  "method": "sequential fresh calls, no concurrent builds or tests; 10 calls per case",
+  "py_info": {
+    "wall": {
+      "p50_ms": 642.819,
+      "p95_ms": 662.114,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 103.496,
+      "p95_ms": 114.111,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 107.912,
+      "p95_ms": 118.677,
+      "n": 10
+    }
+  },
+  "ml_fit_logistic_40x1": {
+    "wall": {
+      "p50_ms": 1970.145,
+      "p95_ms": 3049.196,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1188.188,
+      "p95_ms": 1332.224,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1212.509,
+      "p95_ms": 1360.766,
+      "n": 10
+    }
+  },
+  "ml_predict_proba_40x1": {
+    "wall": {
+      "p50_ms": 1953.653,
+      "p95_ms": 2028.304,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1188.072,
+      "p95_ms": 1252.317,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1211.553,
+      "p95_ms": 1276.22,
+      "n": 10
+    }
+  },
+  "ml_cv_logistic_4fold_40x1": {
+    "wall": {
+      "p50_ms": 2071.806,
+      "p95_ms": 2129.504,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 1272.047,
+      "p95_ms": 1309.214,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 1322.525,
+      "p95_ms": 1361.974,
+      "n": 10
+    }
+  }
+}

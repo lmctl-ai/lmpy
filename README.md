@@ -532,14 +532,14 @@ ML caps checked before spawn: 20000 rows, 64 encoded features, 200000 cells, 32 
 
 Recipes: `oracle-ml-linear.lms`, `oracle-kmeans.lms`, `ml-classify-cv.lms`; optional rcli/lmstats legs give setup hints. Timing and image growth measurements are in [docs/timings.md](docs/timings.md).
 
-S6 measurements (aarch64, ten sequential fresh calls through the shim; warm filesystem caches):
+S6 review-fix measurements (aarch64, ten sequential fresh calls through the shim; warm filesystem caches):
 
 | Operation | p50 wall | Lazy import p50 |
 |---|---:|---:|
-| ml_fit logistic, 40 rows | 2.043 s | 1.235 s |
-| ml_predict probabilities, 40 rows | 2.044 s | 1.238 s |
-| ml_cv logistic, 4 folds | 2.060 s | 1.242 s |
+| ml_fit logistic, 40 rows | 1.970 s | 1.188 s |
+| ml_predict probabilities, 40 rows | 1.954 s | 1.188 s |
+| ml_cv logistic, 4 folds | 2.072 s | 1.272 s |
 
-Runtime **634 MB**, approximately **+61 MB** from S5. Hardened cap probes peak at **191 MiB** cgroup memory; the 64-tree/depth-12 forest
+Runtime **634 MB**, approximately **+61 MB** from S5. Original S6 hardened cap probes peak at **191 MiB** cgroup memory; the 64-tree/depth-12 forest
 probe takes 14.79 s with an explicit 30 s budget. Other recorded probes take 2.0–3.2 s. Default ML compute budget is 10 s; near-cap fits can
 need 30 s or report TIME_LIMIT. Full commands, raw data, p95 values and qualifications: [docs/timings.md](docs/timings.md).
