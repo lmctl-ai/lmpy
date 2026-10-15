@@ -146,6 +146,13 @@
           "type": "json",
           "occurs": "?",
           "description": "pdf/cdf/ppf/sf only: evaluation points, a vector of <=1000 numbers (inline, .npy or safetensors#key). Not allowed with rvs."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -213,6 +220,13 @@
           "type": "string",
           "occurs": "1",
           "description": "New .safetensors path inside the working directory (CONFLICT if it exists)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1647,7 +1661,7 @@
             "error",
             "nan"
           ],
-          "description": "error (default): a masked missing value is NA_NOT_ALLOWED. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."
+          "description": "error (default): masked missing values and numeric NaN/Inf are NA_NOT_ALLOWED; output is guaranteed finite. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."
         },
         {
           "name": "offset",
@@ -1675,6 +1689,13 @@
           "occurs": "?",
           "default": false,
           "description": "Convert int64 values beyond +-2^53 (not exactly representable in binary64) with rounding, counted in lossy_int_count; off by default (INT64_NOT_EXACT)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
         }
       ]
     },
@@ -1706,7 +1727,7 @@
             "error",
             "nan"
           ],
-          "description": "error (default): a masked missing value is NA_NOT_ALLOWED. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."
+          "description": "error (default): masked missing values and numeric NaN/Inf are NA_NOT_ALLOWED; output is guaranteed finite. nan: masked values become NaN and the result reports missing_mask_lost=true plus both source counts (masked NA and numeric NaN become indistinguishable)."
         },
         {
           "name": "offset",
@@ -1764,6 +1785,19 @@
       "description": "Array (inline, .npy or safetensors#key) to a table: explicit unique column names for every column (a vector is one column), dtypes float64 / int64 / bool (default from the source dtype; bool needs exactly 0/1, int64 exact integers), no implicit index. NaN stays a numeric value unless nan_policy=missing. Result: shape, column_meta, na_counts, nan_count, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Optional source table: append ref columns by row position, requiring identical row counts; preserve source dtypes, masks and order."
+        },
+        {
+          "name": "allow_replace",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "With frame, explicitly allow replacing existing named columns (default false)."
+        },
+        {
           "name": "ref",
           "type": "json",
           "occurs": "1",
@@ -1780,7 +1814,7 @@
           "name": "dtypes",
           "type": "object",
           "occurs": "?",
-          "description": "Optional {column: float64|int64|bool} overrides; others follow the source dtype (int -> int64, bool -> bool, float -> float64)."
+          "description": "Optional {column: float64|int64|bool} overrides; file sources I64/I32/U8 -> int64, BOOL -> bool; inline JSON numbers always arrive as float64. Set explicit overrides for inline integers."
         },
         {
           "name": "nan_policy",
@@ -1812,7 +1846,7 @@
       "name": "frame_mutate",
       "access": "write",
       "returns": "object",
-      "description": "New or replaced float64 columns from expressions in the existing safe grammar (arithmetic, comparisons, & |, ifelse, math functions; no reducers, no indexing, no eval path). Columns are int64/float64/bool with identifier-style names ([a-z][a-z0-9_]{0,31}); assignments run in order and may use earlier ones. A masked missing value in any referenced column makes the result missing. Comparison/logic results are 1/0 (NaN for NaN operands). nonfinite decides what to do with NaN/Inf results (error, mask or keep). Result: shape, assigned[{name, replaced, n_masked, n_nonfinite}], column_meta, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "New or replaced float64 columns from expressions in the existing safe grammar (arithmetic, ifelse with comparisons and & | only inside its condition, math functions; no reducers, no indexing, no eval path). Columns are int64/float64/bool with identifier-style names ([a-z][a-z0-9_]{0,31}); assignments run in order and may use earlier ones. A masked missing value in any referenced column makes the result missing. Bare comparison/logic expressions are EXPR_SYNTAX; use ifelse(condition,1,0). NaN conditions produce NaN. nonfinite decides what to do with NaN/Inf results (error, mask or keep). Result: shape, assigned[{name, replaced, n_masked, n_nonfinite}], column_meta, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -1924,7 +1958,7 @@
             "many_to_one",
             "many_to_many"
           ],
-          "description": "Key uniqueness contract: one_to_one needs unique non-missing keys on both sides, one_to_many a unique left, many_to_one a unique right; a violation is MERGE_VALIDATION. many_to_many (default) checks nothing."
+          "description": "Key uniqueness contract: one_to_one needs unique keys on both sides, including repeated missing-key rows, one_to_many a unique left, many_to_one a unique right; a violation is MERGE_VALIDATION. many_to_many (default) checks nothing."
         },
         {
           "name": "suffixes",
@@ -1963,7 +1997,7 @@
       "name": "frame_rolling",
       "access": "write",
       "returns": "object",
-      "description": "Rolling-window statistics of numeric columns appended as <column>__<function> (original columns kept). Count windows are trailing (window rows ending at the row, or centred with center: rows i-window/2 .. i+(window-1)/2); time windows (time_window, with an explicit sorted non-missing datetime column on) cover (t-window, t] over the rows up to and including the row. Missing values are skipped; a result needs min_periods observations (std/var also two; ddof=1), otherwise it is missing; count is always defined (int64). Work (rows x window x columns x functions) is capped at 1e8. Result: shape, columns_added, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Rolling-window statistics of numeric columns appended as <column>__<function> (original columns kept). Count windows are trailing (window rows ending at the row, or centred with center: rows i-window/2 .. i+(window-1)/2); time windows (time_window, with an explicit sorted non-missing datetime column on) cover (t-window, t] over the rows up to and including the row. Missing values are skipped; a result needs min_periods observations (std/var also two; ddof=1), otherwise it is missing; count is nullable int64 and needs min_periods rows in the window (it counts non-missing values). Work (rows x window x columns x functions) is capped at 1e8. Result: shape, columns_added, preview, artifacts.table. Tables: <=200000 rows, <=256 columns, <=500000 cells. No pandas is imported. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -2079,7 +2113,7 @@
             "micro",
             "weighted"
           ],
-          "description": "Averaging for precision, recall and f1 (default binary, which uses pos_label)."
+          "description": "Averaging for precision, recall and f1 (default binary, which uses pos_label); see zero_division for undefined denominator handling."
         },
         {
           "name": "pos_label",

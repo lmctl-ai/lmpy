@@ -24,8 +24,7 @@ g = pycli.frame_groupby({frame: "revenue-s8.npz", keys: ["region"], aggs: {net: 
 if (g.status != "ok") { println("groupby failed:", json_stringify(g)); exit(1); }
 e = pycli.frame_export({frame: "regions-s8.npz", format: "csv", out: "report-s8.csv"});
 if (e.status != "ok") { println("export failed:", json_stringify(e)); exit(1); }
-println("report.csv:");
-println(read_file("report-s8.csv"));
+println("report exported to report-s8.csv (17-digit round-trip numbers)");
 // hand totals from the literal rows: North = customers 1 and 3, South = customer 2, order 5 (customer 9) has no region
 // order 1: 4*2.5 = 10; order 3: 10*3 = 30 -> 27 after the 10% discount; order 4: 40; order 7: 20*0.5 = 10 -> 9
 north = 10 + 27 + 40 + 9;
@@ -38,6 +37,7 @@ if (view.status != "ok") { println(json_stringify(view)); exit(1); }
 data = view.result.head.data;
 found = {};
 for (i = 0; i < len(data.region); i = i + 1) { key = data.region[i]; if (key == null) { key = "(none)"; } found[key] = data.net__sum[i]; }
+println(sprintf("North %.2f; South %.2f; no region %.2f", found["North"], found["South"], found["(none)"]));
 if (abs(found["North"] - north) > 0.000000001 || abs(found["South"] - south) > 0.000000001 || abs(found["(none)"] - missing_region) > 0.000000001) {
   println("region totals differ from the hand computation:", json_stringify(found)); exit(1);
 }

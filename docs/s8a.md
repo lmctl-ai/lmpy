@@ -28,7 +28,7 @@ the evidence behind them.
 ## Honest statuses
 * Missing values are never dropped or imputed silently: `frame_to_array` fails with `NA_NOT_ALLOWED` unless `missing=nan`, which is reported (`missing_mask_lost`, both counts).
   `frame_mutate` propagates masks and decides NaN/Inf explicitly (`nonfinite`). `ml_metrics` refuses missing/NaN input.
-* int64 never rounds silently (`INT64_NOT_EXACT`); float64 keys are refused for joins; an empty join is `EMPTY_RESULT`, not an empty table; a `pos_label` that does not occur is
+* int64 never rounds silently (`INT64_NOT_EXACT`); float64 keys are refused for joins; empty selections/mutations/joins/rolling results are valid 0-row table artifacts with status `OK`; a `pos_label` that does not occur is
   `BAD_PARAM`; undefined metrics are listed with their reason under status `UNDEFINED` while the defined ones are still returned.
 * The row-explosion cap is checked from the key counts: the 5000 x 5000 same-key join (25,000,000 rows) is refused in 0.4 s with 0.17 GB peak.
 
@@ -46,3 +46,24 @@ the evidence behind them.
   results in `oracle-findings.md`.
 * Pipelines as recipes: `csv-join-report.lms`, `bridge-ml.lms` (frame_import -> frame_mutate -> frame_to_array_to -> la_lstsq -> array_to_frame), `sensor-pipeline.lms`
   (frame_resample -> frame_to_array_to -> sig_filter_to -> sig_peaks), `ode-fit.lms` (ode_solve + seeded noise -> opt_least_squares).
+
+## S8a review decisions
+The binding bridge extension is optional `array_to_frame.frame` plus `allow_replace=false`: strict positional column append onto an equal-row source table.
+It preserves all original dtypes, masks, timezone/category metadata and column order; replacements are explicit and keep their position.
+C++ checks source rows, names, combined columns/cells and a conservative storage bound before spawn; the NPZ writer repeats the exact storage cap.
+`bridge-ml.lms` now appends row-aligned fitted values and residuals to the 40-row source table, rather than only returning a coefficient table.
+
+Empty-table policy: select/mutate/merge/rolling all write a valid artifact and return `OK` with shape `[0,ncols]`. Left/right/outer joins against an empty side
+produce correctly typed all-masked absent columns. Metrics and numeric extraction still require observations (`BAD_DATA`), since their outputs are not empty tables.
+
+Uniqueness validation includes repeated missing key tuples, independently of the SQL-like never-match rule. Category/category key levels use a deterministic union
+(left levels, then unseen right levels); incompatible category ordering becomes unordered explicitly in metadata. Category/string keys become strings.
+
+Two-tier missingness remains explicit: masks encode NA, unmasked NaN remains a numeric value, `isnull` sees only masks. The finite bridge default now refuses either;
+`missing=nan` explicitly permits nonfinite output and reports mask collapse. Reverse `nan_policy=missing` reports `nan_mask_changed`.
+Numeric NaN payloads and masked NA cannot be distinguished after that collapse, and the docs and round-trip tests demonstrate both reverse policies.
+
+Rolling count now observes min_periods. Sorted timestamps use direct comparisons; Python integer subtraction saturates at the datetime lower boundary,
+including seven-digit day windows. Float64 rolling statistics use extended intermediates; unmasked Inf and nonrepresentable output are refused with NON_FINITE.
+Metric R2 uses extended sums, genuine constancy checks, and defined/undefined per-metric results; nonrepresentable MSE no longer poisons representable R2.
+Every advertised S8a compute budget now enters the shared cooperative guard. New staging files are never installed after budget expiry.

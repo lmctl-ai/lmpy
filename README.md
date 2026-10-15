@@ -635,14 +635,13 @@ bare interpreter. Tables keep every column's dtype, categories and NA mask exact
 Bridge details. `frame_to_array` refuses strings, categories and datetimes (`BAD_DTYPE`: encode them first), int64 values beyond +-2^53 (`INT64_NOT_EXACT`
 unless `allow_lossy_int`, which counts them in `lossy_int_count`), a selection of zero rows or columns (`BAD_DATA`) and more than 200000 values (`INPUT_TOO_LARGE`).
 `missing=nan` turns masked NAs into NaN: a masked NA and a numeric NaN then look the same, which the result states with `missing_mask_lost: true` and both source counts.
-`array_to_frame` defaults the dtype from the source (`I64`/`I32`/`U8` -> int64, bool -> bool, otherwise float64); a bool override needs exactly 0/1, an int64 override
+`array_to_frame` defaults the dtype from the file source (`I64`/`I32`/`U8` -> int64, bool -> bool, otherwise float64). Inline JSON arrays always enter as float64, even integer literals: use `dtypes` explicitly for int64/bool. A bool override needs exactly 0/1, an int64 override
 exact integers within +-2^53 (`BAD_DATA` before any process starts). Nothing is inferred from file names and no index column is added. Write forms honour `PYCLI_READONLY`,
 `PYCLI_DRYRUN`, the exclusive-create rule and the atomic install of every other table writer.
 
-`frame_mutate`: expressions use the S3 grammar (arithmetic, comparisons, `&`, `|`, `ifelse`, the math function list; no reducers, no indexing, no strings). Referenced
+`frame_mutate`: expressions use the S3 grammar (arithmetic, `ifelse`, the math function list; comparisons, `&`, and `|` are allowed only inside an `ifelse` condition; no reducers, no indexing, no strings). Referenced
 columns must be int64, float64 or bool with identifier-style names (`[a-z][a-z0-9_]{0,31}`); other columns pass through untouched and may have any name. Assignments run
-in order, so later ones can use earlier ones (and replaced columns). A masked missing value in any referenced column makes the result a masked missing value; comparisons
-and logic return 1/0 with NaN for NaN operands. NaN/Inf produced from non-missing inputs follow `nonfinite` (default: the call fails with `NON_FINITE` and writes
+in order, so later ones can use earlier ones (and replaced columns). A masked missing value in any referenced column makes the result a masked missing value; bare comparisons/logic are `EXPR_SYNTAX`. Use `ifelse(x < 1, 1, 0)`; a NaN condition returns NaN and default `nonfinite=error` refuses it. NaN/Inf produced from non-missing inputs follow `nonfinite` (default: the call fails with `NON_FINITE` and writes
 nothing). int64 inputs must be exactly representable (`INT64_NOT_EXACT`). The result column dtype is always float64.
 
 `frame_merge`: keys are int64, bool, string/category (compared by label) or datetime columns of matching type (`KEY_DTYPE_MISMATCH`; float64 keys are `BAD_DTYPE`). Rows
@@ -650,14 +649,13 @@ with a missing key never match; they are kept unmatched by left/right/outer (SQL
 with its matches in right row order), right follows the right rows (matches in left row order); outer appends the unmatched right rows. With `on` the key is one column
 (left value, else right value); with `left_on`/`right_on` both columns are kept. Non-key names on both sides get the suffixes on both sides; the final names must be unique.
 `validate` one_to_one / one_to_many / many_to_one fails with `MERGE_VALIDATION` and the number of repeated keys. The result row count is computed from the key counts before
-anything is built: more than `max_rows` is `ROW_EXPLOSION` (the message reports the rows the join would have had), and an empty result is the status `EMPTY_RESULT` (a
-table needs a row; no artifact). Unmatched cells are masked and dtypes are preserved (an int64 column stays int64). Result counts `n_pairs`, `n_left_only`, `n_right_only` are
+anything is built: more than `max_rows` is `ROW_EXPLOSION` (the message reports the rows the join would have had). Fixed-width output payload bytes (including masks and unified key widths) are checked against 256 MiB before any gather. Empty results are valid 0-row artifacts with `status: OK`, consistently with `frame_select`, `frame_mutate`, and `frame_rolling`. Unmatched cells are masked and dtypes are preserved (an int64 column stays int64). Result counts `n_pairs`, `n_left_only`, `n_right_only` are
 properties of the inputs, whatever `how` keeps.
 
 `frame_rolling`: count windows are trailing (`window` rows ending at the row) or centred (rows `i - window//2 .. i + (window-1)//2`); time windows cover `(t - w, t]` over the rows
 up to and including the row and need an explicit datetime64[ns] `on` column that is sorted ascending with no missing values (`NOT_SORTED`); `time_window` is `<count>s|min|h|D`.
 Missing values and NaN are skipped; a result needs `min_periods` observations (default `window`; time windows 1) and std/var at least two (ddof 1), otherwise it is a masked
-missing value; `count` is always defined (int64). New columns are `<column>__<function>`. Work (rows x window x columns x functions) is capped at 1e8 before the call.
+missing value; `count` is nullable int64; min_periods applies to window rows, while the count itself counts non-missing observations (pandas semantics). New columns are `<column>__<function>`. Work (rows x window x columns x functions) is capped at 1e8 before the call.
 
 `ml_metrics`: labels may be int, bool, string or category columns (bool and integral floats count as integers), arrays hold numbers. At most 30 distinct labels for label metrics.
 `average` binary treats `pos_label` as positive and everything else as negative (default `pos_label` 1 for 0/1 labels, required otherwise; it must occur among the labels).
@@ -671,5 +669,24 @@ same values and a smaller `n` is a prefix of a larger one. Parameters (unknown o
 expon `scale`; gamma `shape`, `scale`; beta `a`, `b`; lognorm `mu`, `sigma` (of the underlying normal); chi2 `df`; poisson `lam`; binom `n`, `p`. Discrete families return integer-valued
 F64. Inline `n` <= 1000, `stats_dist_to` <= 1,000,000. pdf/cdf/ppf/sf remain norm and t only.
 
-Statuses: `OK`; `UNDEFINED` (ml_metrics); `EMPTY_RESULT` (frame_merge); `NUMERICAL_FAILURE` (a sampler overflow); `TIME_LIMIT`. Errors (exit 2) include `NA_NOT_ALLOWED`, `INT64_NOT_EXACT`, `BAD_DTYPE`,
+Statuses: `OK`; `UNDEFINED` (ml_metrics); `NUMERICAL_FAILURE` (a sampler overflow); `TIME_LIMIT`. Errors (exit 2) include `NA_NOT_ALLOWED`, `INT64_NOT_EXACT`, `BAD_DTYPE`,
 `UNKNOWN_COLUMN`, `DUPLICATE_COLUMN`, `TOO_MANY_COLUMNS`, `NON_FINITE`, `MERGE_VALIDATION`, `ROW_EXPLOSION`, `KEY_DTYPE_MISMATCH`, `NOT_SORTED`, `BAD_PARAM`, `BAD_DATA`, `INPUT_TOO_LARGE`.
+
+S8a review conventions: `frame_merge` uniqueness contracts count repeated missing key tuples too (even though missing keys never match).
+Category/category shared keys retain category dtype with left levels followed by unseen right levels; ordering survives only when both inputs are ordered with identical levels.
+Category/string joins produce strings. Rolling skips masked NA and numeric NaN, refuses unmasked infinities (`NON_FINITE`), and computes statistics with extended intermediates;
+nonrepresentable requested output is `NON_FINITE`, never a fabricated missing cell. Time windows support the full documented 1..9999999 count range using saturated timestamp bounds.
+Metric regression rejects int64 beyond +-2^53 (`INT64_NOT_EXACT`), including mixed classification/regression requests; classification alone preserves exact labels.
+R2 uses extended sums independently of float64 MSE representability; nonrepresentable metrics appear under `undefined` with status `UNDEFINED`, while valid metrics remain.
+`pos_label` must be scalar and an explicit value must occur among true labels for scored metrics. More than two true classes yields `UNDEFINED` scored metrics;
+implicit positive label 1 remains allowed for all-negative 0/1 data (Brier/log-loss defined, AUC undefined).
+
+`array_to_frame(frame="source.npz", columns=["prediction"], ref=..., out="enriched.npz")` appends columns **by row position** with identical row counts;
+it never aligns/reorders rows. Existing columns, masks, timezones and category metadata pass through unchanged. Name collisions require `allow_replace=true`;
+replacement preserves column position. Combined column/cell/storage caps apply before spawn. This is suitable only when the numeric path preserves source row order.
+
+Tables distinguish masked missing (`null`) from unmasked numeric NaN (`"NaN"`). `isnull` checks masks only; `array_to_frame` defaults to `nan_policy=value`,
+so numeric NaNs survive filtering with `not isnull`. Use `nan_policy=missing` deliberately to collapse NaNs into masks (`nan_mask_changed=true`), then filter.
+`frame_to_array` with `missing=error` refuses both masked cells and all numeric NaN/Inf, guaranteeing finite output; `missing=nan` explicitly permits nonfinite values
+and collapses masked NA to NaN (`missing_mask_lost`, `source_na_count`, `source_nan_count`). A reverse conversion cannot recover the original mask distinction;
+choose `nan_policy=value` to retain numeric NaNs or `missing` to mask all NaNs. `frame_mutate(nonfinite=mask|keep)` is similarly explicit and counts conversions.
