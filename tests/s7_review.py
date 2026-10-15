@@ -145,6 +145,15 @@ class WorkerWorkBounds(unittest.TestCase):
    p['output_prefix']=str(pathlib.Path(d)/'out_')
    with mock.patch('scipy.signal.peak_prominences',side_effect=AssertionError('unbounded prominence search')):
     with self.assertRaises(w.BadData):w.sig_peaks(p)
+ def test_radius_at_large_offset_binary_spacing(self):
+  w=self.worker()
+  with tempfile.TemporaryDirectory() as d:
+   file=pathlib.Path(d)/'x.npy';queries=pathlib.Path(d)/'q.npy'
+   for base in [1e-100,1e-6,1.,1e6,1e100]:
+    a=math.nextafter(base,math.inf);b=math.nextafter(a,math.inf);radius=b-a
+    np.save(file,np.array([[base],[a]]));np.save(queries,np.array([[b]]))
+    r=w.spatial_knn(dict(points_file=str(file),queries_file=str(queries),p=2,radius=radius,max_pairs=10,exclude_self=False))
+    self.assertEqual(r['counts'],[1],(base,r));self.assertEqual(r['indices'],[1])
  def test_high_p_radius_returns_more_than_one_search_chunk(self):
   w=self.worker()
   with tempfile.TemporaryDirectory() as d:
