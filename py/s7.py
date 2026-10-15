@@ -324,7 +324,7 @@ def spatial_knn(p):
         valid=actual<=radius;ids,actual=ids[valid],actual[valid];order=np.lexsort((ids,actual))
         return actual[order],ids[order]
     if 'k' in p:
-        k=p['k'];s7_cap(2*m*(k+int(exclude))<=S7_ARTIFACT_NUMBERS,'knn query allocation')
+        k=p['k'];s7_cap(2*m*(k+int(exclude))<=S7_ARTIFACT_NUMBERS,'knn neighbor allocation')
         all_i=np.empty((m,k),dtype=np.int64);all_d=np.empty((m,k))
         if not brute:
             want=k+int(exclude);batch=max(1,min(1024,16384//(want*points.shape[1])))

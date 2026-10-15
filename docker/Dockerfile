@@ -52,7 +52,7 @@ COPY --from=builder /src/pycli /src/pycli
 COPY --from=builder /provenance /src/pycli/provenance
 COPY THIRD_PARTY_NOTICES.md /src/pycli/THIRD_PARTY_NOTICES.md
 COPY licenses /src/pycli/licenses
-CMD ["ctest", "--test-dir", "/build-pycli", "--output-on-failure"]
+CMD ["ctest", "--parallel", "4", "--test-dir", "/build-pycli", "--output-on-failure"]
 
 FROM wheels AS pruned
 LABEL org.lmctlhq.pycli.s0-builder=true
