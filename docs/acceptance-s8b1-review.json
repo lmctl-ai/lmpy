@@ -1,0 +1,197 @@
+{
+  "implementation_commit": "225d4f0",
+  "architecture": "aarch64",
+  "baseline_runtime_size_bytes": 136629907,
+  "red_reproducer": {
+    "test_methods": 23,
+    "exit_code": 1,
+    "failures": 26,
+    "errors": 1
+  },
+  "focused_review": {
+    "test_methods": 24,
+    "exit_code": 0,
+    "seconds": 68.604
+  },
+  "mutations": {
+    "runner_exit_code": 0,
+    "variants_rejected": 5,
+    "expected_variant_exit_codes": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "schema_docs": {
+    "exit_code": 0,
+    "operations": 64
+  },
+  "build_test": {
+    "command": "./scripts/build.sh test",
+    "exit_code": 0
+  },
+  "runtime": {
+    "id": "sha256:2569001e281758b3099c8cef571b194e63b3c85435d2a005b477a08b3063b23c",
+    "size_bytes": 136632374,
+    "architecture": "arm64"
+  },
+  "test": {
+    "id": "sha256:cf7ec6f3131dfa90c782b94786c77cca108165b3151618d9afaf2cfe18d06d75",
+    "size_bytes": 274548444,
+    "architecture": "arm64"
+  },
+  "build_runtime": {
+    "command": "docker build -f /home/ubuntu/pycli-s8b1-review-build/runtime-context/docker/Dockerfile --target runtime -t pycli:runtime /home/ubuntu/pycli-s8b1-review-build/runtime-context",
+    "exit_code": 0,
+    "context_note": "Exact implementation/schema/test/scripts/recipes context captured from successful test build; 138 source files compared before reuse; subsequent changes are documentation and evidence only."
+  },
+  "production_binary_sha256": "db447da8faac40d4d3e897c9543849ade13b53962e79b27dce6d2f001819fd46",
+  "test_production_binary_sha256": "db447da8faac40d4d3e897c9543849ade13b53962e79b27dce6d2f001819fd46",
+  "asan_preflight": {
+    "command": "docker run --rm --pull=never --network=none -e ASAN_OPTIONS=detect_leaks=0 -e UBSAN_OPTIONS=print_stacktrace=1 pycli:test python /src/pycli/tests/s8b_review.py /build-pycli/bin/pycli_asan Review.test_superlu_preflight_caps_both_paths Review.test_time_series_alpha_rejected_before_spawn Review.test_root_unused_params_preflight",
+    "exit_code": 0,
+    "tests_passed": 3,
+    "seconds": 0.419
+  },
+  "ctest": {
+    "command": "docker run --rm --pull=never --network=none pycli:test",
+    "exit_code": 0,
+    "groups_passed": 34,
+    "groups_total": 34,
+    "seconds": 809.12
+  },
+  "recipes": {
+    "count": 81,
+    "recipes": 27,
+    "modes": [
+      "real",
+      "check",
+      "dry-run"
+    ],
+    "exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "results_file": "measurement-s8b1-recipes.json",
+    "path_prefix": "$PWD/bin:/home/ubuntu/repos/lmctlhq/rcli/bin:/tmp/oracle-bin",
+    "runner_exit_code": 0
+  },
+  "resource_probe": {
+    "command": "docker run --rm --pull=never --network=none --init --cpus=2 --memory=4g --pids-limit=128 --read-only --cap-drop=ALL --security-opt=no-new-privileges --user 1000:1000 -e OPENBLAS_NUM_THREADS=1 --tmpfs /tmp:rw,noexec,nosuid,nodev,size=512m -v /home/ubuntu/repos/lmctlhq/pycli/scripts:/s:ro --entrypoint python3 pycli:runtime -I /s/measure-s8b1-review.py",
+    "exit_code": 0,
+    "results_file": "measurement-s8b1-resources.json"
+  },
+  "shim_timings": {
+    "command": "python3 scripts/measure-s8b.py pycli:runtime",
+    "exit_code": 0,
+    "calls": 80,
+    "results_file": "measurement-s8b1-shim.json",
+    "method": "Sequential on idle host after all acceptance, fresh containers/Python processes, warm filesystem cache, 10 samples/case"
+  },
+  "cleanup": {
+    "scratch_build_removed": "/home/ubuntu/pycli-s8b1-review-build",
+    "scratch_cleanup_exit_code": 0,
+    "python_cache_directories_remaining": 0,
+    "builder_label_prune": {
+      "command": "docker image prune --force --filter label=org.lmctlhq.pycli.s0-builder=true",
+      "exit_code": 0,
+      "reclaimed_reported": "285.8MB"
+    },
+    "dangling_prune": {
+      "command": "docker image prune --force",
+      "exit_code": 0,
+      "reclaimed_reported": "395.9MB"
+    },
+    "builder_cache_prune": {
+      "command": "docker builder prune --force",
+      "exit_code": 0,
+      "remaining_build_cache": "0B"
+    },
+    "current_images_retained": [
+      "pycli:test",
+      "pycli:runtime"
+    ],
+    "preexisting_stopped_review_containers_untouched": true
+  }
+}

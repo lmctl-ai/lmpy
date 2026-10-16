@@ -674,3 +674,35 @@ These structured probes used little memory, but were not worst cases: arbitrary 
 
 Acceptance: `./scripts/build.sh test` 0; `docker run --rm --pull=never --network=none pycli:test` 33/33 groups exit 0 (629 s with four groups in parallel); runtime rebuild 0; all 27 recipes passed real,
 `--check` and `--dry-run` through the host shim, 81/81 exit 0 (rcli and statsrust on PATH; the optional lmda legs were skipped with their hints, no lmda binary is present).
+
+## S8b-1 review: idle-host remeasurement and arbitrary-fill caps (aarch64)
+
+Runtime Docker display **635 MB**; `docker image inspect .Size` **136,632,374 bytes**, versus the observed pre-fix image **136,629,907 bytes** (+**2,467 bytes**). These Docker size reports use different metrics; they are not interchangeable. No runtime packages or wheel locks changed. Test image Docker display **1.33 GB**; current runtime + test stay below 3 GB. Runtime/test production binary SHA-256 is identical (`db447da8faac40d4d3e897c9543849ade13b53962e79b27dce6d2f001819fd46`).
+
+Sequential calls through the production host shim, after builds/tests/recipes completed with no competing workload: 10 fresh containers/Python processes per case, warm filesystem cache. All 80 calls succeeded (measurement command exit 0). The empirical p95 with only 10 samples is the largest sample. Source: scripts/measure-s8b.py; raw data: [measurement-s8b1-shim.json](measurement-s8b1-shim.json). Wall times include Docker startup; import time is reported by the worker. These measurements do not establish a speedup over the historical run.
+
+| Case | Worker import p50 ms | Shim wall p50 ms | Shim wall p95 ms |
+|---|---:|---:|---:|
+| py_info | 107.819 | 615.062 | 744.528 |
+| la_matrix_fn_expm_8x8 | 353.025 | 995.352 | 1053.813 |
+| la_sparse_cg_100 | 341.683 | 975.588 | 1087.889 |
+| la_sparse_eigsh_100 | 339.706 | 975.078 | 1092.923 |
+| special_fn_gammainc_100 | 336.615 | 1038.931 | 1126.551 |
+| opt_root_circle_line | 464.545 | 1216.746 | 1286.954 |
+| sm_tsa_tools_adfuller_200 | 1072.671 | 1972.413 | 2056.923 |
+| sm_tsa_tools_ljung_box_200 | 1076.001 | 1995.605 | 2094.388 |
+
+Fresh hardened production-container probe (2 CPUs, 4 GiB, pids 128, read-only root, no caps, no-new-privileges, default seccomp, no network, caller UID/GID, /tmp tmpfs 512 MiB): random symmetric diagonally dominant COO, **n=2000, 10000 stored entries**, exactly **n*stored_entries=20M**. Duplicates coalesce to 9990 actual CSR entries. Both direct and shift-invert paths are at the new dimension/work boundaries, unlike the old banded/Poisson-only probes.
+
+| Path | Exit/status | Wall seconds | Verified residual |
+|---|---|---:|---:|
+| la_sparse_to task=spsolve | 0 / OK | 0.902 | 4.85e-16 |
+| la_sparse_to task=eigsh, sigma=0, k=3, vectors | 0 / OK | 1.101 | 2.20e-15 |
+
+The n=20000 direct and n=40000 shift-invert review patterns now exceed pre-spawn limits and return INPUT_TOO_LARGE rather than entering a non-interruptible factorisation. The limits are conservative; larger structured matrices can be fast but do not justify exposing arbitrary fill-in. Unshifted ARPACK/CG/GMRES retain the larger sparse caps.
+
+Whole-probe cgroup memory.peak: **82,644,992 bytes (78.8 MiB)**. Cumulative waited-child peak RSS: **90,404 KiB (88.3 MiB)**; different metrics, not isolated allocation counts. Times include inner CLI/Python startup, excluding outer Docker startup. Raw evidence: [measurement-s8b1-resources.json](measurement-s8b1-resources.json); reproducer: scripts/measure-s8b1-review.py.
+
+Acceptance: test build **0**, runtime rebuild **0**, **34/34 CTest groups**, exit **0**, **809.12 s**; S8b review **24 tests**, existing S8b oracles **39 tests**; additional **3 ASan/UBSan preflight tests**, exit **0**. All **27 recipes x real/check/dry-run = 81 invocations** exited **0** through the host shim; R and statsrust legs ran (optional absent lmda legs gave their setup hints). All **five Kimi mutants** were rejected (expected test exit 1, audit runner exit 0).
+
+The TSA cross-oracle measured largest statistics/correlations difference **2.2e-14**; ADF p-value difference **1.381838e-9**, traced to lmstats' normal-CDF approximation using an independent 65-digit reference (docs/oracle-findings.md). Full commands/exit codes: [acceptance-s8b1-review.json](acceptance-s8b1-review.json); recipe stdout: [measurement-s8b1-recipes.json](measurement-s8b1-recipes.json). amd64 execution remains unverified.

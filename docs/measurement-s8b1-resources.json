@@ -1,0 +1,112 @@
+[
+  {
+    "task": "spsolve",
+    "stored_entries": 10000,
+    "n_times_entries": 20000000,
+    "wall_s": 0.9022249589907005,
+    "exit_code": 0,
+    "result": {
+      "status": "OK",
+      "task": "spsolve",
+      "shape": [
+        2000,
+        2000
+      ],
+      "nnz": 9990,
+      "relative_residual": 4.8532749040469e-16,
+      "empty_outputs": [],
+      "meta": {
+        "python": "3.12.15",
+        "numpy": "2.3.3",
+        "scipy": "1.16.2",
+        "pandas": "unloaded",
+        "sklearn": "unloaded",
+        "statsmodels": "unloaded",
+        "scipy_subpackages": [],
+        "forbidden_modules_loaded": [],
+        "import_ms": 370.8559010119643,
+        "elapsed_ms": 590.3659659961704
+      },
+      "warnings": [],
+      "warnings_truncated": false,
+      "artifacts": {
+        "x": {
+          "format": "safetensors",
+          "ref": "/tmp/tmpzfmw8i48/spsolve.safetensors#x",
+          "path": "/tmp/tmpzfmw8i48/spsolve.safetensors",
+          "key": "x",
+          "dtype": "F64",
+          "shape": [
+            2000
+          ],
+          "nbytes": 16000
+        }
+      },
+      "outputs_in_artifact": true
+    },
+    "cgroup_peak_bytes": 81793024,
+    "cumulative_child_peak_rss_kib": 90388
+  },
+  {
+    "task": "eigsh",
+    "stored_entries": 10000,
+    "n_times_entries": 20000000,
+    "wall_s": 1.1009587940061465,
+    "exit_code": 0,
+    "result": {
+      "status": "OK",
+      "task": "eigsh",
+      "shape": [
+        2000,
+        2000
+      ],
+      "nnz": 9990,
+      "max_residual": 2.196239236017537e-15,
+      "complex": false,
+      "k": 3,
+      "empty_outputs": [],
+      "meta": {
+        "python": "3.12.15",
+        "numpy": "2.3.3",
+        "scipy": "1.16.2",
+        "pandas": "unloaded",
+        "sklearn": "unloaded",
+        "statsmodels": "unloaded",
+        "scipy_subpackages": [],
+        "forbidden_modules_loaded": [],
+        "import_ms": 342.58869098266587,
+        "elapsed_ms": 761.049283988541
+      },
+      "warnings": [],
+      "warnings_truncated": false,
+      "artifacts": {
+        "v": {
+          "format": "safetensors",
+          "ref": "/tmp/tmpzfmw8i48/eigsh.safetensors#v",
+          "path": "/tmp/tmpzfmw8i48/eigsh.safetensors",
+          "key": "v",
+          "dtype": "F64",
+          "shape": [
+            2000,
+            3
+          ],
+          "nbytes": 48000
+        },
+        "w": {
+          "format": "safetensors",
+          "ref": "/tmp/tmpzfmw8i48/eigsh.safetensors#w",
+          "path": "/tmp/tmpzfmw8i48/eigsh.safetensors",
+          "key": "w",
+          "dtype": "F64",
+          "shape": [
+            3
+          ],
+          "nbytes": 24
+        }
+      },
+      "outputs_in_artifact": true
+    },
+    "cgroup_peak_bytes": 82644992,
+    "cumulative_child_peak_rss_kib": 90404
+  }
+]

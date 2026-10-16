@@ -37,4 +37,4 @@ its interpolation, the Ljung-Box formula with a closed-form even-degree chi-squa
 
 ## S8b-1 review corrections
 Numerical certification, parameter conventions, all review-to-test mappings and resource evidence are in [s8b1-review-notes.md](s8b1-review-notes.md).
-`opt_root` retains the established S3 `start` naming and named-unknown expressions; fixed coefficients are expression literals (there is no `params` argument). Complex S8b outputs use `_re`/`_im` names plus `complex:true` consistently within this family; older S1 operations retain their published format.
+`opt_root` uses `start` for initial unknowns and returns `x`; S3 `opt_minimize`/`opt_least_squares` use `x0` and return `par`. Fixed coefficients are expression literals (there is no `params` argument in opt_root). Complex S8b outputs use `_re`/`_im` names plus `complex:true` consistently within this family; older S1 operations retain their published format.

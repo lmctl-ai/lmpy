@@ -1,0 +1,1028 @@
+[
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/bridge-ml.lms"
+    ],
+    "mode": "check",
+    "recipe": "bridge-ml.lms",
+    "exit_code": 0,
+    "seconds": 0.274,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/csv-join-report.lms"
+    ],
+    "mode": "check",
+    "recipe": "csv-join-report.lms",
+    "exit_code": 0,
+    "seconds": 0.211,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/curve-fit.lms"
+    ],
+    "mode": "check",
+    "recipe": "curve-fit.lms",
+    "exit_code": 0,
+    "seconds": 0.259,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/lp-plan.lms"
+    ],
+    "mode": "check",
+    "recipe": "lp-plan.lms",
+    "exit_code": 0,
+    "seconds": 0.316,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/lstsq-fit.lms"
+    ],
+    "mode": "check",
+    "recipe": "lstsq-fit.lms",
+    "exit_code": 0,
+    "seconds": 0.189,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/minimize-rosenbrock.lms"
+    ],
+    "mode": "check",
+    "recipe": "minimize-rosenbrock.lms",
+    "exit_code": 0,
+    "seconds": 0.207,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/ml-classify-cv.lms"
+    ],
+    "mode": "check",
+    "recipe": "ml-classify-cv.lms",
+    "exit_code": 0,
+    "seconds": 0.251,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/ode-fit.lms"
+    ],
+    "mode": "check",
+    "recipe": "ode-fit.lms",
+    "exit_code": 0,
+    "seconds": 0.221,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/ode-sir.lms"
+    ],
+    "mode": "check",
+    "recipe": "ode-sir.lms",
+    "exit_code": 0,
+    "seconds": 0.196,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-frame.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-frame.lms",
+    "exit_code": 0,
+    "seconds": 0.255,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-interp.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-interp.lms",
+    "exit_code": 0,
+    "seconds": 0.206,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-kmeans.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-kmeans.lms",
+    "exit_code": 0,
+    "seconds": 0.207,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-metrics.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-metrics.lms",
+    "exit_code": 0,
+    "seconds": 0.335,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-ml-linear.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-ml-linear.lms",
+    "exit_code": 0,
+    "seconds": 0.334,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-root.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-root.lms",
+    "exit_code": 0,
+    "seconds": 0.2,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-rvs.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-rvs.lms",
+    "exit_code": 0,
+    "seconds": 0.303,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-sm-arima.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-sm-arima.lms",
+    "exit_code": 0,
+    "seconds": 0.513,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-sm-glm.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-sm-glm.lms",
+    "exit_code": 0,
+    "seconds": 0.252,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-sm-regression.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-sm-regression.lms",
+    "exit_code": 0,
+    "seconds": 0.223,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-spectrum.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-spectrum.lms",
+    "exit_code": 0,
+    "seconds": 0.24,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/oracle-tsa-tools.lms"
+    ],
+    "mode": "check",
+    "recipe": "oracle-tsa-tools.lms",
+    "exit_code": 0,
+    "seconds": 0.275,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/sales-report.lms"
+    ],
+    "mode": "check",
+    "recipe": "sales-report.lms",
+    "exit_code": 0,
+    "seconds": 0.301,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/sensor-pipeline.lms"
+    ],
+    "mode": "check",
+    "recipe": "sensor-pipeline.lms",
+    "exit_code": 0,
+    "seconds": 0.253,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/sig-denoise-peaks.lms"
+    ],
+    "mode": "check",
+    "recipe": "sig-denoise-peaks.lms",
+    "exit_code": 0,
+    "seconds": 0.207,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/solve.lms"
+    ],
+    "mode": "check",
+    "recipe": "solve.lms",
+    "exit_code": 0,
+    "seconds": 0.196,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/sparse-poisson.lms"
+    ],
+    "mode": "check",
+    "recipe": "sparse-poisson.lms",
+    "exit_code": 0,
+    "seconds": 0.347,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--check",
+      "examples/spatial-neighbours.lms"
+    ],
+    "mode": "check",
+    "recipe": "spatial-neighbours.lms",
+    "exit_code": 0,
+    "seconds": 0.267,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/bridge-ml.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "bridge-ml.lms",
+    "exit_code": 0,
+    "seconds": 0.294,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/bridge-ml.lms:10:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/bridge-ml.lms:16:1 dummy write_file [\"bridge-s8.csv\",\"x1,x2,y\\n0.000000,-5.000000,4.507500000\\n0.250000,2.000000,1.765000000\\n0.500000,-2.000000,4.480000000\\n0.750000,5.000000,1.737500000\\n1.000000,1.000000,4.495000000\\n1.250000,-3.000000,7.252500000\\n1.500000,4.000000,4.510000000\\n1.750000,0.000000,7.267500000\\n2.000000,-4.000000,9.982500000\\n2.250000,3.000000,7.240000000\\n\"]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/bridge-ml.lms:17:11 handled pycli.frame_import [{\"csv\":\"bridge-s8.csv\",\"out\":\"bridge-s8.npz\"}]\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/bridge-ml.lms:18:32 handled println [\"Bridge simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/csv-join-report.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "csv-join-report.lms",
+    "exit_code": 0,
+    "seconds": 0.236,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/csv-join-report.lms:11:1 dummy write_file [\"orders-s8.csv\",\"order_id,cust,qty,unit_price\\n1,1,4,2.5\\n2,2,12,1.0\\n3,1,10,3.0\\n4,3,1,40.0\\n5,9,6,5.0\\n6,2,2,10.0\\n7,3,20,0.5\\n\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/csv-join-report.lms:12:1 dummy write_file [\"customers-s8.csv\",\"cust,region,tier\\n1,North,gold\\n2,South,silver\\n3,North,silver\\n4,East,gold\\n\"]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/csv-join-report.lms:13:11 handled pycli.frame_import [{\"csv\":\"orders-s8.csv\",\"out\":\"orders-s8.npz\"}]\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/csv-join-report.lms:14:32 handled println [\"Join report simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/curve-fit.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "curve-fit.lms",
+    "exit_code": 0,
+    "seconds": 0.247,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/curve-fit.lms:13:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/curve-fit.lms:21:34 handled println [\"Fit simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/lp-plan.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "lp-plan.lms",
+    "exit_code": 0,
+    "seconds": 0.252,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:3:1 dummy write_file [\"demand-s4.csv\",\"total_units,quality_min,regular_capacity,premium_capacity,regular_cost,premium_cost\\n3,5,4,3,1,2\\n\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:4:14 handled pycli.frame_import [{\"csv\":\"demand-s4.csv\",\"out\":\"demand-s4.npz\"}]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/lp-plan.lms:5:35 handled println [\"Production plan simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/lstsq-fit.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "lstsq-fit.lms",
+    "exit_code": 0,
+    "seconds": 0.236,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/lstsq-fit.lms:12:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/lstsq-fit.lms:19:34 handled println [\"Fit simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/minimize-rosenbrock.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "minimize-rosenbrock.lms",
+    "exit_code": 0,
+    "seconds": 0.294,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/minimize-rosenbrock.lms:11:33 handled println [\"Minimisation simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/ml-classify-cv.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "ml-classify-cv.lms",
+    "exit_code": 0,
+    "seconds": 0.293,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/ml-classify-cv.lms:5:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/ml-classify-cv.lms:7:28 handled println [\"classification CV simulated\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/ode-fit.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "ode-fit.lms",
+    "exit_code": 0,
+    "seconds": 0.252,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/ode-fit.lms:10:35 handled println [\"ODE fit simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/ode-sir.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "ode-sir.lms",
+    "exit_code": 0,
+    "seconds": 0.249,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/ode-sir.lms:4:39 handled println [\"SIR trajectory simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-frame.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-frame.lms",
+    "exit_code": 0,
+    "seconds": 0.472,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-frame.lms:11:1 dummy write_file [\"left-s8.csv\",\"id,a\\n1,x\\n2,y\\n2,z\\n3,w\\n\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-frame.lms:12:1 dummy write_file [\"right-s8.csv\",\"id,b\\n2,B\\n3,C\\n3,D\\n4,E\\n\"]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-frame.lms:13:11 handled pycli.frame_import [{\"csv\":\"left-s8.csv\",\"out\":\"left-s8.npz\"}]\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-frame.lms:14:32 handled println [\"Frame comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-interp.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-interp.lms",
+    "exit_code": 0,
+    "seconds": 0.258,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-interp.lms:30:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-interp.lms:32:32 handled println [\"Interpolation comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-kmeans.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-kmeans.lms",
+    "exit_code": 0,
+    "seconds": 0.398,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-kmeans.lms:6:9 handled pycli.ml_fit [{\"columns\":{\"x\":[-11,-10,-9,9,10,11],\"z\":[0,1,0,0,1,0]},\"family\":\"kmeans\",\"features\":[\"x\",\"z\"],\"out\":\"./km.safetensors\",\"params\":{\"n_clusters\":2},\"preprocess\":{\"one_hot\":[],\"scale\":false},\"seed\":42}]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-kmeans.lms:7:27 handled println [\"kmeans oracle simulated\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-metrics.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-metrics.lms",
+    "exit_code": 0,
+    "seconds": 0.302,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-metrics.lms:12:1 dummy write_file [\"metrics-s8.csv\",\"y,p,s\\n1,1,0.9\\n0,0,0.2\\n1,0,0.4\\n1,1,0.8\\n0,1,0.55\\n0,1,0.1\\n1,1,0.7\\n0,0,0.3\\n\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-metrics.lms:13:11 handled pycli.frame_import [{\"csv\":\"metrics-s8.csv\",\"out\":\"metrics-s8.npz\"}]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-metrics.lms:14:32 handled println [\"Metrics comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-ml-linear.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-ml-linear.lms",
+    "exit_code": 0,
+    "seconds": 0.336,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-ml-linear.lms:9:11 handled pycli.ml_fit [{\"columns\":{\"x\":[-3,-2,-1,0,1,2,3],\"y\":[-5,-3,-1,1,3,5,7]},\"family\":\"linear\",\"features\":[\"x\"],\"out\":\"./ols.safetensors\",\"preprocess\":{\"one_hot\":[],\"scale\":false},\"target\":\"y\"}]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-ml-linear.lms:10:32 handled println [\"ML linear oracle simulated\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-root.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-root.lms",
+    "exit_code": 0,
+    "seconds": 0.255,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-root.lms:12:32 handled println [\"Root comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-rvs.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-rvs.lms",
+    "exit_code": 0,
+    "seconds": 0.282,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-rvs.lms:12:36 handled println [\"Sampling comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-sm-arima.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-sm-arima.lms",
+    "exit_code": 0,
+    "seconds": 0.413,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-sm-arima.lms:26:34 handled println [\"ARIMA comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-sm-glm.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-sm-glm.lms",
+    "exit_code": 0,
+    "seconds": 0.271,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-sm-glm.lms:24:34 handled println [\"GLM comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-sm-regression.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-sm-regression.lms",
+    "exit_code": 0,
+    "seconds": 0.291,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-sm-regression.lms:27:34 handled println [\"OLS comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-spectrum.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-spectrum.lms",
+    "exit_code": 0,
+    "seconds": 0.321,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-spectrum.lms:21:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-spectrum.lms:29:1 loop truncated at 10\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-spectrum.lms:32:32 handled println [\"Spectrum comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/oracle-tsa-tools.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "oracle-tsa-tools.lms",
+    "exit_code": 0,
+    "seconds": 0.317,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-tsa-tools.lms:13:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-tsa-tools.lms:15:11 loop truncated at 10\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-tsa-tools.lms:16:10 loop truncated at 10\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/oracle-tsa-tools.lms:21:34 handled println [\"TSA comparison simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/sales-report.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "sales-report.lms",
+    "exit_code": 0,
+    "seconds": 0.331,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:6:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:11:1 dummy write_file [\"sales-s2.csv\",\"ts,region,sales\\n2026-03-01T12:00:00+00:00,East,10\\n2026-03-02T12:00:00+00:00,West,20\\n2026-03-03T12:00:00+00:00,East,30\\n2026-03-04T12:00:00+00:00,West,40\\n2026-03-05T12:00:00+00:00,East,50\\n2026-03-06T12:00:00+00:00,West,60\\n2026-03-07T12:00:00+00:00,East,70\\n2026-03-08T12:00:00+00:00,West,80\\n2026-03-09T12:00:00+00:00,East,90\\n2026-03-10T12:00:00+00:00,West,100\\n\"]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:12:16 handled pycli.frame_import [{\"csv\":\"sales-s2.csv\",\"dtypes\":{\"ts\":{\"dtype\":\"datetime64[ns]\",\"tz\":\"UTC\"}},\"out\":\"sales-s2.npz\"}]\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/sales-report.lms:13:37 handled println [\"Sales report simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/sensor-pipeline.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "sensor-pipeline.lms",
+    "exit_code": 0,
+    "seconds": 0.251,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/sensor-pipeline.lms:13:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/sensor-pipeline.lms:25:1 dummy write_file [\"sensor-s8.csv\",\"ts,value\\n2026-02-01T00:00:00Z,1.936772\\n2026-02-01T00:00:05Z,1.660580\\n2026-02-01T00:00:10Z,0.146174\\n2026-02-01T00:00:15Z,1.765754\\n2026-02-01T00:00:20Z,0.834237\\n2026-02-01T00:00:25Z,0.570496\\n2026-02-01T00:00:30Z,-0.010086\\n2026-02-01T00:00:35Z,2.046267\\n2026-02-01T00:00:40Z,0.272734\\n2026-02-01T00:00:45Z,1.657796\\n\"]\n3. /home/ubuntu/repos/lmctlhq/pycli/examples/sensor-pipeline.lms:26:11 handled pycli.frame_import [{\"csv\":\"sensor-s8.csv\",\"dtypes\":{\"ts\":{\"dtype\":\"datetime64[ns]\",\"tz\":\"UTC\"}},\"out\":\"sensor-s8.npz\"}]\n4. /home/ubuntu/repos/lmctlhq/pycli/examples/sensor-pipeline.lms:27:32 handled println [\"Sensor pipeline simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/sig-denoise-peaks.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "sig-denoise-peaks.lms",
+    "exit_code": 0,
+    "seconds": 0.3,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/sig-denoise-peaks.lms:15:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/sig-denoise-peaks.lms:25:34 handled println [\"Pipeline simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/solve.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "solve.lms",
+    "exit_code": 0,
+    "seconds": 0.235,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/solve.lms:5:34 handled println [\"Solve simulated.\"]\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/solve.lms:13:32 handled println [\"Quantile simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/sparse-poisson.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "sparse-poisson.lms",
+    "exit_code": 0,
+    "seconds": 0.399,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/sparse-poisson.lms:12:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/sparse-poisson.lms:28:34 handled println [\"Sparse Poisson simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "--dry-run",
+      "examples/spatial-neighbours.lms"
+    ],
+    "mode": "dry-run",
+    "recipe": "spatial-neighbours.lms",
+    "exit_code": 0,
+    "seconds": 0.313,
+    "stdout": "PLAN complete\n1. /home/ubuntu/repos/lmctlhq/pycli/examples/spatial-neighbours.lms:12:1 loop truncated at 10\n2. /home/ubuntu/repos/lmctlhq/pycli/examples/spatial-neighbours.lms:21:33 handled println [\"Spatial story simulated.\"]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/bridge-ml.lms"
+    ],
+    "mode": "real",
+    "recipe": "bridge-ml.lms",
+    "exit_code": 0,
+    "seconds": 7.078,
+    "stdout": "design [40,3] (120 values), target [40]\ncoefficients 2.0004 2.9999 -0.5008\nenriched source: 40 rows, original features plus fitted and residual columns\nBridge pipeline passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/csv-join-report.lms"
+    ],
+    "mode": "real",
+    "recipe": "csv-join-report.lms",
+    "exit_code": 0,
+    "seconds": 7.427,
+    "stdout": "joined: 7 rows, 6 matched pairs, 1 orders without a customer record, 1 customers without orders\nreport exported to report-s8.csv (17-digit round-trip numbers)\nNorth 86.00; South 30.80; no region 30.00\nCSV join report passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/curve-fit.lms"
+    ],
+    "mode": "real",
+    "recipe": "curve-fit.lms",
+    "exit_code": 0,
+    "seconds": 1.44,
+    "stdout": "a=2.5006 b=0.7021 c=0.1016  rss=0.00439904  m=30  cov=OK\nCurve-fit oracle passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/lp-plan.lms"
+    ],
+    "mode": "real",
+    "recipe": "lp-plan.lms",
+    "exit_code": 0,
+    "seconds": 3.496,
+    "stdout": "regular=2.000000 premium=1.000000 total_cost=4.000000\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/lstsq-fit.lms"
+    ],
+    "mode": "real",
+    "recipe": "lstsq-fit.lms",
+    "exit_code": 0,
+    "seconds": 2.214,
+    "stdout": "coefficients: c0=1.997925 c1=3.003505 c2=-0.500839  rank=3  residual_norm=0.057431\nPolynomial least-squares fit passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/minimize-rosenbrock.lms"
+    ],
+    "mode": "real",
+    "recipe": "minimize-rosenbrock.lms",
+    "exit_code": 0,
+    "seconds": 2.648,
+    "stdout": "finite differences: x=0.999996 y=0.999991 value=0.0000000000 nfev=117\nanalytic gradient:  x=1.000000 y=1.000000 value=0.0000000000 nfev=40\nRosenbrock oracle passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/ml-classify-cv.lms"
+    ],
+    "mode": "real",
+    "recipe": "ml-classify-cv.lms",
+    "exit_code": 0,
+    "seconds": 6.861,
+    "stdout": "4-fold mean scores: {\"accuracy\":0.975,\"log_loss\":0.20075185634341353}\nReloaded probabilities: {\"probability_0\":[0.9145808004467222,0.5293965916141262,0.10569865183177474],\"probability_1\":[0.08541919955327777,0.4706034083858738,0.8943013481682253]}\nModel: /home/ubuntu/repos/lmctlhq/pycli/classifier.safetensors\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/ode-fit.lms"
+    ],
+    "mode": "real",
+    "recipe": "ode-fit.lms",
+    "exit_code": 0,
+    "seconds": 5.163,
+    "stdout": "noise-free growth rate 0.19757 (amplitude 1.0101); noisy fit 0.20394 (amplitude 0.9629), standard error of the rate 0.00282\nODE fit with seeded noise passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/ode-sir.lms"
+    ],
+    "mode": "real",
+    "recipe": "ode-sir.lms",
+    "exit_code": 0,
+    "seconds": 1.383,
+    "stdout": "peak_day=38.355308 peak_infected=300.796071 population=1000.000000\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-frame.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-frame.lms",
+    "exit_code": 0,
+    "seconds": 7.164,
+    "stdout": "outer join: 6 rows, 4 matched pairs, 1 left-only, 1 right-only\nlmda legs skipped: lmda not on PATH (cargo build --release in lmctlhq/lmda; see examples/schemas/README.md)\n0 lmda leg(s) compared.\nJoin and rolling windows agree.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-interp.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-interp.lms",
+    "exit_code": 0,
+    "seconds": 12.983,
+    "stdout": "leg 0: not-a-knot cubic vs the cubic polynomial it samples\n  cubic polynomial: 14 points, largest |difference| 0.000000000000\nleg 1: linear vs R approx(method = linear)\n  linear: 14 points, largest |difference| 0.000000000000\nleg 2: cubic natural vs R splinefun(method = natural)\n  natural: 14 points, largest |difference| 0.000000000000\nleg 3: cubic periodic vs R splinefun(method = periodic)\n  periodic: 14 points, largest |difference| 0.000000000000\ninformation (not asserted): different mathematical objects\n  R fmm vs pycli not-a-knot: 14 points, largest |difference| 0.059588456676\n  R monoH.FC vs pycli pchip: 14 points, largest |difference| 0.344444444444\n3 R leg(s) compared; largest absolute difference over the asserted legs 0.000000000000\nInterpolation agrees within 1e-9.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-kmeans.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-kmeans.lms",
+    "exit_code": 0,
+    "seconds": 3.514,
+    "stdout": "pycli vs hand blobs: ARI=1\npycli vs rcli Lloyd: ARI=1\nlmda cluster_kmeans deferred: no prebuilt binary; install one to add an optional leg\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-metrics.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-metrics.lms",
+    "exit_code": 0,
+    "seconds": 4.517,
+    "stdout": "quantity | pycli | hand\n  accuracy | 0.625000000000000 | 0.625000000000000\n  balanced_accuracy | 0.625000000000000 | 0.625000000000000\n  precision | 0.600000000000000 | 0.600000000000000\n  recall | 0.750000000000000 | 0.750000000000000\n  f1 | 0.666666666666667 | 0.666666666666667\n  roc_auc | 0.937500000000000 | 0.937500000000000\n  brier | 0.117812500000000 | 0.117812500000000\nlmda leg skipped: lmda not on PATH (cargo build --release in lmctlhq/lmda; see examples/schemas/README.md)\n1 comparison group(s); largest absolute difference 0.000000000000000\nr2 for a constant target: y_true is constant (zero total variance)\nMetrics agree within 1e-12.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-ml-linear.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-ml-linear.lms",
+    "exit_code": 0,
+    "seconds": 3.621,
+    "stdout": "pycli OLS intercept= 1 slope= 2\nrcli OLS= [1,2]\nlmstats OLS= [0.9999999999999997,2.000000000000001]\nlmda leg deferred: no prebuilt binary at the requested checkout\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-root.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-root.lms",
+    "exit_code": 0,
+    "seconds": 7.129,
+    "stdout": "root of x^3 - 2x - 5: known 2.0945514815423265 | opt_root brentq 2.0945514815423270 | num_root 2.0945514815423270\n  R uniroot 2.0945514815423265\nscalar root: 3 tool(s) agree, largest error 0.000000000000\nsystem with hybr: x = 1.414213562373 y = 1.414213562373 residual 0.000000000000 error 0.000000000000 (25 evaluations)\nsystem with lm  : x = 1.414213562373 y = 1.414213562373 residual 0.000000000000 error 0.000000000000 (23 evaluations)\nx^2 + 1 = 0: status NO_CONVERGENCE, best residual 1.000 (the solver's own success flag is not trusted)\nRoot finding agrees.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-rvs.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-rvs.lms",
+    "exit_code": 0,
+    "seconds": 12.856,
+    "stdout": "leg 0: seed 11 reproduces the identical 1000 values; seed 12 gives a different stream\nnorm(0,1): p=0.10 emp=0.126 (z 2.74) p=0.25 emp=0.289 (z 2.85) p=0.50 emp=0.504 (z 0.25) p=0.75 emp=0.750 (z 0.00) p=0.90 emp=0.894 (z 0.63)\ngamma(shape 3, scale 2): p=0.10 emp=0.118 (z 1.90) p=0.25 emp=0.262 (z 0.88) p=0.50 emp=0.525 (z 1.58) p=0.75 emp=0.732 (z 1.31) p=0.90 emp=0.915 (z 1.58)\nbeta(2, 5): p=0.10 emp=0.086 (z 1.48) p=0.25 emp=0.250 (z 0.00) p=0.50 emp=0.493 (z 0.44) p=0.75 emp=0.745 (z 0.37) p=0.90 emp=0.897 (z 0.32)\nchi2(4): p=0.10 emp=0.122 (z 2.32) p=0.25 emp=0.269 (z 1.39) p=0.50 emp=0.496 (z 0.25) p=0.75 emp=0.752 (z 0.15) p=0.90 emp=0.907 (z 0.74)\nt(8): p=0.10 emp=0.091 (z 0.95) p=0.25 emp=0.239 (z 0.80) p=0.50 emp=0.496 (z 0.25) p=0.75 emp=0.747 (z 0.22) p=0.90 emp=0.898 (z 0.21)\nleg 1: 5 families x 5 quantile levels agree with R; largest deviation 2.85 standard errors\nSampling agrees with R's distributions.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-sm-arima.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-sm-arima.lms",
+    "exit_code": 0,
+    "seconds": 3.815,
+    "stdout": "pycli: [\"ar.L1\",\"ma.L1\",\"sigma2\"] llf=-174.28654082 aic=354.573082\nleg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)\n  param[0] | 0.574537679132 | 0.574525888288 | 0.000011790844\n  param[1] | 0.054436768010 | 0.054451308668 | 0.000014540658\n  param[2] | 1.065050413786 | 1.065050436121 | 0.000000022335\n  forecast[0] | -0.089998891073 | -0.089998805005 | 0.000000086068\n  forecast[1] | -0.051707754002 | -0.051706643391 | 0.000001110611\n  forecast[2] | -0.029708052977 | -0.029706805224 | 0.000001247753\n  forecast[3] | -0.017068395809 | -0.017067328660 | 0.000001067149\n  forecast[4] | -0.009806436515 | -0.009805622159 | 0.000000814356\nleg 2: pycli vs rcli ts_arima\n  param[0] | 0.574537679132 | 0.574525888288 | 0.000011790844\n  param[1] | 0.054436768010 | 0.054451308668 | 0.000014540658\n  param[2] | 1.065050413786 | 1.065050436121 | 0.000000022335\n  forecast[0] | -0.089998891073 | -0.089998805005 | 0.000000086068\n  forecast[1] | -0.051707754002 | -0.051706643391 | 0.000001110611\n  forecast[2] | -0.029708052977 | -0.029706805224 | 0.000001247753\n  forecast[3] | -0.017068395809 | -0.017067328660 | 0.000001067149\n  forecast[4] | -0.009806436515 | -0.009805622159 | 0.000000814356\nleg 3: pycli vs lmstats arima\n  param[0] | 0.574537679132 | 0.574536065250 | 0.000001613882\n  param[1] | 0.054436768010 | 0.054442941738 | 0.000006173728\n  param[2] | 1.065050413786 | 1.065046124840 | 0.000004288947\n  forecast[0] | -0.089998891073 | -0.089999339890 | 0.000000448816\n  forecast[1] | -0.051707754002 | -0.051707866615 | 0.000000112614\n  forecast[2] | -0.029708052977 | -0.029708034228 | 0.000000018750\n  forecast[3] | -0.017068395809 | -0.017068337091 | 0.000000058718\n  forecast[4] | -0.009806436515 | -0.009806375233 | 0.000000061282\n3 leg(s) compared; largest absolute difference 0.000014540658\nARMA(1,1) agrees within 1e-3.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-sm-glm.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-sm-glm.lms",
+    "exit_code": 0,
+    "seconds": 3.485,
+    "stdout": "pycli: converged=true iterations=4 deviance=27.1984531708 aic=134.09792144\nleg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)\n  estimate[0] | 0.516618914190 | 0.516618914190 | 0.000000000000\n  estimate[1] | 0.065569295718 | 0.065569295718 | 0.000000000000\n  estimate[2] | -0.071256132873 | -0.071256132873 | 0.000000000000\n  std_err[0] | 0.228351924253 | 0.228351965294 | 0.000000041041\n  std_err[1] | 0.036981862383 | 0.036981866991 | 0.000000004607\n  std_err[2] | 0.071587357439 | 0.071587364905 | 0.000000007466\nleg 2: pycli vs rcli fit_glm\n  estimate[0] | 0.516618914190 | 0.516618914190 | 0.000000000000\n  estimate[1] | 0.065569295718 | 0.065569295718 | 0.000000000000\n  estimate[2] | -0.071256132873 | -0.071256132873 | 0.000000000000\n  std_err[0] | 0.228351924253 | 0.228351965294 | 0.000000041041\n  std_err[1] | 0.036981862383 | 0.036981866991 | 0.000000004607\n  std_err[2] | 0.071587357439 | 0.071587364905 | 0.000000007466\nleg 3: pycli vs lmstats glm\n  estimate[0] | 0.516618914190 | 0.516618914190 | 0.000000000000\n  estimate[1] | 0.065569295718 | 0.065569295718 | 0.000000000000\n  estimate[2] | -0.071256132873 | -0.071256132873 | 0.000000000000\n  std_err[0] | 0.228351924253 | 0.228351924253 | 0.000000000000\n  std_err[1] | 0.036981862383 | 0.036981862383 | 0.000000000000\n  std_err[2] | 0.071587357439 | 0.071587357439 | 0.000000000000\n3 leg(s) compared; largest absolute difference 0.000000041041\nPoisson GLM agrees within 1e-6.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-sm-regression.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-sm-regression.lms",
+    "exit_code": 0,
+    "seconds": 3.441,
+    "stdout": "coefficient names: [\"const\",\"x1\",\"x2\",\"g[T.b]\",\"g[T.c]\",\"x1:x2\"]\nleg 1: pycli vs R 4.3.3 golden constants (quantity | pycli | R | abs diff)\n  estimate[0] | 1.754921166284 | 1.754921166284 | 0.000000000000\n  estimate[1] | 1.927896524978 | 1.927896524978 | 0.000000000000\n  estimate[2] | -0.734388439946 | -0.734388439946 | 0.000000000000\n  estimate[3] | -0.637287930282 | -0.637287930282 | 0.000000000000\n  estimate[4] | -0.619990953878 | -0.619990953878 | 0.000000000000\n  estimate[5] | 0.129864711047 | 0.129864711047 | 0.000000000000\n  std_err[0] | 0.212436997165 | 0.212436997165 | 0.000000000000\n  std_err[1] | 0.032195098397 | 0.032195098397 | 0.000000000000\n  std_err[2] | 0.135553927120 | 0.135553927120 | 0.000000000000\n  std_err[3] | 0.258391444860 | 0.258391444860 | 0.000000000000\n  std_err[4] | 0.245073852757 | 0.245073852757 | 0.000000000000\n  std_err[5] | 0.023668847562 | 0.023668847562 | 0.000000000000\nleg 2: pycli vs rcli fit_lm\n  estimate[0] | 1.754921166284 | 1.754921166284 | 0.000000000000\n  estimate[1] | 1.927896524978 | 1.927896524978 | 0.000000000000\n  estimate[2] | -0.734388439946 | -0.734388439946 | 0.000000000000\n  estimate[3] | -0.637287930282 | -0.637287930282 | 0.000000000000\n  estimate[4] | -0.619990953878 | -0.619990953878 | 0.000000000000\n  estimate[5] | 0.129864711047 | 0.129864711047 | 0.000000000000\n  std_err[0] | 0.212436997165 | 0.212436997165 | 0.000000000000\n  std_err[1] | 0.032195098397 | 0.032195098397 | 0.000000000000\n  std_err[2] | 0.135553927120 | 0.135553927120 | 0.000000000000\n  std_err[3] | 0.258391444860 | 0.258391444860 | 0.000000000000\n  std_err[4] | 0.245073852757 | 0.245073852757 | 0.000000000000\n  std_err[5] | 0.023668847562 | 0.023668847562 | 0.000000000000\nleg 3: pycli vs lmstats regression\n  estimate[0] | 1.754921166284 | 1.754921166284 | 0.000000000000\n  estimate[1] | 1.927896524978 | 1.927896524978 | 0.000000000000\n  estimate[2] | -0.734388439946 | -0.734388439946 | 0.000000000000\n  estimate[3] | -0.637287930282 | -0.637287930282 | 0.000000000000\n  estimate[4] | -0.619990953878 | -0.619990953878 | 0.000000000000\n  estimate[5] | 0.129864711047 | 0.129864711047 | 0.000000000000\n  std_err[0] | 0.212436997165 | 0.212436997165 | 0.000000000000\n  std_err[1] | 0.032195098397 | 0.032195098397 | 0.000000000000\n  std_err[2] | 0.135553927120 | 0.135553927120 | 0.000000000000\n  std_err[3] | 0.258391444860 | 0.258391444860 | 0.000000000000\n  std_err[4] | 0.245073852757 | 0.245073852757 | 0.000000000000\n  std_err[5] | 0.023668847562 | 0.023668847562 | 0.000000000000\n3 leg(s) compared; largest absolute difference 0.000000000000\nOLS agrees within 1e-9.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-spectrum.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-spectrum.lms",
+    "exit_code": 0,
+    "seconds": 3.337,
+    "stdout": "pycli periodogram: 257 bins, df 0.001953125, peak at bin 64 (f = 0.125000000), total power 5.250000000000\nleg 1: closed forms\n  Parseval: integral 5.250000000000 vs mean square 5.250000000000 (relative difference 0.000000000000)\n  tone 1 (A = 3) bin 64: 2304.000000000 expected 2304, relative difference 0.000000000000\n  tone 2 (A = 1) bin 160: 256.000000000 expected 256, relative difference 0.000000000000\n  DC bin: 128.000000000 expected 128.000000000\nleg 2: Welch (hann, 128-sample segments, fs 256): peak at 32.000000 Hz, expected 32; 7 segments\n  spectrum-scaled peak 4.500000000 expected A^2/2 = 4.5\nleg 3 skipped: lmda not on PATH (cargo build --release in lmctlhq/lmda; see examples/schemas/README.md)\n1 comparison group(s); largest relative difference 0.000000000000\nSpectrum agrees within 1e-9.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/oracle-tsa-tools.lms"
+    ],
+    "mode": "real",
+    "recipe": "oracle-tsa-tools.lms",
+    "exit_code": 0,
+    "seconds": 12.908,
+    "stdout": "leg 1: closed forms (quantity | pycli | hand)\n  acf[1] | 0.529274766832144 | 0.529274766832145\n  acf[2] | 0.279440088857932 | 0.279440088857933\n  acf[3] | 0.168285080977859 | 0.168285080977859\n  acf[4] | 0.060661297513409 | 0.060661297513409\n  ljung_box Q(2) | 44.151323600930 | 44.151323600930   p | 0.000000000258619874 | 0.000000000258619874\n  ljung_box Q(4) | 48.159353169768 | 48.159353169768   p | 0.000000000874281452 | 0.000000000874281452\n  adfuller: statistic -3.298495049 p 0.014945880 used lag 11; kpss: statistic 0.077310065 p 0.100 lags 4\nleg 2: acf vs R acf()\n  acf[0] | 1.000000000000000 | 1.000000000000000\n  acf[1] | 0.529274766832144 | 0.529274766832145\n  acf[2] | 0.279440088857932 | 0.279440088857932\n  acf[3] | 0.168285080977859 | 0.168285080977859\n  acf[4] | 0.060661297513409 | 0.060661297513409\nleg 3: lmstats (quantity | pycli | lmstats)\n  adf statistic | -3.298495048718 | -3.298495048718; p | 0.014945880026727 | 0.014945878644889; used lag | 11 | 11; nobs | 108 | 108\n  kpss statistic | 0.077310065359 | 0.077310065359; p | 0.100 | 0.100; lags | 4 | 4\n3 comparison group(s); largest difference 0.000000000000022 (statistics, correlations), 0.000000001381838 (adf p-value)\nTime-series tests agree: statistics within 1e-9, p-values within 1e-8.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/sales-report.lms"
+    ],
+    "mode": "real",
+    "recipe": "sales-report.lms",
+    "exit_code": 0,
+    "seconds": 6.942,
+    "stdout": "Region totals: {\"region\":[\"East\",\"West\"],\"sales__sum\":[450,500],\"sales__mean\":[90,100],\"sales__count\":[5,5]}\nWeekly CSV: ts,sales__sum,sales__count\n2026-03-08T00:00:00+00:00,260,4\n2026-03-15T00:00:00+00:00,690,6\n\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/sensor-pipeline.lms"
+    ],
+    "mode": "real",
+    "recipe": "sensor-pipeline.lms",
+    "exit_code": 0,
+    "seconds": 6.884,
+    "stdout": "resampled to 100 one-minute means\nfilter: 2 sections, stable true\n3 peaks at minutes [19,50,80] with heights [3.0821726682134067,3.9931713559519433,3.5094399219507997]\nSensor pipeline passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/sig-denoise-peaks.lms"
+    ],
+    "mode": "real",
+    "recipe": "sig-denoise-peaks.lms",
+    "exit_code": 0,
+    "seconds": 4.963,
+    "stdout": "raw record: 48 local maxima above 0.5 (mostly noise)\nfilter: 2 sections, stable true, |H| at 1, 6, 20 Hz = 1.000000 0.707107 0.004752 (one pass; sosfiltfilt squares it)\nfiltered record: 4 peaks\n  peak 0: index 60 (true 60), height 2.660 (true 3.0), prominence 3.011, width 16.7 samples\n  peak 1: index 150 (true 150), height 2.010 (true 2.0), prominence 2.211, width 15.5 samples\n  peak 2: index 240 (true 240), height 4.135 (true 4.0), prominence 4.376, width 15.2 samples\n  peak 3: index 330 (true 330), height 2.433 (true 2.5), prominence 2.661, width 15.9 samples\nDenoise-and-detect pipeline passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/solve.lms"
+    ],
+    "mode": "real",
+    "recipe": "solve.lms",
+    "exit_code": 0,
+    "seconds": 3.114,
+    "stdout": "S0 solve and normal quantile passed.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/sparse-poisson.lms"
+    ],
+    "mode": "real",
+    "recipe": "sparse-poisson.lms",
+    "exit_code": 0,
+    "seconds": 6.773,
+    "stdout": "spsolve max |u - exact| = 0.000000000000 relative residual 0.000000000000\ncg      max |u - exact| = 0.000000000000 relative residual 0.000000000000\ngmres   max |u - exact| = 0.000000000000 relative residual 0.000000000001\neigsh (seed 7): smallest and largest three eigenvalues against the analytic spectrum\n  lambda_1 0.000674069393 (analytic 0.000674069393)   lambda_118 3.993936101374 (analytic 3.993936101374)\n  lambda_2 0.002695823202 (analytic 0.002695823202)   lambda_119 3.997304176798 (analytic 3.997304176798)\n  lambda_3 0.006063898626 (analytic 0.006063898626)   lambda_120 3.999325930607 (analytic 3.999325930607)\nlargest relative eigenvalue error 0.000000000000; ARPACK residual 0.000000000000\nSparse Poisson solves and spectrum agree.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "lmscript",
+      "examples/spatial-neighbours.lms"
+    ],
+    "mode": "real",
+    "recipe": "spatial-neighbours.lms",
+    "exit_code": 0,
+    "seconds": 3.315,
+    "stdout": "customer 0 nearest depots 23, 8, 1 at distances 0.2701 0.2763 0.2905\ncustomer 1 nearest depots 24, 15, 20 at distances 0.0152 0.0736 0.1354\ncustomer 2 nearest depots 16, 30, 32 at distances 0.1308 0.1805 0.2075\ncustomer 3 nearest depots 0, 25, 21 at distances 0.1175 0.1358 0.1606\ncustomer 4 nearest depots 3, 17, 26 at distances 0.2262 0.2429 0.2665\nhull: 12 of 40 depots on the boundary, area 0.660687856 (shoelace 0.660687856), perimeter 3.083394704 (polygon 3.083394704)\n6 x 6 depot distance matrix matches the hand formula; the spatial story passed.\n",
+    "stderr": ""
+  }
+]

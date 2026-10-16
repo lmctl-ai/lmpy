@@ -35,7 +35,7 @@ The original Poisson artifact oracle accepted a measured ~6e-11 residual at rtol
 TOLERANCE_UNATTAINABLE/no artifact at that tolerance, then verifies the artifact against the hand Thomas solution at attainable rtol=1e-10.
 
 ## Cross-slice conventions
-opt_root keeps S3 named `start` unknowns (no separate `params`; constants are expression literals).
+opt_root uses `start` and returns `x`; S3 opt_minimize/opt_least_squares use `x0` and return `par`. This explicitly documents the naming distinction (Argon's non-ranked coherence suggestion). There is no separate `params`: the current AST validates only the unknown bindings (`prepare_root_system` in src/main.cpp); adding a second constant-binding namespace is a future additive API change, not needed for any ranked correction. Constants remain expression literals.
 S8b complex results use `*_re`/`*_im` with `complex:true`; older S1 operation formats are unchanged.
 No callable/evaluation escape hatch was added. No dependencies or wheel locks changed.
 The inverse condition warning communicates forward accuracy limitations; a small backward residual does not promise accurate forward digits.
@@ -45,3 +45,5 @@ The inverse condition warning communicates forward accuracy limitations; a small
 - Scratch mutation runner: `scripts/check-s8b-review-mutations.py`; raw results: `measurement-s8b1-mutations.json` (runner exit 0, five expected mutant test exits 1). No mutant enters production.
 - Fresh production-container resource probe: `scripts/measure-s8b1-review.py`; final results and acceptance are recorded in docs/timings.md and acceptance-s8b1-review.json.
 - Runtime timing comparisons use sequential fresh shim calls on an idle host; original S8b cap figures below are historical and do not establish the new arbitrary-fill limits.
+
+Final acceptance: test/runtime builds exit 0; 34/34 CTest groups exit 0 (809.12 s); 3 targeted ASan/UBSan preflight tests exit 0; 27 recipes in real/check/dry-run modes, 81/81 exit 0. Idle-host timings and fresh random-fill boundary measurements are in docs/timings.md. Scratch builds removed; labelled builder layers and unused dangling images pruned; Build Cache 0B. Current test/runtime images retained. amd64 execution remains unverified.

@@ -731,7 +731,7 @@ Explicit svds `ncv` must satisfy `k<ncv<min(rows,cols)`; eigenproblems use `k+2<
 
 `special_fn`: broadcasting is explicit (non-singleton vectors have one length; scalars and length-1 arrays/refs repeat); `zeta` takes `q` (default 1: Riemann), `lambertw` the branch `k` (default 0; a result with a non-zero
 imaginary part is a domain error), `polygamma` and `spherical_jn` an integer `n >= 0`. A NaN result is `DOMAIN_ERROR`, an infinite one (pole, overflow) `NON_FINITE`, each with `n_bad`, `n_nan`, `n_inf`,
-`first_index` and the arguments at that index and no values. With mixed failures, the first NaN takes precedence; counts refer to outputs (a reduction has one output). The test oracle is mpmath at 50 digits; mpmath is installed in the test image only (docker/requirements-test.lock).
+`first_index` and the arguments at that index and no values. With mixed failures, the first NaN takes precedence; counts refer to result positions (the union across airy channels; a reduction has one position). The test oracle is mpmath at 50 digits; mpmath is installed in the test image only (docker/requirements-test.lock).
 
 `opt_root`: the equations use the S3 expression grammar in the named scalar unknowns (no data columns, no eval path), as many equations as unknowns (`UNDER_DETERMINED`). The solver's own success flag is not
 trusted: the residual `max|f_i(x)|` is recomputed at the returned point and must be at most `residual_tol` (default 1e-8), otherwise the status is `NO_CONVERGENCE` (a local minimum of the residual norm is not a
@@ -740,7 +740,7 @@ An explicit method conflicting with bracket is `BAD_PARAM`; `maxiter` is brentq-
 
 `sm_tsa_tools`: `adfuller` reports statistic, MacKinnon p-value, `used_lag`, `nobs`, `critical_values` (and `icbest` with an information-criterion autolag); `kpss` the statistic, the p-value interpolated from the
 published table with `p_value_bounded` none/above/below when the statistic lies outside it, `lags` and `critical_values`; `ljung_box` the statistic and p-value per lag (`model_df` removes fitted parameters).
-Constant series are `CONSTANT_SERIES`, series too short for the requested lags `TOO_SHORT` (including acf/pacf). Tests normalise the series by max absolute value before statistics; `normalization_scale` reports it.
+Constant series are `CONSTANT_SERIES`, series too short for the requested lags `TOO_SHORT` (including acf/pacf). Tests normalise the series by max absolute value before statistics; `normalisation_scale` reports it.
 ADF `icbest` is restored to original data units; `maxlag` is the effective ceil Schwert bound clipped for sample size/deterministic terms. Every reported statistic, p-value and criterion is checked finite.
 `alpha` applies only to acf/pacf and is rejected elsewhere. Ljung-Box integer `lags=m` expands to `model_df+1..m`; explicit lists must be strictly increasing, unique, and above model_df.
 R conventions differ: tseries::adf.test defaults to trend regression, `trunc((n-1)^(1/3))` lags and table interpolation; tseries::kpss.test uses `trunc(3*sqrt(n)/13)` lags (short default).
