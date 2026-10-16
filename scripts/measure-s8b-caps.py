@@ -1,5 +1,5 @@
-"""Inside the hardened runtime: S8b operations at their caps (dense matrix functions at the 200000-number input cap, sparse solves and ARPACK at the
-200000-entry cap, 200000-value special functions, a 16-equation root system).
+"""Inside the hardened runtime: S8b operations at their caps (dense matrix functions at the 200000-number input cap, iterative sparse solves / unshifted ARPACK at the
+200000-entry cap (SuperLU has the lower n<=2000 and n*entries<=20M caps), 200000-value special functions, a 16-equation root system).
 Usage: docker run --rm --pull=never --network=none --cpus=2 --memory=4g --pids-limit=128 --read-only --cap-drop=ALL --security-opt=no-new-privileges
   --tmpfs /tmp:rw,noexec,nosuid,nodev,size=512m -v $PWD/scripts:/s:ro --entrypoint python3 pycli:runtime -I /s/measure-s8b-caps.py
 (PYCLI_BIN overrides /usr/local/bin/pycli.) Each case prints the operation, exit code, status or error code, wall seconds and the cgroup peak so far."""
@@ -59,13 +59,13 @@ v1 = np.concatenate([np.full(m, 2.0), np.full(m - 1, -1.0), np.full(m - 1, -1.0)
 for k, v in (('r1', r1), ('c1', c1), ('v1', v1)):
     save(k + '.npy', v)
 save('b1.npy', np.ones(m))
-run('la_sparse_to spsolve 1-D n=20000', 'la_sparse_to', dict(task='spsolve', shape=[20000, 20000], row=save('rs.npy', r1[(r1 < 20000) & (c1 < 20000)]), col=save('cs.npy', c1[(r1 < 20000) & (c1 < 20000)]), val=save('vs.npy', v1[(r1 < 20000) & (c1 < 20000)]), b=save('bs.npy', np.ones(20000)), out=out()))
+run('la_sparse_to spsolve 1-D n=2000', 'la_sparse_to', dict(task='spsolve', shape=[2000, 2000], row=save('rs.npy', r1[(r1 < 2000) & (c1 < 2000)]), col=save('cs.npy', c1[(r1 < 2000) & (c1 < 2000)]), val=save('vs.npy', v1[(r1 < 2000) & (c1 < 2000)]), b=save('bs.npy', np.ones(2000)), out=out()))
 run('la_sparse_to cg 1-D n=66000, 200000 entries', 'la_sparse_to', dict(task='cg', shape=[m, m], row='r1.npy', col='c1.npy', val='v1.npy', b='b1.npy', rtol=1e-6, maxiter=100000, out=out()))
 run('la_sparse_to gmres 1-D n=66000', 'la_sparse_to', dict(task='gmres', shape=[m, m], row='r1.npy', col='c1.npy', val='v1.npy', b='b1.npy', rtol=1e-6, restart=30, maxiter=100000, out=out()))
-run('la_sparse_to eigsh LM sigma=0 k=5 n=66000 (shift-invert)', 'la_sparse_to', dict(task='eigsh', shape=[m, m], row='r1.npy', col='c1.npy', val='v1.npy', k=5, which='LM', sigma=0.0, seed=1, vectors=True, out=out()))
+run('la_sparse_to eigsh LM sigma=0 k=5 n=2000 (shift-invert)', 'la_sparse_to', dict(task='eigsh', shape=[2000, 2000], row='rs.npy', col='cs.npy', val='vs.npy', k=5, which='LM', sigma=0.0, seed=1, vectors=True, out=out()))
 run('la_sparse_to eigsh LA k=5 n=66000', 'la_sparse_to', dict(task='eigsh', shape=[m, m], row='r1.npy', col='c1.npy', val='v1.npy', k=5, which='LA', seed=1, out=out()))
 run('la_sparse_to eigsh SA k=5 n=66000 (clustered end: slow)', 'la_sparse_to', dict(task='eigsh', shape=[m, m], row='r1.npy', col='c1.npy', val='v1.npy', k=5, which='SA', seed=1, out=out()))
-g = 141
+g = 44
 idx = np.arange(g * g).reshape(g, g)
 rows, cols, vals = [idx.ravel()], [idx.ravel()], [np.full(g * g, 4.0)]
 for a_, b_ in ((idx[:, :-1], idx[:, 1:]), (idx[:-1, :], idx[1:, :])):
@@ -73,7 +73,7 @@ for a_, b_ in ((idx[:, :-1], idx[:, 1:]), (idx[:-1, :], idx[1:, :])):
 r2, c2, v2 = np.concatenate(rows), np.concatenate(cols), np.concatenate(vals)
 for k, v in (('r2', r2), ('c2', c2), ('v2', v2)):
     save(k + '.npy', v)
-run('la_sparse_to spsolve 2-D Poisson n=19881 (%d entries)' % len(v2), 'la_sparse_to', dict(task='spsolve', shape=[g * g, g * g], row='r2.npy', col='c2.npy', val='v2.npy', b=save('b2.npy', np.ones(g * g)), out=out()))
+run('la_sparse_to spsolve 2-D Poisson n=1936 (%d entries)' % len(v2), 'la_sparse_to', dict(task='spsolve', shape=[g * g, g * g], row='r2.npy', col='c2.npy', val='v2.npy', b=save('b2.npy', np.ones(g * g)), out=out()))
 run('la_sparse_to svds k=5 2-D Poisson', 'la_sparse_to', dict(task='svds', shape=[g * g, g * g], row='r2.npy', col='c2.npy', val='v2.npy', k=5, which='LM', seed=2, out=out()))
 rr = rng.integers(0, 100000, 200000)
 cc = rng.integers(0, 100000, 200000)

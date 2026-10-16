@@ -128,11 +128,11 @@ exit 0 in real, `--check` and `--dry-run` modes. Special functions are checked a
 | 1-D Poisson (n = 120): spsolve / cg / gmres vs x(1-x); eigsh (SA and LA) vs 4 sin^2(j pi / (2(n+1))) | below the 12 printed decimals | 1e-9 |
 
 1. **ADF p-value: 1.4e-9 between pycli (statsmodels) and lmstats.** Same statistic, same lag, same critical values, but the MacKinnon polynomial is evaluated with a different normal CDF; the recipe tolerance for this one
-   quantity is 1e-8. Neither is wrong; both are far below the 1e-3 uncertainty of the response-surface approximation itself.
+   quantity is 1e-8. The approximation error is on **lmstats' normal-CDF side**. The polynomial argument is z = -2.171521681210366; independent mpmath at 65 digits gives Phi(z) = 0.01494588002672663, matching pycli/statsmodels 0.014945880026727; lmstats gives 0.014945878644889. The absolute error is 1.38184e-9. It is small compared with the response-surface uncertainty, but is not an equally accurate CDF. The review regression recomputes the polynomial and mpmath tail independently.
 2. **lmstats `acf_pacf` defaults to the `ywadjusted` PACF**, pycli to `ywm` (R's convention); the recipe sets the method on both sides. lmstats rejects `ywm`.
 3. **Convergence verdicts the solvers do not give by themselves.** `scipy.optimize.root` (hybr) with its default step tolerance 1.49e-8 stops with max|f| = 1.5e-8 on x_i^2 = i (16 unknowns) and reports success; pycli
    recomputes the residual and, with the default `residual_tol` 1e-8, would have called that NO_CONVERGENCE, so the default `xtol` is 1e-12 (the same system then reaches 2e-13). `x^2 + 1 = 0` makes hybr and lm stop
    at the minimum of the residual norm; both are reported as NO_CONVERGENCE with the residual 1.0. For cg, the residual a double-precision iteration reaches is bounded by about eps ||A|| ||x|| / ||b||: on the
-   2000-unknown Poisson matrix `rtol=1e-12` produced a true relative residual of 6e-11 while the iteration reported convergence, which is why the acceptance bound includes that attainable floor.
+   2000-unknown Poisson matrix `rtol=1e-12` produced a true relative residual of 6e-11 while the iteration reported convergence, this is now TOLERANCE_UNATTAINABLE, never OK. The artifact oracle requests attainable rtol=1e-10; a separate regression asserts honesty for unattainable tolerances.
 4. **ARPACK is slow, not wrong, on the clustered end of a Poisson spectrum**: eigsh SA with k = 5 on n = 66000 (and cg/gmres at n = 66000) exhaust the default 10 s budget (TIME_LIMIT); shift-invert with sigma = 0 returns the same
-   eigenvalues in 0.9 s.
+   eigenvalues in 0.9 s in the original structured probe. S8b-1 review caps now reject that large shift-invert factorisation before spawn; use shift-invert only within the new 2000/20M factorisation limits.

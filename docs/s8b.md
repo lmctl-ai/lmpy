@@ -19,7 +19,7 @@ The deferred items need a new dependency with notices (networkx) and a large per
 | Quantity | Cap |
 |---|---|
 | dense matrix | 200000 numbers (n = 447 square), inline <= ~900 numbers (logm/sqrtm: twice the count, they can be complex) |
-| sparse | rows/cols <= 100000, entries <= 200000, spsolve <= 20000 unknowns, k <= 50 and below the dimension, maxiter <= 1e6, ncv in k+2..dim |
+| sparse | rows/cols <= 100000, entries <= 200000, spsolve / sigma <= 2000 unknowns and n*stored_entries <= 20M, k <= 50 and below the dimension, maxiter <= 1e6, eigen ncv k+2..dim, svds k<ncv<min(shape) |
 | special functions | 200000 values per argument, 34 functions, integer arguments checked (`n >= 0`, `k` in -1000..) |
 | opt_root | 16 equations/unknowns, max_evals <= 2e6 (S3 budgets) |
 | sm_tsa_tools | lags <= 100 entries in 1..100, maxlag <= 1000 |
@@ -34,3 +34,7 @@ inverses with exact rational arithmetic, rank-1 pseudo-inverse `v u^T / (|u|^2 |
 (eigenvalues = diagonal), block rotations (eigenvalues +-i r), diagonal SVD, an exact Gauss-Jordan solution of a 3x3 system, the circle/line system. Special functions: mpmath at 50 digits (round trips through
 the mpmath forward function for the inverse functions). Time series: a hand OLS Dickey-Fuller regression with the published MacKinnon coefficients, a hand KPSS statistic with the published critical-value table and
 its interpolation, the Ljung-Box formula with a closed-form even-degree chi-square tail, Durbin-Levinson on the dot-product ACF. Cross-tool results: `oracle-findings.md`.
+
+## S8b-1 review corrections
+Numerical certification, parameter conventions, all review-to-test mappings and resource evidence are in [s8b1-review-notes.md](s8b1-review-notes.md).
+`opt_root` retains the established S3 `start` naming and named-unknown expressions; fixed coefficients are expression literals (there is no `params` argument). Complex S8b outputs use `_re`/`_im` names plus `complex:true` consistently within this family; older S1 operations retain their published format.

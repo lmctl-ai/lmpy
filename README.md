@@ -713,25 +713,35 @@ conventions: caps before spawn and again in the worker, `time_limit` budget, sta
 | `opt_root` | read | see the table at the top |
 | `sm_tsa_tools` | read | `test` acf / pacf (the `sm_tsa_acf` code path), adfuller, kpss, ljung_box on one series |
 
-`la_matrix_fn`: there is no `funm` (it needs a callable). inv is `SINGULAR` when the condition number reaches 1/eps (or LAPACK reports singularity); logm of a matrix with a zero
-eigenvalue is `SINGULAR`; logm, sqrtm and pinv are verified after the fact (`expm(Y) = A`, `Y Y = A`, `A Y A = A`): a relative residual above 1e-6 is `NUMERICAL_FAILURE`, as is a non-finite
+`la_matrix_fn`: there is no `funm` (it needs a callable). inv and logm are `SINGULAR` when the condition number reaches 1/eps (or LAPACK reports singularity).
+For inv, `residual = ||AY-I||F / (||A||F ||Y||F + sqrt(n))` is the relative backward error; `identity_residual = ||AY-I||F/sqrt(n)` reports the forward identity error.
+Regular ill-conditioned inverses retain `OK` with a numerical warning and `condition_number`, as in la_solve; conditioning limits forward digits.
+logm and sqrtm verify `expm(Y)=A` and `YY=A` relative to `||A||F`. pinv checks `YAY=Y` and symmetry of `AY`/`YA`; `truncation=||AYA-A||F/||A||F` reports discarded singular mass
+without rejecting an intentional `rtol` cutoff (`rank` reports the retained rank). A verified residual above 1e-6 is `NUMERICAL_FAILURE`, as is a non-finite
 result (expm overflow). Results are principal values: a negative real eigenvalue makes logm and sqrtm complex. Matrices larger than the 200000-number input cap (n = 447) are refused.
 
-`la_sparse`: n and the column count are at most 100000, entries at most 200000, spsolve at most 20000 unknowns (SuperLU fill-in); `cg` and `eigsh` need an exactly symmetric matrix
+`la_sparse`: n and the column count are at most 100000, entries at most 200000, both spsolve and shift-invert (`sigma`) limited to 2000 unknowns and `n * stored_entries <= 20000000` before spawn (SuperLU fill-in); `cg` and `eigsh` need an exactly symmetric matrix
 (`NOT_SYMMETRIC`, tolerance 1e-12 relative). The true residual is recomputed: `cg`/`gmres` return `relative_residual` and `iterations`, and are `NO_CONVERGENCE` when the iteration fails or the true
-residual misses `max(10 rtol, ~1e3 eps ||A|| ||x|| / ||b||)` (the second term is the residual a double-precision iteration can reach, so an unattainable `rtol` is reported rather than hidden);
+residual misses `10*rtol`. If the solver claims convergence but only meets the estimated rounding floor, the status is `TOLERANCE_UNATTAINABLE`; the floor never makes a missed tolerance `OK`.
+Matrix and RHS are normalised before solving, and the restored binary64 solution is checked again; `tolerance_met` makes this explicit;
 `spsolve` is `SINGULAR` for an exactly singular matrix and `ILL_CONDITIONED` above a 1e-6 relative residual. ARPACK non-convergence within `maxiter` is the domain status `NO_CONVERGENCE`
-with `n_converged` (no partial values); eigenpairs report `max_residual`. `eigsh` returns ascending eigenvalues, `eigs` sorts by (real, imaginary), `svds` descending singular values.
+with `n_converged` (no partial values); eigenpairs report `max_residual`, normalised by matrix/eigenvalue scale. svds checks both defining equations and vector orthogonality. A singular `A-sigma*I` is `SINGULAR`.
+Explicit svds `ncv` must satisfy `k<ncv<min(rows,cols)`; eigenproblems use `k+2<=ncv<=n`. Unused spsolve `rtol`/`maxiter` are `BAD_PARAM`. `eigsh` returns ascending eigenvalues, `eigs` sorts by (real, imaginary), `svds` descending singular values.
 `which=SA`/`SM` on matrices with clustered ends (the 1-D Poisson matrix) converge slowly: use `which=LM` with `sigma` (shift-invert) or raise `time_limit`.
 
-`special_fn`: broadcasting is explicit (all vector arguments have one length, scalars repeat); `zeta` takes `q` (default 1: Riemann), `lambertw` the branch `k` (default 0; a result with a non-zero
-imaginary part is a domain error), `polygamma` and `spherical_jn` an integer `n >= 0`. A NaN result is `DOMAIN_ERROR`, an infinite one (pole, overflow) `NON_FINITE`, each with `n_bad`,
-`first_index` and the arguments at that index and no values. The test oracle is mpmath at 50 digits; mpmath is installed in the test image only (docker/requirements-test.lock).
+`special_fn`: broadcasting is explicit (non-singleton vectors have one length; scalars and length-1 arrays/refs repeat); `zeta` takes `q` (default 1: Riemann), `lambertw` the branch `k` (default 0; a result with a non-zero
+imaginary part is a domain error), `polygamma` and `spherical_jn` an integer `n >= 0`. A NaN result is `DOMAIN_ERROR`, an infinite one (pole, overflow) `NON_FINITE`, each with `n_bad`, `n_nan`, `n_inf`,
+`first_index` and the arguments at that index and no values. With mixed failures, the first NaN takes precedence; counts refer to outputs (a reduction has one output). The test oracle is mpmath at 50 digits; mpmath is installed in the test image only (docker/requirements-test.lock).
 
 `opt_root`: the equations use the S3 expression grammar in the named scalar unknowns (no data columns, no eval path), as many equations as unknowns (`UNDER_DETERMINED`). The solver's own success flag is not
 trusted: the residual `max|f_i(x)|` is recomputed at the returned point and must be at most `residual_tol` (default 1e-8), otherwise the status is `NO_CONVERGENCE` (a local minimum of the residual norm is not a
-root). A bracket with one equation uses brentq (`BAD_INTERVAL` without a sign change). `max_evals` is `EVAL_LIMIT` with the best point.
+root). A bracket with one equation uses brentq (`BAD_INTERVAL` without a sign change) and never evaluates `start`; non-finite endpoints are `NONFINITE_BRACKET` validation errors, endpoint roots have `iterations:0`.
+An explicit method conflicting with bracket is `BAD_PARAM`; `maxiter` is brentq-only (systems use `max_evals`). `xtol` does not waive the binding `residual_tol`. `max_evals` is `EVAL_LIMIT` with the best point.
 
 `sm_tsa_tools`: `adfuller` reports statistic, MacKinnon p-value, `used_lag`, `nobs`, `critical_values` (and `icbest` with an information-criterion autolag); `kpss` the statistic, the p-value interpolated from the
 published table with `p_value_bounded` none/above/below when the statistic lies outside it, `lags` and `critical_values`; `ljung_box` the statistic and p-value per lag (`model_df` removes fitted parameters).
-Constant series are `CONSTANT_SERIES`, series too short for the requested lags `TOO_SHORT`. patsy is never imported.
+Constant series are `CONSTANT_SERIES`, series too short for the requested lags `TOO_SHORT` (including acf/pacf). Tests normalise the series by max absolute value before statistics; `normalization_scale` reports it.
+ADF `icbest` is restored to original data units; `maxlag` is the effective ceil Schwert bound clipped for sample size/deterministic terms. Every reported statistic, p-value and criterion is checked finite.
+`alpha` applies only to acf/pacf and is rejected elsewhere. Ljung-Box integer `lags=m` expands to `model_df+1..m`; explicit lists must be strictly increasing, unique, and above model_df.
+R conventions differ: tseries::adf.test defaults to trend regression, `trunc((n-1)^(1/3))` lags and table interpolation; tseries::kpss.test uses `trunc(3*sqrt(n)/13)` lags (short default).
+urca::ur.df has its own lag-selection conventions. Match regression, lags and p-value method explicitly for parity. patsy is never imported.

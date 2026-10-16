@@ -2146,7 +2146,7 @@
       "name": "la_matrix_fn",
       "access": "read",
       "returns": "object",
-      "description": "Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (A Y A = A), logm (expm(Y) = A) and sqrtm (Y Y = A) report the relative residual and fail with NUMERICAL_FAILURE above 1e-6; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (Y A Y = Y and symmetric projectors; discarded mass reported as truncation), logm (expm(Y) = A) and sqrtm (Y Y = A) report a verified residual and fail with NUMERICAL_FAILURE above 1e-6; inverse residual is ||A Y-I||F/(||A||F ||Y||F+sqrt(n)), with identity_residual reported separately; regular ill-conditioned inverses return OK with a warning; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable. Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "a",
@@ -2186,7 +2186,7 @@
       "name": "special_fn",
       "access": "read",
       "returns": "object",
-      "description": "Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: every vector argument has the same length n and scalars repeat; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: arguments of length 1 broadcast (including refs), all longer vectors have the same length n; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT. Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "fn",
@@ -2234,7 +2234,7 @@
           "name": "args",
           "type": "object",
           "occurs": "1",
-          "description": "Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; vector lengths must agree (BAD_DATA)."
+          "description": "Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; non-singleton vector lengths must agree; length-1 arrays/refs broadcast (BAD_DATA for incompatible lengths)."
         },
         {
           "name": "time_limit",
@@ -2249,7 +2249,7 @@
       "name": "la_sparse",
       "access": "read",
       "returns": "object",
-      "description": "Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU, n <= 20000), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses the tolerance, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt. Inline results hold at most ~900 numbers; use the _to form for more.",
+      "description": "Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU; direct and sigma factorisations require n <= 2000 and n*stored_entries <= 20000000 before spawn), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses 10*rtol (TOLERANCE_UNATTAINABLE when the solver claims success but only reaches its attainable floor); RHS and matrix are normalised and returned x rechecked, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, TOLERANCE_UNATTAINABLE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt. Inline results hold at most ~900 numbers; use the _to form for more.",
       "params": [
         {
           "name": "task",
@@ -2334,7 +2334,7 @@
           "name": "ncv",
           "type": "number",
           "occurs": "?",
-          "description": "eigs, eigsh, svds: Lanczos basis size, k+2 .. dimension (default ARPACK's)."
+          "description": "Lanczos basis size: eigenproblems k+2 <= ncv <= n; svds k < ncv < min(rows, cols) (default ARPACK's)."
         },
         {
           "name": "seed",
@@ -2380,7 +2380,7 @@
       "name": "la_matrix_fn_to",
       "access": "write",
       "returns": "object",
-      "description": "Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (A Y A = A), logm (expm(Y) = A) and sqrtm (Y Y = A) report the relative residual and fail with NUMERICAL_FAILURE above 1e-6; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (Y A Y = Y and symmetric projectors; discarded mass reported as truncation), logm (expm(Y) = A) and sqrtm (Y Y = A) report a verified residual and fail with NUMERICAL_FAILURE above 1e-6; inverse residual is ||A Y-I||F/(||A||F ||Y||F+sqrt(n)), with identity_residual reported separately; regular ill-conditioned inverses return OK with a warning; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "a",
@@ -2426,7 +2426,7 @@
       "name": "special_fn_to",
       "access": "write",
       "returns": "object",
-      "description": "Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: every vector argument has the same length n and scalars repeat; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: arguments of length 1 broadcast (including refs), all longer vectors have the same length n; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "fn",
@@ -2474,7 +2474,7 @@
           "name": "args",
           "type": "object",
           "occurs": "1",
-          "description": "Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; vector lengths must agree (BAD_DATA)."
+          "description": "Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; non-singleton vector lengths must agree; length-1 arrays/refs broadcast (BAD_DATA for incompatible lengths)."
         },
         {
           "name": "out",
@@ -2495,7 +2495,7 @@
       "name": "la_sparse_to",
       "access": "write",
       "returns": "object",
-      "description": "Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU, n <= 20000), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses the tolerance, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU; direct and sigma factorisations require n <= 2000 and n*stored_entries <= 20000000 before spawn), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses 10*rtol (TOLERANCE_UNATTAINABLE when the solver claims success but only reaches its attainable floor); RHS and matrix are normalised and returned x rechecked, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, TOLERANCE_UNATTAINABLE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt. Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status). Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "task",
@@ -2580,7 +2580,7 @@
           "name": "ncv",
           "type": "number",
           "occurs": "?",
-          "description": "eigs, eigsh, svds: Lanczos basis size, k+2 .. dimension (default ARPACK's)."
+          "description": "Lanczos basis size: eigenproblems k+2 <= ncv <= n; svds k < ncv < min(rows, cols) (default ARPACK's)."
         },
         {
           "name": "seed",
@@ -3645,13 +3645,12 @@
           "name": "method",
           "type": "string",
           "occurs": "?",
-          "default": "hybr",
           "enum": [
             "hybr",
             "lm",
             "brentq"
           ],
-          "description": "hybr (Powell hybrid, square systems) or lm (Levenberg-Marquardt); brentq is chosen when a bracket is given."
+          "description": "hybr (Powell hybrid, square systems) or lm (Levenberg-Marquardt); default hybr without bracket, brentq with bracket; conflicting explicit method is BAD_PARAM."
         },
         {
           "name": "bracket",
@@ -3665,7 +3664,7 @@
           "type": "number",
           "occurs": "?",
           "default": 1e-12,
-          "description": "Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq); default 1e-12."
+          "description": "Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq); default 1e-12. residual_tol is the binding final accuracy; loosening xtol alone cannot waive it."
         },
         {
           "name": "residual_tol",
@@ -3678,8 +3677,7 @@
           "name": "maxiter",
           "type": "number",
           "occurs": "?",
-          "default": 100,
-          "description": "brentq iterations, 1..1000."
+          "description": "brentq-only iterations, 1..1000 (default 100); rejected with hybr/lm, which use max_evals."
         },
         {
           "name": "max_evals",
@@ -5057,8 +5055,7 @@
           "name": "alpha",
           "type": "number",
           "occurs": "?",
-          "default": 0.05,
-          "description": "acf / pacf only: confidence level 1-alpha."
+          "description": "acf / pacf only: confidence level 1-alpha (default 0.05); rejected for the other tests."
         },
         {
           "name": "adjusted",
@@ -5106,7 +5103,7 @@
           "name": "maxlag",
           "type": "number",
           "occurs": "?",
-          "description": "adfuller: largest number of augmentation lags, 0..1000 (default 12 (n/100)^(1/4)); the series must be long enough (TOO_SHORT otherwise)."
+          "description": "adfuller: largest number of augmentation lags, 0..1000 (default ceil(12 (n/100)^(1/4)), clipped to n//2 - deterministic_terms - 1); the series must be long enough (TOO_SHORT otherwise)."
         },
         {
           "name": "kpss_lags",
@@ -5118,13 +5115,13 @@
           "name": "lags",
           "type": "json",
           "occurs": "?",
-          "description": "ljung_box: an integer m (tests lags 1..m) or a list of up to 100 lags in 1..100; default 10."
+          "description": "ljung_box: an integer m (tests lags model_df+1..m) or a strictly increasing unique list of up to 100 lags in 1..100; default 10."
         },
         {
           "name": "model_df",
           "type": "number",
           "occurs": "?",
-          "description": "ljung_box: degrees of freedom removed from the chi-square reference (fitted ARMA parameters), 0 <= model_df < the smallest lag; default 0."
+          "description": "ljung_box: degrees of freedom removed from the chi-square reference (fitted ARMA parameters), integer lags m: 0 <= model_df < m; explicit list: below every lag; default 0."
         },
         {
           "name": "time_limit",

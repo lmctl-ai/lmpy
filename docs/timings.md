@@ -656,7 +656,7 @@ unchanged). mpmath 1.3.0 (a pure-Python wheel, hash-locked in `docker/requiremen
 | `opt_root` | numpy, scipy.optimize/integrate/special (the S3 group) | 0.45 s | 1.08 s | 1.27 s |
 | `sm_tsa_tools` adfuller / ljung_box | pandas + statsmodels (the S5 group) | 1.07-1.09 s | 1.83-1.85 s | 2.1-2.3 s |
 
-**Caps measured in the hardened container** (2 CPUs, 4 GiB, read-only root, `scripts/measure-s8b-caps.py`, raw output `docs/measurement-s8b-caps.txt`; cgroup peak over the whole probe **0.18 GB**), every case at its cap:
+**Historical S8b structured probes** (2 CPUs, 4 GiB, read-only root, original `scripts/measure-s8b-caps.py`, raw output `docs/measurement-s8b-caps.txt`; cgroup peak over the whole probe **0.18 GB**). These structured successes did not bound arbitrary SuperLU fill-in; S8b-1 review below supersedes their factorisation limits, and the script now uses the smaller limits:
 
 | Case | Result |
 |---|---|
@@ -670,7 +670,7 @@ unchanged). mpmath 1.3.0 (a pure-Python wheel, hash-locked in `docker/requiremen
 | `special_fn_to` 200000 values: jv, hyp2f1, gammaincinv, airy (4 outputs), struve, owens_t | 0.7-1.5 s each |
 | `opt_root` 16 unknowns (hybr, x_i^2 = i + 1) / weakly coupled system (lm) | 0.7 s / 0.8 s |
 
-Memory is tiny everywhere (the largest dense case holds 447 x 447 matrices); the binding resource is time, which the cooperative `time_limit` turns into the status `TIME_LIMIT`.
+These structured probes used little memory, but were not worst cases: arbitrary SuperLU fill-in escaped cooperative timing into the 50 s hard kill in review. The S8b-1 fix applies lower pre-spawn factorisation limits to both direct and shift-invert paths; measured boundary results follow below.
 
 Acceptance: `./scripts/build.sh test` 0; `docker run --rm --pull=never --network=none pycli:test` 33/33 groups exit 0 (629 s with four groups in parallel); runtime rebuild 0; all 27 recipes passed real,
 `--check` and `--dry-run` through the host shim, 81/81 exit 0 (rcli and statsrust on PATH; the optional lmda legs were skipped with their hints, no lmda binary is present).

@@ -3,7 +3,7 @@
 //   65537-modulus LCG) and compares them with (1) closed forms worked out in this file (lag-1 autocorrelation by dot product, the Ljung-Box statistic by
 //   its formula and its p-value in closed form for even degrees of freedom), (2) R through rcli (ts_acf) and (3) lmstats statsrust (acf_pacf, adf, kpss,
 //   ljung_box) when those binaries are on PATH. Every comparison group that is absent is skipped with a hint.
-// Tolerance: autocorrelations and statistics 1e-9; p-values 1e-8 (lmstats evaluates the MacKinnon polynomial with its own normal CDF: a 1.4e-9 difference is recorded in docs/oracle-findings.md).
+// Tolerance: autocorrelations and statistics 1e-9; p-values 1e-8 (lmstats uses an approximate normal CDF: its 1.4e-9 error is recorded in docs/oracle-findings.md).
 // Setup: see examples/schemas/README.md (rcli needs R and a working directory below HOME; statsrust is built from lmctl-ai/lmstats).
 import "../cli.schema.dev.json" as pycli;
 import "schemas/rcli.cli.schema.v1.json" as rcli;
