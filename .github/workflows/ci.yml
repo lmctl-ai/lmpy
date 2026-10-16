@@ -1,0 +1,101 @@
+name: CI
+
+# Builds the runtime and test images from the hash-locked wheels, runs the full test image (CTest), the schema / notices / docs / secrets
+# gates and every recipe through the host shim, on arm64 and on amd64. The amd64 job IS the amd64 verification: this repository is
+# developed on aarch64 and claims no amd64 result until this job is green (README "What pycli is not"). Nothing here publishes an image
+# or a package; images stay on the runner.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LMCPP_REF: f6c6f51797912a369d6b27cf9e96f148a9a0e4d1
+  LMTS_REF: 31012f638613b74114b66bce01c99b8415248263
+  LMCTL_VERSION: 0.2.207   # the lmscript used for the recipe acceptance on the development host
+
+jobs:
+  build-and-test:
+    name: images, tests, recipes (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+          - runner: ubuntu-24.04
+            arch: amd64
+    steps:
+      - name: Checkout pycli
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: pycli
+      - name: Checkout pinned lmcpp
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: lmctl-ai/lmcpp
+          ref: ${{ env.LMCPP_REF }}
+          path: lmcpp
+      - name: Checkout pinned lmts
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: lmctl-ai/lmts
+          ref: ${{ env.LMTS_REF }}
+          path: lmts
+      - name: Host facts
+        run: |
+          uname -m; docker version --format '{{.Server.Version}} {{.Server.Arch}}'; python3 --version; df -h / | tail -1
+      - name: No secrets in tracked files
+        working-directory: pycli
+        run: python3 scripts/no-secrets.py
+      - name: Documentation gate (host python only)
+        working-directory: pycli
+        run: python3 tests/docs_gate.py
+      - name: Build the test image from the ${{ matrix.arch }} lock
+        working-directory: pycli
+        run: LMCPP_DIR="$GITHUB_WORKSPACE/lmcpp" ./scripts/build.sh test
+      - name: Run the full test image (CTest)
+        run: docker run --rm --pull=never --network=none pycli:test
+      - name: Notices gate (regenerates THIRD_PARTY_NOTICES.md from the installed wheels)
+        working-directory: pycli
+        run: docker run --rm --pull=never --network=none -v "$PWD:/src/pycli" -w /src/pycli pycli:test python3 tests/notices_inventory.py
+      - name: Build the runtime image
+        working-directory: pycli
+        run: LMCPP_DIR="$GITHUB_WORKSPACE/lmcpp" ./scripts/build.sh runtime
+      - name: Schema gate (runtime binary against the checked-in schema)
+        working-directory: pycli
+        run: |
+          docker run --rm --pull=never --network=none pycli:runtime --schema > published.json
+          python3 -c 'import json,sys; a=json.load(open("published.json")); b=json.load(open("cli.schema.dev.json")); sys.exit(0 if a==b else "cli.schema.dev.json is stale")'
+          docker run --rm --pull=never --network=none pycli:runtime py_info | python3 -c 'import json,sys; i=json.load(sys.stdin); p=i["provenance"]; print(json.dumps({k:p[k] for k in ("version","git_sha","lmcpp_ref","lock_sha256_aarch64","lock_sha256_amd64")}, indent=1)); assert p["lmcpp_ref"]=="${{ env.LMCPP_REF }}"'
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76
+        with:
+          bun-version: 1.4.2
+      - name: Parse the published schema with lmts
+        working-directory: lmts
+        run: |
+          bun -e 'import { readFileSync } from "node:fs"; import { parsePublishedSchema } from "./src/publish.ts"; const result = parsePublishedSchema(JSON.parse(readFileSync("../pycli/cli.schema.dev.json", "utf8"))); if (!result.ok) { console.error(result); process.exit(1); } console.log("lmts parsed pycli schema");'
+      - name: Install lmscript (pinned @lmctl-ai/lmctl)
+        run: |
+          npm install -g "@lmctl-ai/lmctl@${LMCTL_VERSION}"
+          lmscript --version || true
+      - name: Run every recipe through the host shim (real, --check, --dry-run)
+        working-directory: pycli
+        run: scripts/run-recipes.sh
+      - name: Image size report
+        working-directory: pycli
+        run: |
+          { echo "## Image sizes (${{ matrix.arch }})"; python3 scripts/image-size-report.py pycli:runtime pycli:test; } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Clean builder layers
+        if: always()
+        working-directory: pycli
+        run: ./scripts/clean-builder.sh || true

@@ -1,0 +1,42 @@
+name: Weekly lock drift
+
+# Re-resolves the pinned wheel versions on each architecture and compares the wheel hashes with docker/requirements-<arch>.lock.
+# Any difference (a re-uploaded wheel, a yanked file, a changed filename) fails the job and is listed in the summary. Nothing is
+# updated or published automatically: a human regenerates the lock (RELEASE.md) after reading the report.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    name: wheel hashes (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+          - runner: ubuntu-24.04
+            arch: amd64
+    steps:
+      - name: Checkout pycli
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Re-download the pinned wheels in the pinned base image and hash them
+        run: |
+          base=$(sed -n 's/^ARG BASE=\(.*\)$/\1/p' docker/Dockerfile)
+          pins=$(grep -E '^[A-Za-z0-9_]+==' "docker/requirements-${{ matrix.arch }}.lock" | sed 's/ --hash.*//' | tr '\n' ' ')
+          docker run --rm -v "$PWD:/src" -w /src "$base" sh -c "python -m pip download --no-deps --only-binary=:all: -d /tmp/wheels $pins > /dev/null && python scripts/lock.py /tmp/wheels /src/fresh.lock"
+          if diff -u "docker/requirements-${{ matrix.arch }}.lock" fresh.lock > drift.diff; then
+            echo "## ${{ matrix.arch }}: no wheel hash drift" >> "$GITHUB_STEP_SUMMARY"
+          else
+            { echo "## ${{ matrix.arch }}: WHEEL HASH DRIFT"; echo '```diff'; cat drift.diff; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            cat drift.diff
+            exit 1
+          fi
