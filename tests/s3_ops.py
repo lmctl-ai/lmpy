@@ -295,8 +295,14 @@ class LeastSquares(Base):
         beta = cov @ (X.T @ (W * y))
         data = {'x': x.tolist(), 'y': y.tolist(), 's': sigma.tolist()}
         rel = call('opt_least_squares', {'model': 'a+b*x', 'response': 'y', 'sigma': 's', 'data': data, 'x0': {'a': 0.0, 'b': 0.0}, 'tol': 1e-15}, 0, os.environ)
-        np.testing.assert_allclose(par_array(rel, 'a', 'b'), beta, rtol=1e-8)
+        # The iterative solver stops where the weighted cost no longer decreases in binary64: the cost is known to about eps * chi2,
+        # and along the weakest curvature direction of X'WX (smallest eigenvalue lambda_min = 87.55) that is a parameter error of
+        # sqrt(eps * chi2 / lambda_min) = sqrt(2.2e-16 * 6.04 / 87.55) = 3.9e-9 absolute. The first amd64 CI run stopped 5.8e-10 away
+        # on the intercept (rtol 1e-8 failed because the intercept is 0.057), aarch64 2.6e-11: both inside that floor. A solver that
+        # ignores sigma lands 1e-2 away (scratch mutation), far outside it.
         chi2 = float(np.sum(((y - X @ beta) / sigma) ** 2))
+        floor = math.sqrt(np.finfo(float).eps * chi2 / np.linalg.eigvalsh(X.T @ (X * W[:, None])).min())
+        np.testing.assert_allclose(par_array(rel, 'a', 'b'), beta, rtol=0, atol=4 * floor)
         np.testing.assert_allclose([rel['std_err']['a'], rel['std_err']['b']], np.sqrt(np.diag(cov) * chi2 / 6), rtol=1e-6)
         absolute = call('opt_least_squares', {'model': 'a+b*x', 'response': 'y', 'sigma': 's', 'absolute_sigma': True, 'data': data, 'x0': {'a': 0.0, 'b': 0.0}, 'tol': 1e-15}, 0, os.environ)
         np.testing.assert_allclose([absolute['std_err']['a'], absolute['std_err']['b']], np.sqrt(np.diag(cov)), rtol=1e-6)

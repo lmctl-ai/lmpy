@@ -334,7 +334,7 @@ class Decomp(Base):
                 np.testing.assert_allclose(r['values']['s'], s, rtol=1e-12)
                 self.assertEqual({k: v['shape'] for k, v in r['artifacts'].items()}, {k: list(t[k].shape) for k in t})
         r, t = self.decomp([[3, 0], [0, -2]], 'svd')
-        np.testing.assert_allclose(t['s'], [3, 2], rtol=1e-15)  # closed form
+        np.testing.assert_allclose(t['s'], [3, 2], rtol=1e-13)  # closed form; LAPACK's SVD is backward stable to a few eps and FMA may move the last bit
 
     def test_qr_modes_and_pivoting(self):
         rng = np.random.default_rng(2)
@@ -357,10 +357,10 @@ class Decomp(Base):
 
     def test_eigh_ascending_and_closed_form(self):
         r, t = self.decomp([[2, 1], [1, 2]], 'eigh')
-        np.testing.assert_allclose(t['w'], [1, 3], rtol=1e-14)
+        np.testing.assert_allclose(t['w'], [1, 3], rtol=1e-13)  # closed form; eigenvalue error of a symmetric 2x2 is a few eps * ||A||, platform rounding (FMA) included
         s = 1 / math.sqrt(2)
-        np.testing.assert_allclose(np.abs(t['v']), [[s, s], [s, s]], rtol=1e-14)  # sign is LAPACK's; magnitudes are closed form
-        self.assertAlmostEqual(abs(t['v'][:, 0] @ np.array([1, -1]) * s), 1.0, delta=1e-14)
+        np.testing.assert_allclose(np.abs(t['v']), [[s, s], [s, s]], rtol=1e-13)  # sign is LAPACK's; magnitudes are closed form
+        self.assertAlmostEqual(abs(t['v'][:, 0] @ np.array([1, -1]) * s), 1.0, delta=1e-13)
         rng = np.random.default_rng(3)
         b = rng.standard_normal((6, 6))
         a = b + b.T
@@ -376,10 +376,10 @@ class Decomp(Base):
     def test_eig_complex_split_sorting_and_closed_forms(self):
         r, t = self.decomp([[0, -1], [1, 0]], 'eig')  # rotation by 90 degrees: eigenvalues -i, +i (sorted by real, then imaginary)
         self.assertEqual(sorted(t), ['vr_im', 'vr_re', 'w_im', 'w_re'])
-        np.testing.assert_allclose(t['w_re'], [0, 0], atol=1e-15)
-        np.testing.assert_allclose(t['w_im'], [-1, 1], rtol=1e-14)
+        np.testing.assert_allclose(t['w_re'], [0, 0], atol=1e-14)  # closed form; nonsymmetric eigenvalues are accurate to a few eps * ||A|| on every platform
+        np.testing.assert_allclose(t['w_im'], [-1, 1], rtol=1e-13)
         v = t['vr_re'] + 1j * t['vr_im']
-        np.testing.assert_allclose(np.array([[0, -1], [1, 0]]) @ v, v * (t['w_re'] + 1j * t['w_im']), atol=1e-14)
+        np.testing.assert_allclose(np.array([[0, -1], [1, 0]]) @ v, v * (t['w_re'] + 1j * t['w_im']), atol=1e-13)
         # companion matrix of (x-1)(x-2)(x-3): real eigenvalues, imaginary parts exactly zero
         r, t = self.decomp([[6, -11, 6], [1, 0, 0], [0, 1, 0]], 'eig', 'c.safetensors')
         np.testing.assert_allclose(t['w_re'], [1, 2, 3], rtol=1e-12)
@@ -419,8 +419,8 @@ class Decomp(Base):
         r, t = self.decomp([[1, 2], [3, 4]], 'lu')
         self.assertEqual(sorted(t), ['l', 'p', 'u'])
         np.testing.assert_array_equal(t['p'], [[0, 1], [1, 0]])
-        np.testing.assert_allclose(t['l'], [[1, 0], [1 / 3, 1]], rtol=1e-15)
-        np.testing.assert_allclose(t['u'], [[3, 4], [0, 2 / 3]], rtol=1e-15)
+        np.testing.assert_allclose(t['l'], [[1, 0], [1 / 3, 1]], rtol=1e-15)  # one division and one fused or unfused multiply-subtract: exact or one ulp
+        np.testing.assert_allclose(t['u'], [[3, 4], [0, 2 / 3]], rtol=1e-15)  # 4 - (1/3) * 4 = 2/3: two roundings, fused or not
         rng = np.random.default_rng(9)
         for shape in ((5, 5), (6, 4), (4, 6)):
             a = rng.standard_normal(shape)

@@ -55,7 +55,8 @@ class Review(unittest.TestCase):
         for p,y in zip([.25,.5,.75],values('t','ppf',[.25,.5,.75],{'df':1})):
             # SciPy 1.16.2's df=1 ppf is ~1.34e-11 off at .25/.75.
             self.assertAlmostEqual(y,math.tan(math.pi*(p-.5)),delta=2e-11)
-        self.assertEqual(values('norm','ppf',[.025,.5,.975]),[-1.9599639845400545,0.,1.959963984540054])
+        for got,want in zip(values('norm','ppf',[.025,.5,.975]),[-1.9599639845400545,0.,1.959963984540054]):
+            self.assertAlmostEqual(got,want,delta=1e-15)  # scipy's ndtri (cephes C code, no BLAS) to within a few ulps; last-bit FMA differences across platforms are not a contract
         self.assertAlmostEqual(values('t','ppf',[.975],{'df':1e300})[0],1.959963984540054,delta=1e-14)
         self.assertEqual(values('norm','sf',[-2,0,2]),values('norm','cdf',[2,0,-2]))
         r=call('la_solve',{'a':[[1,0],[0,1e-20]],'b':[1,1]})
