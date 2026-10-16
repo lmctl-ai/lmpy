@@ -63,9 +63,11 @@ class Review(unittest.TestCase):
   r=self.call(**p,node_limit=0);self.assertEqual(r['status'],'NODE_LIMIT');self.assertEqual(r['highs_model_status'],16);self.assertFalse(r['has_primal'])
   # time_limit 0.001 on a 60-variable binary knapsack: TIME_LIMIT always, by one of two documented paths. Under host load the 1 ms budget
   # can expire before HiGHS is even started (py/s4.py: 'wall budget exhausted before HiGHS', no HiGHS fields); otherwise HiGHS itself
-  # stops with model status 13. Both prove that the limit reached the solver layer; neither may answer OK or a primal.
-  r=self.call(**p,time_limit=.001);self.assertEqual(r['status'],'TIME_LIMIT');self.assertFalse(r['has_primal'])
+  # stops with model status 13. Both prove that the limit reached the solver layer; neither may answer OK. A fast machine can hold an
+  # integer-feasible incumbent at the limit (has_primal true, seen on the GitHub runners): then x must be binary and within the budget.
+  r=self.call(**p,time_limit=.001);self.assertEqual(r['status'],'TIME_LIMIT')
   self.assertTrue(r.get('highs_model_status')==13 or r.get('message')=='wall budget exhausted before HiGHS',r)
+  if r['has_primal']:self.assertTrue(all(x in (0,1) for x in r['x']) and sum(w*x for w,x in zip(weights[0],r['x']))<=p['b_ub'][0],r)
   r=self.call(**p,node_limit=1);self.assertEqual(r['status'],'NODE_LIMIT');self.assertEqual(r['highs_model_status'],16);self.assertTrue(r['has_primal']);self.assertTrue(all(x==round(x) and (x!=0 or math.copysign(1,x)==1) for x in r['x']))
   p=dict(c=[3,5],a_ub=[[1,0],[0,2]],b_ub=[4,12],a_eq=[[3,2]],b_eq=[18],maximize=True);r=self.call(**p);s=self.call(**dict(p,b_eq=[18.0001]));self.assertAlmostEqual((s['objective']-r['objective'])/.0001,r['duals']['eq'][0],places=7)
  def test_read_twins_and_write_twins(self):
