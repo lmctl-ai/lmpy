@@ -73,16 +73,17 @@ Json prepare_sm(const std::string& op,const Params& input){
             int_param(input,"maxiter",1,100);double tol=input["tol"];if(!(tol>=1e-12&&tol<=1e-2))bad_param("tol must be in [1e-12, 1e-2]");
         }
     }else if(op=="sm_tsa_tools"){
-        sm_name(input.at("series"),"series");sm_check_alpha(input);const std::string test=input["test"];
+        sm_name(input.at("series"),"series");const std::string test=input["test"];
         auto given=[&](const char* k){return input.contains(k)&&!input[k].is_null();};
         auto only=[&](std::initializer_list<const char*> keys,const char* where){for(const char* k:keys)if(given(k))bad_param(std::string(k)+" is only used by "+where);};
         if(test=="acf"||test=="pacf"){
+            p["alpha"]=given("alpha")?input["alpha"]:Json(0.05);sm_check_alpha(p);
             only({"regression","autolag","maxlag","kpss_lags","lags","model_df"},"adfuller, kpss and ljung_box");
             int64_t nlags=given("nlags")?input["nlags"].get<int64_t>():20;if(nlags<1||nlags>int64_t(SM_ACF_LAGS))bad_param("nlags must be in 1..100");
             p["nlags"]=nlags;p["adjusted"]=given("adjusted")?input["adjusted"]:Json(false);p["method"]=given("method")?input["method"]:Json("ywm");
             if(test=="acf"&&given("method"))bad_param("method is only used by pacf");if(test=="pacf"&&given("adjusted"))bad_param("adjusted is only used by acf");
         }else{
-            only({"nlags","adjusted","method"},"acf and pacf");
+            only({"nlags","adjusted","method","alpha"},"acf and pacf");
             if(test=="adfuller"){
                 only({"kpss_lags","lags","model_df"},"kpss and ljung_box");
                 p["regression"]=given("regression")?input["regression"]:Json("c");p["autolag"]=given("autolag")?input["autolag"]:Json("AIC");
@@ -99,9 +100,10 @@ Json prepare_sm(const std::string& op,const Params& input){
                 Json lags=given("lags")?input["lags"]:Json(10);int64_t smallest;
                 if(lags.is_array()){
                     if(lags.empty()||lags.size()>100)bad_param("lags needs 1..100 entries");smallest=INT64_MAX;
-                    for(const auto& v:lags){if(!v.is_number_integer()||v.get<int64_t>()<1||v.get<int64_t>()>100)bad_param("every lag must be an integer in 1..100");smallest=std::min<int64_t>(smallest,v.get<int64_t>());}
-                }else{if(!lags.is_number_integer()||lags.get<int64_t>()<1||lags.get<int64_t>()>100)bad_param("lags must be an integer in 1..100 or a list of them");smallest=1;}
+                    int64_t previous=0;for(const auto& v:lags){if(!v.is_number_integer()||v.get<int64_t>()<1||v.get<int64_t>()>100)bad_param("every lag must be an integer in 1..100");if(v.get<int64_t>()<=previous)bad_param("lags must be strictly increasing and unique");previous=v.get<int64_t>();smallest=std::min<int64_t>(smallest,v.get<int64_t>());}
+                }else{if(!lags.is_number_integer()||lags.get<int64_t>()<1||lags.get<int64_t>()>100)bad_param("lags must be an integer in 1..100 or a list of them");smallest=lags.get<int64_t>();}
                 int64_t df=given("model_df")?input["model_df"].get<int64_t>():0;if(df<0||df>=smallest)bad_param("model_df must be >= 0 and below the smallest lag");
+                if(lags.is_number_integer()){int64_t maximum=lags;lags=Json::array();for(int64_t lag=df+1;lag<=maximum;++lag)lags.push_back(lag);}
                 p["lags"]=lags;p["model_df"]=df;
             }
         }

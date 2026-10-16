@@ -2,7 +2,7 @@
 // before any process starts; the worker repeats what a corrupted request could break. Reuses the S7/S8 plumbing (array loader, S8Extra,
 // tensor write path with the one seven-field artifacts[name] descriptor, time_limit budget).
 #pragma once
-constexpr size_t S8B_SPARSE_DIM=100000, S8B_SPARSE_NNZ=200000, S8B_SPSOLVE_DIM=20000, S8B_EIG_K=50, S8B_ARTIFACT=1900000;
+constexpr size_t S8B_SPARSE_DIM=100000, S8B_SPARSE_NNZ=200000, S8B_SPSOLVE_DIM=2000, S8B_EIG_K=50, S8B_ARTIFACT=1900000;
 bool s8b_op(const std::string& op){static const std::set<std::string> ops={"la_matrix_fn","la_matrix_fn_to","la_sparse","la_sparse_to","special_fn","special_fn_to"};return ops.count(op)>0;}
 Json prepare_la_matrix_fn(const Params& in,std::map<std::string,Array>& arrays,bool twin){
     Json p=in;Array a=load(in.at("a"));if(a.shape.size()!=2)invalid("a must be a matrix","BAD_SHAPE");need_finite(a,"a");
@@ -49,12 +49,14 @@ Json prepare_special_fn(const Params& in,std::map<std::string,Array>& arrays,boo
         else bad_param(fn+" needs argument "+a.name);
         need_finite(v,a.name);
         if(a.integer)for(double d:v.data)if(d!=std::floor(d)||d<a.lo||d>1e9)invalid(std::string(a.name)+" must hold integers >= "+std::to_string(int(a.lo)),"BAD_DATA");
-        const bool is_vector=!(args.contains(a.name)&&args[a.name].is_number())&&args.contains(a.name)&&!args[a.name].is_null();
-        if(is_vector){if(any_vector&&v.data.size()!=length)invalid("vector arguments must have equal length (scalars broadcast); "+std::string(a.name)+" has "+std::to_string(v.data.size())+" values but another has "+std::to_string(length),"BAD_DATA");length=v.data.size();any_vector=true;}
+        const bool provided_vector=!(args.contains(a.name)&&args[a.name].is_number())&&args.contains(a.name)&&!args[a.name].is_null();
+        any_vector=any_vector||provided_vector;
+        const bool is_vector=v.data.size()>1;
+        if(is_vector){if(length&&v.data.size()!=length)invalid("vector arguments must have equal length (scalars broadcast); "+std::string(a.name)+" has "+std::to_string(v.data.size())+" values but another has "+std::to_string(length),"BAD_DATA");length=v.data.size();any_vector=true;}
         names.push_back(a.name);vector[a.name]=is_vector;arrays[std::string("arg_")+a.name]=std::move(v);
     }
     if(fn=="logsumexp"&&!any_vector)bad_param("logsumexp reduces a vector: give a as a vector");
-    const size_t n=any_vector?length:1,outputs=fn=="airy"?4*n:fn=="logsumexp"?1:n;
+    const size_t n=length?length:1,outputs=fn=="airy"?4*n:fn=="logsumexp"?1:n;
     if(!twin)s7_inline_budget(outputs,"special_fn");else if(outputs>S8B_ARTIFACT)output_too_large("the result would hold "+std::to_string(outputs)+" numbers");
     p["arg_names"]=names;p["arg_vector"]=vector;p.erase("args");return p;
 }
@@ -67,7 +69,7 @@ Json prepare_la_sparse(const Params& in,std::map<std::string,Array>& arrays,bool
     const int64_t m=shape[0],n=shape[1];
     if(m<1||n<1||size_t(m)>S8B_SPARSE_DIM||size_t(n)>S8B_SPARSE_DIM)invalid("the matrix may have at most 100000 rows and 100000 columns","INPUT_TOO_LARGE");
     if(task!="svds"&&m!=n)invalid(task+" needs a square matrix","BAD_SHAPE");
-    if(task=="spsolve"&&size_t(n)>S8B_SPSOLVE_DIM)invalid("spsolve (SuperLU fill-in) is limited to 20000 unknowns; use cg or gmres beyond that","INPUT_TOO_LARGE");
+    if(task=="spsolve"&&size_t(n)>S8B_SPSOLVE_DIM)invalid("spsolve (SuperLU fill-in) is limited to 2000 unknowns; use cg or gmres beyond that","INPUT_TOO_LARGE");
     const bool framed=in.contains("frame")&&!in["frame"].is_null();
     size_t nnz=0;
     if(framed){
@@ -97,6 +99,7 @@ Json prepare_la_sparse(const Params& in,std::map<std::string,Array>& arrays,bool
             for(const auto& e:sum){auto t=sum.find({e.first.second,e.first.first});double other=t==sum.end()?0.0:t->second;if(std::fabs(e.second-other)>1e-12*scale)invalid(task+" needs a symmetric matrix (entry ("+std::to_string(e.first.first)+", "+std::to_string(e.first.second)+") differs from its transpose)","NOT_SYMMETRIC");}
         }
     }
+    if((task=="spsolve"||((task=="eigs"||task=="eigsh")&&in.contains("sigma")&&!in["sigma"].is_null()))&&(size_t(n)>S8B_SPSOLVE_DIM||uint64_t(n)*nnz>20000000))invalid("SuperLU direct/shift-invert cap: n <= 2000 and n*stored_entries <= 20000000; use cg/gmres or unshifted ARPACK","INPUT_TOO_LARGE");
     if(nnz>S8B_SPARSE_NNZ)invalid("at most 200000 stored entries","INPUT_TOO_LARGE");
     if(solve){
         if(!in.contains("b")||in["b"].is_null())bad_param(task+" needs the right-hand side b");
@@ -116,11 +119,12 @@ Json prepare_la_sparse(const Params& in,std::map<std::string,Array>& arrays,bool
         static const std::map<std::string,std::set<std::string>> allowed={{"eigsh",{"LM","SM","LA","SA","BE"}},{"eigs",{"LM","SM","LR","SR","LI","SI"}},{"svds",{"LM","SM"}}};
         if(!allowed.at(task).count(which))bad_param("which "+which+" is not available for "+task);
         if(given("sigma")){if(svd)bad_param("sigma is not used by svds");if(which!="LM")bad_param("sigma (shift-invert) needs which=LM");s7_number(in["sigma"],"sigma");}
-        if(given("ncv")){int64_t ncv=in["ncv"];if(ncv<k+2||ncv>(svd?std::min(m,n):n))bad_param("ncv must be in k+2 .. dimension");}
+        if(given("ncv")){int64_t ncv=in["ncv"];if(svd){if(ncv<=k||ncv>=std::min(m,n))bad_param("svds needs k < ncv < min(rows, cols)");}else if(ncv<k+2||ncv>n)bad_param("eigenproblems need k+2 <= ncv <= dimension");}
         const bool vectors=in["vectors"];
         outputs=size_t(k)*(task=="eigs"?2:1);
         if(vectors)outputs+=size_t(k)*(svd?size_t(m+n):size_t(n)*(task=="eigs"?2:1));
     }else if(in["vectors"])bad_param("vectors is only used by eigs, eigsh and svds");
+    if(task=="spsolve"){if(given("rtol"))bad_param("rtol is not used by spsolve");if(given("maxiter"))bad_param("maxiter is not used by spsolve");}
     double rtol;
     if(given("rtol")){rtol=s7_number(in["rtol"],"rtol");if(!(rtol>=0&&rtol<1))bad_param("rtol must be in [0, 1)");if(solve&&rtol==0)bad_param("rtol must be > 0 for cg and gmres");}
     else rtol=solve?1e-8:0.0;
@@ -149,14 +153,14 @@ void add_s8b_ops(CliSpec& spec){
     for(bool write:{false,true}){
         auto finish=[&](Operation op){if(write)op.params.emplace_back("out",Type::String,true,nullptr,std::vector<Json>{},out_text);spec.operations.push_back(std::move(op));};
         const char* tail=write?" Writes the arrays to an exclusive safetensors artifact (nothing is written for a non-OK status).":" Inline results hold at most ~900 numbers; use the _to form for more.";
-        finish(Operation{write?"la_matrix_fn_to":"la_matrix_fn",write?Access::Write:Access::Read,std::string("Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (A Y A = A), logm (expm(Y) = A) and sqrtm (Y Y = A) report the relative residual and fail with NUMERICAL_FAILURE above 1e-6; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable.")+tail,"object",{
+        finish(Operation{write?"la_matrix_fn_to":"la_matrix_fn",write?Access::Write:Access::Read,std::string("Matrix functions of a finite real matrix (scipy.linalg): inv, pinv (rtol cutoff, reports rank), expm, logm and sqrtm (principal values; a result that is not exactly real is split into y_re / y_im and complex=true). Verified after the fact: inv (condition number; singular to working precision is SINGULAR), pinv (Y A Y = Y and symmetric projectors; discarded mass reported as truncation), logm (expm(Y) = A) and sqrtm (Y Y = A) report a verified residual and fail with NUMERICAL_FAILURE above 1e-6; inverse residual is ||A Y-I||F/(||A||F ||Y||F+sqrt(n)), with identity_residual reported separately; regular ill-conditioned inverses return OK with a warning; non-finite results and logm of a singular matrix are statuses. Statuses OK, SINGULAR, NUMERICAL_FAILURE, TIME_LIMIT. There is no funm: an arbitrary function would need a callable.")+tail,"object",{
             json("a",true,"Finite matrix (inline <=1000 numbers, .npy or safetensors#key, <=200000 numbers); square for every function except pinv."),
             str("fn",true,nullptr,{"inv","pinv","expm","logm","sqrtm"},"Matrix function."),
             num("rtol","pinv only: singular values below rtol * the largest are treated as zero, in [0, 1) (default max(m, n) * machine epsilon).")}});
-        finish(Operation{write?"special_fn_to":"special_fn",write?Access::Write:Access::Read,std::string("Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: every vector argument has the same length n and scalars repeat; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT.")+tail,"object",{
+        finish(Operation{write?"special_fn_to":"special_fn",write?Access::Write:Access::Read,std::string("Special functions from a fixed allowlist (scipy.special) on scalar or vector arguments. Broadcasting rule: arguments of length 1 broadcast (including refs), all longer vectors have the same length n; the result has n values (airy: four vectors ai, aip, bi, bip; logsumexp reduces its vector to one value). Defaults: zeta q=1 (Riemann), lambertw branch k=0 (a result with a non-zero imaginary part is a domain error). Any result that is NaN (outside the function's domain) makes the status DOMAIN_ERROR, and any infinite result (pole or overflow) NON_FINITE, with the count, the first index and its arguments: special-function singularities are never returned as values. Statuses OK, DOMAIN_ERROR, NON_FINITE, TIME_LIMIT.")+tail,"object",{
             str("fn",true,nullptr,{"erf","erfc","erfcx","erfinv","erfcinv","gammainc","gammaincc","gammaincinv","gammainccinv","betainc","betaincinv","zeta","polygamma","lambertw","expit","logit","log_ndtr","ndtri","ellipk","ellipe","hyp2f1","jv","yv","iv","kv","spherical_jn","airy","struve","owens_t","boxcox","inv_boxcox","xlogy","xlog1py","logsumexp"},"Function. Arguments by name: erf, erfc, erfcx, expit, log_ndtr, airy: x; erfinv, erfcinv: y; logit, ndtri: p; gammainc, gammaincc: a, x; gammaincinv, gammainccinv: a, y; betainc: a, b, x; betaincinv: a, b, y; zeta: x, q; polygamma: n (integer >= 0), x; lambertw: z, k; ellipk, ellipe: m; hyp2f1: a, b, c, z; jv, yv, iv, kv: v, z; spherical_jn: n (integer >= 0), z; struve: v, x; owens_t: h, a; boxcox: x, lmbda; inv_boxcox: y, lmbda; xlogy, xlog1py: x, y; logsumexp: a (a vector)."),
-            Param{"args",Type::Object,true,nullptr,{},"Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; vector lengths must agree (BAD_DATA)."}}});
-        finish(Operation{write?"la_sparse_to":"la_sparse",write?Access::Write:Access::Read,std::string("Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU, n <= 20000), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses the tolerance, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt.")+tail,"object",{
+            Param{"args",Type::Object,true,nullptr,{},"Argument name -> number or vector (inline <=1000 numbers, .npy or safetensors#key, <=200000); finite values only. Unknown or missing required names are BAD_PARAM; non-singleton vector lengths must agree; length-1 arrays/refs broadcast (BAD_DATA for incompatible lengths)."}}});
+        finish(Operation{write?"la_sparse_to":"la_sparse",write?Access::Write:Access::Read,std::string("Sparse linear algebra on a COO matrix (scipy.sparse; duplicate entries are summed): spsolve (SuperLU; direct and sigma factorisations require n <= 2000 and n*stored_entries <= 20000000 before spawn), cg (symmetric, checked), gmres, and ARPACK eigsh (symmetric), eigs and svds with a start vector derived from the required seed via PCG64 (reproducible). The true residual is recomputed: cg/gmres report relative_residual and are NO_CONVERGENCE when it misses 10*rtol (TOLERANCE_UNATTAINABLE when the solver claims success but only reaches its attainable floor); RHS and matrix are normalised and returned x rechecked, spsolve is SINGULAR for an exactly singular matrix and ILL_CONDITIONED above 1e-6, eigenpairs report max_residual. ARPACK non-convergence is a domain status (n_converged reported, no partial values). eigs results are sorted by (real, imaginary), eigsh ascending, svds descending. Statuses OK, NO_CONVERGENCE, TOLERANCE_UNATTAINABLE, SINGULAR, ILL_CONDITIONED, NUMERICAL_FAILURE, TIME_LIMIT. Result arrays: x; w (w_re / w_im when complex) and v; s, u, vt.")+tail,"object",{
             str("task",true,nullptr,{"spsolve","cg","gmres","eigsh","eigs","svds"},"Operation."),
             json("shape",true,"[rows, cols], each 1..100000 (square except for svds)."),
             json("row",true,"Row indices of the entries: an integer vector (inline, .npy, safetensors#key; <=200000 entries, in range) or, with frame, the int64 column name."),
@@ -167,7 +171,7 @@ void add_s8b_ops(CliSpec& spec){
             integer("k","eigs, eigsh, svds: number of eigenvalues / singular values, 1..50 and below the dimension (eigsh < n, eigs < n-1, svds < min(rows, cols))."),
             str("which",false,nullptr,{"LM","SM","LA","SA","BE","LR","SR","LI","SI"},"Which values ARPACK returns (default LM): eigsh LM, SM, LA, SA, BE; eigs LM, SM, LR, SR, LI, SI; svds LM, SM."),
             num("sigma","eigs / eigsh: shift for shift-invert mode (needs which=LM); eigenvalues nearest sigma are returned."),
-            integer("ncv","eigs, eigsh, svds: Lanczos basis size, k+2 .. dimension (default ARPACK's)."),
+            integer("ncv","Lanczos basis size: eigenproblems k+2 <= ncv <= n; svds k < ncv < min(rows, cols) (default ARPACK's)."),
             integer("seed","eigs, eigsh, svds: REQUIRED non-negative integer; the ARPACK start vector is numpy PCG64(seed).uniform(-1, 1), so equal seeds give equal results."),
             num("rtol","cg / gmres: relative residual tolerance in (0, 1), default 1e-8; ARPACK: tolerance in [0, 1), default 0 (machine precision)."),
             integer("maxiter","Iteration cap, 1..1000000 (cg / gmres default min(10 n, 100000); ARPACK default 10 n)."),

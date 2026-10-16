@@ -482,17 +482,22 @@ Json prepare_root_system(const Params& in){
     const Json& list=in["equations"];
     if(!list.is_array()||list.empty()||list.size()>16)bad_param("equations needs 1..16 expressions");
     if(list.size()!=v.x0.size())invalid("opt_root needs as many equations ("+std::to_string(list.size())+") as unknowns ("+std::to_string(v.x0.size())+")","UNDER_DETERMINED");
-    Json request={{"method",in["method"]},{"variables",layout_json(v)},{"x0_flat",v.x0},{"data",Json::array()},{"equation_asts",Json::array()}};
+    const bool bracket=in.contains("bracket")&&!in["bracket"].is_null();
+    const bool explicit_method=in.contains("method")&&!in["method"].is_null();
+    std::string method=explicit_method?in["method"].get<std::string>():bracket?"brentq":"hybr";
+    if(bracket&&method!="brentq")bad_param("a bracket requires method brentq (or omit method)");
+    if(!bracket&&in.contains("maxiter")&&!in["maxiter"].is_null())bad_param("maxiter is brentq-only; use max_evals for hybr/lm");
+    Json request={{"method",method},{"variables",layout_json(v)},{"x0_flat",v.x0},{"data",Json::array()},{"equation_asts",Json::array()}};
     for(size_t i=0;i<list.size();++i){if(!list[i].is_string())bad_param("equations are expression strings");request["equation_asts"].push_back(parse_expression(list[i],v.names,{},false,"equations["+std::to_string(i)+"]"));}
     double xtol=in["xtol"],rtol=in["residual_tol"];
     if(!(xtol>0&&xtol<1))bad_param("xtol must be in (0, 1)");if(!(rtol>0&&std::isfinite(rtol)))bad_param("residual_tol must be positive");
-    request["xtol"]=xtol;request["residual_tol"]=rtol;request["maxiter"]=int_param(in,"maxiter",1,1000);request["max_evals"]=int_param(in,"max_evals",1,2000000);
+    request["xtol"]=xtol;request["residual_tol"]=rtol;request["maxiter"]=in.contains("maxiter")&&!in["maxiter"].is_null()?int_param(in,"maxiter",1,1000):100;request["max_evals"]=int_param(in,"max_evals",1,2000000);
     if(in.contains("bracket")&&!in["bracket"].is_null()){
         const Json& b=in["bracket"];
         if(list.size()!=1)bad_param("bracket needs exactly one equation in one unknown");
         if(!b.is_array()||b.size()!=2||!b[0].is_number()||!b[1].is_number()||!std::isfinite(b[0].get<double>())||!std::isfinite(b[1].get<double>())||!(b[0].get<double>()<b[1].get<double>()))bad_param("bracket needs finite [lower, upper] with lower < upper");
         request["bracket"]=b;request["method"]="brentq";
-    }else if(in["method"]=="brentq")bad_param("method brentq needs a bracket");
+    }else if(method=="brentq")bad_param("method brentq needs a bracket");
     return request;
 }
 Json prepare_root(const Params& in){
@@ -840,11 +845,11 @@ int main(int argc,char** argv){
     spec.operations.push_back(Operation{"opt_root",Access::Read,"Roots of n equations in n named unknowns (scipy.optimize.root hybr or lm), or a bracketed single equation (brentq): equations are expressions in the unknowns (the closed S3 grammar, no data columns, no eval path), each equation f_i(x) = 0. Honest success: the solver's own flag is not trusted, the residual max|f_i(x)| is recomputed and must be <= residual_tol, otherwise the status is NO_CONVERGENCE (a local minimum of the norm is not a root); EVAL_LIMIT and TIME_LIMIT return the best point. Statuses OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE. Result: x {name: value}, fun, residual_norm, residual_max, nfev, evals","object",{
         Param{"equations",Type::Array,true,nullptr,{},"1..16 expressions, one per unknown, each set equal to 0.","",false,false,false,{},Type::String},
         Param{"start",Type::Object,true,nullptr,{},"Start values {name: number} (names [a-z][a-z0-9_]{0,31}), one per equation; with bracket only the name is used.",},
-        Param{"method",Type::String,false,"hybr",{"hybr","lm","brentq"},"hybr (Powell hybrid, square systems) or lm (Levenberg-Marquardt); brentq is chosen when a bracket is given."},
+        Param{"method",Type::String,false,nullptr,{"hybr","lm","brentq"},"hybr (Powell hybrid, square systems) or lm (Levenberg-Marquardt); default hybr without bracket, brentq with bracket; conflicting explicit method is BAD_PARAM."},
         Param{"bracket",Type::Array,false,nullptr,{},"One equation in one unknown: [lower, upper] with f(lower), f(upper) of opposite signs (BAD_INTERVAL otherwise); solved with brentq.","",false,false,false,{},Type::Number},
-        Param{"xtol",Type::Number,false,1e-12,{},"Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq); default 1e-12."},
+        Param{"xtol",Type::Number,false,1e-12,{},"Relative step tolerance in (0, 1) (hybr/lm) or absolute bracket width (brentq); default 1e-12. residual_tol is the binding final accuracy; loosening xtol alone cannot waive it."},
         Param{"residual_tol",Type::Number,false,1e-8,{},"Largest accepted max|f_i(x)| at the returned point; larger is NO_CONVERGENCE even when the solver claims success."},
-        Param{"maxiter",Type::Integer,false,100,{},"brentq iterations, 1..1000."},Param{"max_evals",Type::Integer,false,500000,{},"Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."}}});
+        Param{"maxiter",Type::Integer,false,nullptr,{},"brentq-only iterations, 1..1000 (default 100); rejected with hybr/lm, which use max_evals."},Param{"max_evals",Type::Integer,false,500000,{},"Cap on expression evaluations, 1..2000000; EVAL_LIMIT returns the best point so far."}}});
     spec.operations.push_back(Operation{"num_root",Access::Read,"Bracketed scalar root of an expression in x (scipy.optimize brentq/bisect/ridder/toms748). f(lower) and f(upper) must be finite with opposite signs (BAD_INTERVAL otherwise). Statuses OK, NO_CONVERGENCE, EVAL_LIMIT. Result: root, f_root, iterations, function_calls","object",{
         Param{"f",Type::String,true,nullptr,{},"Expression in x (no reducers, no data)."},
         Param{"lower",Type::Number,true,nullptr,{},"Bracket start (finite)."},Param{"upper",Type::Number,true,nullptr,{},"Bracket end (finite, > lower)."},
@@ -919,15 +924,15 @@ int main(int argc,char** argv){
         params.push_back(Param{"series",Type::String,true,nullptr,{},"Series column (no missing values)."});
         params.push_back(Param{"test",Type::String,true,nullptr,{"acf","pacf","adfuller","kpss","ljung_box"},"acf / pacf: the sm_tsa_acf estimators (same code path); adfuller: augmented Dickey-Fuller unit-root test; kpss: stationarity test (null: stationary); ljung_box: Ljung-Box portmanteau test of no autocorrelation."});
         params.push_back(Param{"nlags",Type::Integer,false,nullptr,{},"acf / pacf only: 1..100 and below the series length (pacf: below half of it); default 20."});
-        params.push_back(Param{"alpha",Type::Number,false,0.05,{},"acf / pacf only: confidence level 1-alpha."});
+        params.push_back(Param{"alpha",Type::Number,false,nullptr,{},"acf / pacf only: confidence level 1-alpha (default 0.05); rejected for the other tests."});
         params.push_back(Param{"adjusted",Type::Boolean,false,nullptr,{},"acf only: divide autocovariances by n-k instead of n (default false, matches R)."});
         params.push_back(Param{"method",Type::String,false,nullptr,{"ywm","ywadjusted","ols","ldb"},"pacf only: ywm (default, R's pacf), ywadjusted, ols, ldb."});
         params.push_back(Param{"regression",Type::String,false,nullptr,{"c","ct","ctt","n"},"adfuller: deterministic terms c (constant, default), ct (+ trend), ctt (+ quadratic trend) or n (none); kpss: c (level stationarity, default) or ct (trend stationarity)."});
         params.push_back(Param{"autolag",Type::String,false,nullptr,{"AIC","BIC","t-stat","none"},"adfuller: how the number of augmentation lags is chosen up to maxlag (default AIC); none uses exactly maxlag."});
-        params.push_back(Param{"maxlag",Type::Integer,false,nullptr,{},"adfuller: largest number of augmentation lags, 0..1000 (default 12 (n/100)^(1/4)); the series must be long enough (TOO_SHORT otherwise)."});
+        params.push_back(Param{"maxlag",Type::Integer,false,nullptr,{},"adfuller: largest number of augmentation lags, 0..1000 (default ceil(12 (n/100)^(1/4)), clipped to n//2 - deterministic_terms - 1); the series must be long enough (TOO_SHORT otherwise)."});
         params.push_back(Param{"kpss_lags",Type::Json,false,nullptr,{},"kpss: the Bartlett window length: \"auto\" (default, data dependent), \"legacy\" (ceil(12 (n/100)^(1/4))) or an integer 0..1000."});
-        params.push_back(Param{"lags",Type::Json,false,nullptr,{},"ljung_box: an integer m (tests lags 1..m) or a list of up to 100 lags in 1..100; default 10."});
-        params.push_back(Param{"model_df",Type::Integer,false,nullptr,{},"ljung_box: degrees of freedom removed from the chi-square reference (fitted ARMA parameters), 0 <= model_df < the smallest lag; default 0."});
+        params.push_back(Param{"lags",Type::Json,false,nullptr,{},"ljung_box: an integer m (tests lags model_df+1..m) or a strictly increasing unique list of up to 100 lags in 1..100; default 10."});
+        params.push_back(Param{"model_df",Type::Integer,false,nullptr,{},"ljung_box: degrees of freedom removed from the chi-square reference (fitted ARMA parameters), integer lags m: 0 <= model_df < m; explicit list: below every lag; default 0."});
         spec.operations.push_back(Operation{"sm_tsa_tools",Access::Read,"Time-series tests and correlograms on one numeric series (statsmodels.tsa.stattools / stats.diagnostic; patsy is never imported): acf and pacf (delegating to sm_tsa_acf), adfuller (statistic, MacKinnon p-value, used_lag, nobs, critical_values, icbest), kpss (statistic, interpolated p-value with p_value_bounded none|above|below, above/below when the statistic is outside the published table, lags, critical_values) and ljung_box (lags, statistic, p_value per lag). Statuses OK, NUMERICAL_FAILURE, TIME_LIMIT; constant series are CONSTANT_SERIES, series too short for the requested lags TOO_SHORT.","object",params});
     }
     for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||s8b_op(operation.name)||operation.name=="array_to_frame"||operation.name=="frame_to_array_to"||operation.name=="frame_to_array"||operation.name=="stats_dist"||operation.name=="stats_dist_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
