@@ -359,19 +359,7 @@ def decomp(p):
 
 
 def distribution_body(p):
-    from scipy.stats import norm, t
-    families = {'norm': norm, 't': t}
-    family = families[p['dist']]
-    params = p['params']
-    frozen = family(**params)
-    functions = {'pdf': frozen.pdf, 'cdf': frozen.cdf, 'ppf': frozen.ppf, 'sf': frozen.sf}
-    values = functions[p['fn']](array(p, 'x')).tolist()
-    for i, (x, value) in enumerate(zip(array(p, 'x'), values)):
-        if not math.isnan(float(x)) and math.isnan(value):
-            warnings.warn('SciPy returned NaN for a finite/domain-valid distribution input', NumericalWarning)
-    for i in p.get('missing', []):
-        values[i] = 'NA'
-    return {'status': 'OK', 'dist': p['dist'], 'fn': p['fn'], 'params': params, 'values': values}
+    return dist_evaluate(p)
 
 
 def distribution(p):
@@ -433,6 +421,10 @@ def main():
                 warm_spla.eigsh(warm, k=2, v0=np.ones(8))
                 warm_spla.eigs(warm, k=2, v0=np.ones(8))
                 warm_spla.svds(warm, k=2, v0=np.ones(8))
+            elif request['op'] in ('stats_dist', 'stats_dist_to'):
+                if request['params']['fn'] != 'rvs' or request['params']['dist'] not in DIST_NUMPY_RVS:
+                    import scipy.stats
+                    dist_warm(request['params'])
             elif request['op'].startswith('graph_'):
                 import networkx as warm_nx  # pure Python; lazy import only for graph_*
                 import scipy.sparse as warm_sparse
@@ -457,6 +449,7 @@ def main():
                     routine(np.array([0.5]))
         elif request['op'] == 'stats_dist':
             import scipy.stats
+            dist_warm(request['params'])
         elif request['op'] in ('la_solve', 'la_solve_to', 'la_lstsq', 'la_lstsq_to', 'la_props', 'la_decomp'):
             import scipy.linalg
         elif request['op'] in NUMERIC_OPS:

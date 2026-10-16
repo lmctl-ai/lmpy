@@ -2,7 +2,7 @@
 // Every table is preflighted here (bounded stored-only NPZ, metadata, dtypes, names, caps) and every expression is parsed here, so the worker only ever
 // sees a validated request and a copy of the table in a private temp directory.
 #pragma once
-constexpr size_t S8_INLINE=1000, S8_VALUES=200000, S8_COLS=256, S8_CELLS=500000, S8_RVS_INLINE=1000, S8_RVS_FILE=1000000, S8_WORK=100000000, S8_CLASSES=30, S8_ASSIGN=32, S8_WINDOW=100000;
+constexpr size_t S8_INLINE=1000, S8_VALUES=200000, S8_COLS=256, S8_CELLS=500000, S8_RVS_INLINE=1000, S8_RVS_FILE=1000000, S8_WORK=100000000, S8_CLASSES=30,S8_LEVY_POINTS=200, S8_ASSIGN=32, S8_WINDOW=100000;
 constexpr double S8_EXACT=9007199254740992.0;  // 2^53
 struct S8Extra{std::map<std::string,std::string> tables;std::string table_out;bool tensor_write=false,needs_spec=false;};
 bool s8b_op(const std::string& op);
@@ -301,10 +301,79 @@ Json prepare_metrics(const Params& in,std::map<std::string,Array>& arrays,S8Extr
 }
 
 // ---- sampling ----
-Json prepare_rvs(const std::string& op,const Params& in,S8Extra& x){
+// ---- distribution families: one per-family parameter table validated here, mirrored by py/s8.py (dist_frozen) ----
+// kinds: 0 any finite real, 1 > 0, 2 >= 0, 3 in [0,1], 4 integer in [1,1e9], 5 integer, 6 in (0,1], 7 in (0,2], 8 in [-1,1], 9 > 1, 10 in [0,1e9], 11 in [0,1000], 12 in [-1000,1000]
+struct DistParam{const char* name;double dflt;int kind;};
+inline const std::map<std::string,std::pair<bool,std::vector<DistParam>>>& dist_table(){
+    const double R=NAN;
+    static const std::map<std::string,std::pair<bool,std::vector<DistParam>>> table={
+        {"norm",{false,{{"loc",0,0},{"scale",1,1}}}},{"t",{false,{{"df",R,1},{"loc",0,0},{"scale",1,1}}}},{"uniform",{false,{{"low",0,0},{"high",1,0}}}},
+        {"expon",{false,{{"scale",1,1}}}},{"gamma",{false,{{"shape",R,1},{"scale",R,1}}}},{"beta",{false,{{"a",R,1},{"b",R,1}}}},
+        {"lognorm",{false,{{"mu",0,0},{"sigma",1,1}}}},{"chi2",{false,{{"df",R,1}}}},{"poisson",{true,{{"lam",R,10}}}},{"binom",{true,{{"n",R,4},{"p",R,3}}}},
+        {"genextreme",{false,{{"c",R,0},{"loc",0,0},{"scale",1,1}}}},{"genpareto",{false,{{"c",R,0},{"loc",0,0},{"scale",1,1}}}},
+        {"skewnorm",{false,{{"a",R,0},{"loc",0,0},{"scale",1,1}}}},{"levy_stable",{false,{{"alpha",R,7},{"beta",0,8},{"loc",0,0},{"scale",1,1}}}},
+        {"johnsonsu",{false,{{"a",R,0},{"b",R,1},{"loc",0,0},{"scale",1,1}}}},{"nct",{false,{{"df",R,1},{"nc",R,12},{"loc",0,0},{"scale",1,1}}}},
+        {"ncf",{false,{{"dfn",R,1},{"dfd",R,1},{"nc",R,11},{"loc",0,0},{"scale",1,1}}}},{"vonmises",{false,{{"kappa",R,1},{"loc",0,0},{"scale",1,1}}}},
+        {"truncnorm",{false,{{"a",R,0},{"b",R,0},{"loc",0,0},{"scale",1,1}}}},{"weibull_min",{false,{{"c",R,1},{"loc",0,0},{"scale",1,1}}}},
+        {"cauchy",{false,{{"loc",0,0},{"scale",1,1}}}},{"laplace",{false,{{"loc",0,0},{"scale",1,1}}}},{"logistic",{false,{{"loc",0,0},{"scale",1,1}}}},
+        {"gumbel_r",{false,{{"loc",0,0},{"scale",1,1}}}},{"pareto",{false,{{"b",R,1},{"loc",0,0},{"scale",1,1}}}},{"rayleigh",{false,{{"loc",0,0},{"scale",1,1}}}},
+        {"f",{false,{{"dfn",R,1},{"dfd",R,1},{"loc",0,0},{"scale",1,1}}}},
+        {"zipf",{true,{{"a",R,9},{"loc",0,5}}}},{"betabinom",{true,{{"n",R,4},{"a",R,1},{"b",R,1},{"loc",0,5}}}},
+        {"nbinom",{true,{{"n",R,1},{"p",R,6},{"loc",0,5}}}},{"geom",{true,{{"p",R,6},{"loc",0,5}}}}};
+    return table;
+}
+inline bool dist_discrete(const std::string& dist){auto it=dist_table().find(dist);return it!=dist_table().end()&&it->second.first;}
+inline Json dist_resolve(const std::string& dist,const Json& prm){
+    auto spec=dist_table().find(dist);if(spec==dist_table().end())bad_param("unknown distribution "+dist);
+    if(!prm.is_object())bad_param("params must be an object");
+    std::set<std::string> allowed;for(const auto& k:spec->second.second)allowed.insert(k.name);
+    for(auto it=prm.begin();it!=prm.end();++it)if(!allowed.count(it.key()))bad_param("parameter "+it.key()+" is not used by "+dist);
+    std::map<std::string,double> v;
+    for(const auto& k:spec->second.second){
+        const std::string name=k.name;
+        if(prm.contains(name)){if(!prm[name].is_number()||!std::isfinite(prm[name].get<double>()))bad_param(name+" must be a finite number");v[name]=prm[name].get<double>();}
+        else if(!std::isnan(k.dflt))v[name]=k.dflt;else bad_param(dist+" needs parameter "+name);
+        const double x=v[name];
+        if(std::fabs(x)>1e12&&!(dist=="t"&&name=="df"))bad_param(name+" is out of range");  // t df is unbounded: df 1e300 is the normal limit
+        bool ok=true;std::string rule;
+        switch(k.kind){
+            case 1:ok=x>0;rule="> 0";break;case 2:ok=x>=0;rule=">= 0";break;case 3:ok=x>=0&&x<=1;rule="in [0, 1]";break;
+            case 4:ok=x>=1&&x<=1e9&&x==std::floor(x);rule="an integer in [1, 1e9]";break;case 5:ok=x==std::floor(x);rule="an integer";break;
+            case 6:ok=x>0&&x<=1;rule="in (0, 1]";break;case 7:ok=x>0&&x<=2;rule="in (0, 2]";break;case 8:ok=x>=-1&&x<=1;rule="in [-1, 1]";break;
+            case 9:ok=x>1;rule="> 1";break;case 10:ok=x>=0&&x<=1e9;rule="in [0, 1e9]";break;case 11:ok=x>=0&&x<=1000;rule="in [0, 1000]";break;
+            case 12:ok=x>=-1000&&x<=1000;rule="in [-1000, 1000]";break;default:break;
+        }
+        if(!ok)bad_param(name+" must be "+rule);
+    }
+    if(dist=="uniform"&&!(v["low"]<v["high"]))bad_param("low must be below high");
+    if(dist=="truncnorm"&&!(v["a"]<v["b"]))bad_param("truncnorm needs a < b (standardised bounds)");
+    Json resolved=Json::object();for(const auto& e:v)resolved[e.first]=e.second;
+    return resolved;
+}
+
+// Evaluation functions (everything but rvs): validated here for both stats_dist (<=1000 points) and stats_dist_to (<=1e6 points).
+inline void dist_eval_prepare(Json& p,std::map<std::string,Array>& arrays,size_t cap){
+    const std::string fn=p["fn"],dist=p["dist"];
+    for(const char* k:{"n","seed"})if(p.contains(k)&&!p[k].is_null())bad_param(std::string(k)+" is only used by fn rvs");
+    p["params"]=dist_resolve(dist,p.contains("params")?p["params"]:Json::object());
+    if(fn=="moments"){if(p.contains("x")&&!p["x"].is_null())bad_param("moments takes no x");p.erase("x");return;}
+    if(!p.contains("x")||p["x"].is_null())bad_param(fn+" needs x");
+    if(dist=="levy_stable")cap=std::min<size_t>(cap,S8_LEVY_POINTS);
+    arrays["x"]=load(p["x"]);
+    if(arrays["x"].shape.size()!=1||arrays["x"].data.size()>cap)invalid("stats_dist requires a vector of <="+std::to_string(cap)+" values for "+dist,"INPUT_TOO_LARGE");
+    p["missing"]=arrays["x"].missing;
+    if(fn=="ppf"||fn=="isf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid(fn+" probabilities must lie in [0,1]","BAD_PROBABILITY");
+}
+
+Json prepare_rvs(const std::string& op,const Params& in,std::map<std::string,Array>& arrays,S8Extra& x){
     Json p=in;const bool twin=s7_twin(op);
-    if(in["fn"]!="rvs")bad_param("the write form of stats_dist only samples: use fn rvs");
-    if(in.contains("x")&&!in["x"].is_null())bad_param("x is only used by pdf, cdf, ppf and sf");
+    if(in["fn"]!="rvs"){
+        if(!twin)bad_param("internal: only the write form reaches this check");
+        dist_eval_prepare(p,arrays,S8_RVS_FILE);
+        std::string key=in["key"];check_key(key);if(key=="__metadata__")invalid("reserved key","BAD_KEY");p["out"]=output_path(in);x.tensor_write=true;
+        return p;
+    }
+    if(in.contains("x")&&!in["x"].is_null())bad_param("x is only used by pdf, cdf, logpdf, logcdf, sf, logsf, ppf, isf");
     if(!in.contains("seed")||in["seed"].is_null())bad_param("rvs needs an explicit seed (non-negative integer below 2^63)");
     if(!in["seed"].is_number_integer())bad_param("seed must be an integer");
     if(in["seed"].is_number_unsigned()){if(in["seed"].get<uint64_t>()>uint64_t(INT64_MAX))bad_param("seed must be below 2^63");}
@@ -315,30 +384,7 @@ Json prepare_rvs(const std::string& op,const Params& in,S8Extra& x){
     else if(size_t(n)>S8_RVS_INLINE)output_too_large("n="+std::to_string(n)+" exceeds the 1000 inline values; use stats_dist_to");
     const std::string dist=in["dist"];const Json& prm=in.at("params");
     if(!prm.is_object())bad_param("params must be an object");
-    static const std::map<std::string,std::vector<std::pair<std::string,double>>> table={
-        {"norm",{{"loc",0.0},{"scale",1.0}}},{"t",{{"df",NAN},{"loc",0.0},{"scale",1.0}}},{"uniform",{{"low",0.0},{"high",1.0}}},{"expon",{{"scale",1.0}}},
-        {"gamma",{{"shape",NAN},{"scale",NAN}}},{"beta",{{"a",NAN},{"b",NAN}}},{"lognorm",{{"mu",0.0},{"sigma",1.0}}},
-        {"chi2",{{"df",NAN}}},{"poisson",{{"lam",NAN}}},{"binom",{{"n",NAN},{"p",NAN}}}};
-    auto spec=table.find(dist);if(spec==table.end())bad_param("unknown distribution");
-    std::set<std::string> allowed;for(const auto& k:spec->second)allowed.insert(k.first);
-    for(auto it=prm.begin();it!=prm.end();++it)if(!allowed.count(it.key()))bad_param("parameter "+it.key()+" is not used by "+dist);
-    std::map<std::string,double> v;
-    for(const auto& k:spec->second){
-        if(prm.contains(k.first)){if(!prm[k.first].is_number()||!std::isfinite(prm[k.first].get<double>()))bad_param(k.first+" must be a finite number");v[k.first]=prm[k.first];}
-        else if(!std::isnan(k.second))v[k.first]=k.second;else bad_param(dist+" needs parameter "+k.first);
-        if(std::fabs(v[k.first])>1e12)bad_param(k.first+" is out of range");
-    }
-    auto positive=[&](const char* k){if(!(v[k]>0))bad_param(std::string(k)+" must be > 0");};
-    if(dist=="norm"||dist=="expon")positive("scale");
-    if(dist=="t"){positive("df");positive("scale");}
-    if(dist=="uniform"&&!(v["low"]<v["high"]))bad_param("low must be below high");
-    if(dist=="gamma"){positive("shape");positive("scale");}
-    if(dist=="beta"){positive("a");positive("b");}
-    if(dist=="lognorm")positive("sigma");
-    if(dist=="chi2")positive("df");
-    if(dist=="poisson"&&(v["lam"]<0||v["lam"]>1e9))bad_param("lam must be in [0, 1e9]");
-    if(dist=="binom"){if(v["n"]<1||v["n"]>1e9||v["n"]!=std::floor(v["n"]))bad_param("n must be an integer in [1, 1e9]");if(v["p"]<0||v["p"]>1)bad_param("p must be in [0, 1]");}
-    Json resolved=Json::object();for(const auto& e:v)resolved[e.first]=e.second;p["params"]=resolved;
+    p["params"]=dist_resolve(dist,prm);
     if(twin){std::string key=in["key"];check_key(key);if(key=="__metadata__")invalid("reserved key","BAD_KEY");p["out"]=output_path(in);x.tensor_write=true;}
     return p;
 }
@@ -352,7 +398,7 @@ Json prepare_s8(const std::string& op,const Params& in,std::map<std::string,Arra
     if(op=="ml_metrics")return prepare_metrics(in,arrays,x);
     if(s8b_op(op))return prepare_s8b(op,in,arrays,x);
     if(graph_op(op))return prepare_graph(op,in,x);
-    return prepare_rvs(op,in,x);
+    return prepare_rvs(op,in,arrays,x);
 }
 
 // ---- registration ----

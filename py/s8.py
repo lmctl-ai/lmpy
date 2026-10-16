@@ -754,7 +754,111 @@ def ml_metrics(p):
 
 
 # ------------------------------------------------------------------------------------------------------------------ rvs
+DIST_NUMPY_RVS = ('norm', 't', 'uniform', 'expon', 'gamma', 'beta', 'lognorm', 'chi2', 'poisson', 'binom')
+DIST_SHAPES = {'t': ('df',), 'genextreme': ('c',), 'genpareto': ('c',), 'skewnorm': ('a',), 'levy_stable': ('alpha', 'beta'), 'johnsonsu': ('a', 'b'),
+               'nct': ('df', 'nc'), 'ncf': ('dfn', 'dfd', 'nc'), 'vonmises': ('kappa',), 'truncnorm': ('a', 'b'), 'weibull_min': ('c',), 'pareto': ('b',),
+               'f': ('dfn', 'dfd'), 'zipf': ('a',), 'betabinom': ('n', 'a', 'b'), 'nbinom': ('n', 'p'), 'geom': ('p',)}
+DIST_DISCRETE = ('poisson', 'binom', 'zipf', 'betabinom', 'nbinom', 'geom')
+
+
+def dist_frozen(dist, prm):
+    """scipy.stats frozen distribution from the validated parameter table (py names for the original ten families, scipy names for the rest)."""
+    from scipy import stats
+    if dist == 'uniform':
+        return stats.uniform(loc=prm['low'], scale=prm['high'] - prm['low'])
+    if dist == 'expon':
+        return stats.expon(scale=prm['scale'])
+    if dist == 'gamma':
+        return stats.gamma(prm['shape'], scale=prm['scale'])
+    if dist == 'beta':
+        return stats.beta(prm['a'], prm['b'])
+    if dist == 'lognorm':
+        return stats.lognorm(prm['sigma'], scale=math.exp(prm['mu']))
+    if dist == 'chi2':
+        return stats.chi2(prm['df'])
+    if dist == 'poisson':
+        return stats.poisson(prm['lam'])
+    if dist == 'binom':
+        return stats.binom(int(prm['n']), prm['p'])
+    families = {'norm': stats.norm, 't': stats.t, 'genextreme': stats.genextreme, 'genpareto': stats.genpareto, 'skewnorm': stats.skewnorm,
+                'levy_stable': stats.levy_stable, 'johnsonsu': stats.johnsonsu, 'nct': stats.nct, 'ncf': stats.ncf, 'vonmises': stats.vonmises,
+                'truncnorm': stats.truncnorm, 'weibull_min': stats.weibull_min, 'cauchy': stats.cauchy, 'laplace': stats.laplace,
+                'logistic': stats.logistic, 'gumbel_r': stats.gumbel_r, 'pareto': stats.pareto, 'rayleigh': stats.rayleigh, 'f': stats.f,
+                'zipf': stats.zipf, 'betabinom': stats.betabinom, 'nbinom': stats.nbinom, 'geom': stats.geom}
+    shapes = [prm[k] for k in DIST_SHAPES.get(dist, ())]
+    if dist == 'betabinom':
+        shapes[0] = int(shapes[0])
+    if dist in DIST_DISCRETE:
+        return families[dist](*shapes, loc=prm['loc'])
+    return families[dist](*shapes, loc=prm['loc'], scale=prm['scale'])
+
+
+def dist_methods(frozen, discrete):
+    mass = discrete
+    return {'pdf': frozen.pmf if mass else frozen.pdf, 'logpdf': frozen.logpmf if mass else frozen.logpdf, 'cdf': frozen.cdf, 'logcdf': frozen.logcdf,
+            'sf': frozen.sf, 'logsf': frozen.logsf, 'ppf': frozen.ppf, 'isf': frozen.isf}
+
+
+def dist_levy_warning(dist, fn):
+    if dist == 'levy_stable' and fn != 'rvs':
+        warnings.warn('levy_stable pdf/cdf are numerical integrations: slow, and accurate to roughly 1e-6 relative at best (worse in the far tails); compare with an independent oracle before relying on digits', NumericalWarning)
+
+
+def dist_warm(p):
+    """Trusted-phase warm-up: run every method once so scipy's lazy imports happen before the import guard."""
+    import numpy as np
+    dist, prm = p['dist'], p['params']
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            with np.errstate(all='ignore'):
+                frozen = dist_frozen(dist, prm)
+                points = np.array([0.5])
+                for method in dist_methods(frozen, dist in DIST_DISCRETE).values():
+                    method(points)
+                frozen.stats('mvsk')
+                frozen.rvs(size=2, random_state=np.random.Generator(np.random.PCG64(1)))
+    except Exception:
+        pass
+
+
+def dist_evaluate(p):
+    import numpy as np
+    dist, prm, fn = p['dist'], p['params'], p['fn']
+    frozen = dist_frozen(dist, prm)
+    base = {'dist': dist, 'fn': fn, 'params': prm}
+    dist_levy_warning(dist, fn)
+    with np.errstate(all='ignore'):
+        if fn == 'moments':
+            names = ('mean', 'var', 'skew', 'kurtosis')
+            out = dict(zip(names, [float(v) for v in frozen.stats('mvsk')]))
+            undefined = [k for k in names if not math.isfinite(out[k])]
+            return dict(base, status='OK', moments={k: (None if k in undefined else v) for k, v in out.items()}, moments_undefined=undefined,
+                        note='kurtosis is the excess kurtosis; NA means infinite or undefined')
+        x = np.load(p['x_file'], allow_pickle=False).astype(float)
+        values = np.asarray(dist_methods(frozen, dist in DIST_DISCRETE)[fn](x), dtype=float)
+    missing = p.get('missing', [])
+    for i in range(len(x)):
+        if not math.isnan(float(x[i])) and math.isnan(values[i]) and i not in missing:
+            warnings.warn('SciPy returned NaN for a finite/domain-valid distribution input', NumericalWarning)
+            break
+    if p.get('output_prefix'):
+        values = values.copy()
+        values[list(missing)] = np.nan
+        return dict(base, status='OK', n_values=int(values.size), n_missing=len(missing), outputs=s8_save_tensor(p, p['key'], values))
+    out = values.tolist()
+    for i in missing:
+        out[i] = 'NA'
+    return dict(base, status='OK', values=out)
+
+
 def stats_rvs(p):
+    if p['fn'] != 'rvs':
+        return dist_evaluate(p)
+    return stats_sample(p)
+
+
+def stats_sample(p):
     import numpy as np
     dist, prm, n = p['dist'], p['params'], p['n']
     s8_cap(n <= S8_ARTIFACT_VALUES, 'sample size')
@@ -778,8 +882,10 @@ def stats_rvs(p):
             x = rng.chisquare(prm['df'], n)
         elif dist == 'poisson':
             x = rng.poisson(prm['lam'], n).astype(float)
-        else:
+        elif dist == 'binom':
             x = rng.binomial(int(prm['n']), prm['p'], n).astype(float)
+        else:
+            x = dist_frozen(dist, prm).rvs(size=n, random_state=rng)
     x = np.asarray(x, dtype=float)
     base = {'dist': dist, 'fn': 'rvs', 'params': prm, 'n': n, 'seed': p['seed'], 'generator': 'PCG64'}
     if not np.isfinite(x).all():

@@ -89,25 +89,46 @@
       "name": "stats_dist",
       "access": "read",
       "returns": "object",
-      "description": "Normal or Student t pdf/cdf/ppf/sf (<=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) from norm, t, uniform, expon, gamma, beta, lognorm, chi2, poisson, binom",
+      "description": "Distribution functions (pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf, moments; <=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) for 34 continuous and discrete families, see dist",
       "params": [
         {
           "name": "dist",
           "type": "string",
           "occurs": "1",
           "enum": [
-            "norm",
-            "t",
-            "uniform",
-            "expon",
-            "gamma",
             "beta",
-            "lognorm",
+            "betabinom",
+            "binom",
+            "cauchy",
             "chi2",
+            "expon",
+            "f",
+            "gamma",
+            "genextreme",
+            "genpareto",
+            "geom",
+            "gumbel_r",
+            "johnsonsu",
+            "laplace",
+            "levy_stable",
+            "logistic",
+            "lognorm",
+            "nbinom",
+            "ncf",
+            "nct",
+            "norm",
+            "pareto",
             "poisson",
-            "binom"
+            "rayleigh",
+            "skewnorm",
+            "t",
+            "truncnorm",
+            "uniform",
+            "vonmises",
+            "weibull_min",
+            "zipf"
           ],
-          "description": "Distribution. pdf/cdf/ppf/sf support norm and t only; every family samples (fn rvs). rvs parameters: norm loc, scale; t df, loc, scale; uniform low, high; expon scale; gamma shape, scale; beta a, b; lognorm mu, sigma (of the underlying normal); chi2 df; poisson lam (<=1e9); binom n (1..1e9), p. Discrete families return integer-valued F64."
+          "description": "Distribution family. Continuous: norm (loc, scale), t (df, loc, scale), uniform (low, high), expon (scale), gamma (shape, scale), beta (a, b), lognorm (mu, sigma of the underlying normal), chi2 (df), genextreme (c, loc, scale: scipy c = -xi of the usual GEV shape xi), genpareto (c, loc, scale), skewnorm (a, loc, scale), levy_stable (alpha in (0,2], beta in [-1,1], loc, scale; scipy S1 parameterisation; pdf/cdf are slow numerical integrations of limited accuracy, at most 200 points, and a warning says so), johnsonsu (a, b, loc, scale), nct (df, nc, loc, scale; |nc|<=1000), ncf (dfn, dfd, nc, loc, scale; nc<=1000), vonmises (kappa, loc, scale; scipy wraps the variates into [-pi, pi] after adding loc, so loc rotates the circle: the linear mean is not loc), truncnorm (a, b, loc, scale; a and b are STANDARDISED bounds as in scipy), weibull_min (c, loc, scale), cauchy, laplace, logistic, gumbel_r (loc, scale), pareto (b, loc, scale), rayleigh (loc, scale), f (dfn, dfd, loc, scale). Discrete (integer-valued F64; pdf means the probability mass): poisson (lam <=1e9), binom (n 1..1e9, p), zipf (a>1, loc), betabinom (n, a, b, loc), nbinom (n>0, p, loc), geom (p, loc). Unknown parameters are BAD_PARAM; only the parameters listed per family are accepted."
         },
         {
           "name": "fn",
@@ -115,12 +136,17 @@
           "occurs": "1",
           "enum": [
             "pdf",
+            "logpdf",
             "cdf",
-            "ppf",
+            "logcdf",
             "sf",
+            "logsf",
+            "ppf",
+            "isf",
+            "moments",
             "rvs"
           ],
-          "description": "pdf, cdf, ppf, sf at x (norm, t), or rvs: seeded random variates."
+          "description": "pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at x (<=1000 points; pdf/logpdf are the mass for discrete families; ppf/isf take probabilities in [0,1]), moments (mean, var, skew, excess kurtosis; infinite or undefined moments are reported as NA and listed in moments_undefined), or rvs: seeded random variates."
         },
         {
           "name": "params",
@@ -145,7 +171,7 @@
           "name": "x",
           "type": "json",
           "occurs": "?",
-          "description": "pdf/cdf/ppf/sf only: evaluation points, a vector of <=1000 numbers (inline, .npy or safetensors#key). Not allowed with rvs."
+          "description": "Evaluation points (not allowed with rvs or moments): a vector of <=1000 numbers (inline, .npy or safetensors#key); NA entries stay NA."
         },
         {
           "name": "time_limit",
@@ -160,34 +186,63 @@
       "name": "stats_dist_to",
       "access": "write",
       "returns": "object",
-      "description": "Seeded sampling written to an exclusive safetensors artifact: same distributions, params and explicit required seed as stats_dist fn rvs, n up to 1,000,000 values (F64 vector under artifacts[key]) Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Distribution functions at up to 1,000,000 points, or seeded sampling (same families, params and explicit required seed as stats_dist), written to an exclusive safetensors artifact (F64 vector under artifacts[key]) Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "dist",
           "type": "string",
           "occurs": "1",
           "enum": [
-            "norm",
-            "t",
-            "uniform",
-            "expon",
-            "gamma",
             "beta",
-            "lognorm",
+            "betabinom",
+            "binom",
+            "cauchy",
             "chi2",
+            "expon",
+            "f",
+            "gamma",
+            "genextreme",
+            "genpareto",
+            "geom",
+            "gumbel_r",
+            "johnsonsu",
+            "laplace",
+            "levy_stable",
+            "logistic",
+            "lognorm",
+            "nbinom",
+            "ncf",
+            "nct",
+            "norm",
+            "pareto",
             "poisson",
-            "binom"
+            "rayleigh",
+            "skewnorm",
+            "t",
+            "truncnorm",
+            "uniform",
+            "vonmises",
+            "weibull_min",
+            "zipf"
           ],
-          "description": "Distribution. pdf/cdf/ppf/sf support norm and t only; every family samples (fn rvs). rvs parameters: norm loc, scale; t df, loc, scale; uniform low, high; expon scale; gamma shape, scale; beta a, b; lognorm mu, sigma (of the underlying normal); chi2 df; poisson lam (<=1e9); binom n (1..1e9), p. Discrete families return integer-valued F64."
+          "description": "Distribution family. Continuous: norm (loc, scale), t (df, loc, scale), uniform (low, high), expon (scale), gamma (shape, scale), beta (a, b), lognorm (mu, sigma of the underlying normal), chi2 (df), genextreme (c, loc, scale: scipy c = -xi of the usual GEV shape xi), genpareto (c, loc, scale), skewnorm (a, loc, scale), levy_stable (alpha in (0,2], beta in [-1,1], loc, scale; scipy S1 parameterisation; pdf/cdf are slow numerical integrations of limited accuracy, at most 200 points, and a warning says so), johnsonsu (a, b, loc, scale), nct (df, nc, loc, scale; |nc|<=1000), ncf (dfn, dfd, nc, loc, scale; nc<=1000), vonmises (kappa, loc, scale; scipy wraps the variates into [-pi, pi] after adding loc, so loc rotates the circle: the linear mean is not loc), truncnorm (a, b, loc, scale; a and b are STANDARDISED bounds as in scipy), weibull_min (c, loc, scale), cauchy, laplace, logistic, gumbel_r (loc, scale), pareto (b, loc, scale), rayleigh (loc, scale), f (dfn, dfd, loc, scale). Discrete (integer-valued F64; pdf means the probability mass): poisson (lam <=1e9), binom (n 1..1e9, p), zipf (a>1, loc), betabinom (n, a, b, loc), nbinom (n>0, p, loc), geom (p, loc). Unknown parameters are BAD_PARAM; only the parameters listed per family are accepted."
         },
         {
           "name": "fn",
           "type": "string",
           "occurs": "1",
           "enum": [
+            "pdf",
+            "logpdf",
+            "cdf",
+            "logcdf",
+            "sf",
+            "logsf",
+            "ppf",
+            "isf",
             "rvs"
           ],
-          "description": "rvs only: seeded random variates."
+          "description": "pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at x (<=1,000,000 points) or rvs: seeded random variates; the result is an F64 vector artifact."
         },
         {
           "name": "params",
@@ -207,6 +262,12 @@
           "type": "number",
           "occurs": "?",
           "description": "rvs: REQUIRED explicit seed, an integer in [0, 2^63). The generator is numpy PCG64(seed); the seed and generator are echoed, and the same seed gives the same stream (a shorter n is a prefix)."
+        },
+        {
+          "name": "x",
+          "type": "json",
+          "occurs": "?",
+          "description": "Evaluation points (not allowed with rvs): a vector of <=1,000,000 numbers (inline, .npy or safetensors#key); NA entries become NaN in the artifact."
         },
         {
           "name": "key",
@@ -2618,6 +2679,362 @@
           "type": "string",
           "occurs": "1",
           "description": "New .safetensors path inside the working directory (CONFLICT if it exists). The write form stores the arrays there and returns the artifacts[name] descriptors."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "graph_paths",
+      "access": "read",
+      "returns": "object",
+      "description": "Shortest paths on a graph given as an edge table (networkx for one source; scipy.sparse.csgraph for the all-pairs matrix). Statuses OK, UNREACHABLE (the target cannot be reached; no path), NEGATIVE_CYCLE (bellman_ford found a negative cycle reachable from the source, or anywhere for all_pairs; `cycle` lists it), TIME_LIMIT. Unreachable nodes are never given a distance. Caps: 100000 edges, 100000 nodes, k_shortest <= 10, all pairs n <= 5000 and n*n <= 1,900,000 (checked before any work). Inline results hold at most ~900 numbers.",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored .npz table with one row per edge (frame_import). Give exactly one of frame and records; graph file formats are never accepted."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline edges: objects keyed by the column names, at most 1000 cells.",
+          "items": "object"
+        },
+        {
+          "name": "from_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge start node: int64 (integer ids), or string / category (string ids); a missing value is NA_NOT_ALLOWED."
+        },
+        {
+          "name": "to_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge end node, of the same kind as from_column."
+        },
+        {
+          "name": "weight_column",
+          "type": "string",
+          "occurs": "?",
+          "description": "Edge length column (int64 or float64, finite); omitted: every edge has length 1. Not with method bfs. Parallel edges keep the lightest; self loops are ignored."
+        },
+        {
+          "name": "directed",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "true: edges run from_column -> to_column; false: each edge can be used both ways."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dijkstra",
+          "enum": [
+            "dijkstra",
+            "bellman_ford",
+            "bfs"
+          ],
+          "description": "dijkstra needs non-negative weights (BAD_PARAM otherwise); bellman_ford accepts negative weights and reports NEGATIVE_CYCLE; bfs counts edges."
+        },
+        {
+          "name": "source",
+          "type": "json",
+          "occurs": "?",
+          "description": "Start node (an integer, or a string for string-id graphs; it must occur in the edges, UNKNOWN_NODE otherwise). Required unless all_pairs."
+        },
+        {
+          "name": "target",
+          "type": "json",
+          "occurs": "?",
+          "description": "End node: returns one shortest path (UNREACHABLE when there is none). Without a target the distances of all reachable nodes are listed (at most 450 nodes inline)."
+        },
+        {
+          "name": "k_shortest",
+          "type": "number",
+          "occurs": "?",
+          "description": "With a target: the k <= 10 shortest simple paths (Yen), non-negative weights, ascending length."
+        },
+        {
+          "name": "all_pairs",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "Must be false: the all-pairs matrix is a file result (graph_paths_to)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "graph_paths_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Shortest paths on a graph given as an edge table (networkx for one source; scipy.sparse.csgraph for the all-pairs matrix). Statuses OK, UNREACHABLE (the target cannot be reached; no path), NEGATIVE_CYCLE (bellman_ford found a negative cycle reachable from the source, or anywhere for all_pairs; `cycle` lists it), TIME_LIMIT. Unreachable nodes are never given a distance. Caps: 100000 edges, 100000 nodes, k_shortest <= 10, all pairs n <= 5000 and n*n <= 1,900,000 (checked before any work). Successful writes return artifacts[name] descriptors. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored .npz table with one row per edge (frame_import). Give exactly one of frame and records; graph file formats are never accepted."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline edges: objects keyed by the column names, at most 1000 cells.",
+          "items": "object"
+        },
+        {
+          "name": "from_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge start node: int64 (integer ids), or string / category (string ids); a missing value is NA_NOT_ALLOWED."
+        },
+        {
+          "name": "to_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge end node, of the same kind as from_column."
+        },
+        {
+          "name": "weight_column",
+          "type": "string",
+          "occurs": "?",
+          "description": "Edge length column (int64 or float64, finite); omitted: every edge has length 1. Not with method bfs. Parallel edges keep the lightest; self loops are ignored."
+        },
+        {
+          "name": "directed",
+          "type": "boolean",
+          "occurs": "?",
+          "default": true,
+          "description": "true: edges run from_column -> to_column; false: each edge can be used both ways."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "occurs": "?",
+          "default": "dijkstra",
+          "enum": [
+            "dijkstra",
+            "bellman_ford",
+            "bfs"
+          ],
+          "description": "dijkstra needs non-negative weights (BAD_PARAM otherwise); bellman_ford accepts negative weights and reports NEGATIVE_CYCLE; bfs counts edges."
+        },
+        {
+          "name": "source",
+          "type": "json",
+          "occurs": "?",
+          "description": "Start node (an integer, or a string for string-id graphs; it must occur in the edges, UNKNOWN_NODE otherwise). Required unless all_pairs."
+        },
+        {
+          "name": "all_pairs",
+          "type": "boolean",
+          "occurs": "?",
+          "default": false,
+          "description": "true: the n x n distance matrix of an integer-id graph (n <= 5000, and n*n <= 1,900,000 numbers) in `out`: tensor distance (NaN = unreachable) in the order of tensor nodes (ascending ids); bellman_ford uses Johnson's algorithm. false: a node table in `out`."
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New output artifact: a .npz node table (columns node, distance, hops, predecessor; unreachable nodes have missing distance/hops/predecessor) or, with all_pairs, a .safetensors file (distance, nodes)."
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "graph_flow",
+      "access": "read",
+      "returns": "object",
+      "description": "Network flows on a directed edge table with capacities (networkx Dinitz and network simplex). Integer capacities are exact (`integral`: true, tolerance 0); with float capacities the flow is checked for conservation and capacity within `tolerance` = 1e-9 * max(1, largest capacity) and NUMERICAL_FAILURE is reported beyond it. The returned flow is always re-verified against the edge list. Statuses OK, INFEASIBLE (the supplies cannot be routed within the capacities), UNBALANCED (supplies do not sum to zero), UNBOUNDED, NUMERICAL_FAILURE, TIME_LIMIT. Results: value / cost, flow_from, flow_to, flow (edges with positive flow; at most 300 inline), cut_from, cut_to, cut_capacity and source_side (min_cut; at most 300 each inline). Caps: 20000 edges, 20000 nodes. The write form stores the flow edges (from, to, flow) or cut edges (from, to, capacity) as a node-id table in `out`.",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored .npz table with one row per edge (frame_import). Give exactly one of frame and records; graph file formats are never accepted."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline edges: objects keyed by the column names, at most 1000 cells.",
+          "items": "object"
+        },
+        {
+          "name": "from_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge start node: int64 (integer ids), or string / category (string ids); a missing value is NA_NOT_ALLOWED."
+        },
+        {
+          "name": "to_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge end node, of the same kind as from_column."
+        },
+        {
+          "name": "capacity_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Edge capacity column (int64 or float64, 0 <= c <= 1e15). Edges are directed; parallel edges add up (max_flow, min_cut) or are DUPLICATE_EDGE (min_cost_flow)."
+        },
+        {
+          "name": "cost_column",
+          "type": "string",
+          "occurs": "?",
+          "description": "min_cost_flow only: integer cost per unit of flow (negative costs allowed)."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "max_flow",
+            "min_cut",
+            "min_cost_flow"
+          ],
+          "description": "max_flow: value and flow edges; min_cut: value, the cut edges and the source side of a minimum cut (max-flow = min-cut); min_cost_flow: total cost and flow edges for the given supplies."
+        },
+        {
+          "name": "source",
+          "type": "json",
+          "occurs": "?",
+          "description": "max_flow, min_cut: the source node; min_cost_flow: with sink and flow_value instead of supplies."
+        },
+        {
+          "name": "sink",
+          "type": "json",
+          "occurs": "?",
+          "description": "The sink node (must differ from the source)."
+        },
+        {
+          "name": "flow_value",
+          "type": "number",
+          "occurs": "?",
+          "description": "min_cost_flow with source and sink: the amount to route, a positive integer."
+        },
+        {
+          "name": "supplies",
+          "type": "array",
+          "occurs": "?",
+          "description": "min_cost_flow: [node, amount] pairs, positive = supply, negative = demand, integers; the amounts must sum to zero (UNBALANCED otherwise).",
+          "items": "array"
+        },
+        {
+          "name": "time_limit",
+          "type": "number",
+          "occurs": "?",
+          "default": 10.0,
+          "description": "Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps."
+        }
+      ]
+    },
+    {
+      "name": "graph_flow_to",
+      "access": "write",
+      "returns": "object",
+      "description": "Network flows on a directed edge table with capacities (networkx Dinitz and network simplex). Integer capacities are exact (`integral`: true, tolerance 0); with float capacities the flow is checked for conservation and capacity within `tolerance` = 1e-9 * max(1, largest capacity) and NUMERICAL_FAILURE is reported beyond it. The returned flow is always re-verified against the edge list. Statuses OK, INFEASIBLE (the supplies cannot be routed within the capacities), UNBALANCED (supplies do not sum to zero), UNBOUNDED, NUMERICAL_FAILURE, TIME_LIMIT. Results: value / cost, flow_from, flow_to, flow (edges with positive flow; at most 300 inline), cut_from, cut_to, cut_capacity and source_side (min_cut; at most 300 each inline). Caps: 20000 edges, 20000 nodes. The write form stores the flow edges (from, to, flow) or cut edges (from, to, capacity) as a node-id table in `out`. Successful writes return artifacts[name] descriptors. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "params": [
+        {
+          "name": "frame",
+          "type": "string",
+          "occurs": "?",
+          "description": "Stored .npz table with one row per edge (frame_import). Give exactly one of frame and records; graph file formats are never accepted."
+        },
+        {
+          "name": "records",
+          "type": "array",
+          "occurs": "?",
+          "description": "Inline edges: objects keyed by the column names, at most 1000 cells.",
+          "items": "object"
+        },
+        {
+          "name": "from_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge start node: int64 (integer ids), or string / category (string ids); a missing value is NA_NOT_ALLOWED."
+        },
+        {
+          "name": "to_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Column with the edge end node, of the same kind as from_column."
+        },
+        {
+          "name": "capacity_column",
+          "type": "string",
+          "occurs": "1",
+          "description": "Edge capacity column (int64 or float64, 0 <= c <= 1e15). Edges are directed; parallel edges add up (max_flow, min_cut) or are DUPLICATE_EDGE (min_cost_flow)."
+        },
+        {
+          "name": "cost_column",
+          "type": "string",
+          "occurs": "?",
+          "description": "min_cost_flow only: integer cost per unit of flow (negative costs allowed)."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "occurs": "1",
+          "enum": [
+            "max_flow",
+            "min_cut",
+            "min_cost_flow"
+          ],
+          "description": "max_flow: value and flow edges; min_cut: value, the cut edges and the source side of a minimum cut (max-flow = min-cut); min_cost_flow: total cost and flow edges for the given supplies."
+        },
+        {
+          "name": "source",
+          "type": "json",
+          "occurs": "?",
+          "description": "max_flow, min_cut: the source node; min_cost_flow: with sink and flow_value instead of supplies."
+        },
+        {
+          "name": "sink",
+          "type": "json",
+          "occurs": "?",
+          "description": "The sink node (must differ from the source)."
+        },
+        {
+          "name": "flow_value",
+          "type": "number",
+          "occurs": "?",
+          "description": "min_cost_flow with source and sink: the amount to route, a positive integer."
+        },
+        {
+          "name": "supplies",
+          "type": "array",
+          "occurs": "?",
+          "description": "min_cost_flow: [node, amount] pairs, positive = supply, negative = demand, integers; the amounts must sum to zero (UNBALANCED otherwise).",
+          "items": "array"
+        },
+        {
+          "name": "out",
+          "type": "string",
+          "occurs": "1",
+          "description": "New .npz table artifact (CONFLICT if it exists)."
         },
         {
           "name": "time_limit",

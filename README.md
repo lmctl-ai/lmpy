@@ -11,8 +11,8 @@ All file writes use `result.artifacts[name]` with the same descriptor fields:
 | `py_info` | read | none | versions, OpenBLAS pools/threads/core, PCG64 RNG kind, architecture, worker SHA256, hash/isolation flags |
 | `la_solve` | read | a, b, assume_a=gen/sym/pos | x, rcond estimate, residual norm, domain status |
 | `la_solve_to` | write | same plus exclusive out.safetensors | x descriptor; fails if no artifact is produced |
-| `stats_dist` | read | dist (norm, t for pdf/cdf/ppf/sf; norm, t, uniform, expon, gamma, beta, lognorm, chi2, poisson, binom for rvs), fn=pdf/cdf/ppf/sf/rvs, x vector, params; rvs: n and a REQUIRED integer seed | values and captured warnings; rvs echoes seed and generator (PCG64) |
-| `stats_dist_to` | write | fn=rvs only: same dist/params/seed, n up to 1,000,000, exclusive out.safetensors, key (default x) | sample size, seed, generator, artifacts[key] descriptor |
+| `stats_dist` | read | dist (34 families, see S8b-2 below), fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments/rvs, x vector (<=1000), params; rvs: n and a REQUIRED integer seed | values and captured warnings; moments with `moments_undefined`; rvs echoes seed and generator (PCG64) |
+| `stats_dist_to` | write | fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at up to 1,000,000 points, or rvs (same dist/params/seed, n up to 1,000,000); exclusive out.safetensors, key (default x) | n_values, n_missing, sample size, seed, generator, artifacts[key] descriptor |
 | `array_import` | write | format=json/csv/csv_file/npy/safetensors, data, key (default x), header, na=nan/error, exclusive out.safetensors | new F64 artifact descriptor, source dtype, finite/NaN/Inf counts, min, max, norm, na_count (pure C++, no Python) |
 | `array_inspect` | read | ref (inline, file.npy, file.safetensors#key, or bare file.safetensors), limit<=1000 | dtype, shape, size, counts, min, max, norm, preview; a bare safetensors path lists tensors from the validated header only |
 | `la_lstsq` | read | a (m by n), b, rcond, driver=gelsd/gelsy/gelss | x (<=1000 numbers), rank, singular_values, residues, residual_norm, status OK/RANK_DEFICIENT/NO_CONVERGENCE |
@@ -668,7 +668,7 @@ for roc_auc, more than two classes for the scored metrics, 0/0 in precision/reca
 `stats_dist` rvs: `seed` is required (an integer in [0, 2^63)); the generator is `numpy.random.Generator(PCG64(seed))`, echoed with the seed, so the same call returns the
 same values and a smaller `n` is a prefix of a larger one. Parameters (unknown or missing ones are `BAD_PARAM`): norm `loc`, `scale`; t `df`, `loc`, `scale`; uniform `low`, `high`;
 expon `scale`; gamma `shape`, `scale`; beta `a`, `b`; lognorm `mu`, `sigma` (of the underlying normal); chi2 `df`; poisson `lam`; binom `n`, `p`. Discrete families return integer-valued
-F64. Inline `n` <= 1000, `stats_dist_to` <= 1,000,000. pdf/cdf/ppf/sf remain norm and t only.
+F64. Inline `n` <= 1000, `stats_dist_to` <= 1,000,000. S8b-2 extends the families and functions (below).
 
 Statuses: `OK`; `UNDEFINED` (ml_metrics); `NUMERICAL_FAILURE` (a sampler overflow); `TIME_LIMIT`. Errors (exit 2) include `NA_NOT_ALLOWED`, `INT64_NOT_EXACT`, `BAD_DTYPE`,
 `UNKNOWN_COLUMN`, `DUPLICATE_COLUMN`, `TOO_MANY_COLUMNS`, `NON_FINITE`, `MERGE_VALIDATION`, `ROW_EXPLOSION`, `KEY_DTYPE_MISMATCH`, `NOT_SORTED`, `BAD_PARAM`, `BAD_DATA`, `INPUT_TOO_LARGE`.
@@ -698,7 +698,7 @@ mutate **1.00 s**. The 13 GB projected string join is refused before allocation;
 
 ## S8b: matrix functions, sparse algebra, special functions, root systems, time-series tests
 
-This slice is the first half of S8b; the graph operations and the long tail of `stats_dist` families are still to come (docs/s8b.md). Every operation follows the S7/S8a
+This slice is the first half of S8b (the graph operations and the `stats_dist` tail are in S8b-2 below, docs/s8b2.md). Every operation follows the S7/S8a
 conventions: caps before spawn and again in the worker, `time_limit` budget, statuses instead of silent bad values, `_to` twins that store arrays under the one
 `artifacts[name]` seven-field descriptor (nothing is written for a non-OK status), lazy imports of only the scipy subpackage needed.
 
@@ -745,3 +745,36 @@ ADF `icbest` is restored to original data units; `maxlag` is the effective ceil 
 `alpha` applies only to acf/pacf and is rejected elsewhere. Ljung-Box integer `lags=m` expands to `model_df+1..m`; explicit lists must be strictly increasing, unique, and above model_df.
 R conventions differ: tseries::adf.test defaults to trend regression, `trunc((n-1)^(1/3))` lags and table interpolation; tseries::kpss.test uses `trunc(3*sqrt(n)/13)` lags (short default).
 urca::ur.df has its own lag-selection conventions. Match regression, lags and p-value method explicitly for parity. patsy is never imported.
+
+## S8b-2: graph operations and the stats_dist long tail
+
+networkx 3.7 (pure Python, BSD-3-Clause, hash-locked wheel) is imported only by the `graph_*` operations. Graphs come from a stored `.npz` edge table (`frame`, made by
+`frame_import`) with explicitly named columns, or from inline `records`; GraphML, GEXF, pickle or any other graph file format is never accepted. Node ids are int64 or strings
+and round-trip exactly. Parallel edges keep the lightest (paths) or add up (flows); self loops are ignored.
+
+| Operation | Access | Contract |
+|---|---|---|
+| `graph_paths` | read | `method` dijkstra (non-negative weights, else `BAD_PARAM`), bellman_ford (negative weights; `NEGATIVE_CYCLE` with the `cycle`), bfs (hops); `source`, optional `target` (one `path`, `length`, `hops`; `UNREACHABLE` when there is none), `k_shortest` <= 10 simple paths, `directed`, `weight_column`. Without a target the reachable nodes are listed (<= 450 inline) with `n_reachable` / `n_unreachable`; an unreachable node never gets a distance |
+| `graph_paths_to` | write | Same; a node table `.npz` (node, distance, hops, predecessor; missing for unreachable nodes), or with `all_pairs` the n x n `distance` matrix and the ascending `nodes` in a `.safetensors` file (NaN = unreachable; integer ids only; n*n <= 1,900,000, about 1377 nodes, rejected before any work) |
+| `graph_flow` | read | `kind` max_flow, min_cut (cut edges and `source_side`, max-flow = min-cut), min_cost_flow (`source`/`sink`/`flow_value` or `supplies`; integer costs). Integer capacities are exact; float capacities are verified within `tolerance` = 1e-9 * max(1, largest capacity). Statuses `OK`, `INFEASIBLE`, `UNBALANCED`, `UNBOUNDED`, `NUMERICAL_FAILURE`, `TIME_LIMIT`. At most 300 flow or cut edges inline (`OUTPUT_TOO_LARGE` otherwise) |
+| `graph_flow_to` | write | Same; the flow edges (from, to, flow) or cut edges (from, to, capacity) as a `.npz` table |
+
+Caps (before spawn): 100000 edges and nodes for paths, 20000 for flows, `k_shortest` <= 10; the results are bounded before they are built. Every call has the cooperative
+`time_limit` (default 10 s, at most 30 s) and returns `TIME_LIMIT` long before the 50 s hard kill; measured worst cases are in docs/timings.md.
+
+`stats_dist` families (parameters are validated per family before spawn; unknown or missing ones are `BAD_PARAM`; `loc`/`scale` default to 0/1):
+
+| Family | Parameters |
+|---|---|
+| norm, t | loc, scale; df (t) |
+| uniform, expon, gamma, beta, lognorm, chi2 | low, high; scale; shape, scale; a, b; mu, sigma; df |
+| genextreme, genpareto, skewnorm, johnsonsu | c; c; a; a, b (+ loc, scale each) |
+| levy_stable | alpha (0, 2], beta [-1, 1], loc, scale (scipy S1); pdf/cdf are slow numerical integrations of limited accuracy: a warning says so and at most 200 points are accepted |
+| nct, ncf, vonmises, truncnorm | df, nc (+loc, scale); dfn, dfd, nc; kappa; a, b (standardised bounds) |
+| weibull_min, cauchy, laplace, logistic, gumbel_r, pareto, rayleigh, f | c; -; -; -; -; b; -; dfn, dfd (+ loc, scale each) |
+| poisson, binom, zipf, betabinom, nbinom, geom | lam; n, p; a, loc; n, a, b, loc; n, p, loc; p, loc (integer-valued F64; `pdf` is the mass function) |
+
+Functions: pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf (probabilities in [0, 1], `BAD_PROBABILITY`), moments (mean, var, skew, excess kurtosis; infinite or undefined ones are `NA`
+and listed in `moments_undefined`) and rvs (PCG64 seed rules as before). NA inputs stay `NA` inline and become NaN in `stats_dist_to` artifacts. scipy's parameterisation differs
+from R's in several places (genextreme `c` = -xi, truncnorm bounds are standardised, vonmises `loc` wraps into [-pi, pi], nbinom counts failures, geom starts at 1, levy_stable uses S1):
+see docs/s8b2.md. Hand formulas and mpmath are the oracles for the tests; `examples/oracle-dist.lms` cross-checks the shared families against R through rcli.

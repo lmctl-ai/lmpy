@@ -727,7 +727,7 @@ class Rvs(Base):
         rejected('stats_dist', dict(base, x=[1.0]), 'BAD_PARAM')  # x is only for pdf/cdf/ppf/sf
         rejected('stats_dist', dict(dist='norm', fn='pdf', x=[0.0], params={}, n=3), 'BAD_PARAM')  # n and seed only for rvs
         rejected('stats_dist', dict(dist='norm', fn='pdf', x=[0.0], params={}, seed=3), 'BAD_PARAM')
-        rejected('stats_dist', dict(dist='gamma', fn='pdf', x=[0.0], params={'shape': 1.0}), 'BAD_PARAM')  # new families sample only
+        rejected('stats_dist', dict(dist='gamma', fn='pdf', x=[0.0], params={'shape': 1.0}), 'BAD_PARAM')  # scale is required for gamma
         rejected('stats_dist', dict(base, params={'scale': 0.0}), 'BAD_PARAM')
         rejected('stats_dist', dict(base, params={'scale': -1.0}), 'BAD_PARAM')
         rejected('stats_dist', dict(base, params={'sigma': 1.0}), 'BAD_PARAM')
@@ -740,8 +740,8 @@ class Rvs(Base):
         rejected('stats_dist', dict(base, dist='binom', params={'n': 10, 'p': 1.5}), 'BAD_PARAM')
         rejected('stats_dist', dict(base, dist='binom', params={'n': 2.5, 'p': 0.5}), 'BAD_PARAM')
         rejected('stats_dist', dict(base, dist='t', params={'df': 0.0}), 'BAD_PARAM')
-        rejected('stats_dist', dict(base, dist='cauchy'))
-        rejected('stats_dist_to', dict(dist='norm', fn='pdf', x=[0.0], params={}, out=self.p('z.safetensors')))  # the write twin samples only (enum)
+        rejected('stats_dist', dict(base, dist='wald'))
+        rejected('stats_dist_to', dict(dist='norm', fn='moments', params={}, out=self.p('z.safetensors')))  # moments are inline-only (enum)
         call('stats_dist_to', dict(base, out=self.p('s.safetensors')))
         call('stats_dist_to', dict(base, out=self.p('s.safetensors')), rc=5)
         call('stats_dist_to', dict(base, out=self.p('r.safetensors')), rc=6, env=dict(os.environ, PYCLI_READONLY='1'))
