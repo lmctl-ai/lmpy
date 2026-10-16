@@ -23,3 +23,34 @@ Use Opus section 3.9 (P0 ~30 ops) as the catalogue and Opus section 6.3 slices S
 
 ## Process
 Test-first per slice with an independent oracle; reviewers (Opus, Fable, Astra) review each slice or pair of slices; coders: Sol + Sonnet (hard: S0 skeleton/packaging, S3 expressions, S5 statsmodels), Luna + Haiku (bounded: ops with a direct library oracle). Commit trailers: one Co-Authored-By per contributing model. Private repo lmctlhq/pycli; push/visibility decisions belong to the user. Clean build output after heavy work (disk tight).
+
+## Release decisions (v0.1.0, 2026-10-16)
+
+**Parquet / pyarrow is NOT in v1.** The table interchange of v1 is CSV (UTF-8, header; `frame_import` / `frame_export`), the
+`.npz` table artifact (typed columns, masks, categories; the only internal table format) and safetensors / `.npy` tensors.
+Reasons, measured and documented in the slices: pyarrow adds about 130 MB of native code to a 139 MB runtime image, has a
+CVE history on exactly the code path that would parse untrusted files (CVE-2023-47248, arbitrary code execution through
+`PyExtensionType` deserialisation), and nothing in S0-S8b-2 needed it: every recipe moves tables through CSV or `.npz` and
+arrays through safetensors. The deferral already recorded above ("late slice, separate lock stage") becomes a v1 exclusion.
+
+**Future (not scheduled): slice "S10 parquet".** Exact shape, so that it can be picked up without redesign:
+* one new hash-locked wheel per architecture (`pyarrow`, manylinux, pinned `==` version) in a **separate lock stage**
+  `wheels-parquet` of the Dockerfile, so the v1 image is unchanged until the stage is composed in; the licence gate
+  (`scripts/notices.py`, `licenses/manifest.json`) gains pyarrow and the Arrow C++ bundled notices;
+* `frame_import` gains `format: parquet` and `frame_export` gains `format: parquet`, both behind C++ header validation
+  before any Python starts: magic bytes `PAR1` at both ends, footer length bounded, the Thrift footer parsed by a closed
+  reader that refuses any `PyExtensionType` / `ARROW:extension` metadata, encrypted files and more than 256 columns or
+  200000 rows (the S2 caps), and the same dtype whitelist as `.npz` tables (int64, float64, bool, string, category,
+  timestamp[ns] with tz);
+* the worker reads with `pyarrow.parquet.read_table(..., use_pandas_metadata=False)` and converts through the existing
+  `.npz` writer, so every downstream operation stays unchanged; no Arrow IPC, Feather or dataset APIs;
+* acceptance: the S2 dtype matrix round trip (`frame_import` -> parquet -> `frame_import`) is an identity, the malicious
+  corpus (extension types, overlapping column chunks, truncated footer, a pickle disguised as parquet) is refused in C++
+  with no child spawned, image delta and import cost measured and published, amd64 lock validated by CI.
+Until that slice exists, a Parquet file is rejected by `frame_import` like any other non-CSV input.
+
+**Versioning.** The schema `version` (`pycli --schema`), the CMake project version, `CHANGELOG.md` and `py_info.provenance.version`
+carry the same string; CI gates them. Nothing publishes images or packages automatically (RELEASE.md lists the human steps).
+
+**amd64.** This host is aarch64 and cannot emulate amd64. The amd64 CI job is the verification: until its first green run the
+amd64 lock and build are UNVERIFIED and the documentation says so; no amd64 pass is claimed anywhere in this repository.
