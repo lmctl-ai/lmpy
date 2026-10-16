@@ -836,7 +836,16 @@ def dist_evaluate(p):
             return dict(base, status='OK', moments={k: (None if k in undefined else v) for k, v in out.items()}, moments_undefined=undefined,
                         note='kurtosis is the excess kurtosis; NA means infinite or undefined')
         x = np.load(p['x_file'], allow_pickle=False).astype(float)
-        values = np.asarray(dist_methods(frozen, dist in DIST_DISCRETE)[fn](x), dtype=float)
+        if dist == 'zipf' and fn in ('ppf', 'isf'):
+            # scipy searches the heavy tail by summing the mass function: refuse quantiles beyond 1e6 instead of running out of memory
+            edge = float(frozen.cdf(1e6)) if fn == 'ppf' else float(frozen.sf(1e6))
+            level = x[np.isfinite(x)]
+            if (fn == 'ppf' and (level > edge).any()) or (fn == 'isf' and (level < edge).any()):
+                return dict(base, status='OUT_OF_RANGE', message='a requested zipf quantile lies beyond 1e6 (the cdf there is %r): not computed' % (edge if fn == 'ppf' else 1 - edge))
+        try:
+            values = np.asarray(dist_methods(frozen, dist in DIST_DISCRETE)[fn](x), dtype=float)
+        except (RuntimeError, ValueError, OverflowError, ZeroDivisionError, ArithmeticError) as exc:
+            return dict(base, status='NUMERICAL_FAILURE', message='scipy could not evaluate %s for these parameters: %s' % (fn, exc))
     missing = p.get('missing', [])
     for i in range(len(x)):
         if not math.isnan(float(x[i])) and math.isnan(values[i]) and i not in missing:

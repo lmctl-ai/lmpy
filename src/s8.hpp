@@ -302,7 +302,7 @@ Json prepare_metrics(const Params& in,std::map<std::string,Array>& arrays,S8Extr
 
 // ---- sampling ----
 // ---- distribution families: one per-family parameter table validated here, mirrored by py/s8.py (dist_frozen) ----
-// kinds: 0 any finite real, 1 > 0, 2 >= 0, 3 in [0,1], 4 integer in [1,1e9], 5 integer, 6 in (0,1], 7 in (0,2], 8 in [-1,1], 9 > 1, 10 in [0,1e9], 11 in [0,1000], 12 in [-1000,1000]
+// kinds (13 integer in [1,5000], 14 in (0,1e5]): 0 any finite real, 1 > 0, 2 >= 0, 3 in [0,1], 4 integer in [1,1e9], 5 integer, 6 in (0,1], 7 in (0,2], 8 in [-1,1], 9 > 1, 10 in [0,1e9], 11 in [0,1000], 12 in [-1000,1000]
 struct DistParam{const char* name;double dflt;int kind;};
 inline const std::map<std::string,std::pair<bool,std::vector<DistParam>>>& dist_table(){
     const double R=NAN;
@@ -313,12 +313,12 @@ inline const std::map<std::string,std::pair<bool,std::vector<DistParam>>>& dist_
         {"genextreme",{false,{{"c",R,0},{"loc",0,0},{"scale",1,1}}}},{"genpareto",{false,{{"c",R,0},{"loc",0,0},{"scale",1,1}}}},
         {"skewnorm",{false,{{"a",R,0},{"loc",0,0},{"scale",1,1}}}},{"levy_stable",{false,{{"alpha",R,7},{"beta",0,8},{"loc",0,0},{"scale",1,1}}}},
         {"johnsonsu",{false,{{"a",R,0},{"b",R,1},{"loc",0,0},{"scale",1,1}}}},{"nct",{false,{{"df",R,1},{"nc",R,12},{"loc",0,0},{"scale",1,1}}}},
-        {"ncf",{false,{{"dfn",R,1},{"dfd",R,1},{"nc",R,11},{"loc",0,0},{"scale",1,1}}}},{"vonmises",{false,{{"kappa",R,1},{"loc",0,0},{"scale",1,1}}}},
+        {"ncf",{false,{{"dfn",R,1},{"dfd",R,1},{"nc",R,11},{"loc",0,0},{"scale",1,1}}}},{"vonmises",{false,{{"kappa",R,14},{"loc",0,0},{"scale",1,1}}}},
         {"truncnorm",{false,{{"a",R,0},{"b",R,0},{"loc",0,0},{"scale",1,1}}}},{"weibull_min",{false,{{"c",R,1},{"loc",0,0},{"scale",1,1}}}},
         {"cauchy",{false,{{"loc",0,0},{"scale",1,1}}}},{"laplace",{false,{{"loc",0,0},{"scale",1,1}}}},{"logistic",{false,{{"loc",0,0},{"scale",1,1}}}},
         {"gumbel_r",{false,{{"loc",0,0},{"scale",1,1}}}},{"pareto",{false,{{"b",R,1},{"loc",0,0},{"scale",1,1}}}},{"rayleigh",{false,{{"loc",0,0},{"scale",1,1}}}},
         {"f",{false,{{"dfn",R,1},{"dfd",R,1},{"loc",0,0},{"scale",1,1}}}},
-        {"zipf",{true,{{"a",R,9},{"loc",0,5}}}},{"betabinom",{true,{{"n",R,4},{"a",R,1},{"b",R,1},{"loc",0,5}}}},
+        {"zipf",{true,{{"a",R,9},{"loc",0,5}}}},{"betabinom",{true,{{"n",R,13},{"a",R,1},{"b",R,1},{"loc",0,5}}}},
         {"nbinom",{true,{{"n",R,1},{"p",R,6},{"loc",0,5}}}},{"geom",{true,{{"p",R,6},{"loc",0,5}}}}};
     return table;
 }
@@ -341,7 +341,9 @@ inline Json dist_resolve(const std::string& dist,const Json& prm){
             case 4:ok=x>=1&&x<=1e9&&x==std::floor(x);rule="an integer in [1, 1e9]";break;case 5:ok=x==std::floor(x);rule="an integer";break;
             case 6:ok=x>0&&x<=1;rule="in (0, 1]";break;case 7:ok=x>0&&x<=2;rule="in (0, 2]";break;case 8:ok=x>=-1&&x<=1;rule="in [-1, 1]";break;
             case 9:ok=x>1;rule="> 1";break;case 10:ok=x>=0&&x<=1e9;rule="in [0, 1e9]";break;case 11:ok=x>=0&&x<=1000;rule="in [0, 1000]";break;
-            case 12:ok=x>=-1000&&x<=1000;rule="in [-1000, 1000]";break;default:break;
+            case 12:ok=x>=-1000&&x<=1000;rule="in [-1000, 1000]";break;
+            case 13:ok=x>=1&&x<=5000&&x==std::floor(x);rule="an integer in [1, 5000] (scipy sums the mass function: cost grows with n)";break;
+            case 14:ok=x>0&&x<=1e5;rule="in (0, 1e5]";break;default:break;
         }
         if(!ok)bad_param(name+" must be "+rule);
     }
@@ -358,10 +360,11 @@ inline void dist_eval_prepare(Json& p,std::map<std::string,Array>& arrays,size_t
     p["params"]=dist_resolve(dist,p.contains("params")?p["params"]:Json::object());
     if(fn=="moments"){if(p.contains("x")&&!p["x"].is_null())bad_param("moments takes no x");p.erase("x");return;}
     if(!p.contains("x")||p["x"].is_null())bad_param(fn+" needs x");
-    if(dist=="levy_stable")cap=std::min<size_t>(cap,S8_LEVY_POINTS);
+    if(dist=="levy_stable"||dist=="vonmises")cap=std::min<size_t>(cap,S8_LEVY_POINTS);  // numerical integration per point (about 9 ms for vonmises, more for levy_stable)
     arrays["x"]=load(p["x"]);
     if(arrays["x"].shape.size()!=1||arrays["x"].data.size()>cap)invalid("stats_dist requires a vector of <="+std::to_string(cap)+" values for "+dist,"INPUT_TOO_LARGE");
     p["missing"]=arrays["x"].missing;
+    if(dist=="zipf"&&(fn=="cdf"||fn=="logcdf"||fn=="sf"||fn=="logsf"))for(double v:arrays["x"].data)if(std::isfinite(v)&&std::fabs(v)>1e6)invalid("zipf cdf/sf sum the mass up to x: |x| must be at most 1e6","INPUT_TOO_LARGE");
     if(fn=="ppf"||fn=="isf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid(fn+" probabilities must lie in [0,1]","BAD_PROBABILITY");
 }
 
@@ -369,7 +372,7 @@ Json prepare_rvs(const std::string& op,const Params& in,std::map<std::string,Arr
     Json p=in;const bool twin=s7_twin(op);
     if(in["fn"]!="rvs"){
         if(!twin)bad_param("internal: only the write form reaches this check");
-        dist_eval_prepare(p,arrays,S8_RVS_FILE);
+        dist_eval_prepare(p,arrays,S8_VALUES);
         std::string key=in["key"];check_key(key);if(key=="__metadata__")invalid("reserved key","BAD_KEY");p["out"]=output_path(in);x.tensor_write=true;
         return p;
     }

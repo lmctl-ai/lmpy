@@ -128,7 +128,7 @@
             "weibull_min",
             "zipf"
           ],
-          "description": "Distribution family. Continuous: norm (loc, scale), t (df, loc, scale), uniform (low, high), expon (scale), gamma (shape, scale), beta (a, b), lognorm (mu, sigma of the underlying normal), chi2 (df), genextreme (c, loc, scale: scipy c = -xi of the usual GEV shape xi), genpareto (c, loc, scale), skewnorm (a, loc, scale), levy_stable (alpha in (0,2], beta in [-1,1], loc, scale; scipy S1 parameterisation; pdf/cdf are slow numerical integrations of limited accuracy, at most 200 points, and a warning says so), johnsonsu (a, b, loc, scale), nct (df, nc, loc, scale; |nc|<=1000), ncf (dfn, dfd, nc, loc, scale; nc<=1000), vonmises (kappa, loc, scale; scipy wraps the variates into [-pi, pi] after adding loc, so loc rotates the circle: the linear mean is not loc), truncnorm (a, b, loc, scale; a and b are STANDARDISED bounds as in scipy), weibull_min (c, loc, scale), cauchy, laplace, logistic, gumbel_r (loc, scale), pareto (b, loc, scale), rayleigh (loc, scale), f (dfn, dfd, loc, scale). Discrete (integer-valued F64; pdf means the probability mass): poisson (lam <=1e9), binom (n 1..1e9, p), zipf (a>1, loc), betabinom (n, a, b, loc), nbinom (n>0, p, loc), geom (p, loc). Unknown parameters are BAD_PARAM; only the parameters listed per family are accepted."
+          "description": "Distribution family. Continuous: norm (loc, scale), t (df, loc, scale), uniform (low, high), expon (scale), gamma (shape, scale), beta (a, b), lognorm (mu, sigma of the underlying normal), chi2 (df), genextreme (c, loc, scale: scipy c = -xi of the usual GEV shape xi), genpareto (c, loc, scale), skewnorm (a, loc, scale), levy_stable (alpha in (0,2], beta in [-1,1], loc, scale; scipy S1 parameterisation; pdf/cdf are slow numerical integrations of limited accuracy, at most 200 points, and a warning says so), johnsonsu (a, b, loc, scale), nct (df, nc, loc, scale; |nc|<=1000), ncf (dfn, dfd, nc, loc, scale; nc<=1000), vonmises (kappa in (0,1e5], loc, scale; at most 200 points; scipy wraps the variates into [-pi, pi] after adding loc, so loc rotates the circle: the linear mean is not loc), truncnorm (a, b, loc, scale; a and b are STANDARDISED bounds as in scipy), weibull_min (c, loc, scale), cauchy, laplace, logistic, gumbel_r (loc, scale), pareto (b, loc, scale), rayleigh (loc, scale), f (dfn, dfd, loc, scale). Discrete (integer-valued F64; pdf means the probability mass): poisson (lam <=1e9), binom (n 1..1e9, p), zipf (a>1, loc; cdf/sf need |x| <= 1e6 and a quantile beyond 1e6 is the status OUT_OF_RANGE), betabinom (n 1..5000, a, b, loc), nbinom (n>0, p, loc), geom (p, loc). Unknown parameters are BAD_PARAM; only the parameters listed per family are accepted."
         },
         {
           "name": "fn",
@@ -186,7 +186,7 @@
       "name": "stats_dist_to",
       "access": "write",
       "returns": "object",
-      "description": "Distribution functions at up to 1,000,000 points, or seeded sampling (same families, params and explicit required seed as stats_dist), written to an exclusive safetensors artifact (F64 vector under artifacts[key]) Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Distribution functions at up to 200,000 points, or seeded sampling (same families, params and explicit required seed as stats_dist), written to an exclusive safetensors artifact (F64 vector under artifacts[key]) Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "dist",
@@ -225,7 +225,7 @@
             "weibull_min",
             "zipf"
           ],
-          "description": "Distribution family. Continuous: norm (loc, scale), t (df, loc, scale), uniform (low, high), expon (scale), gamma (shape, scale), beta (a, b), lognorm (mu, sigma of the underlying normal), chi2 (df), genextreme (c, loc, scale: scipy c = -xi of the usual GEV shape xi), genpareto (c, loc, scale), skewnorm (a, loc, scale), levy_stable (alpha in (0,2], beta in [-1,1], loc, scale; scipy S1 parameterisation; pdf/cdf are slow numerical integrations of limited accuracy, at most 200 points, and a warning says so), johnsonsu (a, b, loc, scale), nct (df, nc, loc, scale; |nc|<=1000), ncf (dfn, dfd, nc, loc, scale; nc<=1000), vonmises (kappa, loc, scale; scipy wraps the variates into [-pi, pi] after adding loc, so loc rotates the circle: the linear mean is not loc), truncnorm (a, b, loc, scale; a and b are STANDARDISED bounds as in scipy), weibull_min (c, loc, scale), cauchy, laplace, logistic, gumbel_r (loc, scale), pareto (b, loc, scale), rayleigh (loc, scale), f (dfn, dfd, loc, scale). Discrete (integer-valued F64; pdf means the probability mass): poisson (lam <=1e9), binom (n 1..1e9, p), zipf (a>1, loc), betabinom (n, a, b, loc), nbinom (n>0, p, loc), geom (p, loc). Unknown parameters are BAD_PARAM; only the parameters listed per family are accepted."
+          "description": "Distribution family. Continuous: norm (loc, scale), t (df, loc, scale), uniform (low, high), expon (scale), gamma (shape, scale), beta (a, b), lognorm (mu, sigma of the underlying normal), chi2 (df), genextreme (c, loc, scale: scipy c = -xi of the usual GEV shape xi), genpareto (c, loc, scale), skewnorm (a, loc, scale), levy_stable (alpha in (0,2], beta in [-1,1], loc, scale; scipy S1 parameterisation; pdf/cdf are slow numerical integrations of limited accuracy, at most 200 points, and a warning says so), johnsonsu (a, b, loc, scale), nct (df, nc, loc, scale; |nc|<=1000), ncf (dfn, dfd, nc, loc, scale; nc<=1000), vonmises (kappa in (0,1e5], loc, scale; at most 200 points; scipy wraps the variates into [-pi, pi] after adding loc, so loc rotates the circle: the linear mean is not loc), truncnorm (a, b, loc, scale; a and b are STANDARDISED bounds as in scipy), weibull_min (c, loc, scale), cauchy, laplace, logistic, gumbel_r (loc, scale), pareto (b, loc, scale), rayleigh (loc, scale), f (dfn, dfd, loc, scale). Discrete (integer-valued F64; pdf means the probability mass): poisson (lam <=1e9), binom (n 1..1e9, p), zipf (a>1, loc; cdf/sf need |x| <= 1e6 and a quantile beyond 1e6 is the status OUT_OF_RANGE), betabinom (n 1..5000, a, b, loc), nbinom (n>0, p, loc), geom (p, loc). Unknown parameters are BAD_PARAM; only the parameters listed per family are accepted."
         },
         {
           "name": "fn",
@@ -242,7 +242,7 @@
             "isf",
             "rvs"
           ],
-          "description": "pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at x (<=1,000,000 points) or rvs: seeded random variates; the result is an F64 vector artifact."
+          "description": "pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at x (<=200,000 points) or rvs: seeded random variates; the result is an F64 vector artifact."
         },
         {
           "name": "params",
@@ -267,7 +267,7 @@
           "name": "x",
           "type": "json",
           "occurs": "?",
-          "description": "Evaluation points (not allowed with rvs): a vector of <=1,000,000 numbers (inline, .npy or safetensors#key); NA entries become NaN in the artifact."
+          "description": "Evaluation points (not allowed with rvs): a vector of <=200,000 numbers (inline, .npy or safetensors#key); NA entries become NaN in the artifact."
         },
         {
           "name": "key",
@@ -2937,10 +2937,9 @@
         },
         {
           "name": "supplies",
-          "type": "array",
+          "type": "json",
           "occurs": "?",
-          "description": "min_cost_flow: [node, amount] pairs, positive = supply, negative = demand, integers; the amounts must sum to zero (UNBALANCED otherwise).",
-          "items": "array"
+          "description": "min_cost_flow: an array of [node, amount] pairs (1..1000), positive = supply, negative = demand, integers; the amounts must sum to zero (UNBALANCED otherwise)."
         },
         {
           "name": "time_limit",
@@ -3025,10 +3024,9 @@
         },
         {
           "name": "supplies",
-          "type": "array",
+          "type": "json",
           "occurs": "?",
-          "description": "min_cost_flow: [node, amount] pairs, positive = supply, negative = demand, integers; the amounts must sum to zero (UNBALANCED otherwise).",
-          "items": "array"
+          "description": "min_cost_flow: an array of [node, amount] pairs (1..1000), positive = supply, negative = demand, integers; the amounts must sum to zero (UNBALANCED otherwise)."
         },
         {
           "name": "out",

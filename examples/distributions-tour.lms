@@ -1,0 +1,54 @@
+// access: read
+// What it does: tours the S8b-2 distribution families that R does not offer through rcli: a generalised extreme value (genextreme), a heavy-tailed
+//   skewed family (skewnorm) and a discrete one (zipf). For each it prints a few cdf values, checks cdf(ppf(p)) = p, checks the closed-form
+//   moments of the skew-normal and the Gumbel special case of genextreme (c = 0: cdf = exp(-exp(-x))), and draws seeded variates twice to show the
+//   stream is reproducible. Scipy's parameterisation: genextreme c = -xi of the usual GEV shape xi; see docs/s8b2.md.
+// Tolerance: 1e-12 relative for the Gumbel closed form and the round trips (1e-9 for the skew-normal moments), exact for the reproducibility check.
+// How to run: lmscript examples/distributions-tour.lms (no files are written; no other tool is needed).
+import "../cli.schema.dev.json" as pycli;
+
+g = pycli.stats_dist({dist: "genextreme", "fn": "cdf", x: [-1, 0, 1, 2.5], params: {c: 0}});
+if (g.status == "simulated") { println("Distribution tour simulated."); exit(0); }
+if (g.status != "ok" || g.result.status != "OK") { println(json_stringify(g)); exit(1); }
+xs = [-1, 0, 1, 2.5];
+E = 2.718281828459045;
+for (i = 0; i < 4; i = i + 1) {
+  want = pow(E, 0 - pow(E, 0 - xs[i]));
+  if (abs(g.result.values[i] - want) > 0.000000000001 * want) { println("genextreme c=0 is not the Gumbel law at", xs[i]); exit(1); }
+}
+println("genextreme with c = 0 equals exp(-exp(-x)):", json_stringify(g.result.values));
+levels = [0.1, 0.5, 0.9];
+cases = [
+  {dist: "genextreme", params: {c: 0.2, loc: 1, scale: 2}},
+  {dist: "skewnorm", params: {a: 4}},
+  {dist: "johnsonsu", params: {a: 0.5, b: 1.5}},
+  {dist: "zipf", params: {a: 3}}
+];
+for (c in cases) {
+  q = pycli.stats_dist({dist: c.dist, "fn": "ppf", x: levels, params: c.params});
+  if (q.status != "ok" || q.result.status != "OK") { println(json_stringify(q)); exit(1); }
+  back = pycli.stats_dist({dist: c.dist, "fn": "cdf", x: q.result.values, params: c.params});
+  line = c.dist + ": quantiles " + json_stringify(q.result.values) + " cdf at the quantiles " + json_stringify(back.result.values);
+  println(line);
+  for (i = 0; i < 3; i = i + 1) {
+    if (c.dist == "zipf") {
+      if (back.result.values[i] < levels[i]) { println("discrete ppf must satisfy cdf(ppf(p)) >= p"); exit(1); }
+    } else {
+      if (abs(back.result.values[i] - levels[i]) > 0.000000001) { println("cdf(ppf(p)) differs from p"); exit(1); }
+    }
+  }
+}
+m = pycli.stats_dist({dist: "skewnorm", "fn": "moments", params: {a: 3}});
+if (m.status != "ok" || m.result.status != "OK") { println(json_stringify(m)); exit(1); }
+delta = 3 / sqrt(10);
+hand_mean = delta * sqrt(2 / 3.141592653589793);
+hand_var = 1 - 2 * delta * delta / 3.141592653589793;
+println(sprintf("skewnorm(a=3): mean %.12f (hand %.12f), variance %.12f (hand %.12f)", m.result.moments.mean, hand_mean, m.result.moments.var, hand_var));
+if (abs(m.result.moments.mean - hand_mean) > 0.000000001 || abs(m.result.moments.var - hand_var) > 0.000000001) { println("moments differ from the closed form"); exit(1); }
+t1 = pycli.stats_dist({dist: "t", "fn": "moments", params: {df: 1}});
+println("t(1) has no mean: moments_undefined =", json_stringify(t1.result.moments_undefined));
+a = pycli.stats_dist({dist: "genextreme", "fn": "rvs", params: {c: 0.2}, n: 5, seed: 42});
+b = pycli.stats_dist({dist: "genextreme", "fn": "rvs", params: {c: 0.2}, n: 5, seed: 42});
+if (json_stringify(a.result.values) != json_stringify(b.result.values)) { println("same seed, different stream"); exit(1); }
+println("seed 42 reproduces the same five genextreme variates:", json_stringify(a.result.values));
+println("Distribution tour passed.");

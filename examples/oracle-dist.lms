@@ -1,0 +1,65 @@
+// access: read
+// What it does: evaluates pdf/pmf, log pdf, cdf, survival function and quantiles of the seven families that pycli stats_dist and R (through rcli) both
+//   implement (norm, t, chi2/chisq, gamma, beta, binom, poisson/pois) and compares every value, relative error <= 1e-12 (absolute when R's value is exactly 0).
+//   scipy and R parameterise the same laws differently: scipy scale vs R rate for gamma (scale = 1 / rate), loc/scale vs R mean/sd for norm; the
+//   mapping is written out per case below. Families without an R counterpart in rcli (genextreme, skewnorm, johnsonsu, ...) are covered by hand
+//   formulas and mpmath in tests/s8b2_dist.py.
+// Tolerance: relative 1e-12 for pdf, log pdf, cdf and sf. Continuous quantiles are root-finders in both libraries and are compared at 1e-10 (the observed
+//   differences, up to a few 1e-12, are listed in docs/oracle-findings.md); discrete quantiles are integers and use the 1e-12 bound, i.e. they must match.
+// Setup: rcli on PATH (rcli needs R); the R leg is skipped with a hint otherwise. Run from a writable directory below HOME.
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+probe = pycli.stats_dist({dist: "norm", "fn": "cdf", x: [0], params: {}});
+if (probe.status == "simulated") { println("Distribution comparison simulated."); exit(0); }
+if (probe.status != "ok" || probe.result.values[0] != 0.5) { println(json_stringify(probe)); exit(1); }
+if (which("rcli") == null) { println("R leg skipped: rcli not on PATH (see examples/schemas/README.md)"); exit(0); }
+p = [0.001, 0.05, 0.25, 0.5, 0.75, 0.95, 0.999];
+cases = [
+  {name: "norm(1.5, 2)", dist: "norm", params: {loc: 1.5, scale: 2}, r: {dist: "norm", mean: 1.5, sd: 2}, x: [-4, -1, 0.5, 1.5, 3, 6], discrete: false},
+  {name: "t(5)", dist: "t", params: {df: 5}, r: {dist: "t", df: 5}, x: [-6, -2, -0.3, 0, 1.1, 4], discrete: false},
+  {name: "chi2(4) = chisq(4)", dist: "chi2", params: {df: 4}, r: {dist: "chisq", df: 4}, x: [0.1, 1, 3, 4, 9, 20], discrete: false},
+  {name: "gamma(shape 3, scale 2) = gamma(shape 3, rate 0.5)", dist: "gamma", params: {shape: 3, scale: 2}, r: {dist: "gamma", shape: 3, rate: 0.5}, x: [0.2, 1, 4, 6, 12, 30], discrete: false},
+  {name: "beta(2, 5)", dist: "beta", params: {a: 2, b: 5}, r: {dist: "beta", a: 2, b: 5}, x: [0.02, 0.1, 0.3, 0.5, 0.8, 0.95], discrete: false},
+  {name: "binom(20, 0.3)", dist: "binom", params: {n: 20, p: 0.3}, r: {dist: "binom", size: 20, prob: 0.3}, x: [0, 1, 3, 6, 10, 20], discrete: true},
+  {name: "poisson(4.5) = pois(4.5)", dist: "poisson", params: {lam: 4.5}, r: {dist: "pois", "lambda": 4.5}, x: [0, 1, 4, 7, 12, 25], discrete: true}
+];
+worst = 0;
+checked = 0;
+for (c in cases) {
+  rd = {dist: c.r.dist, x: c.x};
+  rp = {dist: c.r.dist, q: c.x};
+  rpu = {dist: c.r.dist, q: c.x, lower_tail: false};
+  rl = {dist: c.r.dist, x: c.x, "log": true};
+  rq = {dist: c.r.dist, p: p};
+  for (k in keys(c.r)) { if (k != "dist") { rd[k] = c.r[k]; rp[k] = c.r[k]; rpu[k] = c.r[k]; rl[k] = c.r[k]; rq[k] = c.r[k]; } }
+  legs = [
+    {label: "pdf", py: pycli.stats_dist({dist: c.dist, "fn": "pdf", x: c.x, params: c.params}), r: rcli.dist_density(rd)},
+    {label: "logpdf", py: pycli.stats_dist({dist: c.dist, "fn": "logpdf", x: c.x, params: c.params}), r: rcli.dist_density(rl)},
+    {label: "cdf", py: pycli.stats_dist({dist: c.dist, "fn": "cdf", x: c.x, params: c.params}), r: rcli.dist_probability(rp)},
+    {label: "sf", py: pycli.stats_dist({dist: c.dist, "fn": "sf", x: c.x, params: c.params}), r: rcli.dist_probability(rpu)},
+    {label: "ppf", py: pycli.stats_dist({dist: c.dist, "fn": "ppf", x: p, params: c.params}), r: rcli.dist_quantile(rq)}
+  ];
+  line = c.name + ":";
+  for (leg in legs) {
+    if (leg.py.status != "ok" || leg.py.result.status != "OK") { println(leg.label, "pycli failed:", json_stringify(leg.py)); exit(1); }
+    if (leg.r.status != "ok") { println(leg.label, "rcli failed:", json_stringify(leg.r)); exit(1); }
+    w = 0;
+    for (i = 0; i < len(leg.py.result.values); i = i + 1) {
+      d = abs(leg.py.result.values[i] - leg.r.result.value[i]);
+      m = abs(leg.r.result.value[i]);
+      e = d;
+      if (m > 0) { e = d / m; }
+      if (e > w) { w = e; }
+      checked = checked + 1;
+    }
+    if (w > worst) { worst = w; }
+    line = line + sprintf(" %s %.3f", leg.label, w * 1000000000000);
+    limit = 0.000000000001;
+    if (leg.label == "ppf" && !c.discrete) { limit = 0.0000000001; }
+    if (w > limit) { println(line); println("pycli and R disagree beyond the tolerance on", leg.label); exit(1); }
+  }
+  println(line + " (relative differences in units of 1e-12)");
+}
+println(sprintf("leg 1: %d values over 7 families, 5 functions agree with R; worst relative difference %.3f x 1e-12 (bounds: 1e-12, continuous ppf 1e-10)", checked, worst * 1000000000000));
+println("Distribution functions agree with R.");

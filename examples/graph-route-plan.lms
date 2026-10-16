@@ -1,0 +1,66 @@
+// access: write
+// What it does: two edge lists as CSV text (a road network with travel minutes, and a pipe network with capacities) -> frame_import -> graph_paths
+//   (shortest route, the two best routes, bellman_ford and bfs cross-checks) and graph_flow (max_flow, min_cut, min_cost_flow) -> a short report.
+//   Every number is checked against values worked out by hand from the literal edges: Dijkstra's example from CLRS (figure 24.6) and the CLRS
+//   flow network of figure 26.1 (maximum flow 23, minimum cut 23).
+// Tolerance: exact (integer weights and capacities; no float arithmetic is involved).
+// How to run: from a writable directory below HOME with the pycli bin directory on PATH: lmscript examples/graph-route-plan.lms. Files are removed.
+import "../cli.schema.dev.json" as pycli;
+
+roads = "from,to,minutes\ns,t,10\ns,y,5\nt,y,2\nt,x,1\ny,t,3\ny,x,9\ny,z,2\nx,z,4\nz,x,6\nz,s,7\n";
+pipes = "from,to,cap,cost\ns,v1,16,1\ns,v2,13,1\nv2,v1,4,1\nv1,v3,12,1\nv3,v2,9,1\nv2,v4,14,1\nv4,v3,7,1\nv3,t,20,1\nv4,t,4,1\n";
+write_file("roads-s8g.csv", roads);
+write_file("pipes-s8g.csv", pipes);
+r = pycli.frame_import({csv: "roads-s8g.csv", out: "roads-s8g.npz"});
+if (r.status == "simulated") { println("Route plan simulated."); exit(0); }
+if (r.status != "ok") { println(json_stringify(r)); exit(1); }
+p = pycli.frame_import({csv: "pipes-s8g.csv", out: "pipes-s8g.npz"});
+if (p.status != "ok") { println(json_stringify(p)); exit(1); }
+
+net = {frame: "roads-s8g.npz", from_column: "from", to_column: "to", weight_column: "minutes", directed: true, source: "s"};
+best = pycli.graph_paths({frame: net.frame, from_column: "from", to_column: "to", weight_column: "minutes", directed: true, method: "dijkstra", source: "s", target: "x"});
+if (best.status != "ok" || best.result.status != "OK") { println("graph_paths failed:", json_stringify(best)); exit(1); }
+println(sprintf("fastest route s -> x: %s in %d minutes (%d legs)", join(best.result.path, " > "), best.result.length, best.result.hops));
+// hand: s-y 5, y-t 3, t-x 1 = 9 (the CLRS shortest-path tree); s-t-x = 11; s-y-x = 14; s-y-z-x = 13
+if (join(best.result.path, ",") != "s,y,t,x" || best.result.length != 9 || best.result.hops != 3) { println("route differs from the hand answer"); exit(1); }
+two = pycli.graph_paths({frame: net.frame, from_column: "from", to_column: "to", weight_column: "minutes", directed: true, method: "dijkstra", source: "s", target: "x", k_shortest: 3});
+if (two.status != "ok" || two.result.status != "OK" || two.result.k_found != 3) { println("k_shortest failed:", json_stringify(two)); exit(1); }
+lengths = [];
+for (q in two.result.paths) { lengths = concat(lengths, [q.length]); }
+println("three best route lengths:", json_stringify(lengths));
+if (lengths[0] != 9 || lengths[1] != 11 || lengths[2] != 13) { println("route lengths differ from the hand answer 9, 11, 13"); exit(1); }
+bf = pycli.graph_paths({frame: net.frame, from_column: "from", to_column: "to", weight_column: "minutes", directed: true, method: "bellman_ford", source: "s"});
+if (bf.status != "ok" || bf.result.status != "OK") { println("bellman_ford failed:", json_stringify(bf)); exit(1); }
+hand = {s: 0, y: 5, t: 8, z: 7, x: 9};
+for (i = 0; i < len(bf.result.nodes); i = i + 1) {
+  if (bf.result.distance[i] != hand[bf.result.nodes[i]]) { println("distance of", bf.result.nodes[i], "differs:", bf.result.distance[i]); exit(1); }
+}
+println("bellman_ford distances from s agree with the hand tree (s 0, y 5, z 7, t 8, x 9)");
+hops = pycli.graph_paths({frame: net.frame, from_column: "from", to_column: "to", directed: true, method: "bfs", source: "s", target: "x"});
+if (hops.status != "ok" || hops.result.hops != 2) { println("bfs differs: s-t-x has two legs:", json_stringify(hops)); exit(1); }
+
+pipe = {frame: "pipes-s8g.npz", from_column: "from", to_column: "to", capacity_column: "cap", source: "s", sink: "t"};
+mf = pycli.graph_flow({frame: pipe.frame, from_column: "from", to_column: "to", capacity_column: "cap", kind: "max_flow", source: "s", sink: "t"});
+mc = pycli.graph_flow({frame: pipe.frame, from_column: "from", to_column: "to", capacity_column: "cap", kind: "min_cut", source: "s", sink: "t"});
+if (mf.status != "ok" || mf.result.status != "OK" || mc.status != "ok" || mc.result.status != "OK") { println("graph_flow failed:", json_stringify(mf), json_stringify(mc)); exit(1); }
+println(sprintf("max flow %d, min cut %d over %d cut edges", mf.result.value, mc.result.value, mc.result.n_cut_edges));
+cut = 0;
+for (c in mc.result.cut_capacity) { cut = cut + c; }
+if (mf.result.value != 23 || mc.result.value != 23 || cut != 23) { println("max-flow / min-cut differ from the CLRS value 23"); exit(1); }
+// conservation by hand: what leaves s equals what enters t equals 23
+out_s = 0; into_t = 0;
+for (i = 0; i < len(mf.result.flow); i = i + 1) {
+  if (mf.result.flow_from[i] == "s") { out_s = out_s + mf.result.flow[i]; }
+  if (mf.result.flow_to[i] == "t") { into_t = into_t + mf.result.flow[i]; }
+}
+if (out_s != 23 || into_t != 23) { println("flow is not conserved at the terminals"); exit(1); }
+mcf = pycli.graph_flow({frame: pipe.frame, from_column: "from", to_column: "to", capacity_column: "cap", cost_column: "cost", kind: "min_cost_flow", source: "s", sink: "t", flow_value: 10});
+if (mcf.status != "ok" || mcf.result.status != "OK") { println("min_cost_flow failed:", json_stringify(mcf)); exit(1); }
+println(sprintf("cheapest way to move 10 units (one cost unit per pipe): %d", mcf.result.cost));
+// hand: s-v1-v3-t has three pipes and capacity 12 >= 10, so 10 units cost 3 each
+if (mcf.result.cost != 30) { println("min cost differs from the hand answer 30"); exit(1); }
+over = pycli.graph_flow({frame: pipe.frame, from_column: "from", to_column: "to", capacity_column: "cap", cost_column: "cost", kind: "min_cost_flow", source: "s", sink: "t", flow_value: 100});
+if (over.status != "ok" || over.result.status != "INFEASIBLE") { println("100 units cannot fit (max flow is 23); expected INFEASIBLE:", json_stringify(over)); exit(1); }
+println("100 units: INFEASIBLE, as the 23-unit maximum flow requires");
+for (path in ["roads-s8g.csv", "pipes-s8g.csv", "roads-s8g.npz", "pipes-s8g.npz"]) { delete_file(path); }
+println("Graph route plan passed.");

@@ -340,7 +340,7 @@ class Validation(unittest.TestCase):
         bad = [('genextreme', {}), ('genextreme', {'c': 0.1, 'shape': 2.0}), ('genextreme', {'c': 0.1, 'scale': 0.0}), ('skewnorm', {'a': 1.0, 'scale': -1.0}),
                ('levy_stable', {'alpha': 0.0}), ('levy_stable', {'alpha': 2.5}), ('levy_stable', {'alpha': 1.0, 'beta': 1.5}), ('johnsonsu', {'a': 1.0, 'b': 0.0}),
                ('nct', {'df': 3.0}), ('nct', {'df': 3.0, 'nc': 5000.0}), ('ncf', {'dfn': 3.0, 'dfd': 4.0, 'nc': -1.0}), ('ncf', {'dfn': 3.0, 'dfd': 4.0, 'nc': 2000.0}),
-               ('vonmises', {'kappa': 0.0}), ('truncnorm', {'a': 1.0, 'b': 1.0}), ('truncnorm', {'a': 2.0, 'b': 1.0}), ('zipf', {'a': 1.0}), ('zipf', {'a': 2.0, 'loc': 0.5}),
+               ('vonmises', {'kappa': 0.0}), ('vonmises', {'kappa': 1e6}), ('betabinom', {'n': 5001, 'a': 1.0, 'b': 1.0}), ('truncnorm', {'a': 1.0, 'b': 1.0}), ('truncnorm', {'a': 2.0, 'b': 1.0}), ('zipf', {'a': 1.0}), ('zipf', {'a': 2.0, 'loc': 0.5}),
                ('betabinom', {'n': 0, 'a': 1.0, 'b': 1.0}), ('betabinom', {'n': 5.5, 'a': 1.0, 'b': 1.0}), ('betabinom', {'n': 5, 'a': 0.0, 'b': 1.0}),
                ('nbinom', {'n': 2.0, 'p': 0.0}), ('geom', {'p': 1.5}), ('weibull_min', {'c': 0.0}), ('pareto', {'b': -1.0}), ('f', {'dfn': 1.0}),
                ('cauchy', {'scale': 0.0}), ('gamma', {'shape': 1.0}), ('norm', {'loc': 1e13}), ('poisson', {'lam': -1.0})]
@@ -365,8 +365,29 @@ class Validation(unittest.TestCase):
         rejected(dict(dist='genextreme', fn='quantile', params={'c': 0.1}, x=[0.5]))
         rejected(dict(dist='genextreme', fn='cdf', params={'c': 0.1}, x=list(range(1001))), 'INPUT_TOO_LARGE')
         rejected(dict(dist='levy_stable', fn='cdf', params={'alpha': 1.5}, x=[0.1] * 201), 'INPUT_TOO_LARGE')  # numerical integration: 200 points at most
+        rejected(dict(dist='vonmises', fn='cdf', params={'kappa': 2.0}, x=[0.1] * 201), 'INPUT_TOO_LARGE')
+        rejected(dict(dist='zipf', fn='cdf', params={'a': 1.5}, x=[2e6]), 'INPUT_TOO_LARGE')  # cdf/sf sum the mass up to x
+        rejected(dict(dist='zipf', fn='sf', params={'a': 1.5}, x=[-2e6]), 'INPUT_TOO_LARGE')
         rejected(dict(dist='genextreme', fn='cdf', params={'c': 0.1}, x=[[1.0]]), None)
         rejected(dict(dist='genextreme', fn='moments', params={'c': 0.1}, x=None, n=3), 'BAD_PARAM')
+
+
+class Guards(unittest.TestCase):
+    def test_zipf_quantile_beyond_the_summable_range_is_a_status(self):
+        r = call('stats_dist', dict(dist='zipf', fn='ppf', params={'a': 1.2}, x=[0.5, 0.999]))
+        self.assertEqual(r['status'], 'OUT_OF_RANGE')
+        self.assertNotIn('values', r)
+        r = call('stats_dist', dict(dist='zipf', fn='isf', params={'a': 1.2}, x=[0.5, 1e-3]))
+        self.assertEqual(r['status'], 'OUT_OF_RANGE')
+        r = call('stats_dist', dict(dist='zipf', fn='ppf', params={'a': 4.0}, x=[0.5, 0.999]))
+        self.assertEqual((r['status'], r['values'][0]), ('OK', 1.0))
+        self.assertTrue(r['values'][1] >= 2)
+
+    def test_slow_cases_answer_within_the_budget(self):
+        t = call('stats_dist', dict(dist='betabinom', fn='ppf', params={'n': 5000, 'a': 2.0, 'b': 3.0}, x=[0.01 * k for k in range(1, 100)], time_limit=3.0))
+        self.assertIn(t['status'], ('OK', 'TIME_LIMIT'))
+        if t['status'] == 'OK':
+            self.assertTrue(all(float(v).is_integer() for v in t['values']))
 
 
 class Twin(unittest.TestCase):
@@ -385,6 +406,8 @@ class Twin(unittest.TestCase):
             close(self, got[::500].tolist(), [skewnorm_pdf(float(v), 2.0) for v in x[::500]], 1e-12)
             rejected(dict(dist='skewnorm', fn='pdf', params={'a': 2.0}, x=str(d / 'x.npy'), out=out), None, rc=5, op='stats_dist_to')
             rejected(dict(dist='skewnorm', fn='moments', params={'a': 2.0}, out=str(d / 'm.safetensors')), None, op='stats_dist_to')
+            np.save(d / 'big.npy', np.zeros(200001))
+            rejected(dict(dist='skewnorm', fn='pdf', params={'a': 2.0}, x=str(d / 'big.npy'), out=str(d / 'b.safetensors')), 'INPUT_TOO_LARGE', op='stats_dist_to')
 
     def test_missing_inputs_become_nan_in_the_artifact(self):
         with tempfile.TemporaryDirectory(dir='.') as d:

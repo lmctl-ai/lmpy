@@ -12,7 +12,7 @@ All file writes use `result.artifacts[name]` with the same descriptor fields:
 | `la_solve` | read | a, b, assume_a=gen/sym/pos | x, rcond estimate, residual norm, domain status |
 | `la_solve_to` | write | same plus exclusive out.safetensors | x descriptor; fails if no artifact is produced |
 | `stats_dist` | read | dist (34 families, see S8b-2 below), fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments/rvs, x vector (<=1000), params; rvs: n and a REQUIRED integer seed | values and captured warnings; moments with `moments_undefined`; rvs echoes seed and generator (PCG64) |
-| `stats_dist_to` | write | fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at up to 1,000,000 points, or rvs (same dist/params/seed, n up to 1,000,000); exclusive out.safetensors, key (default x) | n_values, n_missing, sample size, seed, generator, artifacts[key] descriptor |
+| `stats_dist_to` | write | fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at up to 200,000 points, or rvs (same dist/params/seed, n up to 1,000,000); exclusive out.safetensors, key (default x) | n_values, n_missing, sample size, seed, generator, artifacts[key] descriptor |
 | `array_import` | write | format=json/csv/csv_file/npy/safetensors, data, key (default x), header, na=nan/error, exclusive out.safetensors | new F64 artifact descriptor, source dtype, finite/NaN/Inf counts, min, max, norm, na_count (pure C++, no Python) |
 | `array_inspect` | read | ref (inline, file.npy, file.safetensors#key, or bare file.safetensors), limit<=1000 | dtype, shape, size, counts, min, max, norm, preview; a bare safetensors path lists tensors from the validated header only |
 | `la_lstsq` | read | a (m by n), b, rcond, driver=gelsd/gelsy/gelss | x (<=1000 numbers), rank, singular_values, residues, residual_norm, status OK/RANK_DEFICIENT/NO_CONVERGENCE |
@@ -770,11 +770,11 @@ Caps (before spawn): 100000 edges and nodes for paths, 20000 for flows, `k_short
 | uniform, expon, gamma, beta, lognorm, chi2 | low, high; scale; shape, scale; a, b; mu, sigma; df |
 | genextreme, genpareto, skewnorm, johnsonsu | c; c; a; a, b (+ loc, scale each) |
 | levy_stable | alpha (0, 2], beta [-1, 1], loc, scale (scipy S1); pdf/cdf are slow numerical integrations of limited accuracy: a warning says so and at most 200 points are accepted |
-| nct, ncf, vonmises, truncnorm | df, nc (+loc, scale); dfn, dfd, nc; kappa; a, b (standardised bounds) |
+| nct, ncf, vonmises, truncnorm | df, nc (+loc, scale); dfn, dfd, nc; kappa (0, 1e5], at most 200 points; a, b (standardised bounds) |
 | weibull_min, cauchy, laplace, logistic, gumbel_r, pareto, rayleigh, f | c; -; -; -; -; b; -; dfn, dfd (+ loc, scale each) |
-| poisson, binom, zipf, betabinom, nbinom, geom | lam; n, p; a, loc; n, a, b, loc; n, p, loc; p, loc (integer-valued F64; `pdf` is the mass function) |
+| poisson, binom, zipf, betabinom, nbinom, geom | lam; n, p; a, loc; n (1..5000), a, b, loc; n, p, loc; p, loc (integer-valued F64; `pdf` is the mass function) |
 
 Functions: pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf (probabilities in [0, 1], `BAD_PROBABILITY`), moments (mean, var, skew, excess kurtosis; infinite or undefined ones are `NA`
 and listed in `moments_undefined`) and rvs (PCG64 seed rules as before). NA inputs stay `NA` inline and become NaN in `stats_dist_to` artifacts. scipy's parameterisation differs
 from R's in several places (genextreme `c` = -xi, truncnorm bounds are standardised, vonmises `loc` wraps into [-pi, pi], nbinom counts failures, geom starts at 1, levy_stable uses S1):
-see docs/s8b2.md. Hand formulas and mpmath are the oracles for the tests; `examples/oracle-dist.lms` cross-checks the shared families against R through rcli.
+see docs/s8b2.md. scipy sums the mass function for the cdf of zipf and betabinom, so zipf cdf/sf need |x| <= 1e6, a zipf quantile beyond 1e6 is the status `OUT_OF_RANGE`, and betabinom `n` is at most 5000. Hand formulas and mpmath are the oracles for the tests; `examples/oracle-dist.lms` cross-checks the shared families against R through rcli.
