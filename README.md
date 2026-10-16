@@ -48,6 +48,59 @@ requires a Linux filesystem supporting O_TMPFILE and /proc/self/fd linking.
 Cancellation during writing cannot leave a named partial file; a completed
 atomic installation cannot be undone by a later cancellation.
 
+## Conventions
+
+Every operation is one validated call: `pycli <op> --input-json '{...}'` (or lmscript's `pycli.<op>({...})`), a JSON result on stdout, an
+lmapi error envelope and a non-zero exit code otherwise (docs/reference.md lists the codes). The rules below hold for all 68 operations.
+
+* **Read / write twins.** A read operation returns its answer inline, at most 1000 numbers (`OUTPUT_TOO_LARGE` beyond that, with a hint),
+  and never creates a file. Its `_to` twin takes the same parameters plus `out` (a new path inside the working directory; `CONFLICT` if it
+  exists) and writes the full result to an artifact. Write forms honour `--readonly` / `PYCLI_READONLY` (exit 6) and `--dryrun` /
+  `PYCLI_DRYRUN` (a simulated envelope, no file). A write form whose domain status is not `OK` writes nothing and fails with
+  `COMMAND_FAILED`, `error.data.tool_code` = the status, the bounded result fields under `error.data`.
+* **One artifact descriptor.** `result.artifacts[name] = {ref, path, format, key, dtype, shape, nbytes}` and `outputs_in_artifact: true`.
+  A tensor uses `ref = "path#key"`, `format = "safetensors"`, its dtype, shape and payload bytes; a whole-file descriptor (`table`, `model`,
+  `export`) uses `ref = path`, format `npz` / `safetensors` / `csv` / `json`, null key / dtype / shape and the file size. Readers take the
+  descriptor's `ref`. Artifacts are installed atomically (anonymous inode, no-replace link): a cancelled write leaves no partial file.
+* **Formats.** Tables are `.npz` artifacts (typed columns, masks, categories; produced by `frame_import` from CSV, read by `frame` parameters)
+  and CSV; arrays are safetensors (`path#key`) or `.npy` (read only). Nothing else is parsed: no pickle, Parquet, GraphML, model files of
+  any library. Every file header is validated in C++ before a Python process starts.
+* **Values.** Finite numbers round-trip exactly as binary64; `NaN`, `Inf`, `-Inf` are JSON strings; a missing value is `NA` (distinct from
+  NaN in tables and in `stats_dist`). Integers beyond 2^53 are refused, never rounded. Results use the shortest round-trip decimal.
+* **Statuses are results.** A domain outcome (`SINGULAR`, `INFEASIBLE`, `NO_CONVERGENCE`, `TIME_LIMIT`, ...) is `result.status` with exit 0
+  in read operations; inspect it, not only the envelope. Validation failures are `VALIDATION_ERROR` (exit 2) with `tool_code`.
+* **Budgets.** Every library call has pre-spawn caps (docs/reference.md) and the cooperative `time_limit` (default 10 s, at most 30 s)
+  which answers `TIME_LIMIT`; `PYCLI_TIMEOUT_S` (at most 50 s, imports included) is the hard kill (`TIMEOUT`, exit 7).
+* **Determinism.** Seeds are required and echoed wherever randomness enters (PCG64; a shorter sample is a prefix of a longer one); one BLAS
+  thread; bit-exact results hold within one image on one CPU family, tolerance tiers apply across architectures (docs/parity.md).
+* **Warnings** are captured, deduplicated and returned (`warnings`, at most 20 kinds, `warnings_truncated`); a library NaN on valid input
+  carries a `NumericalWarning` instead of being silently returned.
+
+## Errors, statuses and caps
+
+[docs/reference.md](docs/reference.md) is generated from the code by `scripts/generate-reference.py` and gated by `tests/docs_gate.py`:
+the protocol error codes with their exit codes (2 validation, 3 parse, 4 not found, 5 conflict, 6 readonly, 7 timeout, 8 service
+unavailable, 1 command failed / internal), the host-shim envelopes, every domain status (`result.status`), every `error.data.tool_code`,
+and every compile-time cap with its meaning. A status or code that is not in that table does not exist in the binary.
+
+## What pycli is not
+
+* **Not a Python language surface.** There is no `eval`, `exec`, `pickle`, `query`, formula string or callable anywhere in the worker
+  (gated by tests/s0.py); the only expressions are the closed shared grammar of expr-spec.json (optimisation objectives, ODE right-hand
+  sides, least-squares models, `frame_mutate`), parsed in C++ before Python starts. Caller code never runs.
+* **Not a sandbox for arbitrary files.** It reads CSV, `.npy`, safetensors and its own `.npz` tables, nothing else; the import guard and
+  audit hook are defence in depth, the container (`--network=none`, read-only root, dropped capabilities, 2 CPUs / 4 GiB / 128 pids) and the
+  fixed dispatch are the wall. Model artifacts are numeric parameter bundles, never serialised estimators.
+* **Not bit-reproducible across machines.** Determinism tiers: bit-exact for the same image on the same CPU family (seeded, one BLAS
+  thread, pinned coretype on aarch64); tolerance tiers across architectures and against other tools (docs/parity.md, docs/oracle-findings.md).
+  Cross-architecture bit equality is never claimed.
+* **Not verified on amd64.** This repository is developed and measured on aarch64; the amd64 wheel lock resolves and is hash-pinned, the
+  amd64 CI job (`.github/workflows/ci.yml`) is the verification, and until its first green run amd64 is UNVERIFIED: no amd64 pass is claimed.
+* **Not a Parquet / Arrow tool, not a plotting tool, not a persistent service.** Parquet is excluded from v1 (docs/decisions.md); every call
+  is a fresh process in a fresh container (0.65-1.6 s per call, docs/timings.md); large results go to artifacts, not to stdout.
+* **Not an installer or a publisher.** Images are built locally (`scripts/build.sh`), never pulled or pushed; nothing in CI publishes
+  (RELEASE.md).
+
 ### S1 arrays and dense linear algebra
 
 Missing values: `null`, `"NA"` and an empty CSV field are *missing*; `"NaN"`, `"Inf"`, `"-Inf"`
@@ -710,10 +763,9 @@ conventions: caps before spawn and again in the worker, `time_limit` budget, sta
 | `la_sparse_to` | write | Same, `x` / `w` (`w_re`, `w_im`) and `v` / `s`, `u`, `vt` in an artifact |
 | `special_fn` | read | 34 functions (erf, erfc, erfcx, erfinv, erfcinv, gammainc, gammaincc, gammaincinv, gammainccinv, betainc, betaincinv, zeta, polygamma, lambertw, expit, logit, log_ndtr, ndtri, ellipk, ellipe, hyp2f1, jv, yv, iv, kv, spherical_jn, airy, struve, owens_t, boxcox, inv_boxcox, xlogy, xlog1py, logsumexp) on `args` {name: number or vector} |
 | `special_fn_to` | write | Same, `y` (airy: `ai`, `aip`, `bi`, `bip`) in an artifact, up to 200000 values per output |
-| `opt_root` | read | see the table at the top |
 | `sm_tsa_tools` | read | `test` acf / pacf (the `sm_tsa_acf` code path), adfuller, kpss, ljung_box on one series |
 
-`la_matrix_fn`: there is no `funm` (it needs a callable). inv and logm are `SINGULAR` when the condition number reaches 1/eps (or LAPACK reports singularity).
+`opt_root` (root systems) is in the first table of this document. `la_matrix_fn`: there is no `funm` (it needs a callable). inv and logm are `SINGULAR` when the condition number reaches 1/eps (or LAPACK reports singularity).
 For inv, `residual = ||AY-I||F / (||A||F ||Y||F + sqrt(n))` is the relative backward error; `identity_residual = ||AY-I||F/sqrt(n)` reports the forward identity error.
 Regular ill-conditioned inverses retain `OK` with a numerical warning and `condition_number`, as in la_solve; conditioning limits forward digits.
 logm and sqrtm verify `expm(Y)=A` and `YY=A` relative to `||A||F`. pinv checks `YAY=Y` and symmetry of `AY`/`YA`; `truncation=||AYA-A||F/||A||F` reports discarded singular mass
