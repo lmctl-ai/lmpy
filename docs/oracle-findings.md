@@ -1,4 +1,47 @@
-# Cross-tool oracle findings (S5, statsmodels 0.14.6, aarch64, 2026-10-14)
+# Cross-tool oracle findings
+
+## Consolidated table (every discrepancy found across the slices, with its disposition)
+
+Policy (from rcli): tolerances are never raised to hide a mismatch; each exceedance or convention difference is a row here with both
+values and a diagnosis. Dispositions: **fixed in pycli** (a pycli defect), **documented** (a real difference between correct tools or
+libraries, stated in the schema / docs and in the recipe), **accepted** (within tolerance, explained), **upstream** (a defect or limitation
+of the other tool or library, reported in its own repository where one exists). The per-slice sections below keep the full evidence.
+
+| # | Slice | Comparison | Observation | Diagnosis | Disposition |
+|---|---|---|---|---|---|
+| 1 | S5 | `sm_glm` standard errors vs R / rcli `fit_glm` | up to 4.1e-8 | R stops IRLS on relative deviance 1e-8, statsmodels on its own `tol`; lmstats equals pycli exactly | accepted (tolerance 1e-6 documents it) |
+| 2 | S5 | `sm_sarimax` ARMA(1,1) parameters vs R `arima` and lmstats | 3.9e-5 before, 1.5e-5 (R) / 6.2e-6 (lmstats) after | optimisers stop at different points of a likelihood ridge (llf within 1.4e-8); statsmodels' finite-difference score stalls L-BFGS | fixed in pycli (Nelder-Mead polish, `polished` reported); remaining gap documented |
+| 3 | S5 | AIC / BIC conventions | OLS: `aic_R = aic_sm + 2`; gamma GLM llf -26.607 vs R -26.596 | statsmodels counts fitted coefficients, R counts sigma / dispersion; gamma llf at the Pearson scale vs deviance / n | documented |
+| 4 | S5 | GLM inference | gamma p-values were z-based (9.2e-5 vs R 3.7e-4) | pycli defect: `summary.glm` uses t with `df_resid` for gaussian / gamma | fixed in pycli (review) |
+| 5 | S5 | SARIMAX `trend="c"` vs R `arima` intercept | different quantities | intercept of the state-space mean equation vs process mean | documented (compare with `trend="n"` on centred data) |
+| 6 | S5 | ARIMA covariance | about 10 % between `opg` and `approx` | statsmodels default `opg`; R-like standard errors need `cov_type="approx"` | documented |
+| 7 | S5 | rcli `fit_lm` formulas | `x1:x2`, `I(...)`, string data rejected by rcli | rcli feature gap, not numerical | upstream (recipe passes dummy / product columns) |
+| 8 | S5 | rcli working directory | rcli refuses cwd outside HOME | shim convention shared with pycli | documented |
+| 9 | S6 | kmeans seeds | same seed, different centres across R / sklearn | different RNG algorithms and initialisations | documented (partition compared by ARI) |
+| 10 | S7 | R `fmm` vs pycli not-a-knot; R `monoH.FC` vs pchip | up to 0.0596 and 0.344 | different interpolants (end conditions; Fritsch-Carlson vs Fritsch-Butland) | documented (information rows in the recipe) |
+| 11 | S7 | lmda `series_spectrum` conventions | cycles per sample, one-sided, DC undoubled; default `detrend: mean` | exactly scipy periodogram(boxcar, detrend False) / `constant` | documented |
+| 12 | S7 | scipy `make_smoothing_spline` large penalty | error 0.18 at lam 1e12, 65.6 at 1e14, no warning | library accuracy loss | fixed in pycli (cap `lam / h^3 <= 1e11`, BAD_PARAM) |
+| 13 | S7 | SOS filter stability | companion-matrix roots mis-rounded near the unit circle | root-finding error, not the design | fixed in pycli (extended-precision quadratics, `marginal` flag) |
+| 14 | S7 | QHull worst cases | cyclic polytopes past 50 s / output limit | algorithmic worst case | fixed in pycli (dimension-dependent point caps) |
+| 15 | S8a | pandas NaN-key joins | pandas matches NaN keys with each other | SQL / lmda never do | documented (pycli follows SQL; the oracle is a nested-loop join) |
+| 16 | S8a | lmda `series_rolling` blank rows | skipped instead of missing observations | lmda convention | documented (recipe uses complete data) |
+| 17 | S8a | PCG64 vs R Mersenne-Twister | samples never equal value by value | different generators | documented (empirical CDF vs quantiles, 4.5 SE) |
+| 18 | S8b | ADF p-value vs lmstats | 1.4e-9 | lmstats' normal CDF is approximate (mpmath at 65 digits confirms pycli) | upstream (lmstats); tolerance 1e-8 for this quantity, 1e-9 elsewhere |
+| 19 | S8b | PACF default method | lmstats `ywadjusted`, pycli `ywm` (R's) | convention | documented (recipe sets both) |
+| 20 | S8b | `opt_root` hybr default xtol | scipy reports success at max|f| 1.5e-8 | solver tolerance looser than the residual contract | fixed in pycli (xtol 1e-12, residual re-verified) |
+| 21 | S8b | sparse cg `rtol` 1e-12 | reported converged at a true residual 6e-11 | double precision bound eps ||A|| ||x|| / ||b|| | fixed in pycli (`TOLERANCE_UNATTAINABLE`, never OK) |
+| 22 | S8b | ARPACK on a clustered Poisson spectrum | TIME_LIMIT at n = 66000 | slow, not wrong; shift-invert answers in 0.9 s | fixed in pycli (factorisation caps before spawn) |
+| 23 | S8b-2 | scipy vs R parameterisations (gamma scale / rate, genextreme sign, truncnorm standardised bounds, nbinom failures, geom support, lognorm mu / sigma, levy_stable S1) | different parameter meanings | library conventions | documented (schema and docs/s8b2.md) |
+| 24 | S8b-2 | vonmises `loc` | linear mean 0.28 for loc 0.3 | scipy wraps variates into [-pi, pi] | documented; review fix: cdf / sf on the circle |
+| 25 | S8b-2 | zipf / betabinom cdf cost | worker crash at n = 1e9, 51.7 s kill at x = 1e9 | scipy sums the mass function | fixed in pycli (caps; `OUT_OF_RANGE` per value after the review) |
+| 26 | S8b-2 | zipf.ppf for a < 2 | scipy raises "endless loop" | library limitation | fixed in pycli (`NUMERICAL_FAILURE`) |
+| 27 | S8b-2 | t ppf tails vs R | 3.4e-12 relative | both iterative | accepted (1e-10 for continuous quantiles) |
+| 28 | S8b-2 | levy_stable pdf / cdf | 1e-6 at best, 1.5-40 ms per point | numerical integration | documented (warning on every call, 200-point cap) |
+| 29 | S8b-2 | undefined moments | scipy `inf` / `nan` | pycli reports `NA` and `moments_undefined` | documented |
+| 30 | S8b-2 | networkx normalisation (parallel edges, self loops, k_shortest on negative weights, csgraph stored zeros) | library behaviours | normalised before the algorithms; negative self loops are negative cycles since the review | documented / fixed in pycli |
+| 31 | S8b-2 review | nct pdf underflow at nc near 1000; Boost abort below df 1e-16; nbinom ppf hang at p 1e-300; scipy 0-d result for one-point levy_stable at alpha 1 | silent 0, process abort, hang, PY_ERROR | library limitations inside the documented caps | fixed in pycli (quadrature fallback, parameter floors, atleast_1d) |
+
+## S5 (statsmodels 0.14.6, aarch64, 2026-10-14)
 
 Recipes: `examples/oracle-sm-regression.lms`, `oracle-sm-glm.lms`, `oracle-sm-arima.lms`, run for real through the host shim with
 `PATH=pycli/bin:rcli/bin:/tmp/oracle-bin`. Legs: pycli vs R 4.3.3 golden constants (`scripts/s5-r-golden.py`), vs rcli, vs lmstats `statsrust`.
