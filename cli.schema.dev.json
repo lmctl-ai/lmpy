@@ -12,7 +12,7 @@
       "name": "py_info",
       "access": "read",
       "returns": "object",
-      "description": "Pinned Python scientific runtime, BLAS pools and determinism",
+      "description": "Pinned Python scientific runtime, BLAS pools and determinism, plus build provenance (version, pycli git sha, pinned lmcpp revision, SHA-256 of both wheel locks, worker sha256)",
       "params": []
     },
     {
