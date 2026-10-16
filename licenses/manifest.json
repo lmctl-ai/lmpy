@@ -31,6 +31,14 @@
     "source": "https://files.pythonhosted.org/packages/e8/5d/447af5ea094b9e4c4054f82e223ada074c552335b9b4b2d14bd9b35a67c4/joblib-1.5.2.tar.gz",
     "version": "1.5.2"
   },
+  "networkx": {
+    "files": {
+      "LICENSE.txt": "6025f323ea29dc2f0ee0abd9523bf910186f55b0e148e6ebf646c55566278e2e"
+    },
+    "sha256": "fd77a511bd90f39f3d016351345b52cf5319b813bdca01de3f755d3cca62e96a",
+    "source": "https://files.pythonhosted.org/packages/dc/76/3af777226b63a5e64a6b36b1ec5855c14e2b94a37096d4760e595fc43511/networkx-3.7.tar.gz",
+    "version": "3.7"
+  },
   "nlohmann/LICENSE.MIT": {
     "sha256": "86b998c792894ccb911a1cb7994f7a9652894e7a094c0b5e45be2f553f45cf14",
     "source": "https://raw.githubusercontent.com/nlohmann/json/v3.11.2/LICENSE.MIT"

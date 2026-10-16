@@ -27,3 +27,5 @@ joblib==1.5.2 --hash=sha256:4e1f0bdbb987e6d843c70cf43714cb276623def372df3c22fe52
 scikit_learn==1.7.2 --hash=sha256:b4d6e9deed1a47aca9fe2f267ab8e8fe82ee20b4526b2c0cd9e135cea10feb44
 # threadpoolctl-3.6.0-py3-none-any.whl
 threadpoolctl==3.6.0 --hash=sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb
+# networkx-3.7-py3-none-any.whl (pure Python: the same wheel for both architectures)
+networkx==3.7 --hash=sha256:e3fd2c13a7814cee3746340d8d7f8598a67f16a58bf47fb7f8793fab6efca1b0
