@@ -19,6 +19,9 @@ file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/docker/requirements-aarch64.lock" PYCLI
 file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/docker/requirements-amd64.lock" PYCLI_ML_X86_LOCK)
 string(SHA256 PYCLI_ML_LOCK_SHA256 "${PYCLI_ML_ARM_LOCK}${PYCLI_ML_X86_LOCK}")
 configure_file(src/ml_spec.hpp.in generated/ml_spec.hpp @ONLY)
+set(PYCLI_GIT_SHA "unknown" CACHE STRING "pycli commit the build comes from (scripts/build.sh passes it; -dirty when uncommitted changes existed)")
+set(PYCLI_LMCPP_REF "unknown" CACHE STRING "pinned lmcpp revision the build was made against")
+configure_file(src/provenance.hpp.in generated/provenance.hpp @ONLY)
 # Assembly order (tests/oracle/s3.py mirrors it): frames.py, numerics.py, s4.py, sm.py, ml.py, s7.py, s8.py, s8b.py, s8g.py, worker.py.
 string(PREPEND PYCLI_WORKER_SOURCE "${PYCLI_FRAMES_SOURCE}\n${PYCLI_NUMERICS_SOURCE}\n${PYCLI_S4_SOURCE}\n${PYCLI_SM_SOURCE}\n${PYCLI_ML_SOURCE}\n${PYCLI_S7_SOURCE}\n${PYCLI_S8_SOURCE}\n${PYCLI_S8B_SOURCE}\n${PYCLI_S8G_SOURCE}\n")
 string(SHA256 PYCLI_WORKER_SHA256 "${PYCLI_WORKER_SOURCE}")

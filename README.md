@@ -8,7 +8,7 @@ All file writes use `result.artifacts[name]` with the same descriptor fields:
 
 | Operation | Access | Inputs | Result |
 |---|---|---|---|
-| `py_info` | read | none | versions, OpenBLAS pools/threads/core, PCG64 RNG kind, architecture, worker SHA256, hash/isolation flags |
+| `py_info` | read | none | versions, OpenBLAS pools/threads/core, PCG64 RNG kind, architecture, worker SHA256, hash/isolation flags, `provenance` (version, pycli git sha, pinned lmcpp revision, SHA-256 of both wheel locks) |
 | `la_solve` | read | a, b, assume_a=gen/sym/pos | x, rcond estimate, residual norm, domain status |
 | `la_solve_to` | write | same plus exclusive out.safetensors | x descriptor; fails if no artifact is produced |
 | `stats_dist` | read | dist (31 families, see S8b-2 below), fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments/rvs, x vector (<=1000), params; rvs: n and a REQUIRED integer seed | values and captured warnings; moments with `moments_undefined`; rvs echoes seed and generator (PCG64) |

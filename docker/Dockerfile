@@ -28,6 +28,8 @@ COPY lmcpp /src/lmcpp
 RUN cp /src/lmcpp/LICENSE /provenance/lmcpp-LICENSE \
  && cmake -S /src/lmcpp -B /build-lmcpp -G Ninja -DCMAKE_BUILD_TYPE=Release -DLMCPP_BUILD_TESTS=OFF -DLMCPP_STATIC_STDLIB=ON -DCMAKE_INSTALL_PREFIX=/opt/lmcpp \
  && cmake --build /build-lmcpp --parallel 2 && cmake --install /build-lmcpp
+ARG PYCLI_GIT_SHA=unknown
+ARG PYCLI_LMCPP_REF=unknown
 COPY CMakeLists.txt cli.schema.dev.json expr-spec.json ml-spec.json LICENSE README.md /src/pycli/
 COPY src /src/pycli/src
 COPY py /src/pycli/py
@@ -38,7 +40,7 @@ COPY scripts /src/pycli/scripts
 COPY examples /src/pycli/examples
 COPY docs /src/pycli/docs
 RUN cp /src/pycli/LICENSE /provenance/pycli-LICENSE \
- && cmake -S /src/pycli -B /build-pycli -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/lmcpp -DBUILD_TESTING=ON \
+ && cmake -S /src/pycli -B /build-pycli -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/lmcpp -DBUILD_TESTING=ON -DPYCLI_GIT_SHA="$PYCLI_GIT_SHA" -DPYCLI_LMCPP_REF="$PYCLI_LMCPP_REF" \
  && cmake --build /build-pycli --parallel 2
 
 FROM wheels AS test

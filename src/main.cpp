@@ -1,4 +1,5 @@
 #include <lmcpp/lmcpp.hpp>
+#include "provenance.hpp"
 #include "worker.hpp"
 #include "safetensors.hpp"
 #include "expr_parser.hpp"
@@ -671,7 +672,7 @@ Json call(const std::string& op,const Params& input){
             frames::install(output,path);result["artifacts"]={{"table",file_descriptor(path,"npz")}};result["outputs_in_artifact"]=true;
         }
     }
-    if(op=="py_info")result["worker_sha256"]=PYCLI_WORKER_SHA256;
+    if(op=="py_info"){result["worker_sha256"]=PYCLI_WORKER_SHA256;result["provenance"]={{"version",PYCLI_VERSION},{"git_sha",PYCLI_GIT_SHA},{"lmcpp_ref",PYCLI_LMCPP_REF},{"lock_sha256_aarch64",PYCLI_LOCK_SHA256_AARCH64},{"lock_sha256_amd64",PYCLI_LOCK_SHA256_AMD64},{"worker_sha256",PYCLI_WORKER_SHA256}};}
     if(op=="la_solve_to"&&result.value("status",std::string())!="OK")no_artifact(result,"solve produced no artifact");
     if(op=="la_solve_to"){
         pycli::TensorData tensor;tensor.dtype="F64";tensor.shape=result["shape"].get<std::vector<int64_t>>();size_t n=1;for(auto d:tensor.shape){if(d<=0||static_cast<uint64_t>(d)>MAX_NUMBERS||n>MAX_NUMBERS/d)throw std::runtime_error("worker output shape exceeds limit");n*=d;}
@@ -721,7 +722,7 @@ int main(int argc,char** argv){
     if(argc==2&&std::string(argv[1])=="--expr-check")return expr_check_cli();
     struct sigaction action{};action.sa_handler=cleanup_signal;sigemptyset(&action.sa_mask);
     sigaction(SIGTERM,&action,nullptr);sigaction(SIGINT,&action,nullptr);
-    Operation info{"py_info",Access::Read,"Pinned Python scientific runtime, BLAS pools and determinism","object",{}};
+    Operation info{"py_info",Access::Read,"Pinned Python scientific runtime, BLAS pools and determinism, plus build provenance (version, pycli git sha, pinned lmcpp revision, SHA-256 of both wheel locks, worker sha256)","object",{}};
     auto solve=[](bool write){Operation op{write?"la_solve_to":"la_solve",write?Access::Write:Access::Read,"Dense real solve; inline <=1000 numbers or F64 artifact refs; read solve reports SINGULAR/NOT_POSITIVE_DEFINITE; write solve fails if no artifact","object",{Param{"a",Type::Json,true},Param{"b",Type::Json,true},Param{"assume_a",Type::String,false,"gen",{"gen","sym","pos"}}}};if(write)op.params.emplace_back("out",Type::String,true);return op;};
     auto stats_params=[](bool write){
         std::vector<Json> families;for(const auto& f:dist_table())families.push_back(f.first);
@@ -763,7 +764,7 @@ int main(int argc,char** argv){
         Param{"full",Type::Boolean,false,false,{},"svd/qr: full_matrices / full Q instead of economic."},
         Param{"pivoting",Type::Boolean,false,false,{},"qr only: column pivoting, adds int64 tensor p with A[:,p]=Q@R."},
         Param{"lower",Type::Boolean,false,true,{},"cholesky only: false returns the upper factor u."}}};
-    CliSpec spec{"pycli","0.1.0",{info,solve(false),solve(true),dist,dist_to,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
+    CliSpec spec{"pycli",PYCLI_VERSION,{info,solve(false),solve(true),dist,dist_to,import_op,inspect_op,lstsq(false),lstsq(true),props,decomp}};
     add_s7_ops(spec);
     add_s8_ops(spec);
     add_s8b_ops(spec);

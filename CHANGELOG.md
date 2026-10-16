@@ -1,0 +1,42 @@
+# Changelog
+
+All notable changes to pycli are documented here. Versions follow the schema `version` published by `pycli --schema`
+(the same string sits in CMakeLists.txt and in `py_info.provenance.version`; `tests/docs_gate.py` gates them).
+
+## [0.1.0] - Unreleased
+
+First releasable tree: 68 operations, 38 CTest groups, 30 lmscript recipes, aarch64 measured, amd64 built from a hash lock but
+UNVERIFIED until the first green amd64 CI run (RELEASE.md lists the human steps; nothing publishes automatically).
+
+### Added
+
+- S0 skeleton: lmcpp C++17 front end, a fresh `python3 -P -s -B` child per call in a pinned offline Docker image (Python 3.12.15 slim
+  bookworm, hash-locked manylinux wheels, one lock per architecture), host shim `bin/pycli` (cwd below HOME, `--network=none`, read-only
+  root, dropped capabilities, 2 CPUs / 4 GiB / 128 pids), `py_info`, `la_solve(_to)`, `stats_dist` (ten families).
+- S1 arrays and dense linear algebra: `array_import`, `array_inspect` (pure C++), `la_lstsq(_to)`, `la_props`, `la_decomp`; safetensors
+  and `.npy` readers validated in C++; the one artifact descriptor `{ref, path, format, key, dtype, shape, nbytes}`.
+- S2 frames: `frame_import`, `frame_inspect`, `frame_export`, `frame_select`, `frame_groupby`, `frame_resample`; the `.npz` table artifact
+  with typed columns, missing masks, categories and tz-aware timestamps.
+- S3 expressions: the shared closed grammar (expr-spec.json, parsed in C++), `opt_minimize`, `opt_least_squares`, `num_quad`, `num_root`.
+- S4 LP / MILP (`opt_linprog(_to)`, HiGHS with original-data KKT checks) and ODEs (`ode_solve(_to)` with events).
+- S5 statsmodels 0.14.6 as the lmstats oracle: `sm_ols`, `sm_glm`, `sm_sarimax`, `sm_tsa_acf`; no patsy / formula strings.
+- S6 scikit-learn 1.7.2: `ml_fit`, `ml_predict`, `ml_cv`, `ml_model_info`; numeric model bundles, tree ensembles fit-and-predict only.
+- S7 interpolation, signal processing and spatial geometry (`interp_eval(_to)`, `sig_filter(_to)`, `sig_peaks`, `sig_spectrum(_to)`,
+  `spatial_knn(_to)`, `spatial_hull`, `spatial_dist(_to)`) with closed-form and R oracles.
+- S8a table / array bridge (`frame_to_array(_to)`, `array_to_frame`), `frame_mutate`, `frame_merge`, `frame_rolling`, `ml_metrics`,
+  seeded `stats_dist` sampling.
+- S8b matrix functions (`la_matrix_fn(_to)`), sparse algebra (`la_sparse(_to)`), `special_fn(_to)` (mpmath-checked), `opt_root`,
+  `sm_tsa_tools`.
+- S8b-2 graphs (`graph_paths(_to)`, `graph_flow(_to)`, networkx 3.7) and the `stats_dist` long tail (31 families, ten functions).
+- Release tooling: generated docs/reference.md (codes, statuses, caps) with a documentation gate, CI workflows for arm64 and amd64
+  with a weekly wheel-hash drift report, `py_info.provenance`, CHANGELOG and RELEASE checklists.
+
+### Changed
+
+- Review rounds after every slice (docs/review-*.md, docs/*-review-notes.md): each ranked finding has a regression test; numerical
+  contracts were tightened rather than tolerances loosened (docs/oracle-findings.md records every cross-tool discrepancy).
+
+### Security
+
+- No `eval`, `exec`, `pickle`, `query`, formula strings or caller code anywhere; every file header is validated in C++ before Python starts;
+  Parquet / pyarrow excluded from v1 (docs/decisions.md).

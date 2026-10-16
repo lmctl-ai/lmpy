@@ -1,0 +1,8 @@
+#pragma once
+// Build provenance reported by py_info: the schema/package version, the pycli commit the image was built from (-dirty when the tree had
+// uncommitted changes, "unknown" outside scripts/build.sh), the pinned lmcpp revision and the SHA-256 of both wheel lock files.
+inline constexpr const char* PYCLI_VERSION="@PROJECT_VERSION@";
+inline constexpr const char* PYCLI_GIT_SHA="@PYCLI_GIT_SHA@";
+inline constexpr const char* PYCLI_LMCPP_REF="@PYCLI_LMCPP_REF@";
+inline constexpr const char* PYCLI_LOCK_SHA256_AARCH64="@PYCLI_ML_ARM_LOCK@";
+inline constexpr const char* PYCLI_LOCK_SHA256_AMD64="@PYCLI_ML_X86_LOCK@";
