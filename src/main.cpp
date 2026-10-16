@@ -614,7 +614,7 @@ Json call(const std::string& op,const Params& input){
     if(sm||ml||s7||s8||numeric||op=="stats_dist"){double limit=input.value("time_limit",10.);if(!std::isfinite(limit)||!(limit>0&&limit<=30))bad_param("time_limit must be >0..30 seconds");p["time_limit"]=limit;}
     TempDir temp;
     int seconds=50;if(const char* value=getenv("PYCLI_TIMEOUT_S")){try{seconds=std::max(1,std::min(50,std::stoi(value)));}catch(...){}}
-    if(sm||ml||s7||s8)p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
+    if(sm||ml||s7||s8||op=="stats_dist")p["time_budget_s"]=std::max(1,seconds-10);  // worker raises TIME_LIMIT cooperatively before the hard kill
     if(numeric){
         {std::ofstream f(temp.file("expr_spec.json"));f<<PYCLI_EXPR_SPEC_JSON;if(!f)throw std::runtime_error("cannot write expression spec");}
         p["spec_file"]=temp.file("expr_spec.json");p["time_budget_s"]=s4?Json(std::max(0.01,double(seconds)-2.0)):Json(std::max(1,seconds-10));  // worker stops cooperatively before the hard kill
@@ -733,7 +733,7 @@ int main(int argc,char** argv){
         if(!write)params.push_back(Param{"x",Type::Json,false,nullptr,{},"Evaluation points (not allowed with rvs or moments): a vector of <=1000 numbers (inline, .npy or safetensors#key); NA entries stay NA."});
         else{params.push_back(Param{"x",Type::Json,false,nullptr,{},"Evaluation points (not allowed with rvs): a vector of <=200,000 numbers (inline, .npy or safetensors#key); NA entries become NaN in the artifact."});params.push_back(Param{"key",Type::String,false,"x",{},"Tensor name in the artifact: [A-Za-z_][A-Za-z0-9_.-]{0,63}."});params.push_back(Param{"out",Type::String,true,nullptr,{},"New .safetensors path inside the working directory (CONFLICT if it exists)."});}
         return params;};
-    Operation dist{"stats_dist",Access::Read,"Distribution functions (pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf, moments; <=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) for 34 continuous and discrete families, see dist","object",stats_params(false)};
+    Operation dist{"stats_dist",Access::Read,"Distribution functions (pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf, moments; <=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) for 31 continuous and discrete families, see dist","object",stats_params(false)};
     Operation dist_to{"stats_dist_to",Access::Write,"Distribution functions at up to 200,000 points, or seeded sampling (same families, params and explicit required seed as stats_dist), written to an exclusive safetensors artifact (F64 vector under artifacts[key])","object",stats_params(true)};
     // S1: arrays and dense linear algebra. Array params accept inline JSON, `file.npy` or `file.safetensors#key`.
     Operation import_op{"array_import",Access::Write,"Convert inline JSON, CSV, a read-only .npy or a safetensors tensor into a new F64 safetensors artifact; fails with CONFLICT if out exists","object",{

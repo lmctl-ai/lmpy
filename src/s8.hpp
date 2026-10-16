@@ -302,24 +302,24 @@ Json prepare_metrics(const Params& in,std::map<std::string,Array>& arrays,S8Extr
 
 // ---- sampling ----
 // ---- distribution families: one per-family parameter table validated here, mirrored by py/s8.py (dist_frozen) ----
-// kinds (13 integer in [1,5000], 14 in (0,1e5]): 0 any finite real, 1 > 0, 2 >= 0, 3 in [0,1], 4 integer in [1,1e9], 5 integer, 6 in (0,1], 7 in (0,2], 8 in [-1,1], 9 > 1, 10 in [0,1e9], 11 in [0,1000], 12 in [-1000,1000]
+// kinds (13 integer in [1,5000], 14 in (0,1e5], 15 in [-700,700] (exp stays finite), 16 in [1e-8, 1e12] (Boost's noncentral t aborts below), 17 in [1e-15, 1] (1 - p must differ from 1; scipy's quantile search for p -> 0 never ends and numpy's integer samplers saturate)): 0 any finite real, 1 > 0, 2 >= 0, 3 in [0,1], 4 integer in [1,1e9], 5 integer, 6 in (0,1], 7 in (0,2], 8 in [-1,1], 9 > 1, 10 in [0,1e9], 11 in [0,1000], 12 in [-1000,1000]
 struct DistParam{const char* name;double dflt;int kind;};
 inline const std::map<std::string,std::pair<bool,std::vector<DistParam>>>& dist_table(){
     const double R=NAN;
     static const std::map<std::string,std::pair<bool,std::vector<DistParam>>> table={
         {"norm",{false,{{"loc",0,0},{"scale",1,1}}}},{"t",{false,{{"df",R,1},{"loc",0,0},{"scale",1,1}}}},{"uniform",{false,{{"low",0,0},{"high",1,0}}}},
         {"expon",{false,{{"scale",1,1}}}},{"gamma",{false,{{"shape",R,1},{"scale",R,1}}}},{"beta",{false,{{"a",R,1},{"b",R,1}}}},
-        {"lognorm",{false,{{"mu",0,0},{"sigma",1,1}}}},{"chi2",{false,{{"df",R,1}}}},{"poisson",{true,{{"lam",R,10}}}},{"binom",{true,{{"n",R,4},{"p",R,3}}}},
+        {"lognorm",{false,{{"mu",0,15},{"sigma",1,1}}}},{"chi2",{false,{{"df",R,1}}}},{"poisson",{true,{{"lam",R,10}}}},{"binom",{true,{{"n",R,4},{"p",R,3}}}},
         {"genextreme",{false,{{"c",R,0},{"loc",0,0},{"scale",1,1}}}},{"genpareto",{false,{{"c",R,0},{"loc",0,0},{"scale",1,1}}}},
         {"skewnorm",{false,{{"a",R,0},{"loc",0,0},{"scale",1,1}}}},{"levy_stable",{false,{{"alpha",R,7},{"beta",0,8},{"loc",0,0},{"scale",1,1}}}},
-        {"johnsonsu",{false,{{"a",R,0},{"b",R,1},{"loc",0,0},{"scale",1,1}}}},{"nct",{false,{{"df",R,1},{"nc",R,12},{"loc",0,0},{"scale",1,1}}}},
+        {"johnsonsu",{false,{{"a",R,0},{"b",R,1},{"loc",0,0},{"scale",1,1}}}},{"nct",{false,{{"df",R,16},{"nc",R,12},{"loc",0,0},{"scale",1,1}}}},
         {"ncf",{false,{{"dfn",R,1},{"dfd",R,1},{"nc",R,11},{"loc",0,0},{"scale",1,1}}}},{"vonmises",{false,{{"kappa",R,14},{"loc",0,0},{"scale",1,1}}}},
         {"truncnorm",{false,{{"a",R,0},{"b",R,0},{"loc",0,0},{"scale",1,1}}}},{"weibull_min",{false,{{"c",R,1},{"loc",0,0},{"scale",1,1}}}},
         {"cauchy",{false,{{"loc",0,0},{"scale",1,1}}}},{"laplace",{false,{{"loc",0,0},{"scale",1,1}}}},{"logistic",{false,{{"loc",0,0},{"scale",1,1}}}},
         {"gumbel_r",{false,{{"loc",0,0},{"scale",1,1}}}},{"pareto",{false,{{"b",R,1},{"loc",0,0},{"scale",1,1}}}},{"rayleigh",{false,{{"loc",0,0},{"scale",1,1}}}},
         {"f",{false,{{"dfn",R,1},{"dfd",R,1},{"loc",0,0},{"scale",1,1}}}},
         {"zipf",{true,{{"a",R,9},{"loc",0,5}}}},{"betabinom",{true,{{"n",R,13},{"a",R,1},{"b",R,1},{"loc",0,5}}}},
-        {"nbinom",{true,{{"n",R,1},{"p",R,6},{"loc",0,5}}}},{"geom",{true,{{"p",R,6},{"loc",0,5}}}}};
+        {"nbinom",{true,{{"n",R,1},{"p",R,17},{"loc",0,5}}}},{"geom",{true,{{"p",R,17},{"loc",0,5}}}}};
     return table;
 }
 inline bool dist_discrete(const std::string& dist){auto it=dist_table().find(dist);return it!=dist_table().end()&&it->second.first;}
@@ -343,7 +343,10 @@ inline Json dist_resolve(const std::string& dist,const Json& prm){
             case 9:ok=x>1;rule="> 1";break;case 10:ok=x>=0&&x<=1e9;rule="in [0, 1e9]";break;case 11:ok=x>=0&&x<=1000;rule="in [0, 1000]";break;
             case 12:ok=x>=-1000&&x<=1000;rule="in [-1000, 1000]";break;
             case 13:ok=x>=1&&x<=5000&&x==std::floor(x);rule="an integer in [1, 5000] (scipy sums the mass function: cost grows with n)";break;
-            case 14:ok=x>0&&x<=1e5;rule="in (0, 1e5]";break;default:break;
+            case 14:ok=x>0&&x<=1e5;rule="in (0, 1e5]";break;
+            case 15:ok=x>=-700&&x<=700;rule="in [-700, 700] (exp(mu) must stay finite)";break;
+            case 16:ok=x>=1e-8;rule=">= 1e-8 (Boost's noncentral t evaluation aborts below)";break;
+            case 17:ok=x>=1e-15&&x<=1;rule="in [1e-15, 1] (1 - p must be representable; the quantile search and the integer sampler break below)";break;default:break;
         }
         if(!ok)bad_param(name+" must be "+rule);
     }
@@ -353,7 +356,7 @@ inline Json dist_resolve(const std::string& dist,const Json& prm){
     return resolved;
 }
 
-// Evaluation functions (everything but rvs): validated here for both stats_dist (<=1000 points) and stats_dist_to (<=1e6 points).
+// Evaluation functions (everything but rvs): validated here for both stats_dist (<=1000 points) and stats_dist_to (<=200,000 points, the referenced-array cap).
 inline void dist_eval_prepare(Json& p,std::map<std::string,Array>& arrays,size_t cap){
     const std::string fn=p["fn"],dist=p["dist"];
     for(const char* k:{"n","seed"})if(p.contains(k)&&!p[k].is_null())bad_param(std::string(k)+" is only used by fn rvs");
@@ -362,9 +365,10 @@ inline void dist_eval_prepare(Json& p,std::map<std::string,Array>& arrays,size_t
     if(!p.contains("x")||p["x"].is_null())bad_param(fn+" needs x");
     if(dist=="levy_stable"||dist=="vonmises")cap=std::min<size_t>(cap,S8_LEVY_POINTS);  // numerical integration per point (about 9 ms for vonmises, more for levy_stable)
     arrays["x"]=load(p["x"]);
-    if(arrays["x"].shape.size()!=1||arrays["x"].data.size()>cap)invalid("stats_dist requires a vector of <="+std::to_string(cap)+" values for "+dist,"INPUT_TOO_LARGE");
+    if(arrays["x"].shape.size()!=1)bad_param("x must be a one-dimensional vector of evaluation points");
+    if(arrays["x"].data.size()>cap)invalid("stats_dist requires a vector of <="+std::to_string(cap)+" values for "+dist,"INPUT_TOO_LARGE");
     p["missing"]=arrays["x"].missing;
-    if(dist=="zipf"&&(fn=="cdf"||fn=="logcdf"||fn=="sf"||fn=="logsf"))for(double v:arrays["x"].data)if(std::isfinite(v)&&std::fabs(v)>1e5)invalid("zipf cdf/sf sum the mass up to x: |x| must be at most 1e5","INPUT_TOO_LARGE");
+    if(dist=="zipf"&&(fn=="cdf"||fn=="logcdf"||fn=="sf"||fn=="logsf")){const double loc=p["params"]["loc"].get<double>();for(double v:arrays["x"].data)if(std::isfinite(v)&&v-loc>1e5)invalid("zipf cdf/sf sum the mass from loc + 1 up to x: x - loc must be at most 1e5","INPUT_TOO_LARGE");}
     if(fn=="ppf"||fn=="isf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid(fn+" probabilities must lie in [0,1]","BAD_PROBABILITY");
 }
 

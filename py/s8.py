@@ -804,22 +804,96 @@ def dist_levy_warning(dist, fn):
         warnings.warn('levy_stable pdf/cdf are numerical integrations: slow, and accurate to roughly 1e-6 relative at best (worse in the far tails); compare with an independent oracle before relying on digits', NumericalWarning)
 
 
+# Cheap canonical parameters for the trusted-phase warm-up: scipy's lazy imports happen for the requested function only, never on the caller's
+# parameters (those are evaluated under the cooperative budget, where an unbounded quantile search is TIME_LIMIT and not a hang or a kill).
+DIST_WARM_PARAMS = {'t': {'df': 5.0}, 'uniform': {'low': 0.0, 'high': 1.0}, 'gamma': {'shape': 2.0, 'scale': 1.0}, 'beta': {'a': 2.0, 'b': 3.0}, 'lognorm': {'mu': 0.0, 'sigma': 1.0},
+                    'chi2': {'df': 3.0}, 'poisson': {'lam': 2.0}, 'binom': {'n': 5, 'p': 0.5}, 'genextreme': {'c': 0.2}, 'genpareto': {'c': 0.2}, 'skewnorm': {'a': 2.0},
+                    'levy_stable': {'alpha': 1.5, 'beta': 0.3}, 'johnsonsu': {'a': 1.0, 'b': 2.0}, 'nct': {'df': 5.0, 'nc': 1.0}, 'ncf': {'dfn': 3.0, 'dfd': 7.0, 'nc': 1.0},
+                    'vonmises': {'kappa': 2.0}, 'truncnorm': {'a': -1.0, 'b': 2.0}, 'weibull_min': {'c': 2.0}, 'pareto': {'b': 3.0}, 'f': {'dfn': 3.0, 'dfd': 7.0}, 'zipf': {'a': 3.0},
+                    'betabinom': {'n': 5, 'a': 2.0, 'b': 3.0}, 'nbinom': {'n': 3.0, 'p': 0.5}, 'geom': {'p': 0.5}}
+
+
 def dist_warm(p):
-    """Trusted-phase warm-up: run every method once so scipy's lazy imports happen before the import guard."""
+    """Trusted-phase warm-up with canonical parameters: the requested function (plus the cdf behind a zipf quantile guard), nothing else."""
     import numpy as np
-    dist, prm = p['dist'], p['params']
+    dist, fn = p['dist'], p['fn']
+    prm = dict(DIST_WARM_PARAMS.get(dist, {}))
+    prm.setdefault('loc', 0.0)
+    prm.setdefault('scale', 1.0)
     try:
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             with np.errstate(all='ignore'):
                 frozen = dist_frozen(dist, prm)
-                points = np.array([0.5])
-                for method in dist_methods(frozen, dist in DIST_DISCRETE).values():
-                    method(points)
-                frozen.stats('mvsk')
-                frozen.rvs(size=2, random_state=np.random.Generator(np.random.PCG64(1)))
+                points = np.array([1.0, 2.0]) if dist in DIST_DISCRETE else np.array([0.5, 0.6])
+                if fn == 'moments':
+                    frozen.stats('mvsk')
+                    from scipy import integrate
+                    integrate.quad(lambda s: s, 0.0, 1.0)
+                elif fn == 'rvs':
+                    frozen.rvs(size=2, random_state=np.random.Generator(np.random.PCG64(1)))
+                else:
+                    dist_methods(frozen, dist in DIST_DISCRETE)[fn](np.array([0.3, 0.6]) if fn in ('ppf', 'isf') else points)
+                    if fn in ('ppf', 'isf'):
+                        frozen.cdf(points)
+                        frozen.sf(points)
+                        frozen.support()
+                    if dist == 'nct' and fn in ('pdf', 'logpdf'):
+                        from scipy import integrate
+                        from scipy.special import gammaln
+                        integrate.quad(lambda s: s, 0.0, 1.0)
+                        frozen.cdf(points)
     except Exception:
         pass
+
+
+def nct_density_by_quadrature(np, x, df, nc):
+    """f(x) = integral over s > 0 of s * phi(x s - nc) * f_S(s) ds with S = sqrt(V / df), V ~ chi2(df): the defining integral, used only where scipy's
+    closed form underflows to 0 inside the body of the distribution (large nc); adaptive quadrature split at the peak s = nc / x."""
+    from scipy import integrate
+    from scipy.special import gammaln
+    half = df / 2.0
+    log_norm = math.log(2.0) + math.log(df) - half * math.log(2.0) - gammaln(half)
+
+    def integrand(s, t):
+        if s <= 0:
+            return 0.0
+        z = t * s - nc
+        return math.exp(math.log(s) + log_norm + math.log(s) + (df - 2.0) * math.log(s * math.sqrt(df)) - s * s * df / 2.0 - 0.5 * z * z - 0.5 * math.log(2 * math.pi))
+    out = np.empty(len(x))
+    for i, t in enumerate(x):
+        peak = nc / t if t != 0 and nc / t > 0 else None
+        pieces = [(0.0, peak), (peak, np.inf)] if peak else [(0.0, np.inf)]
+        total = 0.0
+        for a, b in pieces:
+            total += integrate.quad(integrand, a, b, args=(t,), limit=200, epsabs=0.0, epsrel=1e-10)[0]
+        out[i] = max(total, 0.0)
+    return out
+
+
+def weibull_moments(np, c, loc, scale):
+    """Mean from Gamma(1 + 1/c); central moments by quadrature of (t^(1/c) - mu)^k e^-t, which keeps its digits where the raw-moment differences lose
+    them (sharp shapes c >> 1 tend to the Gumbel-min limits: skewness -1.1395, excess kurtosis 2.4)."""
+    from scipy import integrate
+    from scipy.special import gamma
+    mu = float(gamma(1.0 + 1.0 / c))
+    shift = mu - 1.0
+
+    def central(k):
+        f = lambda t: (math.expm1(math.log(t) / c) - shift) ** k * math.exp(-t) if t > 0 else ((-shift) ** k if t == 0 else 0.0)
+        return integrate.quad(f, 0.0, np.inf, limit=400, epsabs=0.0, epsrel=1e-11)[0]
+    m2, m3, m4 = central(2), central(3), central(4)
+    return {'mean': loc + scale * mu, 'var': scale * scale * m2, 'skew': m3 / m2 ** 1.5, 'kurtosis': m4 / (m2 * m2) - 3.0}
+
+
+def dist_wrap_circle(np, x, loc, scale):
+    """vonmises lives on loc + scale * [-pi, pi]: points outside are wrapped back onto the circle (the end points stay where they are)."""
+    z = (x - loc) / scale
+    outside = np.isfinite(z) & ((z < -math.pi) | (z > math.pi))
+    if outside.any():
+        z = z.copy()
+        z[outside] = np.mod(z[outside] + math.pi, 2 * math.pi) - math.pi
+    return loc + scale * z
 
 
 def dist_evaluate(p):
@@ -828,43 +902,114 @@ def dist_evaluate(p):
     frozen = dist_frozen(dist, prm)
     base = {'dist': dist, 'fn': fn, 'params': prm}
     dist_levy_warning(dist, fn)
+    discrete = dist in DIST_DISCRETE
+    out_of_range = np.zeros(0, dtype=bool)
     with np.errstate(all='ignore'):
         if fn == 'moments':
             names = ('mean', 'var', 'skew', 'kurtosis')
-            out = dict(zip(names, [float(v) for v in frozen.stats('mvsk')]))
+            if dist == 'weibull_min':
+                out = weibull_moments(np, prm['c'], prm['loc'], prm['scale'])
+            else:
+                out = dict(zip(names, [float(v) for v in frozen.stats('mvsk')]))
             undefined = [k for k in names if not math.isfinite(out[k])]
             return dict(base, status='OK', moments={k: (None if k in undefined else v) for k, v in out.items()}, moments_undefined=undefined,
                         note='kurtosis is the excess kurtosis; NA means infinite or undefined')
-        x = np.load(p['x_file'], allow_pickle=False).astype(float)
+        x = np.atleast_1d(np.load(p['x_file'], allow_pickle=False).astype(float))
+        points = x
         if dist == 'zipf' and fn in ('ppf', 'isf'):
-            # scipy searches the heavy tail by summing the mass function: refuse quantiles beyond 1e5 instead of running out of memory
-            edge = float(frozen.cdf(1e5)) if fn == 'ppf' else float(frozen.sf(1e5))
-            level = x[np.isfinite(x)]
-            if (fn == 'ppf' and (level > edge).any()) or (fn == 'isf' and (level < edge).any()):
-                return dict(base, status='OUT_OF_RANGE', message='a requested zipf quantile lies beyond 1e5 (the cdf there is %r): not computed' % (edge if fn == 'ppf' else 1 - edge))
+            # scipy searches the heavy tail by summing the mass function: quantiles beyond loc + 1e5 are not computed (NA, status OUT_OF_RANGE)
+            edge = float(frozen.cdf(prm['loc'] + 1e5)) if fn == 'ppf' else float(frozen.sf(prm['loc'] + 1e5))
+            out_of_range = np.isfinite(x) & ((x > edge) if fn == 'ppf' else (x < edge))
+            points = np.where(out_of_range, np.nan, x)
+        if dist == 'vonmises' and fn in ('cdf', 'logcdf', 'sf', 'logsf'):
+            points = dist_wrap_circle(np, x, prm['loc'], prm['scale'])
         try:
-            values = np.asarray(dist_methods(frozen, dist in DIST_DISCRETE)[fn](x), dtype=float)
+            values = np.atleast_1d(np.asarray(dist_methods(frozen, discrete)[fn](points), dtype=float))
+            if dist == 'nct' and fn in ('pdf', 'logpdf'):
+                dead = (values == 0.0) if fn == 'pdf' else np.isneginf(values)
+                dead &= np.isfinite(x)
+                if dead.any():
+                    c = frozen.cdf(x[dead])
+                    body = (c > 1e-300) & (c < 1 - 1e-16)
+                    if body.any():
+                        idx = np.flatnonzero(dead)[body]
+                        density = nct_density_by_quadrature(np, (x[idx] - prm['loc']) / prm['scale'], prm['df'], prm['nc']) / prm['scale']
+                        values[idx] = density if fn == 'pdf' else np.log(density)
         except (RuntimeError, ValueError, OverflowError, ZeroDivisionError, ArithmeticError) as exc:
             return dict(base, status='NUMERICAL_FAILURE', message='scipy could not evaluate %s for these parameters: %s' % (fn, exc))
+        if dist == 'vonmises' and fn in ('ppf', 'isf'):
+            low, high = prm['loc'] - math.pi * prm['scale'], prm['loc'] + math.pi * prm['scale']
+            values = np.where(np.isneginf(values), low, np.where(np.isposinf(values), high, values))
+        if discrete and fn in ('ppf', 'isf'):
+            first = float(frozen.support()[0])
+            ends = (x == 0.0) if fn == 'ppf' else (x == 1.0)
+            values = np.where(ends & (values < first), first, values)  # scipy's lower - 1 convention never leaves the support
     missing = p.get('missing', [])
     for i in range(len(x)):
-        if not math.isnan(float(x[i])) and math.isnan(values[i]) and i not in missing:
+        if not math.isnan(float(x[i])) and math.isnan(values[i]) and i not in missing and not (out_of_range.size and out_of_range[i]):
             warnings.warn('SciPy returned NaN for a finite/domain-valid distribution input', NumericalWarning)
             break
+    n_out = int(out_of_range.sum()) if out_of_range.size else 0
+    status = 'OUT_OF_RANGE' if n_out else 'OK'
+    if n_out:
+        base = dict(base, n_out_of_range=n_out, message='%d requested zipf quantile(s) lie beyond loc + 1e5 (the cdf there is %r): reported as NA' % (n_out, edge if fn == 'ppf' else 1 - edge))
     if p.get('output_prefix'):
+        if n_out:
+            return dict(base, status=status)
         values = values.copy()
         values[list(missing)] = np.nan
-        return dict(base, status='OK', n_values=int(values.size), n_missing=len(missing), outputs=s8_save_tensor(p, p['key'], values))
+        n_nan = int(sum(1 for i in range(len(x)) if i not in missing and math.isnan(float(x[i]))))
+        return dict(base, status='OK', n_values=int(values.size), n_missing=len(missing), n_nan=n_nan, outputs=s8_save_tensor(p, p['key'], values))
     out = values.tolist()
     for i in missing:
         out[i] = 'NA'
-    return dict(base, status='OK', values=out)
+    if n_out:
+        for i in np.flatnonzero(out_of_range).tolist():
+            out[i] = 'NA'
+    return dict(base, status=status, values=out)
 
 
 def stats_rvs(p):
     if p['fn'] != 'rvs':
         return dist_evaluate(p)
     return stats_sample(p)
+
+
+def stats_sample_compound(np, dist, prm, n, seed):
+    """Compound families drawn from two PCG64 streams (seed, and seed jumped once) so that a shorter n is a prefix of a longer one: scipy draws the
+    two full-length arrays of these families one after the other from one stream, which breaks the prefix property."""
+    a = np.random.Generator(np.random.PCG64(seed))
+    b = np.random.Generator(np.random.PCG64(seed).jumped())
+    if dist == 'nct':
+        z = a.standard_normal(n) + prm['nc']
+        v = b.chisquare(prm['df'], n)
+        return prm['loc'] + prm['scale'] * z / np.sqrt(v / prm['df'])
+    if dist == 'skewnorm':
+        u0, v = a.standard_normal(n), b.standard_normal(n)
+        d = prm['a'] / math.sqrt(1.0 + prm['a'] ** 2)
+        u1 = d * u0 + v * math.sqrt(1.0 - d * d)
+        return prm['loc'] + prm['scale'] * np.where(u0 >= 0, u1, -u1)
+    if dist == 'betabinom':
+        pr = a.beta(prm['a'], prm['b'], n)
+        return (b.binomial(int(prm['n']), pr) + prm['loc']).astype(float)
+    # levy_stable, S1 parameterisation: Chambers-Mallows-Stuck as in scipy's _rvs_Z1 (uniform angle from stream a, exponential from stream b)
+    alpha, beta = prm['alpha'], prm['beta']
+    TH = -math.pi / 2 + math.pi * a.random(n)
+    W = b.standard_exponential(n)
+    aTH, bTH, cosTH, tanTH = alpha * TH, beta * TH, np.cos(TH), np.tan(TH)
+    if alpha == 1:
+        z = 2 / math.pi * ((math.pi / 2 + bTH) * tanTH - beta * np.log((math.pi / 2 * W * cosTH) / (math.pi / 2 + bTH)))
+    elif beta == 0:
+        z = W / (cosTH / np.tan(aTH) + np.sin(TH)) * ((np.cos(aTH) + np.sin(aTH) * tanTH) / W) ** (1.0 / alpha)
+    else:
+        val0 = beta * math.tan(math.pi * alpha / 2)
+        th0 = math.atan(val0) / alpha
+        val3 = W / (cosTH / np.tan(alpha * (th0 + TH)) + np.sin(TH))
+        z = val3 * ((np.cos(aTH) + np.sin(aTH) * tanTH - val0 * (np.sin(aTH) - np.cos(aTH) * tanTH)) / W) ** (1.0 / alpha)
+    return prm['loc'] + prm['scale'] * z
+
+
+DIST_TWO_STREAMS = ('nct', 'skewnorm', 'betabinom', 'levy_stable')
 
 
 def stats_sample(p):
@@ -893,13 +1038,25 @@ def stats_sample(p):
             x = rng.poisson(prm['lam'], n).astype(float)
         elif dist == 'binom':
             x = rng.binomial(int(prm['n']), prm['p'], n).astype(float)
+        elif dist in DIST_TWO_STREAMS:
+            x = stats_sample_compound(np, dist, prm, n, p['seed'])
         else:
-            x = dist_frozen(dist, prm).rvs(size=n, random_state=rng)
-    x = np.asarray(x, dtype=float)
+            try:
+                x = dist_frozen(dist, prm).rvs(size=n, random_state=rng)
+            except (ValueError, OverflowError) as exc:  # numpy refuses integer draws whose mean overflows ("n too large or p too small")
+                x, refused = None, str(exc)
     base = {'dist': dist, 'fn': 'rvs', 'params': prm, 'n': n, 'seed': p['seed'], 'generator': 'PCG64'}
+    if x is None:
+        return dict(base, status='NUMERICAL_FAILURE', message='the sampler cannot draw these parameters: %s' % refused)
+    if dist in ('geom', 'nbinom') and (np.asarray(x) >= 2 ** 63 - 1).any():
+        return dict(base, status='NUMERICAL_FAILURE', message='the integer sampler saturated the int64 range for these parameters (p is too small): no values')
+    x = np.asarray(x, dtype=float)
     if not np.isfinite(x).all():
         return dict(base, status='NUMERICAL_FAILURE', message='the sampler produced non-finite values for these parameters')
     result = dict(base, status='OK')
+    if dist in DIST_TWO_STREAMS:
+        result['generator'] = 'PCG64'
+        result['streams'] = 2
     if p.get('output_prefix'):
         result['outputs'] = s8_save_tensor(p, p['key'], x)
     else:
