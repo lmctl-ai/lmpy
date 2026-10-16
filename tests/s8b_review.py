@@ -11,7 +11,7 @@ class Review(Base):
     def diag(self,task='eigsh',**kw):return dict(task=task,shape=[3,3],row=[0,1,2],col=[0,1,2],val=[1.,2.,3.],**kw)
     def worker(self):
         ns={'__name__':'review_worker'}
-        source='\n'.join((pathlib.Path(os.environ['REVIEW_VARIANT_DIR'])/name if os.environ.get('REVIEW_VARIANT_DIR') and (pathlib.Path(os.environ['REVIEW_VARIANT_DIR'])/name).exists() else ROOT/'py'/name).read_text() for name in ('frames.py','numerics.py','s4.py','sm.py','ml.py','s7.py','s8.py','s8b.py','worker.py'))
+        source='\n'.join((pathlib.Path(os.environ['REVIEW_VARIANT_DIR'])/name if os.environ.get('REVIEW_VARIANT_DIR') and (pathlib.Path(os.environ['REVIEW_VARIANT_DIR'])/name).exists() else ROOT/'py'/name).read_text() for name in ('frames.py','numerics.py','s4.py','sm.py','ml.py','s7.py','s8.py','s8b.py','s8g.py','worker.py'))
         exec(compile(source,'embedded-worker','exec'),ns);return ns
 
     def test_stationarity_scale_invariance(self):

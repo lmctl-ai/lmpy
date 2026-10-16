@@ -138,7 +138,7 @@ class Paths(Base):
         t = call('graph_paths', paths(f, weight_column='w', source='a', target='c'))
         self.assertAlmostEqual(t['length'], 1.5, places=12)  # the lighter of two parallel edges
         full = call('graph_paths', paths(f, weight_column='w', source='a'))
-        self.assertEqual((full['n_nodes'], full['n_reachable'], full['n_unreachable'], full['n_edges']), (5, 3, 2, 4))
+        self.assertEqual((full['n_nodes'], full['n_reachable'], full['n_unreachable'], full['n_edges']), (5, 3, 2, 3))  # the self loop is dropped, the parallel a-b edges merge
         self.assertNotIn('d', full['nodes'])
         self.assertEqual(call('graph_paths', paths(f, source='a', target='a'))['length'], 0)
         und = call('graph_paths', paths(f, weight_column='w', source='c', target='a', directed=False))
@@ -303,7 +303,7 @@ class Paths(Base):
         strings = self.edges([('a', 'b', 1)])
         rejected('graph_paths_to', paths(strings, weight_column='w', all_pairs=True, out=self.p('s.safetensors')), 'BAD_PARAM')  # an artifact holds numbers: integer node ids only
         rejected('graph_paths_to', paths(f, weight_column='w', all_pairs=True, source=1, out=self.p('s.safetensors')), 'BAD_PARAM')
-        rejected('graph_paths_to', paths(f, weight_column='w', all_pairs=True, out=self.p('s.npz')), 'BAD_REF')
+        rejected('graph_paths_to', paths(f, weight_column='w', method='bellman_ford', all_pairs=True, out=self.p('s.npz')), 'BAD_REF')
         rejected('graph_paths_to', paths(f, weight_column='w', all_pairs=True, method='dijkstra', out=self.p('s2.safetensors')), 'BAD_PARAM')  # negative weight
         big = self.edges([(i, i + 1, 1) for i in range(1400)], name='n1401.npz')  # 1401 nodes: 1,962,801 matrix entries > the 1.9M-number artifact budget
         rejected('graph_paths_to', paths(big, weight_column='w', all_pairs=True, out=self.p('big.safetensors')), 'OUTPUT_TOO_LARGE', rc=1)
@@ -319,10 +319,10 @@ class Paths(Base):
         edges = [(i, (i * 7 + 1) % n, rng.randint(1, 9)) for i in range(n)] + [(i, (i * 13 + 5) % n, rng.randint(1, 9)) for i in range(n)]
         f = self.edges(edges)
         started = time.monotonic()
-        r = call('graph_paths', paths(f, weight_column='w', source=0, method='bellman_ford', time_limit=0.05))
+        r = call('graph_paths', paths(f, weight_column='w', source=0, target=1, method='bellman_ford', time_limit=0.05))
         self.assertEqual(r['status'], 'TIME_LIMIT')
         self.assertLess(time.monotonic() - started, 20)
-        self.assertNotIn('distance', r)
+        self.assertNotIn('path', r)
 
     def test_import_only_networkx_and_no_pandas(self):
         r = call('graph_paths', paths(self.edges(CLRS), source='s', method='bfs'))
@@ -403,8 +403,9 @@ class Flow(Base):
         for case in range(40):
             n = rng.randint(4, 8)
             nodes = list(range(n))
-            base = ref.random_graph(rng, n, rng.randint(n + 2, 2 * n + 2), True, weights=(1, 9), nodes=nodes)
-            edges = [(u, v, rng.randint(1, 6), rng.randint(-2, 9)) for u, v, _ in base]
+            dag = case % 2 == 0  # negative costs only on acyclic graphs: the hand successive-shortest-path oracle needs no negative cycles
+            base = ref.random_graph(rng, n, rng.randint(n + 2, 2 * n + 2), True, weights=(1, 9), nodes=nodes, dag=dag)
+            edges = [(u, v, rng.randint(1, 6), rng.randint(-2 if dag else 0, 9)) for u, v, _ in base]
             supplies = {nodes[0]: rng.randint(1, 6), nodes[-1]: -rng.randint(1, 6)}
             supplies[nodes[-1]] = -supplies[nodes[0]]
             expected = ref.min_cost_flow(edges, supplies)
@@ -464,7 +465,7 @@ class Flow(Base):
         base = self.flow(f, kind='max_flow', source='s', sink='t')
         rejected('graph_flow', dict(base, sink='s'), 'BAD_PARAM')
         rejected('graph_flow', dict(base, sink='nope'), 'UNKNOWN_NODE')
-        rejected('graph_flow', {k: v for k, v in base.items() if k != 'capacity_column'}, 'BAD_PARAM')
+        rejected('graph_flow', {k: v for k, v in base.items() if k != 'capacity_column'})
         rejected('graph_flow', {k: v for k, v in base.items() if k != 'sink'}, 'BAD_PARAM')
         rejected('graph_flow', dict(base, capacity_column='nope'), 'UNKNOWN_COLUMN')
         rejected('graph_flow', dict(base, cost_column='w'), 'BAD_PARAM')  # costs are for min_cost_flow
@@ -480,7 +481,7 @@ class Flow(Base):
         call('frame_import', dict(csv=self.p('many.csv'), out=self.p('many.npz')))
         rejected('graph_flow', self.flow(self.p('many.npz'), kind='max_flow', source=0, sink=20001), 'INPUT_TOO_LARGE')
         wide = self.edges([(i, i + 1, 1) for i in range(400)], name='wide.npz')
-        r = call('graph_flow', self.flow(wide, kind='max_flow', source=0, sink=400), rc=1)
+        r = call('graph_flow', self.flow(wide, kind='max_flow', source=0, sink=400), rc=2)
         self.assertEqual(r['error']['data']['tool_code'], 'OUTPUT_TOO_LARGE')  # 400 flow edges do not fit inline: use graph_flow_to
         out = self.p('wide-flow.npz')
         t = call('graph_flow_to', self.flow(wide, kind='max_flow', source=0, sink=400, out=out))

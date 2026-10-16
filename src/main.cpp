@@ -514,6 +514,7 @@ Json prepare_root(const Params& in){
 #include "s7.hpp"
 #include "s8.hpp"
 #include "s8b.hpp"
+#include "s8g.hpp"
 int expr_check_cli(){
     try{
         std::string raw((std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>());Json in=Json::parse(raw);
@@ -771,6 +772,7 @@ int main(int argc,char** argv){
     add_s7_ops(spec);
     add_s8_ops(spec);
     add_s8b_ops(spec);
+    add_graph_ops(spec);
 
 
     auto common=[](){return std::vector<Param>{Param{"frame",Type::String,true,nullptr,{},"Stored-only .npz table ref inside cwd."}};};
@@ -935,7 +937,7 @@ int main(int argc,char** argv){
         params.push_back(Param{"model_df",Type::Integer,false,nullptr,{},"ljung_box: degrees of freedom removed from the chi-square reference (fitted ARMA parameters), integer lags m: 0 <= model_df < m; explicit list: below every lag; default 0."});
         spec.operations.push_back(Operation{"sm_tsa_tools",Access::Read,"Time-series tests and correlograms on one numeric series (statsmodels.tsa.stattools / stats.diagnostic; patsy is never imported): acf and pacf (delegating to sm_tsa_acf), adfuller (statistic, MacKinnon p-value, used_lag, nobs, critical_values, icbest), kpss (statistic, interpolated p-value with p_value_bounded none|above|below, above/below when the statistic is outside the published table, lags, critical_values) and ljung_box (lags, statistic, p_value per lag). Statuses OK, NUMERICAL_FAILURE, TIME_LIMIT; constant series are CONSTANT_SERIES, series too short for the requested lags TOO_SHORT.","object",params});
     }
-    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||s8b_op(operation.name)||operation.name=="array_to_frame"||operation.name=="frame_to_array_to"||operation.name=="frame_to_array"||operation.name=="stats_dist"||operation.name=="stats_dist_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
+    for(auto& operation:spec.operations){bool guarded=operation.name.rfind("sm_",0)==0||operation.name.rfind("ml_",0)==0||s7_op(operation.name)||operation.name.rfind("opt_",0)==0||operation.name.rfind("num_",0)==0||operation.name.rfind("ode_",0)==0||operation.name=="frame_mutate"||operation.name=="frame_merge"||operation.name=="frame_rolling"||s8b_op(operation.name)||graph_op(operation.name)||operation.name=="array_to_frame"||operation.name=="frame_to_array_to"||operation.name=="frame_to_array"||operation.name=="stats_dist"||operation.name=="stats_dist_to";if(guarded&&std::none_of(operation.params.begin(),operation.params.end(),[](const Param& p){return p.name=="time_limit";}))operation.params.emplace_back("time_limit",Type::Number,false,10.,std::vector<Json>{},"Cooperative compute wall budget >0..30 seconds (default 10); independent hard child cap PYCLI_TIMEOUT_S <=50 seconds includes imports. Native calls also have pre-spawn work/output caps.");}
     for(auto& op:spec.operations){if(op.access==Access::Write)op.description+=" Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).";std::string name=op.name;op.handler=[name](const Params& p){return call(name,p);};for(auto& param:op.params)if(param.description.empty())param.description=param.name+" input; see README for shapes and limits.";}
     return run_cli(spec,argc,argv);
 }

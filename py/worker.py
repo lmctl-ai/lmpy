@@ -404,7 +404,7 @@ def main():
         # Trusted imports are selected by a closed table before the guard. SciPy
         # imports test/network/process helpers even for its numerical modules.
         import numpy as np
-        s8 = request['op'] in ('frame_to_array', 'frame_to_array_to', 'array_to_frame', 'frame_mutate', 'frame_merge', 'frame_rolling', 'ml_metrics', 'stats_dist_to') or request['op'] in S8B_OPS or (request['op'] == 'stats_dist' and request['params'].get('fn') == 'rvs')
+        s8 = request['op'] in ('frame_to_array', 'frame_to_array_to', 'array_to_frame', 'frame_mutate', 'frame_merge', 'frame_rolling', 'ml_metrics', 'stats_dist_to') or request['op'] in S8B_OPS or request['op'] in S8G_OPS or (request['op'] == 'stats_dist' and request['params'].get('fn') == 'rvs')
         if s8:
             import zoneinfo
             zoneinfo.reset_tzpath(())
@@ -433,6 +433,24 @@ def main():
                 warm_spla.eigsh(warm, k=2, v0=np.ones(8))
                 warm_spla.eigs(warm, k=2, v0=np.ones(8))
                 warm_spla.svds(warm, k=2, v0=np.ones(8))
+            elif request['op'].startswith('graph_'):
+                import networkx as warm_nx  # pure Python; lazy import only for graph_*
+                import scipy.sparse as warm_sparse
+                import scipy.sparse.csgraph as warm_csgraph
+                warm = warm_nx.DiGraph()
+                warm.add_edges_from([(0, 1, {'weight': 1, 'capacity': 2}), (1, 2, {'weight': 2, 'capacity': 1}), (0, 2, {'weight': 5, 'capacity': 1})])
+                warm_nx.single_source_dijkstra_path_length(warm, 0)
+                warm_nx.single_source_bellman_ford_path_length(warm, 0)
+                warm_nx.single_source_shortest_path_length(warm, 0)
+                list(warm_nx.shortest_simple_paths(warm, 0, 2, weight='weight'))
+                from networkx.algorithms.flow import dinitz as warm_dinitz
+                warm_nx.maximum_flow(warm, 0, 2, flow_func=warm_dinitz)
+                warm_nx.minimum_cut(warm, 0, 2, flow_func=warm_dinitz)
+                for node in warm.nodes:
+                    warm.nodes[node]['demand'] = 0
+                warm_nx.network_simplex(warm)
+                warm_csgraph.dijkstra(warm_sparse.csr_matrix(np.ones((2, 2))), directed=True)
+                warm_csgraph.johnson(warm_sparse.csr_matrix(np.ones((2, 2))), directed=True)
             elif request['op'].startswith('special_fn'):
                 import scipy.special as warm_special
                 for routine in (warm_special.erf, warm_special.gamma, warm_special.lambertw, warm_special.logsumexp):
