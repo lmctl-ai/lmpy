@@ -9,4 +9,5 @@ for op in published['operations']:
     assert f"`{op['name']}`" in readme, f"README does not document {op['name']}"
     for param in op['params']:
         assert param['description'], (op['name'], param['name'])
+        assert param.get('items') in (None, 'string', 'number', 'integer', 'boolean', 'object'), ('lmscript rejects this items type', op['name'], param['name'], param.get('items'))
 print(f"schema matches binary; README covers {len(published['operations'])} operations")
