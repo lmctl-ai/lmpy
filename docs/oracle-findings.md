@@ -136,3 +136,38 @@ exit 0 in real, `--check` and `--dry-run` modes. Special functions are checked a
    2000-unknown Poisson matrix `rtol=1e-12` produced a true relative residual of 6e-11 while the iteration reported convergence, this is now TOLERANCE_UNATTAINABLE, never OK. The artifact oracle requests attainable rtol=1e-10; a separate regression asserts honesty for unattainable tolerances.
 4. **ARPACK is slow, not wrong, on the clustered end of a Poisson spectrum**: eigsh SA with k = 5 on n = 66000 (and cg/gmres at n = 66000) exhaust the default 10 s budget (TIME_LIMIT); shift-invert with sigma = 0 returns the same
    eigenvalues in 0.9 s in the original structured probe. S8b-1 review caps now reject that large shift-invert factorisation before spawn; use shift-invert only within the new 2000/20M factorisation limits.
+
+## S8b-2: graph operations and the stats_dist long tail
+
+Oracles are independent of the implementation: tests/oracle/s8b2.py has pure-Python Dijkstra, Bellman-Ford, BFS, Floyd-Warshall, brute-force k shortest simple paths, Edmonds-Karp with the residual min cut and successive shortest paths
+(no networkx or scipy), run on textbook graphs (CLRS shortest paths and the CLRS flow network, max flow 23) and seeded fuzz; distribution functions use hand formulas and mpmath (40 digits, test image only). Recipes `graph-route-plan.lms`
+(hand values), `oracle-dist.lms` (R through rcli) and `distributions-tour.lms` (closed forms) exit 0 in real, `--check` and `--dry-run` modes.
+
+| Comparison | Result | Tolerance |
+|---|---|---|
+| pdf, log pdf, cdf, sf of norm, t, chi2, gamma, beta, binom, poisson vs R (`dist_density`, `dist_probability`; 217 values per run, recipe) | largest relative difference 6e-15 | 1e-12 |
+| continuous ppf (norm, t, chi2, gamma, beta) vs R `q*` | largest 3.4e-12 (t, df 5, p = 0.001 or 0.999) | 1e-10 |
+| discrete ppf (binom, poisson) vs R | identical integers | exact |
+| genextreme, genpareto, skewnorm, johnsonsu, vonmises, truncnorm pdf/cdf vs hand formulas / mpmath quadrature | relative 1e-11 (vonmises cdf tail: absolute 1e-12) | 1e-9..1e-12 |
+| nct cdf/pdf vs mpmath quadrature of the chi-square mixture; ncf cdf vs the Poisson mixture of incomplete betas | relative 1e-8 / 1e-7 | 1e-8 / 1e-7 |
+| zipf, betabinom mass vs mpmath (zeta, beta function) | 1e-12 | 1e-12 |
+| levy_stable vs Cauchy (alpha 1), normal (alpha 2) and Levy (alpha 1/2, beta 1) closed forms | 1e-6 .. 1e-5 | 1e-6 .. 1e-5 |
+| rvs KS statistics (n = 20000, bound 1.95/sqrt(n)) and 5-sigma means / 5 % variances | all pass | see tests |
+| graph oracles: seeded fuzz loops of 12 to 40 random graphs per property (paths with 3 methods, all pairs incl. zero-weight edges, max-flow = min-cut, min-cost flow, k shortest vs brute force), textbook graphs | all equal | exact (integers) |
+
+1. **scipy and R parameterise several families differently.** gamma: scipy `scale` = 1 / R `rate`; norm: `loc`/`scale` vs `mean`/`sd`; genextreme: scipy `c` = -xi of the usual GEV shape xi (R `evd` uses xi); truncnorm: scipy's `a`, `b` are
+   **standardised** bounds ((bound - loc) / scale), not bounds on the variable; nbinom counts failures before the `n`th success (R `size`, `prob`) with support starting at 0; geom starts at 1 (R `rgeom` starts at 0); lognorm in pycli is
+   `mu`, `sigma` of the underlying normal, not scipy's `s`, `scale`; levy_stable uses scipy's default S1 parameterisation (other packages default to different stable parameterisations). Each is documented in the `dist` parameter text.
+2. **vonmises `loc` wraps instead of re-centring the support.** scipy returns variates in [-pi, pi] whatever `loc` is: with `loc = 0.3`, `kappa = 2` the linear sample mean is 0.28, not 0.3 (the circular mean direction is 0.3). The tests compare the
+   circular mean, the schema says so, and the zero-loc case is exact.
+3. **scipy's discrete families without a closed-form cdf sum the mass function.** zipf and betabinom `cdf`/`ppf` are O(x) / O(n) per point; with `x` up to 1e9 or `n` up to 1e9 the worker ran out of memory or reached the 50 s hard kill in the first measurement
+   (betabinom n = 1e9: crash after 17 s; zipf a = 1.0001, x to 1e9: killed at 51.7 s). Pre-spawn caps now: betabinom n <= 5000, zipf cdf/sf |x| <= 1e5, zipf quantile range 1e5 (`OUT_OF_RANGE` beyond it).
+4. **scipy's generic discrete ppf can raise** (`zipf.ppf` with a < 2: "updating stopped, endless loop"); pycli maps this to `NUMERICAL_FAILURE` instead of an internal error. Heavy-tailed zipf quantiles beyond the cap are `OUT_OF_RANGE`.
+5. **t ppf differs from R by 3.4e-12 relative at the tails**; both are iterative. cdf and pdf agree to 1e-14. The recipe bound for continuous ppf is therefore 1e-10, the pdf/cdf/sf bound 1e-12.
+6. **levy_stable pdf/cdf are numerical integrations**: slow (about 1.5 ms per point for pdf/cdf and 17 ms for ppf in the measured runs) and good to roughly 1e-6 relative at best; every call carries a warning and at most 200 points are accepted. vonmises cdf/ppf cost about 40 ms per point (scipy integrates), so it shares the 200-point limit.
+7. **Moments**: scipy reports `inf` or `nan` for undefined moments (t with df <= 1, genpareto with c >= 1/2 for the variance); pycli reports them as `NA` and lists them in `moments_undefined` rather than as numbers. Moments of genpareto c = 0.25 have
+   no finite excess kurtosis (needs c < 1/4), which the test originally missed.
+8. **networkx**: parallel edges and self loops are normalised before the algorithms see them (lightest edge kept for paths, capacities summed for flows, self loops dropped); `network_simplex` does not accept parallel edges, so min-cost flow rejects them as
+   `DUPLICATE_EDGE` instead of silently merging costs. networkx's `shortest_simple_paths` raises on negative weights; `k_shortest` therefore requires non-negative weights (`BAD_PARAM`). `scipy.sparse.csgraph` keeps stored zeros of a sparse matrix as zero-length edges (a dense zero would mean no edge); the all-pairs code builds a sparse
+   matrix, and a fuzz test with weights in 0..4 checks zero-weight ties against Floyd-Warshall.
+

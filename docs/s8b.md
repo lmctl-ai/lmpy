@@ -2,11 +2,12 @@
 
 **Scope decision.** The brief for S8b is too large for one coherent turn, so this commit series finishes a self-contained half and leaves the rest explicit:
 
-| Done | Not done (still to implement in S8b-2) |
+| Done in S8b-1 (this document) | Done in S8b-2 (see docs/s8b2.md) |
 |---|---|
-| `la_matrix_fn(_to)`, `la_sparse(_to)`, `special_fn(_to)`, `opt_root`, `sm_tsa_tools`; mpmath in the test image; recipes `oracle-tsa-tools`, `sparse-poisson`, `oracle-root` | `graph_paths(_to)` and `graph_flow(_to)` with networkx (hash-locked for both architectures, notices, edges as a frame, all-pairs n <= 5000 via artifact, negative-cycle status, k_shortest <= 10, min_cost_flow; recipe `graph-route-plan.lms`); the `stats_dist` long tail (per-family parameter tables, pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments, levy_stable warning, R cross-oracle at 1e-12 on norm/t/gamma/beta); the optional `special-vs-mpmath` note |
+| `la_matrix_fn(_to)`, `la_sparse(_to)`, `special_fn(_to)`, `opt_root`, `sm_tsa_tools`; mpmath in the test image; recipes `oracle-tsa-tools`, `sparse-poisson`, `oracle-root` | `graph_paths(_to)` and `graph_flow(_to)` with networkx 3.7 (hash-locked, notices, edges from a frame or inline records, all-pairs n <= 1377 via artifact, `NEGATIVE_CYCLE`, k_shortest <= 10, min_cost_flow); the `stats_dist` long tail (34 families, pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments, levy_stable warning, R cross-oracle); recipes `graph-route-plan`, `oracle-dist`, `distributions-tour` |
 
-The deferred items need a new dependency with notices (networkx) and a large per-family table; each is independent of what is here, and nothing in this half references them.
+**Remaining work after S8b-2:** the optional `special-vs-mpmath` recipe note (special functions are checked against mpmath in `tests/s8b_ops.py` only); graph file formats stay refused by design, so there is nothing further to add there.
+The S8b-2 scope was a new dependency with notices (networkx) plus a large per-family table; each was independent of this half.
 
 ## Shape
 * `src/s8b.hpp` + `py/s8b.py` hold `la_matrix_fn`, `la_sparse`, `special_fn` and their twins inside the S8a plumbing (`S8Extra`, `tensor_write`, the shared `s7_emit`/`s7_guard`/`s7_cap` helpers, the one

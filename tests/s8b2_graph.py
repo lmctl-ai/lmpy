@@ -313,6 +313,27 @@ class Paths(Base):
         d = read_safetensors(self.p('edge.safetensors'))['distance']
         self.assertEqual((d[0, 1376], d[1376, 0] != d[1376, 0], d[5, 9]), (1376.0, True, 4.0))
 
+    def test_zero_weight_edges_are_edges(self):
+        """scipy.sparse.csgraph keeps stored zeros as zero-length edges (a dense zero would mean no edge): check against Floyd-Warshall, with ties on zero."""
+        rng = random.Random(88)
+        for case in range(15):
+            edges = ref.random_graph(rng, 9, 22, directed=True, weights=(0, 4))
+            if not edges:
+                continue
+            f = self.edges(edges)
+            adj = ref.adjacency(edges, True)
+            nodes, want, _ = ref.floyd_warshall(adj)
+            for method in ('dijkstra', 'bellman_ford'):
+                out = self.p('z%d%s.safetensors' % (case, method))
+                call('graph_paths_to', paths(f, weight_column='w', method=method, all_pairs=True, directed=True, out=out))
+                t = read_safetensors(out)
+                self.assertEqual(t['nodes'].tolist(), nodes)
+                for i, u in enumerate(nodes):
+                    for j, v in enumerate(nodes):
+                        w = want[u][v]
+                        got = t['distance'][i, j]
+                        self.assertTrue(math.isnan(got) if w == math.inf else got == w, (case, method, u, v, got, w))
+
     def test_cooperative_budget(self):
         rng = random.Random(85)
         n = 20000
