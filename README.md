@@ -79,7 +79,7 @@ break the mount syntax). Every path in a call is relative to that directory and 
 `PYCLI_BLAS_CORETYPE`, `PYCLI_READONLY` and `PYCLI_DRYRUN` are forwarded. A Docker failure is `SERVICE_UNAVAILABLE` (exit 8), a
 container killed by a signal is `TOOL_CRASH` (exit 1); Ctrl-C kills and removes the container (exit 130). Continuous integration
 (`.github/workflows/ci.yml`) repeats the build, the full test image, the gates and every recipe on arm64 and on amd64; this host is
-aarch64, so amd64 stays UNVERIFIED until that job's first green run.
+aarch64, so the amd64 statement below rests on that job alone.
 
 ## Conventions
 
@@ -127,8 +127,11 @@ and every compile-time cap with its meaning. A status or code that is not in tha
 * **Not bit-reproducible across machines.** Determinism tiers: bit-exact for the same image on the same CPU family (seeded, one BLAS
   thread, pinned coretype on aarch64); tolerance tiers across architectures and against other tools (docs/parity.md, docs/oracle-findings.md).
   Cross-architecture bit equality is never claimed.
-* **Not verified on amd64.** This repository is developed and measured on aarch64; the amd64 wheel lock resolves and is hash-pinned, the
-  amd64 CI job (`.github/workflows/ci.yml`) is the verification, and until its first green run amd64 is UNVERIFIED: no amd64 pass is claimed.
+* **amd64 is verified by CI only.** This repository is developed and measured on aarch64. The amd64 build from the hash-pinned
+  `docker/requirements-amd64.lock` passed the full CI job (`.github/workflows/ci.yml`: both images, 38/38 CTest groups, notices,
+  schema and provenance gates, lmts parse, 90/90 recipe invocations) on `ubuntu-24.04` in GitHub Actions run 38913844742 on 2026-10-16
+  (commit d611f5d); the first run (38901596246) had failed two groups, both tolerance / precision issues analysed in
+  [docs/amd64-notes.md](docs/amd64-notes.md). No amd64 timing is measured, and bit equality across the two architectures is never claimed.
 * **Not a Parquet / Arrow tool, not a plotting tool, not a persistent service.** Parquet is excluded from v1 (docs/decisions.md); every call
   is a fresh process in a fresh container (0.65-1.6 s per call, docs/timings.md); large results go to artifacts, not to stdout.
 * **Not an installer or a publisher.** Images are built locally (`scripts/build.sh`), never pulled or pushed; nothing in CI publishes

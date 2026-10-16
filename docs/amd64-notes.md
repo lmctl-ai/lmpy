@@ -51,4 +51,9 @@ summary table is appended to the job summary, and the job still fails when any g
 
 ## Status
 
-See README "What pycli is not" for the current amd64 statement; it is updated from the CI result, never from local reasoning.
+Run 38909812038 (after the fixes above, 2026-10-16): both architectures passed 37 of 38 groups; the one failure was the hardened
+time-limit fixture itself, which asserted that no incumbent exists at the limit: the GitHub runners (faster than this host) found an
+integer-feasible knapsack incumbent within 1 ms on both architectures. The fixture now accepts an incumbent and checks it is binary and
+within the budget. Run 38913844742 (commit d611f5d, 2026-10-16): **arm64 and amd64 both green**: 38/38 CTest groups (amd64 1243.58 s,
+arm64 1003.75 s), notices, runtime build, schema and provenance gates, lmts parse, 90/90 recipe invocations, image size report. README
+"What pycli is not" carries that statement; it is updated from CI results, never from local reasoning.

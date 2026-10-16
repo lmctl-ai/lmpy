@@ -37,7 +37,7 @@ class Readme(unittest.TestCase):
         for heading in ('## Quick start', '## Conventions', '## Errors, statuses and caps', '## What pycli is not', '## Timings'):
             self.assertIn(heading, README, heading)
         self.assertIn('docs/reference.md', README)
-        self.assertIn('UNVERIFIED', README)  # amd64 honesty until the first CI run
+        self.assertRegex(README, r'amd64[\s\S]{0,600}?GitHub Actions run \d+')  # the amd64 statement cites the CI run it rests on
 
     def test_every_parameter_is_documented(self):
         for o in SCHEMA['operations']:

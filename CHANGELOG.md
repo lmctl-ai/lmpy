@@ -5,8 +5,9 @@ All notable changes to pycli are documented here. Versions follow the schema `ve
 
 ## [0.1.0] - Unreleased
 
-First releasable tree: 68 operations, 38 CTest groups, 30 lmscript recipes, aarch64 measured, amd64 built from a hash lock but
-UNVERIFIED until the first green amd64 CI run (RELEASE.md lists the human steps; nothing publishes automatically).
+First releasable tree: 68 operations, 38 CTest groups, 30 lmscript recipes, aarch64 measured, amd64 built from a hash lock and
+verified by the CI job (GitHub Actions run 38913844742, 2026-10-16, both architectures green; the first amd64 run had exposed two
+precision / tolerance issues, docs/amd64-notes.md). RELEASE.md lists the human steps; nothing publishes automatically.
 
 ### Added
 

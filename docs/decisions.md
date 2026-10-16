@@ -52,5 +52,7 @@ Until that slice exists, a Parquet file is rejected by `frame_import` like any o
 **Versioning.** The schema `version` (`pycli --schema`), the CMake project version, `CHANGELOG.md` and `py_info.provenance.version`
 carry the same string; CI gates them. Nothing publishes images or packages automatically (RELEASE.md lists the human steps).
 
-**amd64.** This host is aarch64 and cannot emulate amd64. The amd64 CI job is the verification: until its first green run the
-amd64 lock and build are UNVERIFIED and the documentation says so; no amd64 pass is claimed anywhere in this repository.
+**amd64.** This host is aarch64 and cannot emulate amd64. The amd64 CI job is the verification. Status: the first run (38901596246,
+2026-10-16) failed two CTest groups on amd64 (a tolerance tighter than the fixture's conditioning and a `numpy.longdouble` precision that
+differs by platform, both corrected: docs/amd64-notes.md); run 38913844742 (2026-10-16, commit d611f5d) passed every gate on amd64 and
+arm64. Any amd64 claim in this repository refers to that CI job; nothing is measured or claimed from this host.
