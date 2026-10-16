@@ -5,7 +5,7 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 context=$(mktemp -d)
 trap 'rm -rf "$context"' EXIT HUP INT TERM
-for path in CMakeLists.txt cli.schema.dev.json expr-spec.json ml-spec.json LICENSE README.md licenses examples docs .dockerignore src py tests bin docker scripts THIRD_PARTY_NOTICES.md; do cp -R "$root/$path" "$context/"; done
+for path in CMakeLists.txt cli.schema.dev.json expr-spec.json ml-spec.json LICENSE README.md CHANGELOG.md RELEASE.md licenses examples docs .dockerignore src py tests bin docker scripts THIRD_PARTY_NOTICES.md; do cp -R "$root/$path" "$context/"; done
 # The pinned lmcpp checkout: LMCPP_DIR overrides the developer path (CI checks the same revision out next to the repo).
 lmcpp=${LMCPP_DIR:-/home/ubuntu/repos/lmctl-ai/lmcpp}
 expected=f6c6f51797912a369d6b27cf9e96f148a9a0e4d1

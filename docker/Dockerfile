@@ -30,7 +30,7 @@ RUN cp /src/lmcpp/LICENSE /provenance/lmcpp-LICENSE \
  && cmake --build /build-lmcpp --parallel 2 && cmake --install /build-lmcpp
 ARG PYCLI_GIT_SHA=unknown
 ARG PYCLI_LMCPP_REF=unknown
-COPY CMakeLists.txt cli.schema.dev.json expr-spec.json ml-spec.json LICENSE README.md /src/pycli/
+COPY CMakeLists.txt cli.schema.dev.json expr-spec.json ml-spec.json LICENSE README.md CHANGELOG.md RELEASE.md /src/pycli/
 COPY src /src/pycli/src
 COPY py /src/pycli/py
 COPY tests /src/pycli/tests
