@@ -95,6 +95,12 @@ lmapi error envelope and a non-zero exit code otherwise (docs/reference.md lists
   A tensor uses `ref = "path#key"`, `format = "safetensors"`, its dtype, shape and payload bytes; a whole-file descriptor (`table`, `model`,
   `export`) uses `ref = path`, format `npz` / `safetensors` / `csv` / `json`, null key / dtype / shape and the file size. Readers take the
   descriptor's `ref`. Artifacts are installed atomically (anonymous inode, no-replace link): a cancelled write leaves no partial file.
+  Take the tensor key from `artifacts` (`artifacts.<name>.ref`), never assume `x`: arrays, samples and distribution evaluations use `x`,
+  `sig_filter_to` and `special_fn_to` write `y`, `interp_eval_to` writes `values`, `ode_solve_to` writes `t` and `y`, decompositions their
+  factor names; a guessed `#x` is `TENSOR_NOT_FOUND`.
+* **File sources.** Operations that read a file name the source by kind: `frame` (an `.npz` table), `csv` (a CSV path), `columns` /
+  `records` (inline), `ref` or a `path#key` string (a tensor); `array_import` alone takes `format` plus `data` because it converts
+  several kinds into one artifact. Every path is relative to the working directory and confined to it.
 * **Formats.** Tables are `.npz` artifacts (typed columns, masks, categories; produced by `frame_import` from CSV, read by `frame` parameters)
   and CSV; arrays are safetensors (`path#key`) or `.npy` (read only). Nothing else is parsed: no pickle, Parquet, GraphML, model files of
   any library. Every file header is validated in C++ before a Python process starts.
@@ -294,7 +300,9 @@ success into `NO_CONVERGENCE`. Gradient expressions are compared with finite dif
 `NumericalWarning`. Method rules are validated up front: bounds not for BFGS, constraints only SLSQP/trust-constr,
 gradients not for Nelder-Mead/Powell; the default method is SLSQP with constraints, L-BFGS-B with bounds, else BFGS.
 
-`opt_least_squares` fits `model` against the `response` column (residual = (model - response)/sigma, `sigma` a positive
+`opt_least_squares` is an iterative solver (scipy `trf`/`dogbox`/`lm`): on a model that is linear in its parameters it stops within the
+cost's rounding floor, about 1e-9 of the exact least-squares solution on well-conditioned data; `sm_ols` (or `la_lstsq`) gives that exact
+solution with standard errors, so prefer it for linear models. `opt_least_squares` fits `model` against the `response` column (residual = (model - response)/sigma, `sigma` a positive
 number or data column) or minimises concatenated `residuals` expressions. Standard errors: with the central-difference
 Jacobian J at the solution (scipy's own 2-point Jacobian is only first-order accurate with an absolute step and was off in the
 5th digit for NIST Misra1a), `cov = (J'J)^-1`, multiplied by `2*cost/(m-n)` (`curve_fit` convention) unless `absolute_sigma`. Each
