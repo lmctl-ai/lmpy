@@ -1,0 +1,86 @@
+  frame_import chain (99999 rows)                                      rc 0 OK                    1.8 s  peak 0.12 GB
+  frame_import rand (100000 rows)                                      rc 0 OK                    1.8 s  peak 0.13 GB
+  frame_import grid (99012 rows)                                       rc 0 OK                    1.6 s  peak 0.13 GB
+graph_paths_to dijkstra chain 100000 edges                             rc 0 OK                    1.9 s  peak 0.28 GB
+graph_paths_to dijkstra random 50000 nodes 100000 edges                rc 0 OK                    1.6 s  peak 0.28 GB
+graph_paths_to dijkstra grid 223x223 undirected                        rc 0 OK                    1.8 s  peak 0.28 GB
+graph_paths_to bellman_ford chain 100000 edges                         rc 0 OK                    1.8 s  peak 0.31 GB
+graph_paths_to bellman_ford random 50000 nodes 100000 edges            rc 0 OK                    2.3 s  peak 0.31 GB
+graph_paths_to bellman_ford grid 223x223 undirected                    rc 0 OK                    3.1 s  peak 0.31 GB
+graph_paths_to bfs chain 100000 edges                                  rc 0 OK                    1.7 s  peak 0.32 GB
+graph_paths_to bfs random 50000 nodes 100000 edges                     rc 0 OK                    1.9 s  peak 0.32 GB
+graph_paths_to bfs grid 223x223 undirected                             rc 0 OK                    1.5 s  peak 0.32 GB
+graph_paths k_shortest=10 grid corner to corner                        rc 0 TIME_LIMIT           11.3 s  peak 0.32 GB
+graph_paths k_shortest=10 random                                       rc 0 OK                    2.5 s  peak 0.32 GB
+  frame_import neg (99999 rows)                                        rc 0 OK                    1.8 s  peak 0.32 GB
+graph_paths_to bellman_ford negative chain reversed order              rc 0 OK                    2.0 s  peak 0.33 GB
+  frame_import dense (100000 rows)                                     rc 0 OK                    1.8 s  peak 0.33 GB
+graph_paths_to all pairs n=1377 dijkstra 100000 edges                  rc 0 OK                    2.4 s  peak 0.33 GB
+graph_paths_to all pairs n=1377 bellman_ford 100000 edges              rc 0 OK                    2.7 s  peak 0.33 GB
+graph_paths_to all pairs n=1377 bfs 100000 edges                       rc 0 OK                    1.6 s  peak 0.33 GB
+  frame_import over (1378 rows)                                        rc 0 OK                    0.7 s  peak 0.33 GB
+graph_paths_to all pairs n=1378 (over the matrix cap)                  rc 0 OK                    0.9 s  peak 0.33 GB
+  frame_import layered (19800 rows)                                    rc 0 OK                    0.9 s  peak 0.33 GB
+graph_flow_to max_flow layered 100x99 20000 edges (source/sink via supernodes) rc 0 OK                    1.3 s  peak 0.33 GB
+  frame_import gridf (19320 rows)                                      rc 0 OK                    0.9 s  peak 0.33 GB
+graph_flow_to max_flow grid 70x70 bidirectional 19320 edges            rc 0 OK                    1.0 s  peak 0.33 GB
+graph_flow_to min_cut grid 70x70 bidirectional 19320 edges             rc 0 OK                    1.0 s  peak 0.33 GB
+  frame_import unit (19999 rows)                                       rc 0 OK                    1.0 s  peak 0.33 GB
+graph_flow_to max_flow unit chain 19999 edges                          rc 0 OK                    1.5 s  peak 0.33 GB
+  frame_import ladder (15000 rows)                                     rc 0 OK                    0.8 s  peak 0.33 GB
+graph_flow_to max_flow diamond ladder large capacities                 rc 0 OK                    1.1 s  peak 0.33 GB
+  frame_import mcf (19800 rows)                                        rc 0 OK                    1.0 s  peak 0.33 GB
+graph_flow_to min_cost_flow layered 20000 edges value 5                rc 0 OK                    3.3 s  peak 0.33 GB
+  frame_import mcf2 (19999 rows)                                       rc 0 OK                    1.0 s  peak 0.33 GB
+graph_flow_to min_cost_flow chain 19999 edges                          rc 1 TIME_LIMIT           10.9 s  peak 0.33 GB
+stats_dist genextreme cdf 1000 points                                  rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist genextreme ppf 1000 points                                  rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist johnsonsu cdf 1000 points                                   rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist johnsonsu ppf 1000 points                                   rc 0 OK                    1.0 s  peak 0.33 GB
+stats_dist skewnorm cdf 1000 points                                    rc 0 OK                    1.6 s  peak 0.33 GB
+stats_dist skewnorm ppf 1000 points                                    rc 0 OK                    1.4 s  peak 0.33 GB
+stats_dist nct cdf 1000 points                                         rc 0 OK                    1.0 s  peak 0.33 GB
+stats_dist nct ppf 1000 points                                         rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist nct cdf 1000 points                                         rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist nct ppf 1000 points                                         rc 0 OK                    3.3 s  peak 0.33 GB
+stats_dist ncf cdf 1000 points                                         rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist ncf ppf 1000 points                                         rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist ncf cdf 1000 points                                         rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist ncf ppf 1000 points                                         rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist betabinom cdf 1000 points                                   rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist betabinom ppf 1000 points                                   rc 0 OK                    5.0 s  peak 0.33 GB
+stats_dist binom cdf 1000 points                                       rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist binom ppf 1000 points                                       rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist nbinom cdf 1000 points                                      rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist nbinom ppf 1000 points                                      rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist poisson cdf 1000 points                                     rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist poisson ppf 1000 points                                     rc 0 OK                    1.1 s  peak 0.33 GB
+stats_dist levy_stable alpha 1.3 beta 0.5 pdf 200 points               rc 0 OK                    1.6 s  peak 0.33 GB
+stats_dist levy_stable alpha 1.3 beta 0.5 cdf 200 points               rc 0 OK                    1.3 s  peak 0.33 GB
+stats_dist levy_stable alpha 1.3 beta 0.5 ppf 200 points               rc 0 OK                    4.9 s  peak 0.33 GB
+stats_dist vonmises cdf kappa 5 200 points                             rc 0 OK                    8.6 s  peak 0.33 GB
+stats_dist vonmises ppf kappa 5 200 points                             rc 0 OK                   10.6 s  peak 0.33 GB
+stats_dist vonmises cdf kappa 100000 200 points                        rc 0 OK                    3.5 s  peak 0.33 GB
+stats_dist vonmises ppf kappa 100000 200 points                        rc 0 OK                    4.3 s  peak 0.33 GB
+stats_dist zipf a=1.05 cdf 1000 points up to 1e5                       rc 0 OK                    3.3 s  peak 0.33 GB
+stats_dist zipf a=1.05 ppf 1000 points                                 rc 0 OUT_OF_RANGE          2.0 s  peak 0.33 GB
+stats_dist zipf a=1.5 cdf 1000 points up to 1e5                        rc 0 OK                    2.8 s  peak 0.33 GB
+stats_dist zipf a=1.5 ppf 1000 points                                  rc 0 OUT_OF_RANGE          1.1 s  peak 0.33 GB
+stats_dist zipf a=4 cdf 1000 points up to 1e5                          rc 0 OK                    3.4 s  peak 0.33 GB
+stats_dist zipf a=4 ppf 1000 points                                    rc 0 OK                    1.4 s  peak 0.33 GB
+stats_dist levy_stable alpha 0.1 cdf 200 points (hard)                 rc 0 OK                    1.6 s  peak 0.33 GB
+stats_dist_to rvs genextreme n=1000000                                 rc 0 OK                    1.4 s  peak 0.33 GB
+stats_dist_to rvs nct n=1000000                                        rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist_to rvs skewnorm n=1000000                                   rc 0 OK                    1.2 s  peak 0.33 GB
+stats_dist_to rvs zipf n=1000000                                       rc 0 OK                    2.1 s  peak 0.33 GB
+stats_dist_to rvs levy_stable n=1000000                                rc 0 OK                    1.7 s  peak 0.50 GB
+stats_dist_to rvs vonmises n=1000000                                   rc 0 OK                    8.7 s  peak 0.50 GB
+stats_dist_to rvs truncnorm n=1000000                                  rc 0 OK                    1.7 s  peak 0.71 GB
+stats_dist_to cdf genextreme 200000 points                             rc 0 OK                    1.4 s  peak 0.71 GB
+stats_dist_to cdf skewnorm 200000 points                               rc 1 TIME_LIMIT           11.2 s  peak 0.71 GB
+stats_dist_to cdf johnsonsu 200000 points                              rc 0 OK                    1.2 s  peak 0.71 GB
+stats_dist_to cdf weibull_min 200000 points                            rc 0 OK                    1.2 s  peak 0.71 GB
+stats_dist_to ppf nct 200000 points                                    rc 1 TIME_LIMIT           14.5 s  peak 0.71 GB
+stats_dist_to cdf nct 200000 points                                    rc 0 OK                    2.4 s  peak 0.71 GB
+stats_dist_to cdf ncf 200000 points                                    rc 0 OK                    1.3 s  peak 0.71 GB
+slowest call 14.5 s (hard kill 50 s)

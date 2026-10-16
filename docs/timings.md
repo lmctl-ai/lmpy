@@ -706,3 +706,42 @@ Whole-probe cgroup memory.peak: **82,644,992 bytes (78.8 MiB)**. Cumulative wait
 Acceptance: test build **0**, runtime rebuild **0**, **34/34 CTest groups**, exit **0**, **809.12 s**; S8b review **24 tests**, existing S8b oracles **39 tests**; additional **3 ASan/UBSan preflight tests**, exit **0**. All **27 recipes x real/check/dry-run = 81 invocations** exited **0** through the host shim; R and statsrust legs ran (optional absent lmda legs gave their setup hints). All **five Kimi mutants** were rejected (expected test exit 1, audit runner exit 0).
 
 The TSA cross-oracle measured largest statistics/correlations difference **2.2e-14**; ADF p-value difference **1.381838e-9**, traced to lmstats' normal-CDF approximation using an independent 65-digit reference (docs/oracle-findings.md). Full commands/exit codes: [acceptance-s8b1-review.json](acceptance-s8b1-review.json); recipe stdout: [measurement-s8b1-recipes.json](measurement-s8b1-recipes.json). amd64 execution remains unverified.
+
+## S8b-2: graph operations and the stats_dist long tail (aarch64)
+
+**Import cost and image delta** (`scripts/measure-s8b2.py pycli:runtime`, production shim, 10 calls each, raw `docs/measurement-s8b2-shim.json`; worker import p50 / wall p50 in ms): py_info 109 / 701; special_fn (scipy.special) 333 / 1025;
+**graph_paths 461 to 467 / 1159 to 1174** and **graph_flow 468 to 476 / 1203 to 1205** (networkx plus scipy.sparse.csgraph and the trusted-phase warm-up of every algorithm, so nothing imports lazily under the guard): networkx adds about 130 ms over a scipy.special call;
+stats_dist new families 748 to 791 / 1539 to 1578 (scipy.stats import and the warm-up of the requested family's methods); stats_dist norm rvs (numpy only) 114 / 782. The image grew by **2,611,431 bytes** (136,628,927 to 139,240,358; networkx 3.7 is a 2.6 MB pure-Python wheel
+with its test directories pruned); both lock files gained one hash-pinned line.
+
+**Worst cases in the hardened container** (2 CPUs, 4 GiB, read-only root, no network, `scripts/measure-s8b2-caps.py`, raw `docs/measurement-s8b2-caps.txt`; whole-run cgroup peak **0.71 GB**; slowest single call **14.5 s**, the 50 s hard kill is never reached):
+
+| Case | Result | Wall seconds |
+|---|---|---:|
+| graph_paths_to dijkstra, chain, 100000 edges | rc 0 OK | 1.9 |
+| graph_paths_to dijkstra, 223x223 grid (99012 edges) | rc 0 OK | 1.8 |
+| graph_paths_to bellman_ford, 223x223 grid | rc 0 OK | 3.1 |
+| graph_paths_to bellman_ford, 100000-edge negative chain in reverse order | rc 0 OK | 2.0 |
+| graph_paths k_shortest=10, grid corner to corner (Yen on 49729 nodes) | rc 0 TIME_LIMIT | 11.3 |
+| graph_paths k_shortest=10, random 50000 nodes | rc 0 OK | 2.5 |
+| all pairs n = 1377 (the matrix bound), dijkstra, 100000 edges | rc 0 OK | 2.4 |
+| all pairs n = 1377, bellman_ford (Johnson) | rc 0 OK | 2.7 |
+| all pairs n = 1378 (rejected before the worker starts) | rc 0 OK | 0.9 |
+| max_flow, layered network, 20000 edges | rc 0 OK | 1.3 |
+| max_flow, 70x70 bidirectional grid (19320 edges) | rc 0 OK | 1.0 |
+| max_flow, diamond ladder with 1e9 capacities (augmenting-path adversary) | rc 0 OK | 1.1 |
+| min_cost_flow, layered network, 20000 edges, value 5 | rc 0 OK | 3.3 |
+| min_cost_flow, 19999-edge chain, value 1e5 (network simplex) | rc 1 TIME_LIMIT | 10.9 |
+| vonmises cdf, 200 points (about 40 ms per point) | rc 0 OK | 8.6 |
+| levy_stable ppf, 200 points | rc 0 OK | 4.9 |
+| betabinom ppf, n = 5000, 1000 points | rc 0 OK | 5.0 |
+| zipf cdf, 1000 points up to 1e5, a = 1.05 | rc 0 OK | 3.3 |
+| vonmises rvs, n = 1,000,000 | rc 0 OK | 8.7 |
+| truncnorm rvs, n = 1,000,000 (0.71 GB peak) | rc 0 OK | 1.7 |
+| skewnorm cdf, 200000 points | rc 1 TIME_LIMIT | 11.2 |
+| nct ppf, 200000 points | rc 1 TIME_LIMIT | 14.5 |
+
+`TIME_LIMIT` rows are the cooperative budget answering (default 10 s plus the import and write-out) instead of the 50 s kill. The first run of this script (before the caps in docs/oracle-findings.md items 3 to 6) found the real problems: betabinom with n = 1e9 crashed the worker after 17 s,
+zipf with a = 1.0001 and x up to 1e9 was killed at 51.7 s, and 1,000,000-point evaluation inputs were refused by the 200,000-value array cap. Those requests are now rejected before any worker starts (`INPUT_TOO_LARGE`) or end in a domain status (`OUT_OF_RANGE`, `NUMERICAL_FAILURE`).
+
+**Acceptance (final tree):** `./scripts/build.sh test` **0**; `docker run --rm --pull=never --network=none pycli:test` **36/36 CTest groups, exit 0, 1235.79 s** (new groups `s8b2_graph` 24 tests, `s8b2_dist` 24 tests); runtime rebuild **0**; all **30 recipes x real/check/dry-run = 90 invocations** through the host shim: **exit 0 for all 90** (R and statsrust legs ran; optional absent lmda legs print their setup hints). The new recipes: `graph-route-plan` (hand values on the CLRS graphs), `oracle-dist` (217 values vs R, worst relative difference 3.4e-12 on a continuous t quantile, 6e-15 on all pdf/cdf/sf values), `distributions-tour`.

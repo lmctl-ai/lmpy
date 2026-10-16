@@ -1,0 +1,173 @@
+{
+  "image_bytes": 139240358,
+  "py_info": {
+    "wall": {
+      "p50_ms": 701.439,
+      "p95_ms": 876.943,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 109.461,
+      "p95_ms": 121.818,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 114.413,
+      "p95_ms": 127.127,
+      "n": 10
+    }
+  },
+  "special_fn_erf_100": {
+    "wall": {
+      "p50_ms": 1024.799,
+      "p95_ms": 1165.618,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 333.012,
+      "p95_ms": 343.316,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 333.63,
+      "p95_ms": 344.731,
+      "n": 10
+    }
+  },
+  "graph_paths_dijkstra_6": {
+    "wall": {
+      "p50_ms": 1173.987,
+      "p95_ms": 1291.813,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 460.851,
+      "p95_ms": 481.273,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 461.102,
+      "p95_ms": 481.535,
+      "n": 10
+    }
+  },
+  "graph_paths_k3_6": {
+    "wall": {
+      "p50_ms": 1159.262,
+      "p95_ms": 1304.741,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 466.992,
+      "p95_ms": 576.531,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 467.502,
+      "p95_ms": 577.056,
+      "n": 10
+    }
+  },
+  "graph_flow_max_flow_6": {
+    "wall": {
+      "p50_ms": 1203.047,
+      "p95_ms": 1283.727,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 475.637,
+      "p95_ms": 484.659,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 476.261,
+      "p95_ms": 485.338,
+      "n": 10
+    }
+  },
+  "graph_flow_min_cut_6": {
+    "wall": {
+      "p50_ms": 1205.272,
+      "p95_ms": 1269.629,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 467.778,
+      "p95_ms": 530.28,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 468.194,
+      "p95_ms": 530.718,
+      "n": 10
+    }
+  },
+  "stats_dist_genextreme_cdf": {
+    "wall": {
+      "p50_ms": 1542.359,
+      "p95_ms": 1589.637,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 755.17,
+      "p95_ms": 771.463,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 756.486,
+      "p95_ms": 772.781,
+      "n": 10
+    }
+  },
+  "stats_dist_nct_cdf": {
+    "wall": {
+      "p50_ms": 1578.151,
+      "p95_ms": 1665.932,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 748.154,
+      "p95_ms": 826.443,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 749.429,
+      "p95_ms": 827.802,
+      "n": 10
+    }
+  },
+  "stats_dist_levy_stable_cdf": {
+    "wall": {
+      "p50_ms": 1539.475,
+      "p95_ms": 1589.28,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 790.972,
+      "p95_ms": 827.63,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 793.759,
+      "p95_ms": 830.494,
+      "n": 10
+    }
+  },
+  "stats_dist_norm_rvs": {
+    "wall": {
+      "p50_ms": 782.213,
+      "p95_ms": 821.497,
+      "n": 10
+    },
+    "worker_import_ms": {
+      "p50_ms": 113.66,
+      "p95_ms": 126.488,
+      "n": 10
+    },
+    "worker_elapsed_ms": {
+      "p50_ms": 126.103,
+      "p95_ms": 145.619,
+      "n": 10
+    }
+  }
+}
