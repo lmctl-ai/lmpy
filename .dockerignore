@@ -30,3 +30,6 @@
 
 !docs/
 !docs/**
+
+!CHANGELOG.md
+!RELEASE.md
