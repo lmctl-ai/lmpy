@@ -89,7 +89,7 @@
       "name": "stats_dist",
       "access": "read",
       "returns": "object",
-      "description": "Distribution functions (pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf, moments; <=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) for 34 continuous and discrete families, see dist",
+      "description": "Distribution functions (pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf, moments; <=1000 inline values) and seeded sampling (fn rvs, PCG64, explicit required seed, <=1000 inline values) for 31 continuous and discrete families, see dist",
       "params": [
         {
           "name": "dist",
@@ -2693,7 +2693,7 @@
       "name": "graph_paths",
       "access": "read",
       "returns": "object",
-      "description": "Shortest paths on a graph given as an edge table (networkx for one source; scipy.sparse.csgraph for the all-pairs matrix). Statuses OK, UNREACHABLE (the target cannot be reached; no path), NEGATIVE_CYCLE (bellman_ford found a negative cycle reachable from the source, or anywhere for all_pairs; `cycle` lists it), TIME_LIMIT. Unreachable nodes are never given a distance. Caps: 100000 edges, 100000 nodes, k_shortest <= 10, all pairs n <= 5000 and n*n <= 1,900,000 (checked before any work). Inline results hold at most ~900 numbers.",
+      "description": "Shortest paths on a graph given as an edge table (networkx for one source; scipy.sparse.csgraph for the all-pairs matrix). Statuses OK, UNREACHABLE (the target cannot be reached; no path), NEGATIVE_CYCLE (bellman_ford found a negative cycle reachable from the source, or anywhere for all_pairs; `cycle` lists it in both cases, a negative self loop as the one-node cycle), TIME_LIMIT. Unreachable nodes are never given a distance. Caps: 100000 edges, 100000 nodes, k_shortest <= 10, all pairs n <= 5000 and n*n <= 1,900,000 (checked before any work); node ids fit int64 or are strings of at most 256 bytes without NUL; |weight| <= 1e15. An inline result beyond its budget is OUTPUT_TOO_LARGE (exit 1). Inline results hold at most ~900 numbers.",
       "params": [
         {
           "name": "frame",
@@ -2724,7 +2724,7 @@
           "name": "weight_column",
           "type": "string",
           "occurs": "?",
-          "description": "Edge length column (int64 or float64, finite); omitted: every edge has length 1. Not with method bfs. Parallel edges keep the lightest; self loops are ignored."
+          "description": "Edge length column (int64 or float64, finite, |w| <= 1e15); omitted: every edge has length 1. Not with method bfs. Parallel edges keep the lightest; non-negative self loops are ignored, a negative self loop is a negative cycle (bellman_ford: NEGATIVE_CYCLE; dijkstra / k_shortest: BAD_PARAM like any negative weight)."
         },
         {
           "name": "directed",
@@ -2783,7 +2783,7 @@
       "name": "graph_paths_to",
       "access": "write",
       "returns": "object",
-      "description": "Shortest paths on a graph given as an edge table (networkx for one source; scipy.sparse.csgraph for the all-pairs matrix). Statuses OK, UNREACHABLE (the target cannot be reached; no path), NEGATIVE_CYCLE (bellman_ford found a negative cycle reachable from the source, or anywhere for all_pairs; `cycle` lists it), TIME_LIMIT. Unreachable nodes are never given a distance. Caps: 100000 edges, 100000 nodes, k_shortest <= 10, all pairs n <= 5000 and n*n <= 1,900,000 (checked before any work). Successful writes return artifacts[name] descriptors. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Shortest paths on a graph given as an edge table (networkx for one source; scipy.sparse.csgraph for the all-pairs matrix). Statuses OK, UNREACHABLE (the target cannot be reached; no path), NEGATIVE_CYCLE (bellman_ford found a negative cycle reachable from the source, or anywhere for all_pairs; `cycle` lists it in both cases, a negative self loop as the one-node cycle), TIME_LIMIT. Unreachable nodes are never given a distance. Caps: 100000 edges, 100000 nodes, k_shortest <= 10, all pairs n <= 5000 and n*n <= 1,900,000 (checked before any work); node ids fit int64 or are strings of at most 256 bytes without NUL; |weight| <= 1e15. An inline result beyond its budget is OUTPUT_TOO_LARGE (exit 1). Successful writes return artifacts[name] descriptors. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -2814,7 +2814,7 @@
           "name": "weight_column",
           "type": "string",
           "occurs": "?",
-          "description": "Edge length column (int64 or float64, finite); omitted: every edge has length 1. Not with method bfs. Parallel edges keep the lightest; self loops are ignored."
+          "description": "Edge length column (int64 or float64, finite, |w| <= 1e15); omitted: every edge has length 1. Not with method bfs. Parallel edges keep the lightest; non-negative self loops are ignored, a negative self loop is a negative cycle (bellman_ford: NEGATIVE_CYCLE; dijkstra / k_shortest: BAD_PARAM like any negative weight)."
         },
         {
           "name": "directed",
@@ -2867,7 +2867,7 @@
       "name": "graph_flow",
       "access": "read",
       "returns": "object",
-      "description": "Network flows on a directed edge table with capacities (networkx Dinitz and network simplex). Integer capacities are exact (`integral`: true, tolerance 0); with float capacities the flow is checked for conservation and capacity within `tolerance` = 1e-9 * max(1, largest capacity) and NUMERICAL_FAILURE is reported beyond it. The returned flow is always re-verified against the edge list. Statuses OK, INFEASIBLE (the supplies cannot be routed within the capacities), UNBALANCED (supplies do not sum to zero), UNBOUNDED, NUMERICAL_FAILURE, TIME_LIMIT. Results: value / cost, flow_from, flow_to, flow (edges with positive flow; at most 300 inline), cut_from, cut_to, cut_capacity and source_side (min_cut; at most 300 each inline). Caps: 20000 edges, 20000 nodes. The write form stores the flow edges (from, to, flow) or cut edges (from, to, capacity) as a node-id table in `out`.",
+      "description": "Network flows on a directed edge table with capacities (networkx Dinitz and network simplex). Integer capacities are exact (`integral`: true, tolerance 0); with float capacities every flow edge is listed and the flow is checked for conservation and capacity within `tolerance` = 1e-9 * the flow value, NUMERICAL_FAILURE beyond it. The returned flow is always re-verified against the edge list. Statuses OK, INFEASIBLE (the supplies cannot be routed within the capacities), UNBALANCED (supplies do not sum to zero), UNBOUNDED, NUMERICAL_FAILURE, TIME_LIMIT. Results: value / cost (a min_cost_flow cost outside int64 is a double plus the exact decimal `cost_exact`), flow_from, flow_to, flow (edges with positive flow; at most 300 inline, OUTPUT_TOO_LARGE beyond), cut_from, cut_to, cut_capacity and source_side (min_cut; at most 300 each inline). Caps: 20000 edges, 20000 nodes; node ids fit int64 or are strings of at most 256 bytes without NUL. The write form stores the flow edges (from, to, flow) or cut edges (from, to, capacity) as a node-id table in `out`.",
       "params": [
         {
           "name": "frame",
@@ -2898,13 +2898,13 @@
           "name": "capacity_column",
           "type": "string",
           "occurs": "1",
-          "description": "Edge capacity column (int64 or float64, 0 <= c <= 1e15). Edges are directed; parallel edges add up (max_flow, min_cut) or are DUPLICATE_EDGE (min_cost_flow)."
+          "description": "Edge capacity column (int64 or float64, 0 <= c <= 1e15, checked before spawn). Edges are directed; parallel edges add up (max_flow, min_cut) or are DUPLICATE_EDGE (min_cost_flow). Self loops are ignored, except that min_cost_flow saturates a negative-cost self loop (it lowers the cost; listed as a flow edge)."
         },
         {
           "name": "cost_column",
           "type": "string",
           "occurs": "?",
-          "description": "min_cost_flow only: integer cost per unit of flow (negative costs allowed)."
+          "description": "min_cost_flow only: integer cost per unit of flow, |cost| <= 1e12 (negative costs allowed), checked before spawn."
         },
         {
           "name": "kind",
@@ -2954,7 +2954,7 @@
       "name": "graph_flow_to",
       "access": "write",
       "returns": "object",
-      "description": "Network flows on a directed edge table with capacities (networkx Dinitz and network simplex). Integer capacities are exact (`integral`: true, tolerance 0); with float capacities the flow is checked for conservation and capacity within `tolerance` = 1e-9 * max(1, largest capacity) and NUMERICAL_FAILURE is reported beyond it. The returned flow is always re-verified against the edge list. Statuses OK, INFEASIBLE (the supplies cannot be routed within the capacities), UNBALANCED (supplies do not sum to zero), UNBOUNDED, NUMERICAL_FAILURE, TIME_LIMIT. Results: value / cost, flow_from, flow_to, flow (edges with positive flow; at most 300 inline), cut_from, cut_to, cut_capacity and source_side (min_cut; at most 300 each inline). Caps: 20000 edges, 20000 nodes. The write form stores the flow edges (from, to, flow) or cut edges (from, to, capacity) as a node-id table in `out`. Successful writes return artifacts[name] descriptors. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
+      "description": "Network flows on a directed edge table with capacities (networkx Dinitz and network simplex). Integer capacities are exact (`integral`: true, tolerance 0); with float capacities every flow edge is listed and the flow is checked for conservation and capacity within `tolerance` = 1e-9 * the flow value, NUMERICAL_FAILURE beyond it. The returned flow is always re-verified against the edge list. Statuses OK, INFEASIBLE (the supplies cannot be routed within the capacities), UNBALANCED (supplies do not sum to zero), UNBOUNDED, NUMERICAL_FAILURE, TIME_LIMIT. Results: value / cost (a min_cost_flow cost outside int64 is a double plus the exact decimal `cost_exact`), flow_from, flow_to, flow (edges with positive flow; at most 300 inline, OUTPUT_TOO_LARGE beyond), cut_from, cut_to, cut_capacity and source_side (min_cut; at most 300 each inline). Caps: 20000 edges, 20000 nodes; node ids fit int64 or are strings of at most 256 bytes without NUL. The write form stores the flow edges (from, to, flow) or cut edges (from, to, capacity) as a node-id table in `out`. Successful writes return artifacts[name] descriptors. Successful file writes return outputs_in_artifact=true and artifacts[name] descriptors with ref, path, format, key, dtype, shape, nbytes (key/dtype/shape null for whole files).",
       "params": [
         {
           "name": "frame",
@@ -2985,13 +2985,13 @@
           "name": "capacity_column",
           "type": "string",
           "occurs": "1",
-          "description": "Edge capacity column (int64 or float64, 0 <= c <= 1e15). Edges are directed; parallel edges add up (max_flow, min_cut) or are DUPLICATE_EDGE (min_cost_flow)."
+          "description": "Edge capacity column (int64 or float64, 0 <= c <= 1e15, checked before spawn). Edges are directed; parallel edges add up (max_flow, min_cut) or are DUPLICATE_EDGE (min_cost_flow). Self loops are ignored, except that min_cost_flow saturates a negative-cost self loop (it lowers the cost; listed as a flow edge)."
         },
         {
           "name": "cost_column",
           "type": "string",
           "occurs": "?",
-          "description": "min_cost_flow only: integer cost per unit of flow (negative costs allowed)."
+          "description": "min_cost_flow only: integer cost per unit of flow, |cost| <= 1e12 (negative costs allowed), checked before spawn."
         },
         {
           "name": "kind",

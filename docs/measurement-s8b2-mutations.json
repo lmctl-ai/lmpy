@@ -1,0 +1,32 @@
+[
+  {
+    "variant": "hops_plus_100",
+    "test": "GraphReview.test_twin_hops_are_exact_and_zero_row_tables_round_trip",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_twin_hops_are_exact_and_zero_row_tables_round_trip (__main__.GraphReview.test_twin_hops_are_exact_and_zero_row_tables_round_trip)\nKimi 4.1 and 4.2: the node table's hop counts equal the independent tight-edge BFS; zero-flow and zero-cut tables are written and readable.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b2_review.py\", line 251, in test_twin_hops_are_exact_and_zero_row_tables_round_trip\n    self.assertEqual(t['data']['hops'][k], hops[node], node)\nAssertionError: 100 != 0 : n00\n\n----------------------------------------------------------------------\nRan 1 test in 2.248s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "variant": "reject_zero_rows",
+    "test": "GraphReview.test_twin_hops_are_exact_and_zero_row_tables_round_trip",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_twin_hops_are_exact_and_zero_row_tables_round_trip (__main__.GraphReview.test_twin_hops_are_exact_and_zero_row_tables_round_trip)\nKimi 4.1 and 4.2: the node table's hop counts equal the independent tight-edge BFS; zero-flow and zero-cut tables are written and readable.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b2_review.py\", line 256, in test_twin_hops_are_exact_and_zero_row_tables_round_trip\n    r = call('graph_flow_to', dict(frame=disconnected, capacity_column='w', kind=kind, source=1, sink=4, out=out, **G))\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/src/pycli/tests/s8b2_review.py\", line 22, in call\n    assert p.returncode == rc, (op, rc, p.returncode, p.stdout[:1500], p.stderr[:600])\n           ^^^^^^^^^^^^^^^^^^\nAssertionError: ('graph_flow_to', 0, 2, '{\\n  \"success\": false,\\n  \"error\": {\\n    \"code\": \"VALIDATION_ERROR\",\\n    \"message\": \"table size exceeds the operation cap (this request bypassed the front-end validation)\",\\n    \"data\": {\\n      \"tool_code\": \"INPUT_TOO_LARGE\",\\n      \"exception\": \"BadData\",\\n      \"warnings\": []\\n    }\\n  }\\n}\\n', '')\n\n----------------------------------------------------------------------\nRan 1 test in 4.341s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "variant": "logsf_from_sf",
+    "test": "DistReview.test_far_tails_and_isf_are_not_derived_from_their_complements",
+    "exit_code": 1,
+    "output": "E\n======================================================================\nERROR: test_far_tails_and_isf_are_not_derived_from_their_complements (__main__.DistReview.test_far_tails_and_isf_are_not_derived_from_their_complements)\nKimi 4.3 and 4.4: logsf/logcdf deep in the tails and isf at 1e-300 come from the dedicated scipy functions.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b2_review.py\", line 665, in test_far_tails_and_isf_are_not_derived_from_their_complements\n    close(self, values('norm', 'logsf', [38.0]), [logsf], 1e-12)\n  File \"/src/pycli/tests/s8b2_review.py\", line 51, in close\n    testcase.assertLessEqual(abs(g - w), rel * abs(w) + atol + 1e-300, (what, g, w))\n                                 ~~^~~\nTypeError: unsupported operand type(s) for -: 'str' and 'float'\n\n----------------------------------------------------------------------\nRan 1 test in 1.900s\n\nFAILED (errors=1)\n"
+  },
+  {
+    "variant": "isf_from_ppf",
+    "test": "DistReview.test_far_tails_and_isf_are_not_derived_from_their_complements",
+    "exit_code": 1,
+    "output": "E\n======================================================================\nERROR: test_far_tails_and_isf_are_not_derived_from_their_complements (__main__.DistReview.test_far_tails_and_isf_are_not_derived_from_their_complements)\nKimi 4.3 and 4.4: logsf/logcdf deep in the tails and isf at 1e-300 come from the dedicated scipy functions.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b2_review.py\", line 667, in test_far_tails_and_isf_are_not_derived_from_their_complements\n    close(self, values('norm', 'isf', [1e-300]), [isf], 1e-12)\n  File \"/src/pycli/tests/s8b2_review.py\", line 51, in close\n    testcase.assertLessEqual(abs(g - w), rel * abs(w) + atol + 1e-300, (what, g, w))\n                                 ~~^~~\nTypeError: unsupported operand type(s) for -: 'str' and 'float'\n\n----------------------------------------------------------------------\nRan 1 test in 4.327s\n\nFAILED (errors=1)\n"
+  },
+  {
+    "variant": "rvs_mt19937",
+    "test": "DistReview.test_pcg64_golden_streams",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_pcg64_golden_streams (__main__.DistReview.test_pcg64_golden_streams)\nKimi 4.5: the generator is PCG64 in fact, not only in the echo (numpy's own stream for norm, a literal stream for genextreme).\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b2_review.py\", line 674, in test_pcg64_golden_streams\n    self.assertEqual(values('norm', 'rvs', params={}, n=3, seed=42), want)\nAssertionError: Lists differ: [-0.2965179310498389, 1.3413208289199272, -1.367054573795688] != [0.30471707975443135, -1.0399841062404955, 0.7504511958064572]\n\nFirst differing element 0:\n-0.2965179310498389\n0.30471707975443135\n\n- [-0.2965179310498389, 1.3413208289199272, -1.367054573795688]\n+ [0.30471707975443135, -1.0399841062404955, 0.7504511958064572]\n\n----------------------------------------------------------------------\nRan 1 test in 0.415s\n\nFAILED (failures=1)\n"
+  }
+]

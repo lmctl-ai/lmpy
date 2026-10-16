@@ -11,7 +11,7 @@ All file writes use `result.artifacts[name]` with the same descriptor fields:
 | `py_info` | read | none | versions, OpenBLAS pools/threads/core, PCG64 RNG kind, architecture, worker SHA256, hash/isolation flags |
 | `la_solve` | read | a, b, assume_a=gen/sym/pos | x, rcond estimate, residual norm, domain status |
 | `la_solve_to` | write | same plus exclusive out.safetensors | x descriptor; fails if no artifact is produced |
-| `stats_dist` | read | dist (34 families, see S8b-2 below), fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments/rvs, x vector (<=1000), params; rvs: n and a REQUIRED integer seed | values and captured warnings; moments with `moments_undefined`; rvs echoes seed and generator (PCG64) |
+| `stats_dist` | read | dist (31 families, see S8b-2 below), fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments/rvs, x vector (<=1000), params; rvs: n and a REQUIRED integer seed | values and captured warnings; moments with `moments_undefined`; rvs echoes seed and generator (PCG64) |
 | `stats_dist_to` | write | fn=pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf at up to 200,000 points, or rvs (same dist/params/seed, n up to 1,000,000); exclusive out.safetensors, key (default x) | n_values, n_missing, sample size, seed, generator, artifacts[key] descriptor |
 | `array_import` | write | format=json/csv/csv_file/npy/safetensors, data, key (default x), header, na=nan/error, exclusive out.safetensors | new F64 artifact descriptor, source dtype, finite/NaN/Inf counts, min, max, norm, na_count (pure C++, no Python) |
 | `array_inspect` | read | ref (inline, file.npy, file.safetensors#key, or bare file.safetensors), limit<=1000 | dtype, shape, size, counts, min, max, norm, preview; a bare safetensors path lists tensors from the validated header only |
@@ -750,13 +750,14 @@ urca::ur.df has its own lag-selection conventions. Match regression, lags and p-
 
 networkx 3.7 (pure Python, BSD-3-Clause, hash-locked wheel) is imported only by the `graph_*` operations. Graphs come from a stored `.npz` edge table (`frame`, made by
 `frame_import`) with explicitly named columns, or from inline `records`; GraphML, GEXF, pickle or any other graph file format is never accepted. Node ids are int64 or strings
-and round-trip exactly. Parallel edges keep the lightest (paths) or add up (flows); self loops are ignored.
+and round-trip exactly (ids fit int64 or are strings of at most 256 bytes without NUL, checked before spawn). Parallel edges keep the lightest (paths) or add up (flows); non-negative self loops are ignored,
+a negative self loop is a negative cycle (`NEGATIVE_CYCLE` for bellman_ford, `BAD_PARAM` for dijkstra) and min_cost_flow saturates a negative-cost self loop. Weights are at most 1e15 in magnitude, capacities in [0, 1e15], costs in [-1e12, 1e12], all before spawn.
 
 | Operation | Access | Contract |
 |---|---|---|
-| `graph_paths` | read | `method` dijkstra (non-negative weights, else `BAD_PARAM`), bellman_ford (negative weights; `NEGATIVE_CYCLE` with the `cycle`), bfs (hops); `source`, optional `target` (one `path`, `length`, `hops`; `UNREACHABLE` when there is none), `k_shortest` <= 10 simple paths, `directed`, `weight_column`. Without a target the reachable nodes are listed (<= 450 inline) with `n_reachable` / `n_unreachable`; an unreachable node never gets a distance |
+| `graph_paths` | read | `method` dijkstra (non-negative weights, else `BAD_PARAM`), bellman_ford (negative weights; `NEGATIVE_CYCLE` with the `cycle`, for all pairs too), bfs (hops); `source`, optional `target` (one `path`, `length`, `hops`; `UNREACHABLE` when there is none), `k_shortest` <= 10 simple paths, `directed`, `weight_column`. Without a target the reachable nodes are listed (<= 450 inline) with `n_reachable` / `n_unreachable`; an unreachable node never gets a distance |
 | `graph_paths_to` | write | Same; a node table `.npz` (node, distance, hops, predecessor; missing for unreachable nodes), or with `all_pairs` the n x n `distance` matrix and the ascending `nodes` in a `.safetensors` file (NaN = unreachable; integer ids only; n*n <= 1,900,000, about 1377 nodes, rejected before any work) |
-| `graph_flow` | read | `kind` max_flow, min_cut (cut edges and `source_side`, max-flow = min-cut), min_cost_flow (`source`/`sink`/`flow_value` or `supplies`; integer costs). Integer capacities are exact; float capacities are verified within `tolerance` = 1e-9 * max(1, largest capacity). Statuses `OK`, `INFEASIBLE`, `UNBALANCED`, `UNBOUNDED`, `NUMERICAL_FAILURE`, `TIME_LIMIT`. At most 300 flow or cut edges inline (`OUTPUT_TOO_LARGE` otherwise) |
+| `graph_flow` | read | `kind` max_flow, min_cut (cut edges and `source_side`, max-flow = min-cut), min_cost_flow (`source`/`sink`/`flow_value` or `supplies`; integer costs). Integer capacities are exact; float capacities are verified within `tolerance` = 1e-9 * the flow value with every flow edge listed. A cost outside int64 adds the exact decimal `cost_exact`. Statuses `OK`, `INFEASIBLE`, `UNBALANCED`, `UNBOUNDED`, `NUMERICAL_FAILURE`, `TIME_LIMIT`. At most 300 flow or cut edges inline (`OUTPUT_TOO_LARGE`, exit 1, otherwise) |
 | `graph_flow_to` | write | Same; the flow edges (from, to, flow) or cut edges (from, to, capacity) as a `.npz` table |
 
 Caps (before spawn): 100000 edges and nodes for paths, 20000 for flows, `k_shortest` <= 10; the results are bounded before they are built. Every call has the cooperative
@@ -769,12 +770,13 @@ Caps (before spawn): 100000 edges and nodes for paths, 20000 for flows, `k_short
 | norm, t | loc, scale; df (t) |
 | uniform, expon, gamma, beta, lognorm, chi2 | low, high; scale; shape, scale; a, b; mu, sigma; df |
 | genextreme, genpareto, skewnorm, johnsonsu | c; c; a; a, b (+ loc, scale each) |
-| levy_stable | alpha (0, 2], beta [-1, 1], loc, scale (scipy S1); pdf/cdf are slow numerical integrations of limited accuracy: a warning says so and at most 200 points are accepted |
-| nct, ncf, vonmises, truncnorm | df, nc (+loc, scale); dfn, dfd, nc; kappa (0, 1e5], at most 200 points; a, b (standardised bounds) |
+| levy_stable | alpha (0, 2], beta [-1, 1], loc, scale (scipy S1: alpha = 2 is the normal with standard deviation sqrt(2) * scale); pdf/cdf are slow numerical integrations of limited accuracy: a warning says so and at most 200 points are accepted |
+| nct, ncf, vonmises, truncnorm | df >= 1e-8, nc (+loc, scale; the density is recomputed by quadrature where scipy's underflows at large nc); dfn, dfd, nc; kappa (0, 1e5], at most 200 points, cdf/sf on the circle loc + scale * [-pi, pi]; a, b (standardised bounds) |
 | weibull_min, cauchy, laplace, logistic, gumbel_r, pareto, rayleigh, f | c; -; -; -; -; b; -; dfn, dfd (+ loc, scale each) |
 | poisson, binom, zipf, betabinom, nbinom, geom | lam; n, p; a, loc; n (1..5000), a, b, loc; n, p, loc; p, loc (integer-valued F64; `pdf` is the mass function) |
 
-Functions: pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf (probabilities in [0, 1], `BAD_PROBABILITY`), moments (mean, var, skew, excess kurtosis; infinite or undefined ones are `NA`
-and listed in `moments_undefined`) and rvs (PCG64 seed rules as before). NA inputs stay `NA` inline and become NaN in `stats_dist_to` artifacts. scipy's parameterisation differs
+Functions: pdf, logpdf, cdf, logcdf, sf, logsf, ppf, isf (probabilities in [0, 1], `BAD_PROBABILITY`; discrete ppf(0) / isf(1) are the first support point), moments (mean, var, skew, excess kurtosis; infinite or undefined ones are `NA`
+and listed in `moments_undefined`) and rvs (PCG64 seed rules as before; a shorter n is a prefix of a longer one for every family, the compound nct / skewnorm / betabinom / levy_stable samplers using a second stream `PCG64(seed).jumped()`; geom / nbinom need p >= 1e-15 and a draw numpy cannot represent is `NUMERICAL_FAILURE`).
+NA inputs stay `NA` inline and become NaN in `stats_dist_to` artifacts (`n_missing` and `n_nan` are counted apart). The worker warms scipy with canonical parameters for the requested function only; the caller's parameters run under `time_limit`. scipy's parameterisation differs
 from R's in several places (genextreme `c` = -xi, truncnorm bounds are standardised, vonmises `loc` wraps into [-pi, pi], nbinom counts failures, geom starts at 1, levy_stable uses S1):
-see docs/s8b2.md. scipy sums the mass function for the cdf of zipf and betabinom, so zipf cdf/sf need |x| <= 1e5, a zipf quantile beyond 1e5 is the status `OUT_OF_RANGE`, and betabinom `n` is at most 5000. Hand formulas and mpmath are the oracles for the tests; `examples/oracle-dist.lms` cross-checks the shared families against R through rcli.
+see docs/s8b2.md. scipy sums the mass function for the cdf of zipf and betabinom, so zipf cdf/sf need x - loc <= 1e5, a zipf quantile beyond loc + 1e5 is `NA` for that point under the status `OUT_OF_RANGE` (`n_out_of_range`), and betabinom `n` is at most 5000. lognorm `mu` is within [-700, 700]; parameter magnitudes are otherwise capped at 1e12 except Student-t `df`. Hand formulas and mpmath are the oracles for the tests; `examples/oracle-dist.lms` cross-checks the shared families against R through rcli.

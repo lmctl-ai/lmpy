@@ -4,7 +4,7 @@
 
 | Done in S8b-1 (this document) | Done in S8b-2 (see docs/s8b2.md) |
 |---|---|
-| `la_matrix_fn(_to)`, `la_sparse(_to)`, `special_fn(_to)`, `opt_root`, `sm_tsa_tools`; mpmath in the test image; recipes `oracle-tsa-tools`, `sparse-poisson`, `oracle-root` | `graph_paths(_to)` and `graph_flow(_to)` with networkx 3.7 (hash-locked, notices, edges from a frame or inline records, all-pairs n <= 1377 via artifact, `NEGATIVE_CYCLE`, k_shortest <= 10, min_cost_flow); the `stats_dist` long tail (34 families, pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments, levy_stable warning, R cross-oracle); recipes `graph-route-plan`, `oracle-dist`, `distributions-tour` |
+| `la_matrix_fn(_to)`, `la_sparse(_to)`, `special_fn(_to)`, `opt_root`, `sm_tsa_tools`; mpmath in the test image; recipes `oracle-tsa-tools`, `sparse-poisson`, `oracle-root` | `graph_paths(_to)` and `graph_flow(_to)` with networkx 3.7 (hash-locked, notices, edges from a frame or inline records, all-pairs n <= 1377 via artifact, `NEGATIVE_CYCLE`, k_shortest <= 10, min_cost_flow); the `stats_dist` long tail (31 families, pdf/logpdf/cdf/logcdf/sf/logsf/ppf/isf/moments, levy_stable warning, R cross-oracle); recipes `graph-route-plan`, `oracle-dist`, `distributions-tour` |
 
 **Remaining work after S8b-2:** the optional `special-vs-mpmath` recipe note (special functions are checked against mpmath in `tests/s8b_ops.py` only); graph file formats stay refused by design, so there is nothing further to add there.
 The S8b-2 scope was a new dependency with notices (networkx) plus a large per-family table; each was independent of this half.
