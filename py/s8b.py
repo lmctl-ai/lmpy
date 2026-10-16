@@ -6,7 +6,8 @@ S8B_MATRIX_RESIDUAL = 1e-6
 
 
 def s8b_fro(np, x):
-    return float(np.linalg.norm(x, 'fro'))
+    scale = float(np.max(np.abs(x))) if np.size(x) else 0.0
+    return np.longdouble(0) if scale == 0 else np.sqrt(np.sum(np.abs(np.asarray(x, dtype=np.clongdouble) / scale) ** 2)) * np.longdouble(scale)
 
 
 def s8b_complex_items(np, name, y):
@@ -29,7 +30,7 @@ def la_matrix_fn(p):
     n = a.shape[0]
     result = {'status': 'OK', 'fn': fn, 'shape': list(a.shape)}
     eps = np.finfo(float).eps
-    norm_a = max(s8b_fro(np, a), 1e-300)
+    norm_a = s8b_fro(np, a) or np.longdouble(1)
 
     def body():
         with np.errstate(all='ignore'):
@@ -39,17 +40,27 @@ def la_matrix_fn(p):
                 if not np.isfinite(cond) or cond >= 1.0 / eps:
                     return 'SINGULAR', 'the matrix is singular to working precision (condition number %.3g)' % cond, None
                 y = sla.inv(a)
-                residual = s8b_fro(np, a @ y - np.eye(n)) / np.sqrt(n)
+                identity = s8b_fro(np, a @ y - np.eye(n))
+                result['identity_residual'] = float(identity / np.sqrt(n))
+                residual = float(np.longdouble(identity) / (np.longdouble(norm_a) * s8b_fro(np, y) + np.sqrt(n)))
+                if cond > 1 / np.sqrt(eps):
+                    warnings.warn('inverse is ill-conditioned (condition number %.3g); forward digits are limited by conditioning' % cond, NumericalWarning)
             elif fn == 'pinv':
                 y, rank = sla.pinv(a, rtol=p.get('rtol'), return_rank=True)
                 result['rank'] = int(rank)
-                residual = s8b_fro(np, a @ y @ a - a) / norm_a
+                result['truncation'] = float(s8b_fro(np, a @ y @ a - a) / norm_a)
+                ay, ya = a @ y, y @ a
+                residual = max(s8b_fro(np, y @ a @ y - y) / max(s8b_fro(np, y), 1e-300), s8b_fro(np, ay - ay.T) / max(s8b_fro(np, ay), 1e-300), s8b_fro(np, ya - ya.T) / max(s8b_fro(np, ya), 1e-300))
+                if rank == min(a.shape):
+                    residual = max(residual, result['truncation'])
             elif fn == 'expm':
                 y = sla.expm(a)
                 residual = None
             elif fn == 'logm':
-                if n and float(np.min(np.abs(np.linalg.eigvals(a)))) == 0.0:
-                    return 'SINGULAR', 'the matrix has a zero eigenvalue: its logarithm does not exist', None
+                cond = float(np.linalg.cond(a))
+                result['condition_number'] = cond
+                if not np.isfinite(cond) or cond >= 1.0 / eps:
+                    return 'SINGULAR', 'the matrix is singular to working precision: a finite logarithm cannot be certified', None
                 y = sla.logm(a)
                 residual = s8b_fro(np, sla.expm(y) - a) / norm_a if np.isfinite(y).all() else None
             else:
@@ -66,8 +77,8 @@ def la_matrix_fn(p):
     if not np.isfinite(y).all():
         return dict(result, status='NUMERICAL_FAILURE', message='the result is not finite (overflow, or no principal value exists)')
     if residual is not None:
-        result['residual'] = residual
-        if residual > S8B_MATRIX_RESIDUAL:
+        result['residual'] = float(residual)
+        if not np.isfinite(residual) or residual > S8B_MATRIX_RESIDUAL:
             return dict(result, status='NUMERICAL_FAILURE', message='the computed %s misses its defining identity by %.3g (relative); the matrix is too ill-conditioned or defective' % (fn, residual))
     items, is_complex = s8b_complex_items(np, 'y', y)
     result['complex'] = is_complex
@@ -92,7 +103,9 @@ def s8b_coo(np, p):
             if key == 'val' and dtype not in ('int64', 'float64', 'bool'):
                 raise BadData('column %s must be numeric' % p[key], 'BAD_DTYPE')
             picked.append(raws[i])
-        row, col, val = picked[0].astype(np.int64), picked[1].astype(np.int64), picked[2].astype(float)
+        row, col = picked[0].astype(np.int64), picked[1].astype(np.int64)
+        i = index[p['val']]
+        val = s8_float_column(np, cmeta[p['val']], raws[i], masks[i], p['val'])[0]
     else:
         row_f, col_f, val = array(p, 'row'), array(p, 'col'), np.asarray(array(p, 'val'), dtype=float)
         if not (np.all(row_f == np.floor(row_f)) and np.all(col_f == np.floor(col_f))):
@@ -126,27 +139,50 @@ def la_sparse(p):
         raise BadData('%s needs a symmetric matrix' % task, 'NOT_SYMMETRIC')
     rng = np.random.Generator(np.random.PCG64(p['seed'])) if 'seed' in p else None
     items = []
-    started = {}
+    a_scale = float(abs(A).max())
+    unit = A / a_scale if a_scale else A.copy()
+    norm_unit = float(abs(unit).sum(axis=0).max())
+    eigen_scale = a_scale or 1.0
+    if a_scale and ((A.data != 0) & (unit.data == 0)).any():
+        return dict(result, status='NUMERICAL_FAILURE', message='matrix dynamic range loses nonzero entries during normalisation')
+    if task == 'spsolve' or 'sigma' in p:
+        s7_cap(n <= 2000 and n * A.nnz <= 20_000_000, 'SuperLU factorisation work; use cg or gmres')
 
-    def residual_vector(x, b):
-        return float(np.linalg.norm(A @ x - b)) / max(float(np.linalg.norm(b)), 1e-300)
+    def norm(v):
+        scale = float(np.max(np.abs(v))) if np.size(v) else 0.0
+        return float(np.linalg.norm(v / scale) * scale) if scale else 0.0
+
+    def restored(z, bscale):
+        return np.asarray(np.asarray(z, dtype=np.longdouble) * np.longdouble(bscale) / np.longdouble(a_scale), dtype=float)
+
+    def residual_vector(x, bunit, bscale):
+        # Recheck the returned binary64 solution, including any rounding during unit restoration.
+        z = np.asarray(np.asarray(x, dtype=np.longdouble) * np.longdouble(a_scale) / np.longdouble(bscale), dtype=float)
+        if not np.isfinite(z).all():
+            return float('inf'), z
+        r = norm(unit @ z - bunit)
+        return (r / norm(bunit) if np.any(bunit) else r), z
 
     def body():
         import warnings
         with np.errstate(all='ignore'):
             if task in ('spsolve', 'cg', 'gmres'):
                 b = np.asarray(array(p, 'b'), dtype=float)
+                if not a_scale:
+                    return 'SINGULAR', 'all matrix entries are zero', {}
+                bscale = float(np.max(np.abs(b))) or 1.0
+                bunit = b / bscale
                 if task == 'spsolve':
                     with warnings.catch_warnings():
                         warnings.simplefilter('error', spla.MatrixRankWarning)
                         try:
-                            x = spla.spsolve(A.tocsc(), b)
+                            x = restored(spla.spsolve(unit.tocsc(), bunit), bscale)
                         except spla.MatrixRankWarning:
                             return 'SINGULAR', 'the matrix is singular (SuperLU found an exactly zero pivot)', {}
                     x = np.asarray(x, dtype=float)
                     if not np.isfinite(x).all():
                         return 'SINGULAR', 'the solve produced non-finite values: the matrix is singular to working precision', {}
-                    rel = residual_vector(x, b)
+                    rel, _ = residual_vector(x, bunit, bscale)
                     result['relative_residual'] = rel
                     if rel > 1e-6:
                         return 'ILL_CONDITIONED', 'the direct solve leaves a relative residual of %.3g: the matrix is too ill-conditioned' % rel, {}
@@ -156,18 +192,20 @@ def la_sparse(p):
                 def tick(_):
                     count[0] += 1
                 if task == 'cg':
-                    x, info = spla.cg(A, b, rtol=p['rtol'], maxiter=p['maxiter'], callback=tick)
+                    x, info = spla.cg(unit, bunit, rtol=p['rtol'], maxiter=p['maxiter'], callback=tick)
                 else:
-                    x, info = spla.gmres(A, b, rtol=p['rtol'], restart=p['restart'], maxiter=p['maxiter'], callback=tick, callback_type='pr_norm')
-                x = np.asarray(x, dtype=float)
+                    x, info = spla.gmres(unit, bunit, rtol=p['rtol'], restart=p['restart'], maxiter=p['maxiter'], callback=tick, callback_type='pr_norm')
+                x = restored(x, bscale)
                 result['iterations'] = count[0]
-                rel = residual_vector(x, b) if np.isfinite(x).all() else float('inf')
+                rel, z = residual_vector(x, bunit, bscale) if np.isfinite(x).all() else (float('inf'), x)
                 result['relative_residual'] = rel
-                # the residual a double-precision iteration can reach is bounded below by ~eps ||A|| ||x|| / ||b||; a tolerance tighter than that is not attainable
-                floor = 1e3 * np.finfo(float).eps * float(abs(A).sum(axis=0).max()) * float(np.linalg.norm(x)) / max(float(np.linalg.norm(b)), 1e-300) if np.isfinite(x).all() else 0.0
-                if info != 0 or not rel <= max(10.0 * p['rtol'], floor, 1e-14):
-                    why = 'the iteration did not reach the tolerance within maxiter' if info > 0 else 'illegal input or breakdown (info %d)' % info if info < 0 else 'the true residual %.3g exceeds the tolerance despite the iteration reporting convergence' % rel
-                    return 'NO_CONVERGENCE', why, {}
+                floor = 1e3 * np.finfo(float).eps * norm_unit * norm(z) / (norm(bunit) or 1.0) if np.isfinite(z).all() else float('inf')
+                result['attainable_floor'] = floor
+                result['tolerance_met'] = bool(rel <= 10.0 * p['rtol'])
+                if info != 0 or not result['tolerance_met']:
+                    why = 'the true residual %.3g exceeds 10*rtol %.3g (solver info %d)' % (rel, 10*p['rtol'], info)
+                    status = 'TOLERANCE_UNATTAINABLE' if info == 0 and rel <= floor else 'NO_CONVERGENCE'
+                    return status, why, {}
                 return 'OK', '', {'x': x}
             k = p['k']
             kwargs = {'k': k, 'which': p['which'], 'maxiter': p.get('maxiter'), 'tol': p['rtol']}
@@ -179,7 +217,8 @@ def la_sparse(p):
                     u, s, vt = spla.svds(A, v0=v0, **{key: val for key, val in kwargs.items() if key != 'maxiter' or val is not None})
                     order = np.argsort(-s)
                     s, u, vt = s[order], u[:, order], vt[order, :]
-                    res = max(float(np.linalg.norm(A @ vt[i] - s[i] * u[:, i])) for i in range(len(s)))
+                    res = max(max(norm(unit @ vt[i] - (s[i] / eigen_scale) * u[:, i]), norm(unit.T @ u[:, i] - (s[i] / eigen_scale) * vt[i])) / max(s[i] / eigen_scale, norm_unit, 1e-300) for i in range(len(s)))
+                    res = max(res, norm(u.T @ u - np.eye(len(s))), norm(vt @ vt.T - np.eye(len(s))))
                     result['max_residual'] = res
                     return 'OK', '', {'s': s, 'u': u, 'vt': vt}
                 v0 = rng.uniform(-1.0, 1.0, n)
@@ -193,7 +232,7 @@ def la_sparse(p):
                     w, v = spla.eigs(A, v0=v0, **kwargs)
                     order = np.lexsort((w.imag, w.real))
                 w, v = w[order], v[:, order]
-                res = max(float(np.linalg.norm(A @ v[:, i] - w[i] * v[:, i])) / max(abs(w[i]), 1.0) for i in range(len(w)))
+                res = max(norm(unit @ v[:, i] - (w[i] / a_scale) * v[:, i]) / max(abs(w[i]) / a_scale, norm_unit, 1e-300) for i in range(len(w))) if a_scale else 0.0
                 result['max_residual'] = res
                 return 'OK', '', {'w': w, 'v': v}
             except spla.ArpackNoConvergence as exc:
@@ -201,13 +240,17 @@ def la_sparse(p):
                 return 'NO_CONVERGENCE', 'ARPACK converged to %d of %d requested eigenvalues within maxiter' % (len(exc.eigenvalues), k), {}
             except spla.ArpackError as exc:
                 return 'NUMERICAL_FAILURE', 'ARPACK failed: %s' % str(exc)[:200], {}
+            except RuntimeError as exc:
+                if 'sigma' in p and 'singular' in str(exc).lower():
+                    return 'SINGULAR', 'A - sigma*I is singular; sigma coincides with an eigenvalue, choose a different shift', {}
+                raise
     got = s7_guard(p, body)
     if got is None:
         return {'status': 'TIME_LIMIT', 'task': task}
     status, message, payload = got
     if status != 'OK':
         return dict(result, status=status, message=message)
-    if task != 'svds' and task not in ('spsolve', 'cg', 'gmres') and result.get('max_residual', 0) > 1e-6:
+    if task not in ('spsolve', 'cg', 'gmres') and (not np.isfinite(result.get('max_residual', 0)) or result.get('max_residual', 0) > max(1e-6, 10 * p['rtol']) or any(not np.isfinite(v).all() for v in payload.values())):
         return dict(result, status='NUMERICAL_FAILURE', message='the eigenpairs leave a residual of %.3g' % result['max_residual'])
     if 'x' in payload:
         items.append(('x', payload['x']))
@@ -221,7 +264,8 @@ def la_sparse(p):
         result['complex'] = is_complex
         if p['vectors']:
             items += s8b_complex_items(np, 'v', payload['v'])[0]
-    result['k'] = int(p['k']) if 'k' in p else None
+    if 'k' in p:
+        result['k'] = int(p['k'])
     return s7_emit(np, p, result, items, 'la_sparse')
 
 
@@ -268,17 +312,19 @@ def special_fn(p):
         return {'status': 'TIME_LIMIT', 'fn': fn}
     outputs = list(out) if fn == 'airy' else [out]
     keys = ['ai', 'aip', 'bi', 'bip'] if fn == 'airy' else ['y']
-    bad = np.zeros(n, dtype=bool)
-    nan = np.zeros(n, dtype=bool)
+    n_output = int(np.size(outputs[0]))
+    result['n_output'] = n_output
+    bad = np.zeros(n_output, dtype=bool)
+    nan = np.zeros(n_output, dtype=bool)
     for o in outputs:
         bad |= ~np.isfinite(o)
         nan |= np.isnan(o)
     if bad.any():
-        first = int(np.flatnonzero(bad)[0])
-        return dict(result, status='DOMAIN_ERROR' if nan.any() else 'NON_FINITE', n_bad=int(bad.sum()), n_nan=int(nan.sum()), first_index=first,
+        first = int(np.flatnonzero(nan if nan.any() else bad)[0])
+        n_nan, n_inf = int(nan.sum()), int((bad & ~nan).sum())
+        return dict(result, status='DOMAIN_ERROR' if nan.any() else 'NON_FINITE', n_bad=int(bad.sum()), n_nan=n_nan, n_inf=n_inf, first_index=first,
                     first_args={name: float(a[first]) for name, a in zip(names, args)},
-                    message='%d of %d results are %s (first at index %d); special-function poles, overflow and arguments outside the domain are statuses, never values' % (
-                        int(bad.sum()), n, 'undefined (NaN)' if nan.any() else 'infinite', first))
+                    message='%d of %d outputs are non-finite (%d NaN, %d infinite); first %s output at index %d' % (int(bad.sum()), n_output, n_nan, n_inf, 'NaN' if nan.any() else 'infinite', first))
     return s7_emit(np, p, result, list(zip(keys, outputs)), 'special_fn')
 
 
