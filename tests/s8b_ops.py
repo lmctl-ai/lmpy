@@ -499,7 +499,11 @@ class Sparse(Base):
         r, c, v = poisson_coo(n)
         b = [math.cos(0.01 * i) for i in range(n)]
         out = self.p('x.safetensors')
-        res = call('la_sparse_to', dict(task='cg', shape=[n, n], row=self.npy(r), col=self.npy(c), val=self.npy(v), b=self.npy(b), rtol=1e-12, maxiter=20000, out=out))
+        strict = call('la_sparse_to', dict(task='cg', shape=[n, n], row=self.npy(r), col=self.npy(c), val=self.npy(v), b=self.npy(b), rtol=1e-12, maxiter=20000, out=out), rc=1)
+        self.assertEqual(strict['error']['data']['tool_code'], 'TOLERANCE_UNATTAINABLE')
+        self.assertFalse(os.path.exists(out))
+        # Actual binary64 residual is ~6e-11; request an attainable tolerance for the artifact oracle.
+        res = call('la_sparse_to', dict(task='cg', shape=[n, n], row=self.npy(r), col=self.npy(c), val=self.npy(v), b=self.npy(b), rtol=1e-10, maxiter=20000, out=out))
         self.assertEqual(res['status'], 'OK', res)
         self.assertEqual(set(res['artifacts']['x']), DESCRIPTOR_KEYS)
         close(self, read_safetensors(out)['x'], thomas(n, b), 1e-7, 1e-9)

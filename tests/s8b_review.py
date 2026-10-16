@@ -27,6 +27,19 @@ class Review(Base):
                         self.assertEqual(z['used_lag'],ref['used_lag'])
                         self.assertAlmostEqual(z['icbest']-ref['icbest'],2*(len(Y)-1-z['maxlag'])*math.log(scale),places=8)
 
+    def test_adf_recipe_mackinnon_tail_independent(self):
+        import mpmath as mp
+        state=99;prev=0.;series=[]
+        for _ in range(120):
+            state=(75*state+74)%65537;prev=.6*prev+(state/65537-.5)*3.4;series.append(prev)
+        z=self.tsa('adfuller',series)
+        # MacKinnon 1994 small-p response surface for N=1, constant regression.
+        with mp.workdps(65):
+            t=mp.mpf(z['statistic']);argument=mp.mpf('2.1659')+mp.mpf('1.4412')*t+mp.mpf('0.038269')*t*t
+            reference=float(mp.erfc(-argument/mp.sqrt(2))/2)
+        self.assertAlmostEqual(reference,.01494588002672663,delta=1e-14)
+        self.assertAlmostEqual(z['p_value'],reference,delta=1e-15)
+
     def test_time_series_alpha_rejected_before_spawn(self):
         for test in ('adfuller','kpss','ljung_box'):
             with self.subTest(test=test):rejected('sm_tsa_tools',dict(test=test,columns={'y':Y},series='y',alpha=.5),'BAD_PARAM')

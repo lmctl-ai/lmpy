@@ -1,0 +1,32 @@
+[
+  {
+    "variant": "inverse_residual_zero",
+    "test": "test_inverse_relative_residual_and_scales",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_inverse_relative_residual_and_scales (__main__.Review.test_inverse_relative_residual_and_scales)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b_review.py\", line 75, in test_inverse_relative_residual_and_scales\n    self.assertAlmostEqual(z['residual']/want,1.,places=10)\nAssertionError: np.float64(0.0) != 1.0 within 10 places (np.float64(1.0) difference)\n\n----------------------------------------------------------------------\nRan 1 test in 0.741s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "variant": "arpack_mt19937",
+    "test": "test_arpack_start_is_pcg64",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_arpack_start_is_pcg64 (__main__.Review.test_arpack_start_is_pcg64)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b_review.py\", line 152, in test_arpack_start_is_pcg64\n    np.testing.assert_array_equal(captured[0],np.random.Generator(np.random.PCG64(7)).uniform(-1,1,3))\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 1061, in assert_array_equal\n    assert_array_compare(operator.__eq__, actual, desired, err_msg=err_msg,\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 926, in assert_array_compare\n    raise AssertionError(msg)\nAssertionError: \nArrays are not equal\n\nMismatched elements: 3 / 3 (100%)\nMax absolute difference among violations: 1.16331572\nMax relative difference among violations: 2.54838059\n ACTUAL: array([-0.387391,  0.265995, -0.611944])\n DESIRED: array([0.250191, 0.794428, 0.551371])\n\n----------------------------------------------------------------------\nRan 1 test in 0.408s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "variant": "conjugate_eigs",
+    "test": "test_complex_order_and_svd_vectors",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_complex_order_and_svd_vectors (__main__.Review.test_complex_order_and_svd_vectors)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b_review.py\", line 136, in test_complex_order_and_svd_vectors\n    self.assertLess(z['w_im'][0],0);self.assertGreater(z['w_im'][1],0)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 5.000000000000004 not less than 0\n\n----------------------------------------------------------------------\nRan 1 test in 0.668s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "variant": "zero_svd_vectors",
+    "test": "test_complex_order_and_svd_vectors",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_complex_order_and_svd_vectors (__main__.Review.test_complex_order_and_svd_vectors)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b_review.py\", line 141, in test_complex_order_and_svd_vectors\n    np.testing.assert_allclose(u.T@u,np.eye(3),atol=1e-12);np.testing.assert_allclose(vt@vt.T,np.eye(3),atol=1e-12)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 1718, in assert_allclose\n    assert_array_compare(compare, actual, desired, err_msg=str(err_msg),\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 926, in assert_array_compare\n    raise AssertionError(msg)\nAssertionError: \nNot equal to tolerance rtol=1e-07, atol=1e-12\n\nMismatched elements: 3 / 9 (33.3%)\nMax absolute difference among violations: 1.\nMax relative difference among violations: 1.\n ACTUAL: array([[0., 0., 0.],\n       [0., 0., 0.],\n       [0., 0., 0.]])\n DESIRED: array([[1., 0., 0.],\n       [0., 1., 0.],\n       [0., 0., 1.]])\n\n----------------------------------------------------------------------\nRan 1 test in 1.363s\n\nFAILED (failures=1)\n"
+  },
+  {
+    "variant": "acf_unadjusted",
+    "test": "test_adjusted_acf_hand_covariances",
+    "exit_code": 1,
+    "output": "F\n======================================================================\nFAIL: test_adjusted_acf_hand_covariances (__main__.Review.test_adjusted_acf_hand_covariances)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/src/pycli/tests/s8b_review.py\", line 62, in test_adjusted_acf_hand_covariances\n    np.testing.assert_allclose(z['values'],want,rtol=1e-14,atol=1e-15)\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 1718, in assert_allclose\n    assert_array_compare(compare, actual, desired, err_msg=str(err_msg),\n  File \"/usr/local/lib/python3.12/site-packages/numpy/testing/_private/utils.py\", line 926, in assert_array_compare\n    raise AssertionError(msg)\nAssertionError: \nNot equal to tolerance rtol=1e-14, atol=1e-15\n\nMismatched elements: 3 / 4 (75%)\nMax absolute difference among violations: 1.35\nMax relative difference among violations: 0.75\n ACTUAL: array([ 1.  ,  0.25, -0.3 , -0.45])\n DESIRED: array([ 1.      ,  0.333333, -0.6     , -1.8     ])\n\n----------------------------------------------------------------------\nRan 1 test in 3.168s\n\nFAILED (failures=1)\n"
+  }
+]

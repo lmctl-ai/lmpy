@@ -693,7 +693,7 @@ def sm_tsa_tools(p):
         return {'status': 'TIME_LIMIT', 'test': test}
     if result['status'] != 'OK':
         return result
-    values = [result['statistic']] if not isinstance(result['statistic'], list) else result['statistic']
+    values = [result['statistic']] if not isinstance(result['statistic'], list) else list(result['statistic'])
     values += result['p_value'] if isinstance(result['p_value'], list) else [result['p_value']]
     values += list(result.get('critical_values', {}).values())
     if 'icbest' in result:
