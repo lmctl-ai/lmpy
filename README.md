@@ -48,6 +48,39 @@ requires a Linux filesystem supporting O_TMPFILE and /proc/self/fd linking.
 Cancellation during writing cannot leave a named partial file; a completed
 atomic installation cannot be undone by a later cancellation.
 
+## Quick start
+
+Requirements on the host: Docker (daemon running, able to build images; the shim never pulls), git, Python 3 (gates and
+measurement scripts), and `lmscript` from the npm package `@lmctl-ai/lmctl` (`npm install -g @lmctl-ai/lmctl@0.2.207`, the version
+verified here; it brings `lmctl` as well). The build needs a checkout of `lmctl-ai/lmcpp` at `f6c6f51797912a369d6b27cf9e96f148a9a0e4d1`
+(default path `/home/ubuntu/repos/lmctl-ai/lmcpp`, override with `LMCPP_DIR=/path/to/lmcpp`).
+
+```sh
+git clone git@github.com:lmctlhq/pycli.git && cd pycli
+./scripts/build.sh runtime            # network only during the build: hash-locked wheels, pinned Debian snapshot; ~10 min cold
+export PATH="$PWD/bin:$PATH"          # bin/pycli is the host shim; nothing is installed anywhere else
+mkdir -p ~/work && cd ~/work          # calls must run from a directory below HOME (not HOME itself)
+pycli py_info                         # first call: versions, BLAS pools, build provenance
+pycli --schema > cli.schema.dev.json  # the published schema; identical to the checked-in file
+cp -r /path/to/pycli/examples .       # recipes import "../cli.schema.dev.json" and examples/schemas/*.json
+lmscript --check examples/solve.lms && lmscript examples/solve.lms
+```
+
+Verified from a fresh shell with nothing but `HOME` and `PATH` set (`env -i HOME=$HOME PATH=<pycli>/bin:<node>/bin:/usr/bin:/bin`):
+`solve`, `lstsq-fit`, `sales-report`, `graph-route-plan` and `distributions-tour` exit 0; `pycli py_info` from `/tmp` is refused with
+`INVALID_REQUEST` (exit 2) before Docker is touched. `scripts/run-recipes.sh` runs all 30 recipes in real, `--check` and `--dry-run`
+modes the same way (the optional `rcli`, `statsrust` and `lmda` legs print their setup hints when those tools are not on PATH).
+
+Working-directory rule and shim hardening: the shim bind-mounts exactly the current directory (read / write) into the container and
+rejects a cwd that is not below `$HOME`, is `$HOME` itself, or contains a comma, quote, equals sign or control character (they would
+break the mount syntax). Every path in a call is relative to that directory and confined to it. The container runs `--network=none`,
+`--read-only`, `--cap-drop=ALL`, `--security-opt=no-new-privileges`, `--pids-limit=128`, `--cpus=2`, `--memory=4g`, a 512 MiB
+`noexec,nosuid,nodev` tmpfs for its private temporaries, as your uid:gid, with `--init` and `--pull=never`; only `PYCLI_TIMEOUT_S`,
+`PYCLI_BLAS_CORETYPE`, `PYCLI_READONLY` and `PYCLI_DRYRUN` are forwarded. A Docker failure is `SERVICE_UNAVAILABLE` (exit 8), a
+container killed by a signal is `TOOL_CRASH` (exit 1); Ctrl-C kills and removes the container (exit 130). Continuous integration
+(`.github/workflows/ci.yml`) repeats the build, the full test image, the gates and every recipe on arm64 and on amd64; this host is
+aarch64, so amd64 stays UNVERIFIED until that job's first green run.
+
 ## Conventions
 
 Every operation is one validated call: `pycli <op> --input-json '{...}'` (or lmscript's `pycli.<op>({...})`), a JSON result on stdout, an
@@ -100,6 +133,73 @@ and every compile-time cap with its meaning. A status or code that is not in tha
   is a fresh process in a fresh container (0.65-1.6 s per call, docs/timings.md); large results go to artifacts, not to stdout.
 * **Not an installer or a publisher.** Images are built locally (`scripts/build.sh`), never pulled or pushed; nothing in CI publishes
   (RELEASE.md).
+
+## Timings
+
+Host load when this table was assembled (2026-10-16): `uptime` load average 9.26 / 10.29 / 8.15 on 4 cores, so the host was **not idle**
+and no new measurement was taken; every number below is the recorded measurement in the cited `docs/measurement-*.json` (idle-host runs
+where the file says so; the S8b-2 rows were re-measured on an idle host after the S8b-2 review fixes). Regenerate the tables with
+`python3 scripts/timing-table.py`; the method is 10 sequential fresh calls through the host shim, p50 of the wall time, plus the worker's
+own `import_ms`. One call costs the Docker start (about 0.4 s), the interpreter and the imports of the family (the second table), then
+the computation: 0.65 s for a numpy-only call, 1.0-1.2 s for scipy families, 1.7-2.0 s for statsmodels and scikit-learn.
+
+| Operation family (representative small call) | p50 wall ms through the shim | worker import p50 ms | Source |
+|---|---:|---:|---|
+| py_info (numpy only) | 652 | 102 | `docs/measurement-s8b2-shim.json` (`py_info`) |
+| array_import / array_inspect (pure C++, no Python) | 349 | n/a | `docs/measurement-s1-shim.json` (`array_import`) |
+| la_solve (3x3) | 1205 | n/a | `docs/measurement-s1-shim.json` (`la_solve`) |
+| la_lstsq (200 x 5; la_props, la_decomp similar) | 1237 | n/a | `docs/measurement-s1-shim.json` (`la_lstsq_200x5`) |
+| frames (frame_import ... frame_resample) | 1004 | 373 | `docs/measurement-s2-review-shim.json` (`frame_import`) |
+| opt_minimize (Rosenbrock, BFGS) | 1022 | 437 | `docs/measurement-s3-shim.json` (`opt_minimize_rosenbrock_bfgs`) |
+| opt_linprog (small LP) | 1176 | 441 | `docs/measurement-s4-review-shim.json` (`LP`) |
+| ode_solve (decay, RK45) | 1109 | 443 | `docs/measurement-s4-review-shim.json` (`ODE_decay_RK45`) |
+| sm_ols (40 x 6) | 1736 | 1009 | `docs/measurement-s5-shim.json` (`sm_ols_40x6`) |
+| ml_fit (logistic, 40 x 1) | 1970 | 1188 | `docs/measurement-s6-review-shim.json` (`ml_fit_logistic_40x1`) |
+| interp_eval (pchip, 40 nodes) | 1065 | 461 | `docs/measurement-s7-review-shim.json` (`interp_eval_pchip_40`) |
+| frame_to_array (100 x 2) | 686 | 114 | `docs/measurement-s8a-review-shim.json` (`frame_to_array_100x2`) |
+| la_matrix_fn (expm 8x8) | 995 | 353 | `docs/measurement-s8b1-shim.json` (`la_matrix_fn_expm_8x8`) |
+| special_fn (erf, 100 values) | 921 | 326 | `docs/measurement-s8b2-shim.json` (`special_fn_erf_100`) |
+| graph_paths (dijkstra, 6 nodes) | 1077 | 455 | `docs/measurement-s8b2-shim.json` (`graph_paths_dijkstra_6`) |
+| graph_flow (max_flow, 6 nodes) | 1093 | 447 | `docs/measurement-s8b2-shim.json` (`graph_flow_max_flow_6`) |
+| stats_dist (genextreme cdf) | 1428 | 732 | `docs/measurement-s8b2-shim.json` (`stats_dist_genextreme_cdf`) |
+| stats_dist rvs (norm, numpy only) | 679 | 107 | `docs/measurement-s8b2-shim.json` (`stats_dist_norm_rvs`) |
+
+| Import group (what the worker imports for the family) | worker import p50 ms | Source |
+|---|---:|---|
+| numpy only (py_info, stats_dist rvs of the S8a families, frame bridge) | 102 | `docs/measurement-s8b2-shim.json` (`py_info`) |
+| scipy.special (special_fn) | 326 | `docs/measurement-s8b2-shim.json` (`special_fn_erf_100`) |
+| scipy.stats (stats_dist evaluations) | 732 | `docs/measurement-s8b2-shim.json` (`stats_dist_genextreme_cdf`) |
+| networkx + scipy.sparse.csgraph (graph_paths, graph_flow) | 455 | `docs/measurement-s8b2-shim.json` (`graph_paths_dijkstra_6`) |
+| scipy.optimize (opt_minimize, opt_least_squares, num_quad, opt_root) | 437 | `docs/measurement-s3-shim.json` (`opt_minimize_rosenbrock_bfgs`) |
+| scipy.optimize HiGHS / scipy.integrate (opt_linprog, ode_solve) | 441 | `docs/measurement-s4-review-shim.json` (`LP`) |
+| scipy.interpolate / signal / spatial (S7) | 461 | `docs/measurement-s7-review-shim.json` (`interp_eval_pchip_40`) |
+| pandas (frames) | 373 | `docs/measurement-s2-review-shim.json` (`frame_import`) |
+| statsmodels (sm_*) | 1009 | `docs/measurement-s5-shim.json` (`sm_ols_40x6`) |
+| scikit-learn (ml_*) | 1188 | `docs/measurement-s6-review-shim.json` (`ml_fit_logistic_40x1`) |
+| scipy.linalg (la_matrix_fn, la_sparse) | 353 | `docs/measurement-s8b1-shim.json` (`la_matrix_fn_expm_8x8`) |
+
+| Runtime image (content bytes, `docker image inspect .Size`) | Bytes | MB | Source |
+|---|---:|---:|---|
+| S0 (first runtime) | 115700011 | 115.7 | `docs/measurement-runtime.json` |
+| S0 review fix (pruned, fresh base) | 97450776 | 97.5 | `docs/measurement-review-packaging.json` |
+| S2 (pandas) | 110691742 | 110.7 | `docs/measurement-s2-packaging.json` |
+| S3 (expressions) | 115206817 | 115.2 | `docs/measurement-s3-shim.json` |
+| S4 (HiGHS, ODE) | 115249079 | 115.2 | `docs/measurement-s4-review-packaging.json` |
+| S5 (statsmodels) | 124998107 | 125.0 | `docs/measurement-s5-shim.json` |
+| S6 (scikit-learn) | 136467787 | 136.5 | `docs/measurement-s6-review-shim.json` |
+| S7 (interp / signal / spatial) | 136513714 | 136.5 | `docs/measurement-s7-review-shim.json` |
+| S8a (bridge, metrics) | 136587173 | 136.6 | `docs/measurement-s8a-review-shim.json` |
+| S8b-1 (matrix functions, sparse) | 136632374 | 136.6 | `docs/measurement-s8b1-shim.json` |
+| S8b-2 + review fixes (networkx; now) | 139247426 | 139.2 | `docs/measurement-s8b2-shim.json` |
+
+| Hardened-container peak (2 CPUs, 4 GiB, read-only root, `--network=none`) | cgroup peak MB | Source |
+|---|---:|---|
+| S2 frame caps (200000 rows / 500000 cells / 16 MiB CSV) | 255 | `docs/measurement-s2-review-caps.json` |
+| S4 LP / ODE caps | 105 | `docs/measurement-s4-review-caps.json` |
+
+Per-cap worst cases (wall seconds, exit codes and cgroup peaks under the 2 CPU / 4 GiB container for every slice's caps) are the
+`measurement-*-caps.json` / `.txt` files summarised per slice in [docs/timings.md](docs/timings.md); the acceptance paragraph there records
+the CTest, recipe and build exit codes of the current tree.
 
 ### S1 arrays and dense linear algebra
 
