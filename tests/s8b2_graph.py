@@ -478,8 +478,8 @@ class Flow(Base):
         r = call('graph_flow', self.flow(f, kind='max_flow', source='a', sink='c'))
         self.assertFalse(r['integral'])
         self.assertAlmostEqual(r['value'], 0.375, places=12)  # min(0.3, 0.25) + 0.125
-        self.assertEqual(r['tolerance'], 1e-9)
-        flow_checks(self, r, edges, 'a', 'c', r['value'], 1e-9)
+        self.assertAlmostEqual(r['tolerance'], 0.375e-9, places=20)  # 1e-9 times the flow value
+        flow_checks(self, r, edges, 'a', 'c', r['value'], 0.375e-9)
 
     def test_validation_before_spawn_and_inline_limits(self):
         f = self.edges(CLRS_FLOW)
@@ -502,8 +502,8 @@ class Flow(Base):
         call('frame_import', dict(csv=self.p('many.csv'), out=self.p('many.npz')))
         rejected('graph_flow', self.flow(self.p('many.npz'), kind='max_flow', source=0, sink=20001), 'INPUT_TOO_LARGE')
         wide = self.edges([(i, i + 1, 1) for i in range(400)], name='wide.npz')
-        r = call('graph_flow', self.flow(wide, kind='max_flow', source=0, sink=400), rc=2)
-        self.assertEqual(r['error']['data']['tool_code'], 'OUTPUT_TOO_LARGE')  # 400 flow edges do not fit inline: use graph_flow_to
+        r = call('graph_flow', self.flow(wide, kind='max_flow', source=0, sink=400), rc=1)
+        self.assertEqual((r['error']['code'], r['error']['data']['tool_code']), ('COMMAND_FAILED', 'OUTPUT_TOO_LARGE'))  # 400 flow edges do not fit inline: use graph_flow_to
         out = self.p('wide-flow.npz')
         t = call('graph_flow_to', self.flow(wide, kind='max_flow', source=0, sink=400, out=out))
         self.assertEqual((t['status'], t['value'], t['n_flow_edges']), ('OK', 1, 400))

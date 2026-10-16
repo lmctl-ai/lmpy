@@ -366,8 +366,8 @@ class Validation(unittest.TestCase):
         rejected(dict(dist='genextreme', fn='cdf', params={'c': 0.1}, x=list(range(1001))), 'INPUT_TOO_LARGE')
         rejected(dict(dist='levy_stable', fn='cdf', params={'alpha': 1.5}, x=[0.1] * 201), 'INPUT_TOO_LARGE')  # numerical integration: 200 points at most
         rejected(dict(dist='vonmises', fn='cdf', params={'kappa': 2.0}, x=[0.1] * 201), 'INPUT_TOO_LARGE')
-        rejected(dict(dist='zipf', fn='cdf', params={'a': 1.5}, x=[2e6]), 'INPUT_TOO_LARGE')  # cdf/sf sum the mass up to x
-        rejected(dict(dist='zipf', fn='sf', params={'a': 1.5}, x=[-2e6]), 'INPUT_TOO_LARGE')
+        rejected(dict(dist='zipf', fn='cdf', params={'a': 1.5}, x=[2e6]), 'INPUT_TOO_LARGE')  # cdf/sf sum the mass from loc + 1 up to x
+        self.assertEqual(values('zipf', 'sf', [-2e6], {'a': 1.5}), [1.0])  # below the support nothing is summed
         rejected(dict(dist='genextreme', fn='cdf', params={'c': 0.1}, x=[[1.0]]), None)
         rejected(dict(dist='genextreme', fn='moments', params={'c': 0.1}, x=None, n=3), 'BAD_PARAM')
 
@@ -375,10 +375,10 @@ class Validation(unittest.TestCase):
 class Guards(unittest.TestCase):
     def test_zipf_quantile_beyond_the_summable_range_is_a_status(self):
         r = call('stats_dist', dict(dist='zipf', fn='ppf', params={'a': 1.2}, x=[0.5, 0.999]))
-        self.assertEqual(r['status'], 'OUT_OF_RANGE')
-        self.assertNotIn('values', r)
+        self.assertEqual((r['status'], r['n_out_of_range'], r['values'][1]), ('OUT_OF_RANGE', 1, 'NA'))  # the in-range quantile is still answered
+        self.assertGreaterEqual(r['values'][0], 1)
         r = call('stats_dist', dict(dist='zipf', fn='isf', params={'a': 1.2}, x=[0.5, 1e-3]))
-        self.assertEqual(r['status'], 'OUT_OF_RANGE')
+        self.assertEqual((r['status'], r['values'][1]), ('OUT_OF_RANGE', 'NA'))
         r = call('stats_dist', dict(dist='zipf', fn='ppf', params={'a': 4.0}, x=[0.5, 0.999]))
         self.assertEqual((r['status'], r['values'][0]), ('OK', 1.0))
         self.assertTrue(r['values'][1] >= 2)
