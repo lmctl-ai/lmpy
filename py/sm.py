@@ -613,12 +613,12 @@ def sm_tsa_acf(p):
     n = len(y)
     nlags = p['nlags']
     if n < 3:
-        raise BadData('the series needs at least 3 observations', 'BAD_DATA')
+        raise BadData('the series needs at least 3 observations', 'TOO_SHORT' if p.get('test') in ('acf','pacf') else 'BAD_DATA')
     if float(np.ptp(y)) == 0.0:
         raise BadData('the series is constant: its autocorrelation is undefined', 'CONSTANT_SERIES')
     limit = n // 2 if p['kind'] == 'pacf' else n
     if nlags >= limit:
-        raise BadData('nlags %d must be below %d for a series of length %d' % (nlags, limit, n), 'BAD_PARAM')
+        raise BadData('nlags %d must be below %d for a series of length %d' % (nlags, limit, n), 'TOO_SHORT' if p.get('test') in ('acf','pacf') else 'BAD_PARAM')
     y = y / float(np.max(np.abs(y)))  # correlations are scale-free; this keeps the covariance products away from overflow/underflow
     with np.errstate(all='ignore'):
         if p['kind'] == 'acf':
@@ -650,19 +650,32 @@ def sm_tsa_tools(p):
         raise BadData('the series needs at least 8 observations', 'TOO_SHORT')
     if float(np.ptp(y)) == 0.0:
         raise BadData('the series is constant: the test statistic is undefined', 'CONSTANT_SERIES')
-    result = {'status': 'OK', 'test': test, 'n': n}
+    scale = float(np.max(np.abs(y)))
+    y = y / scale
+    result = {'status': 'OK', 'test': test, 'n': n, 'normalisation_scale': scale}
+    if test == 'adfuller':
+        trends = 0 if p['regression'] == 'n' else len(p['regression'])
+        limit = n // 2 - trends - 1
+        maxlag = p.get('maxlag')
+        maxlag = min(int(np.ceil(12 * (n / 100.0) ** .25)), limit) if maxlag is None else int(maxlag)
+        if maxlag < 0 or maxlag > limit:
+            raise BadData('maxlag exceeds the sample/trend-dependent limit %d' % limit, 'TOO_SHORT')
+    if test == 'kpss' and isinstance(p['kpss_lags'], int) and p['kpss_lags'] >= n:
+        raise BadData('kpss_lags must be below the series length', 'TOO_SHORT')
+    if test == 'ljung_box' and max(p['lags'] if isinstance(p['lags'], list) else [p['lags']]) >= n:
+        raise BadData('requested lags must be below the series length', 'TOO_SHORT')
 
     def body():
         with np.errstate(all='ignore'), warnings.catch_warnings():
             warnings.simplefilter('ignore')  # InterpolationWarning is reported explicitly as p_value_bounded
             try:
                 if test == 'adfuller':
-                    out = adfuller(y, maxlag=p.get('maxlag'), regression=p['regression'], autolag=None if p['autolag'] == 'none' else p['autolag'])
+                    out = adfuller(y, maxlag=maxlag, regression=p['regression'], autolag=None if p['autolag'] == 'none' else p['autolag'])
                     result.update({'statistic': float(out[0]), 'p_value': float(out[1]), 'used_lag': int(out[2]), 'nobs': int(out[3]),
                                    'critical_values': {k: float(v) for k, v in out[4].items()}, 'regression': p['regression'], 'autolag': p['autolag'],
-                                   'maxlag': int(p['maxlag']) if p.get('maxlag') is not None else int(12 * (n / 100.0) ** 0.25)})
+                                   'maxlag': maxlag})
                     if len(out) > 5:
-                        result['icbest'] = float(out[5])
+                        result['icbest'] = float(out[5]) + (2 * (n - 1 - maxlag) * math.log(scale) if p['autolag'] in ('AIC','BIC') else 0)
                 elif test == 'kpss':
                     stat, pvalue, lags, crit = kpss(y, regression=p['regression'], nlags=p['kpss_lags'])
                     below = pvalue <= 0.01 and stat > crit['1%']
@@ -673,11 +686,18 @@ def sm_tsa_tools(p):
                     table = acorr_ljungbox(y, lags=p['lags'], model_df=p['model_df'], return_df=True)
                     result.update({'lags': [int(v) for v in table.index], 'statistic': [float(v) for v in table['lb_stat']], 'p_value': [float(v) for v in table['lb_pvalue']], 'model_df': p['model_df']})
             except ValueError as exc:
-                raise BadData('the %s test cannot run on this series: %s' % (test, str(exc)[:200]), 'TOO_SHORT')
+                result.update(status='NUMERICAL_FAILURE', message='the %s test failed numerically: %s' % (test, str(exc)[:200]))
+                return False
         return True
     if sm_fit_guard(p, body) is None:
         return {'status': 'TIME_LIMIT', 'test': test}
+    if result['status'] != 'OK':
+        return result
     values = [result['statistic']] if not isinstance(result['statistic'], list) else result['statistic']
+    values += result['p_value'] if isinstance(result['p_value'], list) else [result['p_value']]
+    values += list(result.get('critical_values', {}).values())
+    if 'icbest' in result:
+        values.append(result['icbest'])
     if not all(math.isfinite(v) for v in values):
         return {'status': 'NUMERICAL_FAILURE', 'test': test, 'n': n, 'message': 'the test statistic is not finite for this series'}
     return result

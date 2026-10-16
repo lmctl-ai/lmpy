@@ -763,7 +763,7 @@ def opt_root(p):
         r = np.array([scalar_value(np, evaluate(g, env), 'each equation') for g in programs], dtype=float)
         if not np.isfinite(r).all():
             if state['at_start']:
-                raise BadData('the equations are not finite at the start point', 'NONFINITE_RESIDUAL')
+                raise BadData('the equation is not finite at a bracket endpoint' if 'bracket' in p else 'the equations are not finite at the start point', 'NONFINITE_BRACKET' if 'bracket' in p else 'NONFINITE_RESIDUAL')
             guard.nonfinite += 1
             raise NonFinite('non-finite equation value; the best point so far is reported')
         norm = float(np.max(np.abs(r)))
@@ -774,13 +774,13 @@ def opt_root(p):
     status, message, xv = 'OK', '', best['x']
     with np.errstate(all='ignore'):
         try:
-            fun(ctx.x0)
-            state['at_start'] = False
             if 'bracket' in p:
                 lo, hi = float(p['bracket'][0]), float(p['bracket'][1])
                 fa, fb = fun(np.array([lo]))[0], fun(np.array([hi]))[0]
+                state['at_start'] = False
                 if fa == 0.0 or fb == 0.0:
                     xv = np.array([lo if fa == 0.0 else hi])
+                    result['iterations'] = 0
                 elif math.copysign(1.0, fa) == math.copysign(1.0, fb):
                     raise BadData('f(lower) and f(upper) must have opposite signs (or one must be zero)', 'BAD_INTERVAL')
                 else:
@@ -790,6 +790,8 @@ def opt_root(p):
                     if not info.converged:
                         status, message = 'NO_CONVERGENCE', str(info.flag)
             else:
+                fun(ctx.x0)
+                state['at_start'] = False
                 res = optimize.root(fun, ctx.x0, method=p['method'], tol=p['xtol'], options={'maxfev': max(1, p['max_evals'] - guard.count)} if p['method'] == 'hybr' else {'maxiter': max(1, p['max_evals'] - guard.count)})
                 xv = np.asarray(res.x, dtype=float)
                 result['nfev'] = int(res['nfev']) if 'nfev' in res else guard.count
