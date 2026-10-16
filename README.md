@@ -456,7 +456,9 @@ string to preserve identifiers. Numeric `NA` participates in nullable integer
 inference; numeric overrides reject underscores and non-decimal syntax. Dates require `parse_dates` or a dtype override. Explicit
 float overflow fails instead of becoming infinity. CSV exports use 17 significant
 digits, explicit `NaN`/`Inf`/`-Inf` tokens and empty missing/NaT fields.
-With matching dtype policies, numeric nonfinite values and missing masks round-trip.
+With matching dtype policies, numeric nonfinite values and missing masks round-trip. A float64 column whose values are all whole
+numbers is exported as integers (`4`, not `4.0`) and re-imports as int64 unless `dtypes` overrides it: the dtype, not the values, is
+lost through CSV; `.npz` tables keep it.
 CSV cannot preserve category policy or distinguish empty strings from null; NPZ is the lossless handoff. JSON export is columnar, without hidden index.
 
 Dtype objects accept `dtype` plus `tz` for datetime, or `categories`/`ordered` for
@@ -815,6 +817,9 @@ Missing values and NaN are skipped; a result needs `min_periods` observations (d
 missing value; `count` is nullable int64; min_periods applies to window rows, while the count itself counts non-missing observations (pandas semantics). New columns are `<column>__<function>`. Work (rows x window x columns x functions) is capped at 1e8 before the call.
 
 `ml_metrics`: labels may be int, bool, string or category columns (bool and integral floats count as integers), arrays hold numbers. At most 30 distinct labels for label metrics.
+Scoring an `ml_predict` artifact: its table holds only the `prediction` column (and class probabilities), not the inputs, so pass the truth and the prediction
+as two arrays (`frame_to_array_to` with `squeeze: true` on the source table's target column and on the prediction table), or inline the truth; `frame` with
+column names needs both columns in one table.
 `average` binary treats `pos_label` as positive and everything else as negative (default `pos_label` 1 for 0/1 labels, required otherwise; it must occur among the labels).
 `balanced_accuracy` is the mean recall over the classes present in `y_true`. `roc_auc` is the rank statistic with tied scores counting 1/2; `log_loss` clips probabilities to
 [1e-15, 1 - 1e-15] and reports `log_loss_eps`; `mape` is a fraction. A metric that is mathematically undefined (constant `y_true` for r2, a zero in `y_true` for mape, one class
