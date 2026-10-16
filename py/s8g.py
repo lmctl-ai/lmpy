@@ -5,6 +5,8 @@ S8G_OPS = ('graph_paths', 'graph_paths_to', 'graph_flow', 'graph_flow_to')
 S8G_INLINE_FLOW_EDGES = 300
 S8G_TOL = 1e-9
 S8G_LIMIT = 1e15
+S8G_COST_LIMIT = 10 ** 12
+S8G_ID_BYTES = 256
 
 
 def g_node_column(np, cmeta, raw, mask, name):
@@ -56,9 +58,10 @@ def g_budget(p, body):
     return s7_guard(p, body)
 
 
-def g_inline(ok, what):
+def g_inline(ok, what, hint):
+    """An inline result that does not fit is OUTPUT_TOO_LARGE (COMMAND_FAILED, exit 1), with a hint that the caller can act on."""
     if not ok:
-        raise BadData('%s does not fit the inline result: use the _to twin to write an artifact' % what, 'OUTPUT_TOO_LARGE')
+        raise OutputTooLarge('%s does not fit the inline result: %s' % (what, hint))
 
 
 def g_is_file(p):
@@ -73,7 +76,7 @@ def g_tree(adj, dist, source):
     queue = [source]
     for u in queue:
         for v, w in adj[u].items():
-            if v not in hops and v in dist and dist[u] + w == dist[v]:
+            if v not in hops and v in dist and abs(dist[u] + w - dist[v]) <= 1e-12 * max(1.0, abs(dist[v])):
                 pred[v] = u
                 hops[v] = hops[u] + 1
                 queue.append(v)
@@ -88,6 +91,17 @@ def g_path(pred, target):
     return out
 
 
+def g_negative_loops(src, dst, weights):
+    """{node: most negative self-loop weight}: a negative self loop is a negative cycle of one node (non-negative self loops are ignored)."""
+    loops = {}
+    if weights is None:
+        return loops
+    for u, v, w in zip(src, dst, weights):
+        if u == v and w < 0 and (u not in loops or w < loops[u]):
+            loops[u] = w
+    return loops
+
+
 def g_adjacency(src, dst, weights, directed):
     adj = {}
     for k, (u, v) in enumerate(zip(src, dst)):
@@ -100,6 +114,24 @@ def g_adjacency(src, dst, weights, directed):
             if b not in adj[a] or w < adj[a][b]:
                 adj[a][b] = w
     return adj
+
+
+def g_negative_cycle_witness(nx, adj, loops):
+    """Some negative cycle of the whole graph: a super source joined to every node by a zero edge, then networkx's Bellman-Ford witness."""
+    if loops:
+        return [min(loops)]
+    G = nx.DiGraph()
+    for u, nbrs in adj.items():
+        G.add_node(u)
+        for v, w in nbrs.items():
+            G.add_edge(u, v, weight=w)
+    anchor = object()
+    for u in list(G.nodes):
+        G.add_edge(anchor, u, weight=0)
+    cycle = nx.find_negative_cycle(G, anchor, weight='weight')
+    if len(cycle) > 1 and cycle[0] == cycle[-1]:
+        cycle = cycle[:-1]
+    return [u for u in cycle if u is not anchor]
 
 
 def g_all_pairs(np, p, adj, weights_used):
@@ -148,6 +180,7 @@ def g_node_array(np, nodes, kind):
         return np.asarray(nodes, dtype='<i8'), {'dtype': 'int64'}
     encoded = [n.encode('utf-8') for n in nodes]
     width = max(1, max((len(e) for e in encoded), default=1))
+    s8_cap(width <= S8G_ID_BYTES, 'node id length')
     return np.asarray(encoded, dtype='S%d' % width), {'dtype': 'string'}
 
 
@@ -157,20 +190,28 @@ def graph_paths(p):
     method, directed, kind = p['method'], p['directed'], p['node_kind']
     src, dst, columns = g_read(np, p, [p['weight_column']] if p.get('weight_column') else [])
     weights = columns.get(p.get('weight_column')) if p.get('weight_column') else None
+    if weights is not None and max(abs(w) for w in weights) > S8G_LIMIT:
+        raise BadData('edge weights must be at most 1e15 in magnitude', 'BAD_DATA')
     if method == 'dijkstra' and weights is not None and min(weights) < 0:
         raise BadData('dijkstra needs non-negative weights', 'BAD_PARAM')
     adj = g_adjacency(src, dst, weights, directed)
+    loops = g_negative_loops(src, dst, weights)
     n_edges = sum(len(v) for v in adj.values()) // (1 if directed else 2)
     result = {'status': 'OK', 'method': method, 'directed': directed, 'n_nodes': len(adj), 'n_edges': n_edges}
     if p['all_pairs']:
         def body():
+            if loops:
+                return None, None
             return g_all_pairs(np, p, adj, weights is not None)
         got = g_budget(p, body)
         if got is None:
             return dict(result, status='TIME_LIMIT')
         matrix, nodes = got
         if matrix is None:
-            return dict(result, status='NEGATIVE_CYCLE', message='the graph has a negative cycle: shortest paths are undefined')
+            cycle = g_budget(p, lambda: g_negative_cycle_witness(nx, adj, loops))
+            if cycle is None:
+                return dict(result, status='TIME_LIMIT')
+            return dict(result, status='NEGATIVE_CYCLE', cycle=cycle, message='the graph has a negative cycle: shortest paths are undefined')
         result['n_unreachable_pairs'] = int(np.isnan(matrix).sum())
         result['outputs'] = g_save(p, [('distance', matrix), ('nodes', np.asarray(nodes, dtype=np.int64))])
         return result
@@ -183,6 +224,16 @@ def graph_paths(p):
             if directed or u <= v:
                 G.add_edge(u, v, weight=w)
     weight = None if method == 'bfs' else 'weight'
+    if loops:  # bellman_ford only (dijkstra / k_shortest / bfs never see negative weights): a reachable negative self loop is NEGATIVE_CYCLE
+        reach, queue = {source}, [source]
+        for u in queue:
+            for v in adj[u]:
+                if v not in reach:
+                    reach.add(v)
+                    queue.append(v)
+        hit = sorted(u for u in loops if u in reach)
+        if hit:
+            return dict(result, status='NEGATIVE_CYCLE', cycle=[hit[0]], message='a negative self loop is reachable from the source: shortest paths are undefined')
     state = {}
 
     def body():
@@ -225,15 +276,15 @@ def graph_paths(p):
             result['paths'] = state['paths']
             result['k_found'] = len(state['paths'])
             total = sum(len(q['nodes']) + 2 for q in state['paths'])
-            g_inline(total <= 900, 'k_shortest result')
+            g_inline(total <= 900, 'k_shortest result', 'ask for fewer paths (k_shortest) or a nearer target; the write form has no k_shortest')
             return result
         path = g_path(pred, target)
-        g_inline(len(path) <= 900, 'path length')
+        g_inline(len(path) <= 900, 'path length', 'graph_paths_to writes the whole predecessor tree as a node table')
         result.update({'target': target, 'path': path, 'length': dist[target], 'hops': len(path) - 1})
         return result
     reached = g_order(dist)
     if not g_is_file(p):
-        g_inline(2 * len(reached) <= 900, 'distance listing')
+        g_inline(2 * len(reached) <= 900, 'distance listing', 'give a target or use graph_paths_to')
         result.update({'nodes': reached, 'distance': [dist[u] for u in reached]})
         return result
     nodes = g_order(adj)
@@ -264,6 +315,8 @@ def g_edge_table(np, p):
     if any(c > S8G_LIMIT for c in caps):
         raise BadData('capacities must not exceed 1e15', 'BAD_DATA')
     costs = columns[p['cost_column']] if p.get('cost_column') else None
+    if costs is not None and any(abs(k) > S8G_COST_LIMIT for k in costs):
+        raise BadData('costs must be at most 1e12 in magnitude for min_cost_flow', 'BAD_DATA')
     return src, dst, caps, costs
 
 
@@ -288,17 +341,20 @@ def graph_flow(p):
     src, dst, caps, costs = g_edge_table(np, p)
     integral = all(isinstance(c, int) for c in caps) and (costs is None or all(isinstance(c, int) for c in costs))
     result = {'status': 'OK', 'kind': kind, 'integral': bool(integral), 'n_nodes': 0}
+    loop_flow, loop_cost = {}, 0  # min_cost_flow: a negative-cost self loop is saturated (it lowers the cost); other self loops are ignored
     if kind == 'min_cost_flow':
         seen = set()
         for u, v in zip(src, dst):
-            if (u, v) in seen:
+            if (u, v) in seen and u != v:
                 raise BadData('min_cost_flow needs one edge per (from, to) pair; (%r, %r) is repeated' % (u, v), 'DUPLICATE_EDGE')
             seen.add((u, v))
         if not (all(float(c).is_integer() for c in caps) and all(float(c).is_integer() for c in costs)):
             raise BadData('min_cost_flow needs integer capacities and costs (network simplex is exact only for integers)', 'NOT_INTEGER')
         caps, costs = [int(c) for c in caps], [int(c) for c in costs]
-        if max(abs(c) for c in costs + caps) > 10 ** 12:
-            raise BadData('capacities and costs must be at most 1e12 in magnitude for min_cost_flow', 'BAD_DATA')
+        for u, v, c, k in zip(src, dst, caps, costs):
+            if u == v and k < 0 and c > 0:
+                loop_flow[u] = loop_flow.get(u, 0) + c
+                loop_cost += c * k
         result['integral'] = True
     merged = {}
     for u, v, c in zip(src, dst, caps):
@@ -306,9 +362,7 @@ def graph_flow(p):
             merged[(u, v)] = merged.get((u, v), 0) + c
     if integral or kind == 'min_cost_flow':
         merged = {k: int(v) for k, v in merged.items()}
-    scale = max([1.0] + [float(c) for c in merged.values()])
-    tolerance = 0.0 if result['integral'] else S8G_TOL * scale
-    result['tolerance'] = tolerance
+    result['tolerance'] = 0.0  # float capacities: 1e-9 times the flow value, set once the value is known
     G = nx.DiGraph()
     for node in set(src) | set(dst):
         G.add_node(node)
@@ -357,37 +411,42 @@ def graph_flow(p):
     if outcome != 'OK':
         return dict(result, status=outcome, message='the supplies cannot be routed within the capacities' if outcome == 'INFEASIBLE' else 'a negative-cost cycle has unlimited capacity')
     nodes = g_order(G.nodes)
-    tol = tolerance
+    if kind != 'min_cost_flow':
+        value = state['value']
+        tol = 0.0 if result['integral'] else S8G_TOL * abs(float(value))
+        result['tolerance'] = tol
+    else:
+        tol = 0.0
     if kind == 'min_cut':
         reach = set(state['partition'][0])
         cut = [(u, v, c) for (u, v), c in merged.items() if u in reach and v not in reach and c > 0]
         cut.sort(key=lambda e: (e[0], e[1]))
         total = sum(c for _, _, c in cut)
-        if abs(total - state['value']) > tol + 1e-12 * max(1.0, abs(total)):
-            return dict(result, status='NUMERICAL_FAILURE', message='the cut capacity %r differs from the flow value %r' % (total, state['value']))
-        result.update({'value': state['value'], 'n_cut_edges': len(cut), 'source_side_size': len(reach)})
+        if abs(total - value) > tol:
+            return dict(result, status='NUMERICAL_FAILURE', message='the cut capacity %r differs from the flow value %r' % (total, value))
+        result.update({'value': value, 'n_cut_edges': len(cut), 'source_side_size': len(reach)})
         if not g_is_file(p):
-            g_inline(len(cut) <= S8G_INLINE_FLOW_EDGES and len(reach) <= S8G_INLINE_FLOW_EDGES, 'cut size')
+            g_inline(len(cut) <= S8G_INLINE_FLOW_EDGES and len(reach) <= S8G_INLINE_FLOW_EDGES, 'cut size', 'graph_flow_to writes the cut edges as a table')
             result.update({'cut_from': [e[0] for e in cut], 'cut_to': [e[1] for e in cut], 'cut_capacity': [e[2] for e in cut], 'source_side': g_order(reach)})
             return result
         return g_write_table(p, ['from', 'to', 'capacity'], [[e[0] for e in cut], [e[1] for e in cut], [e[2] for e in cut]], result)
     flow = state['flow']
-    edges = sorted(((u, v, f) for u, nbrs in flow.items() for v, f in nbrs.items() if f > (tol if tol else 0)), key=lambda e: (e[0], e[1]))
+    noise = 0.0 if result['integral'] else 1e-12 * abs(float(state.get('value', 0)))  # float rounding residue only; every real flow edge is listed
+    edges = sorted(((u, v, f) for u, nbrs in flow.items() for v, f in nbrs.items() if f > noise and u != v), key=lambda e: (e[0], e[1]))
     # independent verification of the returned flow against the raw edge list
     net = {}
     for u, v, f in edges:
         cap = merged[(u, v)]
-        if f > cap + tol + 1e-12 * max(1.0, float(cap)):
+        if f > cap + tol:
             return dict(result, status='NUMERICAL_FAILURE', message='the flow on (%r, %r) exceeds its capacity' % (u, v))
         net[u] = net.get(u, 0) - f
         net[v] = net.get(v, 0) + f
     if kind == 'max_flow':
         source, sink = p['source'], p['sink']
-        value = state['value']
         for node, excess in net.items():
-            if node not in (source, sink) and abs(excess) > tol + 1e-12:
+            if node not in (source, sink) and abs(excess) > tol:
                 return dict(result, status='NUMERICAL_FAILURE', message='flow is not conserved at node %r (excess %r)' % (node, excess))
-        if abs(-net.get(source, 0) - value) > tol + 1e-12 * max(1.0, abs(value)):
+        if abs(-net.get(source, 0) - value) > tol:
             return dict(result, status='NUMERICAL_FAILURE', message='the flow out of the source differs from the reported value')
         result['value'] = value
     else:
@@ -397,10 +456,17 @@ def graph_flow(p):
         recomputed = sum(f * cost_of[(u, v)] for u, v, f in edges)
         if recomputed != state['cost']:
             return dict(result, status='NUMERICAL_FAILURE', message='the reported cost %r differs from the cost of the returned flow %r' % (state['cost'], recomputed))
-        result['cost'] = state['cost']
+        edges = sorted(edges + [(u, u, c) for u, c in loop_flow.items()], key=lambda e: (e[0], e[1]))
+        cost = state['cost'] + loop_cost
+        if -2 ** 63 <= cost < 2 ** 63:
+            result['cost'] = cost
+        else:
+            result['cost'] = float(cost)
+            result['cost_exact'] = str(cost)
+            warnings.warn('the total cost does not fit int64: cost is rounded to a double, cost_exact holds the exact integer', NumericalWarning)
     result['n_flow_edges'] = len(edges)
     if not g_is_file(p):
-        g_inline(len(edges) <= S8G_INLINE_FLOW_EDGES, 'flow edge list')
+        g_inline(len(edges) <= S8G_INLINE_FLOW_EDGES, 'flow edge list', 'graph_flow_to writes the flow edges as a table')
         result.update({'flow_from': [e[0] for e in edges], 'flow_to': [e[1] for e in edges], 'flow': [e[2] for e in edges]})
         return result
     return g_write_table(p, ['from', 'to', 'flow'], [[e[0] for e in edges], [e[1] for e in edges], [e[2] for e in edges]], result)
