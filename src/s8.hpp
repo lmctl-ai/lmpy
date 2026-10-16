@@ -364,7 +364,7 @@ inline void dist_eval_prepare(Json& p,std::map<std::string,Array>& arrays,size_t
     arrays["x"]=load(p["x"]);
     if(arrays["x"].shape.size()!=1||arrays["x"].data.size()>cap)invalid("stats_dist requires a vector of <="+std::to_string(cap)+" values for "+dist,"INPUT_TOO_LARGE");
     p["missing"]=arrays["x"].missing;
-    if(dist=="zipf"&&(fn=="cdf"||fn=="logcdf"||fn=="sf"||fn=="logsf"))for(double v:arrays["x"].data)if(std::isfinite(v)&&std::fabs(v)>1e6)invalid("zipf cdf/sf sum the mass up to x: |x| must be at most 1e6","INPUT_TOO_LARGE");
+    if(dist=="zipf"&&(fn=="cdf"||fn=="logcdf"||fn=="sf"||fn=="logsf"))for(double v:arrays["x"].data)if(std::isfinite(v)&&std::fabs(v)>1e5)invalid("zipf cdf/sf sum the mass up to x: |x| must be at most 1e5","INPUT_TOO_LARGE");
     if(fn=="ppf"||fn=="isf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid(fn+" probabilities must lie in [0,1]","BAD_PROBABILITY");
 }
 

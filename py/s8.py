@@ -837,11 +837,11 @@ def dist_evaluate(p):
                         note='kurtosis is the excess kurtosis; NA means infinite or undefined')
         x = np.load(p['x_file'], allow_pickle=False).astype(float)
         if dist == 'zipf' and fn in ('ppf', 'isf'):
-            # scipy searches the heavy tail by summing the mass function: refuse quantiles beyond 1e6 instead of running out of memory
-            edge = float(frozen.cdf(1e6)) if fn == 'ppf' else float(frozen.sf(1e6))
+            # scipy searches the heavy tail by summing the mass function: refuse quantiles beyond 1e5 instead of running out of memory
+            edge = float(frozen.cdf(1e5)) if fn == 'ppf' else float(frozen.sf(1e5))
             level = x[np.isfinite(x)]
             if (fn == 'ppf' and (level > edge).any()) or (fn == 'isf' and (level < edge).any()):
-                return dict(base, status='OUT_OF_RANGE', message='a requested zipf quantile lies beyond 1e6 (the cdf there is %r): not computed' % (edge if fn == 'ppf' else 1 - edge))
+                return dict(base, status='OUT_OF_RANGE', message='a requested zipf quantile lies beyond 1e5 (the cdf there is %r): not computed' % (edge if fn == 'ppf' else 1 - edge))
         try:
             values = np.asarray(dist_methods(frozen, dist in DIST_DISCRETE)[fn](x), dtype=float)
         except (RuntimeError, ValueError, OverflowError, ZeroDivisionError, ArithmeticError) as exc:

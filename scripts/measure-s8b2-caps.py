@@ -141,7 +141,7 @@ for dist, params in (('vonmises', {'kappa': 5.0}), ('vonmises', {'kappa': 1e5}))
     for fn in ('cdf', 'ppf'):
         run('stats_dist %s %s kappa %g 200 points' % (dist, fn, params['kappa']), 'stats_dist', dict(dist=dist, fn=fn, params=params, x=x200 if fn == 'cdf' else list(np.linspace(0.01, 0.99, 200))))
 for a in (1.05, 1.5, 4.0):
-    run('stats_dist zipf a=%g cdf 1000 points up to 1e6' % a, 'stats_dist', dict(dist='zipf', fn='cdf', params={'a': a}, x=list(np.linspace(1, 1e6, 1000))))
+    run('stats_dist zipf a=%g cdf 1000 points up to 1e5' % a, 'stats_dist', dict(dist='zipf', fn='cdf', params={'a': a}, x=list(np.linspace(1, 1e5, 1000))))
     run('stats_dist zipf a=%g ppf 1000 points' % a, 'stats_dist', dict(dist='zipf', fn='ppf', params={'a': a}, x=list(np.linspace(0.001, 0.999, 1000))))
 run('stats_dist levy_stable alpha 0.1 cdf 200 points (hard)', 'stats_dist', dict(dist='levy_stable', fn='cdf', params={'alpha': 0.1, 'beta': 0.9}, x=x200))
 for dist, params in (('genextreme', {'c': 0.2}), ('nct', {'df': 7.0, 'nc': 2.0}), ('skewnorm', {'a': 3.0}), ('zipf', {'a': 1.05}), ('levy_stable', {'alpha': 1.3, 'beta': 0.5}), ('vonmises', {'kappa': 5.0}), ('truncnorm', {'a': 5.0, 'b': 8.0})):
