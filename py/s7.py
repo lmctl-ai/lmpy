@@ -145,6 +145,29 @@ def interp_eval(p):
     return s7_emit(np, p, result, named, 'interp_eval', {'values':got['outside']} if extrapolate=='nan' and 'values' in got else None)
 
 
+def s7_pole_radius(sos):
+    """Largest pole modulus of the rounded second-order sections, from the actual binary64 coefficients in 50-digit decimal arithmetic.
+    The discriminant b^2 - 4ac of a near-unit section cancels catastrophically (b ~ -2, 4ac ~ 4), so binary64 - and numpy's
+    longdouble, which is 64-bit x87 on amd64 and 113-bit quad on aarch64 - give platform-dependent radii (3.9e-11 apart in the first
+    amd64 CI run); Python's decimal module is the same on every platform. The stable form q = -(b + sign(b) sqrt(disc)) / 2 with roots
+    q / a and c / q avoids the second cancellation. The result is rounded to binary64 once, at the end."""
+    import decimal
+    with decimal.localcontext() as ctx:
+        ctx.prec = 50
+        radius = decimal.Decimal(0)
+        for row in sos:
+            a, b, c = (decimal.Decimal(float(v)) for v in row[3:6])
+            disc = b * b - 4 * a * c
+            if disc < 0:
+                section = (c / a).copy_abs().sqrt()
+            else:
+                root = disc.sqrt()
+                q = -(b + root.copy_sign(b)) / 2
+                section = max((q / a).copy_abs(), (c / q).copy_abs()) if q else decimal.Decimal(0)
+            radius = max(radius, section)
+        return float(radius)
+
+
 def sig_filter(p):
     import numpy as np
     from scipy import signal
@@ -159,16 +182,8 @@ def sig_filter(p):
     result = {'status': 'OK', 'family': family, 'order': order, 'btype': btype, 'n_sections': int(sos.shape[0]), 'sos': sos.tolist()}
     if not np.isfinite(sos).all():
         return {'status': 'NUMERICAL_FAILURE', 'family': family, 'message': 'the design produced non-finite second-order sections'}
-    radius = 0.0
-    for row in sos:
-        a,b,c=np.asarray(row[3:6],dtype=np.longdouble)
-        disc=b*b-4*a*c
-        if disc<0:section=np.sqrt(c/a)
-        else:
-            q=-np.longdouble(.5)*(b+np.copysign(np.sqrt(disc),b))
-            section=max(abs(q/a),abs(c/q)) if q else np.longdouble(0)
-        radius=max(radius,float(section))
-    result['max_pole_radius'] = radius
+    result['max_pole_radius'] = s7_pole_radius(sos)
+    radius = result['max_pole_radius']
     result['stable'] = radius < 1.0
     # Stable but resonant: poles within 1e-6 of the unit circle ring for more than a million samples; flagged, not refused.
     result['marginal'] = bool(radius >= 1.0 - 1e-6)
