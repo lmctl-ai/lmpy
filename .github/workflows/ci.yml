@@ -103,6 +103,11 @@ jobs:
         run: |
           npm install -g "@lmctl-ai/lmctl@${LMCTL_VERSION}"
           lmscript --version || true
+      - name: Tutorial datasets are reproducible from their seeds
+        id: tutdata
+        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
+        working-directory: pycli
+        run: docker run --rm --pull=never --network=none --user "$(id -u):$(id -g)" --entrypoint python3 -v "$PWD:/repo:ro" pycli:test /repo/scripts/generate-tutorial-data.py --check
       - name: Run every recipe through the host shim (real, --check, --dry-run)
         id: recipes
         if: ${{ !cancelled() && steps.lmscript.outcome == 'success' }}
@@ -119,7 +124,7 @@ jobs:
         run: |
           { echo "## Gates (${{ matrix.arch }})"; echo "| gate | outcome |"; echo "|---|---|";
             echo "| test image build | ${{ steps.build_test.outcome }} |"; echo "| CTest | ${{ steps.ctest.outcome }} |"; echo "| notices | ${{ steps.notices.outcome }} |";
-            echo "| runtime build | ${{ steps.build_runtime.outcome }} |"; echo "| schema + provenance | ${{ steps.schema.outcome }} |"; echo "| recipes | ${{ steps.recipes.outcome }} |"; } | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "| runtime build | ${{ steps.build_runtime.outcome }} |"; echo "| schema + provenance | ${{ steps.schema.outcome }} |"; echo "| tutorial data | ${{ steps.tutdata.outcome }} |"; echo "| recipes | ${{ steps.recipes.outcome }} |"; } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Clean builder layers
         if: always()
         working-directory: pycli

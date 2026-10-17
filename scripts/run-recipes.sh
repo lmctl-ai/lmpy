@@ -1,13 +1,14 @@
 #!/bin/sh
 # Run every examples/*.lms through the host shim in real, --check and --dry-run modes from a scratch directory below HOME (the shim's
-# requirement), with the pycli bin directory on PATH. Optional sibling tools (rcli, statsrust, lmda) print their setup hints when absent.
+# requirement), with the pycli bin directory on PATH and examples/data/ copied alongside. Optional sibling tools (rcli, statsrust, lmda) print their setup hints when absent.
 # Usage: scripts/run-recipes.sh [examples/x.lms ...]   (default: all recipes); exit 1 when any invocation fails.
 set -u
 repo=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 work=$(mktemp -d "${HOME:?}/pycli-recipes.XXXXXX")
 trap 'rm -rf "$work"' EXIT HUP INT TERM
-mkdir -p "$work/examples/schemas"
+mkdir -p "$work/examples/schemas" "$work/examples/data"
 cp "$repo"/examples/*.lms "$work/examples/"
+cp "$repo"/examples/data/*.csv "$work/examples/data/"   # the tut-* recipes read their committed datasets from examples/data/
 cp "$repo"/examples/schemas/*.json "$work/examples/schemas/" 2>/dev/null || true
 cp "$repo/cli.schema.dev.json" "$work/"
 export PATH="$repo/bin:$PATH"

@@ -68,7 +68,7 @@ lmscript --check examples/solve.lms && lmscript examples/solve.lms
 
 Verified from a fresh shell with nothing but `HOME` and `PATH` set (`env -i HOME=$HOME PATH=<pycli>/bin:<node>/bin:/usr/bin:/bin`):
 `solve`, `lstsq-fit`, `sales-report`, `graph-route-plan` and `distributions-tour` exit 0; `pycli py_info` from `/tmp` is refused with
-`INVALID_REQUEST` (exit 2) before Docker is touched. `scripts/run-recipes.sh` runs all 30 recipes in real, `--check` and `--dry-run`
+`INVALID_REQUEST` (exit 2) before Docker is touched. `scripts/run-recipes.sh` runs all 45 recipes (examples/README.md lists them, including the fifteen `tut-*` tutorial conversions) in real, `--check` and `--dry-run`
 modes the same way (the optional `rcli`, `statsrust` and `lmda` legs print their setup hints when those tools are not on PATH).
 
 Working-directory rule and shim hardening: the shim bind-mounts exactly the current directory (read / write) into the container and
