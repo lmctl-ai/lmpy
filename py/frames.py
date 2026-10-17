@@ -355,12 +355,12 @@ def frame_predicate(df,node,meta,masks):
     def typed(value):
         if dtype=='float64':
             if isinstance(value,str) and value in ('NaN','Inf','-Inf'):return float({'NaN':'nan','Inf':'inf','-Inf':'-inf'}[value])
-            if not isinstance(value,(int,float)) or isinstance(value,bool):raise BadData('numeric predicate requires numbers or nonfinite tokens')
+            if not isinstance(value,(int,float)) or isinstance(value,bool):raise BadData('predicate on float64 column %s requires numbers or nonfinite tokens (got %s)'%(col,type(value).__name__))
         elif dtype=='int64':
             if isinstance(value,float) and math.isfinite(value) and value.is_integer():value=int(value)
-            if not isinstance(value,int) or isinstance(value,bool) or not -(1<<63)<=value<(1<<63):raise BadData('int64 predicate requires integral int64 values')
+            if not isinstance(value,int) or isinstance(value,bool) or not -(1<<63)<=value<(1<<63):raise BadData('predicate on int64 column %s requires integral int64 values (got %s)'%(col,type(value).__name__ if not isinstance(value,(int,float)) or isinstance(value,bool) else repr(value)))
         elif dtype=='bool':
-            if not isinstance(value,bool):raise BadData('bool predicate requires booleans')
+            if not isinstance(value,bool):raise BadData('predicate on bool column %s requires booleans'%col)
         elif dtype in ('string','category'):
             if not isinstance(value,str):raise BadData('string predicate requires strings')
         else:
@@ -422,7 +422,7 @@ def frame_operation(op,p):
     if op=='frame_inspect':
         head=p.get('head',10);tail=p.get('tail',0)
         if (min(head,len(df))+min(tail,len(df)))*len(df.columns)>1000:raise BadData('head+tail exceeds 1000 cells')
-        result={'shape':[len(df),len(df.columns)],'dtypes':{c:m['dtype'] for c,m in meta.items()},'column_meta':meta,'null_counts':{c:int(m.sum()) for c,m in masks.items()},'inferred':inferred,'head':frame_preview(df,meta,masks,range(min(head,len(df)))),'tail':frame_preview(df,meta,masks,range(max(0,len(df)-tail),len(df)))}
+        result={'status':'OK','shape':[len(df),len(df.columns)],'dtypes':{c:m['dtype'] for c,m in meta.items()},'column_meta':meta,'null_counts':{c:int(m.sum()) for c,m in masks.items()},'inferred':inferred,'head':frame_preview(df,meta,masks,range(min(head,len(df)))),'tail':frame_preview(df,meta,masks,range(max(0,len(df)-tail),len(df)))}
         if p.get('describe',False):
             numeric=[c for c in df if meta[c]['dtype'] in ('int64','float64')]
             if len(numeric)*8+ (min(head,len(df))+min(tail,len(df)))*len(df.columns)>1000:raise OutputTooLarge('describe plus preview exceeds 1000 cells')
@@ -435,7 +435,7 @@ def frame_operation(op,p):
             if p.get('output_file'):
                 with open(p['output_file'],'w',encoding='utf-8') as f:f.write(codec(table))
             else:
-                result={'table':table}
+                result={'status':'OK','table':table}
                 if len(codec(result).encode())>INLINE_BYTES:raise OutputTooLarge('inline export exceeds 32KiB; pass out')
                 return result
         else:
@@ -450,7 +450,7 @@ def frame_operation(op,p):
                 import io
                 f=io.StringIO();csv.writer(f,lineterminator='\n').writerows(rows())
                 if len(f.getvalue().encode())>INLINE_BYTES:raise OutputTooLarge('inline export exceeds 32KiB; pass out')
-                return {'csv':f.getvalue()}
+                return {'status':'OK','csv':f.getvalue()}
         return {'status':'OK','shape':[len(df),len(df.columns)]}
     if op=='frame_select':
         if 'where' in p:df=df.loc[frame_predicate(df,p['where'],meta,masks)]

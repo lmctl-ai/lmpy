@@ -107,7 +107,7 @@ class Review(old.Base):
   for name in ['interp_eval','interp_eval_to']:
    p={p['name']:p for p in ops[name]['params']};self.assertIn('can overshoot',p['kind']['description']);self.assertNotIn('do not overshoot',p['kind']['description'])
   for name in ['sig_filter','sig_filter_to']:
-   p={p['name']:p for p in ops[name]['params']};self.assertIn('phase-normalisation',p['wn']['description'])
+   p={p['name']:p for p in ops[name]['params']};self.assertIn('phase-normalisation',p['wn']['description']);self.assertIn('3*(2*sections+1)',p['x']['description'])
   p={p['name']:p for p in ops['sig_peaks']['params']};self.assertIn('half prominence',p['rel_height']['description'])
  def test_schema_spectrum_power_promise(self):
   schema=json.loads(subprocess.check_output([BIN,'--schema'],text=True));ops={o['name']:o for o in schema['operations']}

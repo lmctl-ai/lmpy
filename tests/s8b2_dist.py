@@ -363,7 +363,12 @@ class Validation(unittest.TestCase):
         rejected(dict(dist='genextreme', fn='isf', params={'c': 0.1}, x=[-0.1]), 'BAD_PROBABILITY')
         rejected(dict(dist='wald', fn='pdf', params={}, x=[1.0]))
         rejected(dict(dist='genextreme', fn='quantile', params={'c': 0.1}, x=[0.5]))
-        rejected(dict(dist='genextreme', fn='cdf', params={'c': 0.1}, x=list(range(1001))), 'INPUT_TOO_LARGE')
+        rejected(dict(dist='genextreme', fn='cdf', params={'c': 0.1}, x=list(range(1001))), 'INPUT_TOO_LARGE')  # the generic inline-input cap
+        with tempfile.TemporaryDirectory(dir='.') as d:
+            path = pathlib.Path(d).resolve() / 'big.npy'
+            np.save(path, np.zeros(1001))
+            big = rejected(dict(dist='genextreme', fn='cdf', params={'c': 0.1}, x=str(path)), 'INPUT_TOO_LARGE')
+            self.assertIn('stats_dist_to evaluates up to 200000 points', big['error']['message'])  # the read form's cap names the write twin
         rejected(dict(dist='levy_stable', fn='cdf', params={'alpha': 1.5}, x=[0.1] * 201), 'INPUT_TOO_LARGE')  # numerical integration: 200 points at most
         rejected(dict(dist='vonmises', fn='cdf', params={'kappa': 2.0}, x=[0.1] * 201), 'INPUT_TOO_LARGE')
         rejected(dict(dist='zipf', fn='cdf', params={'a': 1.5}, x=[2e6]), 'INPUT_TOO_LARGE')  # cdf/sf sum the mass from loc + 1 up to x

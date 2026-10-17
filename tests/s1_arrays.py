@@ -89,6 +89,11 @@ class ImportInline(Base):
         r = call('array_import', {'format': 'json', 'data': list(range(1001)), 'out': self.out('big.safetensors')}, 2)
         self.assertEqual(code(r), 'INPUT_TOO_LARGE')
 
+    def test_inspect_reports_status_ok_in_both_forms(self):
+        r, _ = self.imported({'format': 'json', 'data': [1.0, 2.0, 3.0]})
+        self.assertEqual(call('array_inspect', {'ref': r['artifacts']['x']['ref']})['status'], 'OK')
+        self.assertEqual(call('array_inspect', {'ref': r['artifacts']['x']['path']})['status'], 'OK')  # bare file: header listing
+
 
 class ImportCsv(Base):
     def test_inline_csv_matrix_header_crlf_and_na(self):

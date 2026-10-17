@@ -366,7 +366,7 @@ inline void dist_eval_prepare(Json& p,std::map<std::string,Array>& arrays,size_t
     if(dist=="levy_stable"||dist=="vonmises")cap=std::min<size_t>(cap,S8_LEVY_POINTS);  // numerical integration per point (about 9 ms for vonmises, more for levy_stable)
     arrays["x"]=load(p["x"]);
     if(arrays["x"].shape.size()!=1)bad_param("x must be a one-dimensional vector of evaluation points");
-    if(arrays["x"].data.size()>cap)invalid("stats_dist requires a vector of <="+std::to_string(cap)+" values for "+dist,"INPUT_TOO_LARGE");
+    if(arrays["x"].data.size()>cap)invalid("stats_dist requires a vector of <="+std::to_string(cap)+" values for "+dist+(cap<S8_VALUES?"; stats_dist_to evaluates up to "+std::to_string(S8_VALUES)+" points into an artifact":""),"INPUT_TOO_LARGE");
     p["missing"]=arrays["x"].missing;
     if(dist=="zipf"&&(fn=="cdf"||fn=="logcdf"||fn=="sf"||fn=="logsf")){const double loc=p["params"]["loc"].get<double>();for(double v:arrays["x"].data)if(std::isfinite(v)&&v-loc>1e5)invalid("zipf cdf/sf sum the mass from loc + 1 up to x: x - loc must be at most 1e5","INPUT_TOO_LARGE");}
     if(fn=="ppf"||fn=="isf")for(double probability:arrays["x"].data)if(!std::isnan(probability)&&(probability<0||probability>1))invalid(fn+" probabilities must lie in [0,1]","BAD_PROBABILITY");

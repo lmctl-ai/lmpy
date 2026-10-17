@@ -767,7 +767,7 @@
           "name": "x",
           "type": "json",
           "occurs": "?",
-          "description": "Finite signal to filter (vector). Required by the write form."
+          "description": "Finite signal to filter (vector). Required by the write form. sosfiltfilt (the default mode) pads both ends and needs more than 3*(2*sections+1) samples (sections = order for lowpass/highpass, 2*order for bandpass/bandstop; e.g. 15 for a 4th-order lowpass); sosfilt has no minimum."
         },
         {
           "name": "mode",
@@ -1314,7 +1314,7 @@
           "name": "x",
           "type": "json",
           "occurs": "?",
-          "description": "Finite signal to filter (vector). Required by the write form."
+          "description": "Finite signal to filter (vector). Required by the write form. sosfiltfilt (the default mode) pads both ends and needs more than 3*(2*sections+1) samples (sections = order for lowpass/highpass, 2*order for bandpass/bandstop; e.g. 15 for a 4th-order lowpass); sosfilt has no minimum."
         },
         {
           "name": "mode",

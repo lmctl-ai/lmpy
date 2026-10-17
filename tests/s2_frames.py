@@ -105,8 +105,14 @@ class Frames(unittest.TestCase):
  def test_typed_predicate_nonfinite_tokens(self):
   self.table({'x':['Inf','-Inf','NaN',None],'s':['1','two','three','four']},dtypes={'x':'float64'})
   self.call('frame_select',frame='t.npz',where={'col':'x','op':'eq','value':'Inf'},out='inf.npz');self.assertEqual(self.inspect('inf.npz')['shape'][0],1)
-  self.call('frame_select',rc=2,frame='t.npz',where={'col':'x','op':'eq','value':'text'},out='bad.npz')
+  e=self.call('frame_select',rc=2,frame='t.npz',where={'col':'x','op':'eq','value':'text'},out='bad.npz');self.assertIn('column x',e['error']['message'])  # the message names the column
   self.call('frame_select',rc=2,frame='t.npz',where={'col':'s','op':'eq','value':1},out='bad.npz')
+ def test_status_ok_on_inspect_and_inline_export(self):
+  self.table({'x':[1,2],'s':['a','b']})
+  self.assertEqual(self.inspect()['status'],'OK')
+  self.assertEqual(self.call('frame_export',frame='t.npz',format='csv')['status'],'OK')
+  self.assertEqual(self.call('frame_export',frame='t.npz',format='json')['status'],'OK')
+  e=self.call('frame_select',rc=2,frame='t.npz',where={'col':'x','op':'gt','value':'4'},out='bad.npz');self.assertIn('column x',e['error']['message'])
   (self.cwd/'tiny.csv').write_text('x\n1e-999\n');self.call('frame_import',rc=2,csv='tiny.csv',out='bad.npz')
  def test_missing_mask_predicates(self):
   self.table({'x':['Inf','-Inf','NaN',None]},dtypes={'x':'float64'})

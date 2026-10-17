@@ -235,11 +235,11 @@ Json array_inspect(const Params& p){
             std::map<std::string,pycli::TensorInfo> infos;try{infos=pycli::list_tensors(confined(text));}catch(const Error& e){if(e.code==ErrorCode::ValidationError||e.code==ErrorCode::NotFound)throw;throw Error{ErrorCode::ValidationError,e.message,e.data};}
             if(infos.size()>MAX_INLINE)invalid("more than 1000 tensors","TOO_MANY_TENSORS");
             Json tensors=Json::object();for(const auto& entry:infos)tensors[entry.first]={{"dtype",entry.second.dtype},{"shape",entry.second.shape}};
-            return {{"source","safetensors"},{"tensors",tensors},{"count",infos.size()}};
+            return {{"status","OK"},{"source","safetensors"},{"tensors",tensors},{"count",infos.size()}};
         }
     }
     auto a=load(ref);Json result=summarize(a);
-    result["source"]=ref.is_string()?(fs::path(ref.get<std::string>()).extension()==".npy"?"npy":"safetensors"):"inline";
+    result["status"]="OK";result["source"]=ref.is_string()?(fs::path(ref.get<std::string>()).extension()==".npy"?"npy":"safetensors"):"inline";
     result["dtype"]=a.dtype;result["shape"]=a.shape;result["size"]=a.data.size();result["preview"]=jnums(a.data,size_t(limit));result["preview_truncated"]=a.data.size()>size_t(limit);
     return result;
 }
