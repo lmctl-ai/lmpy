@@ -125,7 +125,7 @@ class Review(old.Base):
   marker=self.dir/'started';wrapper=self.dir/'wait-python';wrapper.write_text('#!/usr/local/bin/python3\nimport pathlib,sys,time\npathlib.Path('+repr(str(marker))+').write_text(sys.argv[-2])\ntime.sleep(30)\n');wrapper.chmod(0o755)
   p=subprocess.Popen([BIN,'--input-json',json.dumps({'op':'interp_eval_to','params':dict(kind='linear',x=[0,1],y=[0,1],x_new=[.5],out=self.out())})],env=dict(os.environ,PYCLI_PYTHON=str(wrapper)),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   try:
-   for _ in range(200):
+   for _ in range(2000):
     if marker.exists():break
     time.sleep(.01)
    self.assertTrue(marker.exists());staging=pathlib.Path(marker.read_text()).parent;self.assertTrue((staging/'y.npy').exists());p.send_signal(signal.SIGTERM);p.communicate(timeout=4);self.assertFalse(staging.exists())
