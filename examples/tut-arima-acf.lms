@@ -1,0 +1,51 @@
+// access: read
+// Topic: autocorrelation and an AR(1) forecast (after: the R ?arima / ?acf help-page examples and the statsmodels ARMA notebook)
+// What it does: computes the sample ACF and PACF of a simulated AR(1) series (sm_tsa_acf), fits ARIMA(1,0,0) with a constant by
+//   exact maximum likelihood (sm_arima), forecasts ten steps with intervals, runs a Ljung-Box test on the raw series (sm_tsa_tools),
+//   and checks the estimates against the generating process: phi = 0.7, mean 2 / (1 - 0.7), ACF decaying like phi^k, PACF cut off
+//   after lag 1, forecasts converging to the mean with widening intervals.
+// Data: examples/data/tut-ar1.csv, 200 values of x_t = 2 + 0.7 x_{t-1} + N(0, 1) after a 100-step burn-in, seed 1122.
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-arima-acf.lms
+import "../cli.schema.dev.json" as pycli;
+
+phi = 0.7; mu = 2 / (1 - phi);
+acf = pycli.sm_tsa_acf({csv: "examples/data/tut-ar1.csv", series: "x", kind: "acf", nlags: 6});
+if (acf.status == "simulated") { println("ACF simulated."); exit(0); }
+if (acf.status != "ok" || acf.result.status != "OK") { println(json_stringify(acf)); exit(1); }
+pacf = pycli.sm_tsa_acf({csv: "examples/data/tut-ar1.csv", series: "x", kind: "pacf", nlags: 6, method: "ywm"});
+if (pacf.status != "ok" || pacf.result.status != "OK") { println(json_stringify(pacf)); exit(1); }
+n = acf.result.n;
+println("lag  acf     phi^k   pacf    pacf 95% band");
+for (k = 0; k <= 6; k = k + 1) { println(sprintf("%3d  %6.3f  %6.3f  %6.3f  [%.3f, %.3f]", k, acf.result.values[k], pow(phi, k), pacf.result.values[k], pacf.result.ci_lower[k], pacf.result.ci_upper[k])); }
+
+fit = pycli.sm_arima({csv: "examples/data/tut-ar1.csv", series: "x", order: [1, 0, 0], trend: "c", forecast_steps: 10});
+if (fit.status != "ok" || fit.result.status != "OK") { println(json_stringify(fit)); exit(1); }
+r = fit.result; c = r.coefficients;
+i_phi = index_of(c.names, "ar.L1"); i_c = index_of(c.names, "intercept");
+phi_hat = c.estimate[i_phi]; c_hat = c.estimate[i_c]; mean_hat = c_hat / (1 - phi_hat);
+println(sprintf("ARIMA(1,0,0)+c: intercept %.4f (SE %.4f), ar.L1 %.4f (SE %.4f), sigma2 %.4f, llf %.3f, AIC %.2f, implied mean %.4f (true %.4f)", c_hat, c.std_err[i_c], phi_hat, c.std_err[i_phi], r.sigma2, r.llf, r.aic, mean_hat, mu));
+fc = r.forecast;
+for (h = 0; h < 10; h = h + 1) { println(sprintf("  h=%2d  forecast %.4f  [%.4f, %.4f]", h + 1, fc.mean[h], fc.lower[h], fc.upper[h])); }
+lb = pycli.sm_tsa_tools({csv: "examples/data/tut-ar1.csv", series: "x", test: "ljung_box", lags: 5});
+if (lb.status != "ok" || lb.result.status != "OK") { println(json_stringify(lb)); exit(1); }
+println(sprintf("Ljung-Box on the raw series: Q(5) = %.2f, p = %.3f", lb.result.statistic[4], lb.result.p_value[4]));
+
+// Self-checks.
+band = 1.96 / sqrt(n);
+if (abs(acf.result.values[1] - phi) > 0.12) { println("lag-1 ACF far from phi"); exit(1); }
+if (abs(acf.result.values[2] - phi * phi) > 0.15) { println("lag-2 ACF far from phi^2"); exit(1); }
+for (k = 2; k <= 6; k = k + 1) { if (abs(pacf.result.values[k]) > band + 0.05) { println("PACF does not cut off after lag 1 at lag", k); exit(1); } }
+if (abs(phi_hat - phi) > 3 * c.std_err[i_phi]) { println("ar.L1 more than 3 SE from 0.7"); exit(1); }
+if (abs(mean_hat - mu) > 1.0) { println("implied mean far from 2 / 0.3"); exit(1); }
+if (abs(fc.mean[9] - mean_hat) > abs(fc.mean[0] - mean_hat) + 0.000001) { println("forecasts do not approach the mean"); exit(1); }
+for (h = 1; h < 10; h = h + 1) { if (fc.upper[h] - fc.lower[h] < fc.upper[h - 1] - fc.lower[h - 1] - 0.000001) { println("forecast intervals do not widen"); exit(1); } }
+// The forecast interval widths follow the AR(1) variance sqrt(sigma2 (1 - phi^(2h)) / (1 - phi^2)) times the normal quantile.
+q = pycli.stats_dist({dist: "norm", "fn": "ppf", params: {loc: 0, scale: 1}, x: [0.975]});
+if (q.status != "ok") { println(json_stringify(q)); exit(1); }
+z = q.result.values[0];
+for (h = 1; h <= 10; h = h + 1) {
+  sd = sqrt(r.sigma2 * (1 - pow(phi_hat, 2 * h)) / (1 - phi_hat * phi_hat));
+  if (abs((fc.upper[h - 1] - fc.lower[h - 1]) - 2 * z * sd) > 0.000001) { println("interval width differs from the AR(1) formula at h =", h); exit(1); }
+}
+if (lb.result.p_value[4] > 0.001) { println("Ljung-Box should reject white noise for an AR(1) with phi 0.7"); exit(1); }
+println("Checks passed: ACF ~ phi^k, PACF cut-off, ar.L1 within 3 SE of 0.7, forecasts converge, interval widths match the AR(1) formula.");

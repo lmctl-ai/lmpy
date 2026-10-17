@@ -1,0 +1,51 @@
+// access: read
+// Topic: numerical integration and root finding (after: the scipy-lectures "numerical integration" and "root finding" sections
+//   and the scipy.integrate / scipy.optimize tutorials)
+// What it does: integrates three textbook integrands with num_quad (QUADPACK) and compares them with closed forms, solves
+//   Kepler's equation and a two-equation system (num_root, opt_root), and ties integration to the distribution functions by
+//   checking that the integral of the normal density over [-z, z] equals the two-sided probability from stats_dist.
+// Data: none (closed-form integrands and equations).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-integrate-root.lms
+import "../cli.schema.dev.json" as pycli;
+
+PI = 3.141592653589793;
+function quad(label, f, a, b, exact) {
+  r = pycli.num_quad({f: f, a: a, b: b, epsabs: 0, epsrel: 0.000000000001});
+  if (r.status == "simulated") { println("Integration simulated."); exit(0); }
+  if (r.status != "ok" || r.result.status != "OK") { println(label, json_stringify(r)); exit(1); }
+  err = abs(r.result.value - exact);
+  println(sprintf("%-34s = %.12f  exact %.12f  |err| %.12f  (abserr %s, %d evaluations)", label, r.result.value, exact, err, str(r.result.abserr), r.result.neval));
+  if (err > 0.000000001 + 10 * r.result.abserr) { println("integral differs from the closed form beyond the error estimate"); exit(1); }
+  return r.result.value;
+}
+quad("int_0^inf x^3/(e^x-1) dx", "x^3/(exp(x)-1)", 0, "Inf", pow(PI, 4) / 15);          // Planck / Riemann zeta(4) Gamma(4)
+quad("int_-inf^inf e^(-x^2) dx", "exp(-x^2)", "-Inf", "Inf", sqrt(PI));
+quad("int_0^1 4/(1+x^2) dx", "4/(1+x^2)", 0, 1, PI);
+
+// Kepler's equation E - e sin(E) = M for e = 0.3, M = 1 (radians): bracketed root, then the residual recomputed with the series for sin.
+e = 0.3; M = 1;
+k = pycli.num_root({f: "x - " + str(e) + "*sin(x) - " + str(M), lower: 0, upper: PI, method: "brentq", xtol: 0.000000000001});
+if (k.status != "ok" || k.result.status != "OK") { println(json_stringify(k)); exit(1); }
+En = k.result.root;
+function sine(t) { term = t; total = t; for (j = 1; j < 25; j = j + 1) { term = 0 - term * t * t / ((2 * j) * (2 * j + 1)); total = total + term; } return total; }
+resid = En - e * sine(En) - M;
+println(sprintf("Kepler E - 0.3 sin E = 1: E = %.12f (%d iterations), residual recomputed %s", En, k.result.iterations, str(resid)));
+if (abs(resid) > 0.000000001) { println("Kepler root does not satisfy the equation"); exit(1); }
+
+// A square system: the circle x^2 + y^2 = 4 meets the parabola y = x^2 - 2 at x = +-sqrt((1 + sqrt(13)) / 2) ... use the closed form to check.
+sys = pycli.opt_root({equations: ["x^2 + y^2 - 4", "y - x^2 + 2"], start: {x: 1.5, y: 0.5}});
+if (sys.status != "ok" || sys.result.status != "OK") { println(json_stringify(sys)); exit(1); }
+sx = sys.result.x.x; sy = sys.result.x.y;
+// Substituting x^2 = y + 2 into the circle gives y^2 + y - 2 = 0, so y = 1 (the branch with x > 0, y > 0) and x = sqrt(3).
+println(sprintf("circle meets parabola at x=%.12f y=%.12f (residual max %s); closed form x=sqrt(3)=%.12f y=1", sx, sy, str(sys.result.residual_max), sqrt(3)));
+if (abs(sx - sqrt(3)) > 0.000000001 || abs(sy - 1) > 0.000000001) { println("system root differs from the closed form"); exit(1); }
+
+// Integration meets probability: int_-z^z phi(x) dx = 1 - 2 Phi(-z) for z = 1.96.
+z = 1.96;
+p = pycli.stats_dist({dist: "norm", "fn": "cdf", params: {loc: 0, scale: 1}, x: [0 - z]});
+if (p.status != "ok" || p.result.status != "OK") { println(json_stringify(p)); exit(1); }
+two_sided = 1 - 2 * p.result.values[0];
+area = quad("int_-1.96^1.96 dnorm(x) dx", "dnorm(x)", 0 - z, z, two_sided);
+println(sprintf("P(|Z| < 1.96) by quadrature %.12f vs stats_dist %.12f", area, two_sided));
+if (abs(area - two_sided) > 0.000000001) { println("quadrature and the normal cdf disagree"); exit(1); }
+println("Checks passed: three integrals to 1e-9, Kepler residual < 1e-9, system root = (sqrt 3, 1), quadrature agrees with the normal cdf.");

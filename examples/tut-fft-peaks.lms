@@ -1,0 +1,49 @@
+// access: write
+// Topic: the spectrum of a noisy two-tone signal and peak finding (after: the scipy-lectures signal processing chapter and the
+//   scipy.signal periodogram / find_peaks tutorials)
+// What it does: imports the sampled signal, passes it to sig_spectrum as a safetensors ref (periodogram, spectrum scaling), finds the
+//   spectral peaks with sig_peaks, repeats the estimate with Welch averaging, and checks that the two strongest peaks sit on the
+//   5 Hz and 12 Hz bins with the expected 4:1 power ratio (amplitudes 1 and 0.5) and that Welch agrees on the dominant frequency.
+// Data: examples/data/tut-signal.csv, 400 samples at 100 Hz: sin(2 pi 5 t) + 0.5 sin(2 pi 12 t) + N(0, 0.3^2), seed 110.
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-fft-peaks.lms   (writes and removes tut-signal.npz / tut-signal-x.safetensors in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+fs = 100;
+files = ["tut-signal.npz", "tut-signal-x.safetensors"];
+function cleanup() { for (p in files) { if (file_exists(p)) { delete_file(p); } } }
+function fail(msg, obj) { println(msg, json_stringify(obj)); cleanup(); exit(1); }
+cleanup();   // a stale file from an interrupted run would be a CONFLICT
+loaded = pycli.frame_import({csv: "examples/data/tut-signal.csv", out: "tut-signal.npz"});
+if (loaded.status == "simulated") { println("Spectrum simulated."); exit(0); }
+if (loaded.status != "ok") { fail("frame_import:", loaded); }
+xa = pycli.frame_to_array_to({frame: "tut-signal.npz", columns: ["signal"], squeeze: true, out: "tut-signal-x.safetensors", key: "x"});
+if (xa.status != "ok") { fail("frame_to_array_to:", xa); }
+ref = xa.result.artifacts.x.ref;
+
+sp = pycli.sig_spectrum({method: "periodogram", x: ref, fs: fs, scaling: "spectrum"});
+if (sp.status != "ok" || sp.result.status != "OK") { fail("sig_spectrum:", sp); }
+s = sp.result;
+println(sprintf("periodogram: %d bins, df=%.3f Hz, peak at %.2f Hz, total power %.4f", s.n_bins, s.df, s.peak_freq, s.total_power));
+pk = pycli.sig_peaks({x: s.pxx, prominence: 0.02});
+if (pk.status != "ok" || pk.result.status != "OK") { fail("sig_peaks:", pk); }
+println(sprintf("%d spectral peaks with prominence >= 0.02:", pk.result.n_peaks));
+// Order the peaks by height (largest first) with a small insertion sort on indices.
+order = [];
+for (i = 0; i < pk.result.n_peaks; i = i + 1) { order = concat(order, [i]); }
+for (i = 1; i < len(order); i = i + 1) { j = i; while (j > 0 && pk.result.heights[order[j]] > pk.result.heights[order[j - 1]]) { tmp = order[j]; order[j] = order[j - 1]; order[j - 1] = tmp; j = j - 1; } }
+for (k in order) { println(sprintf("  %.2f Hz  power %.4f  prominence %.4f  width %.2f bins", s.f[pk.result.indices[k]], pk.result.heights[k], pk.result.prominences[k], pk.result.widths[k])); }
+w = pycli.sig_spectrum({method: "welch", x: ref, fs: fs, nperseg: 200, scaling: "spectrum"});
+if (w.status != "ok" || w.result.status != "OK") { fail("welch:", w); }
+println(sprintf("welch (nperseg 200, %d segments): peak at %.2f Hz", w.result.n_segments, w.result.peak_freq));
+
+// Self-checks: the two strongest peaks are the 5 Hz and 12 Hz tones (on-bin: 400 samples at 100 Hz give df = 0.25 Hz), with a
+// power ratio near 4 (amplitudes 1 and 0.5 -> A^2/2 = 0.5 and 0.125; the noise floor is about 0.3^2 / 400 per bin), and Welch agrees.
+if (pk.result.n_peaks < 2) { fail("fewer than two spectral peaks found:", pk.result); }
+f1 = s.f[pk.result.indices[order[0]]]; f2 = s.f[pk.result.indices[order[1]]];
+if (abs(f1 - 5) > 0.001 || abs(f2 - 12) > 0.001 || abs(s.peak_freq - 5) > 0.001) { fail("strongest peaks are not at 5 and 12 Hz:", [f1, f2, s.peak_freq]); }
+ratio = pk.result.heights[order[0]] / pk.result.heights[order[1]];
+if (ratio < 3 || ratio > 5.5) { fail("power ratio of the tones outside [3, 5.5]:", ratio); }
+if (abs(pk.result.heights[order[0]] - 0.5) > 0.1) { fail("5 Hz tone power far from A^2/2 = 0.5:", pk.result.heights[order[0]]); }
+if (abs(w.result.peak_freq - 5) > 0.001) { fail("welch peak is not at 5 Hz:", w.result.peak_freq); }
+cleanup();
+println(sprintf("Checks passed: tones at %.2f and %.2f Hz, power ratio %.2f, Welch peak %.2f Hz.", f1, f2, ratio, w.result.peak_freq));

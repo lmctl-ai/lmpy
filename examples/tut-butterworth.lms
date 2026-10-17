@@ -1,0 +1,46 @@
+// access: write
+// Topic: Butterworth low-pass filtering of a noisy signal (after: the scipy.signal butter / sosfiltfilt tutorial and the
+//   scipy-lectures signal chapter)
+// What it does: designs a 4th-order Butterworth low-pass at 8 Hz for a 100 Hz signal (sig_filter, second-order sections), reports
+//   the magnitude response at the two tone frequencies, applies it forward-backward (zero phase) to the sampled signal, and checks the
+//   design (|H| = 1/sqrt 2 at the cutoff, stable), the attenuation of the 12 Hz tone, and that the filtered signal is much closer to the
+//   clean 5 Hz tone than the raw signal was.
+// Data: examples/data/tut-signal.csv, 400 samples at 100 Hz: tone5 = sin(2 pi 5 t); signal = tone5 + 0.5 sin(2 pi 12 t) + N(0, 0.3^2), seed 110.
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-butterworth.lms   (writes and removes tut-signal.npz in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+fs = 100; cutoff = 8;
+if (file_exists("tut-signal.npz")) { delete_file("tut-signal.npz"); }   // a stale file from an interrupted run would be a CONFLICT
+loaded = pycli.frame_import({csv: "examples/data/tut-signal.csv", out: "tut-signal.npz"});
+if (loaded.status == "simulated") { println("Filtering simulated."); exit(0); }
+if (loaded.status != "ok") { println(json_stringify(loaded)); exit(1); }
+function fail(msg, obj) { println(msg, json_stringify(obj)); delete_file("tut-signal.npz"); exit(1); }
+raw = pycli.frame_to_array({frame: "tut-signal.npz", columns: ["signal"], squeeze: true});
+clean = pycli.frame_to_array({frame: "tut-signal.npz", columns: ["tone5"], squeeze: true});
+if (raw.status != "ok" || clean.status != "ok") { fail("frame_to_array:", [raw, clean]); }
+x = raw.result.values; tone = clean.result.values; n = len(x);
+
+flt = pycli.sig_filter({family: "butter", order: 4, btype: "lowpass", wn: cutoff, fs: fs, x: x, mode: "sosfiltfilt", freqs: [5, cutoff, 12, 25]});
+if (flt.status != "ok" || flt.result.status != "OK") { fail("sig_filter:", flt); }
+f = flt.result;
+println(sprintf("butter order 4 lowpass %.0f Hz at fs %.0f: %d sections, max pole radius %.4f, stable=%s", cutoff, fs, f.n_sections, f.max_pole_radius, str(f.stable)));
+labels = ["5 Hz (kept tone)", "8 Hz (cutoff)", "12 Hz (rejected tone)", "25 Hz"];
+for (i = 0; i < 4; i = i + 1) { println(sprintf("  |H| at %-22s %.4f  (forward-backward: %.4f)", labels[i], f.magnitude[i], f.magnitude[i] * f.magnitude[i])); }
+function rms(a, b) { t = 0; for (i = 0; i < len(a); i = i + 1) { t = t + (a[i] - b[i]) * (a[i] - b[i]); } return sqrt(t / len(a)); }
+before = rms(x, tone); after = rms(f.y, tone);
+println(sprintf("RMS distance to the clean 5 Hz tone: raw %.4f, filtered %.4f", before, after));
+
+// Self-checks. Butterworth: |H(cutoff)| = 1/sqrt(2) by definition (the bilinear design prewarps the cutoff). The analogue prototype
+// would give 1/sqrt(1 + 1.5^8) = 0.194 at 12 Hz; the digital filter is steeper because the bilinear transform compresses the
+// frequency axis towards Nyquist, so |H(12)| lies below that value, and well above 0 (the stopband is only 1.5 times the cutoff).
+if (!f.stable || f.max_pole_radius >= 1) { fail("filter is not stable:", f); }
+if (abs(f.magnitude[1] - 0.7071067811865476) > 0.0001) { fail("|H| at the cutoff is not 1/sqrt(2):", f.magnitude[1]); }
+if (f.magnitude[2] > 1 / sqrt(1 + pow(1.5, 8)) || f.magnitude[2] < 0.1) { fail("|H| at 12 Hz is outside (0.1, analogue 0.194):", f.magnitude[2]); }
+if (f.magnitude[3] > 0.01) { fail("|H| at 25 Hz should be below 0.01:", f.magnitude[3]); }
+if (f.magnitude[0] < 0.97) { fail("the 5 Hz tone is attenuated too much:", f.magnitude[0]); }
+if (len(f.y) != n) { fail("filtered length differs:", len(f.y)); }
+// The raw signal is off by the 12 Hz tone (RMS 0.354) plus noise (0.3): about 0.46. After filtering, the noise above 8 Hz and the
+// 12 Hz tone are mostly gone; the remaining error is below 0.2 and at least halved.
+if (before < 0.4 || after > 0.2 || after > before / 2) { fail("filtering did not bring the signal close to the clean tone:", {before: before, after: after}); }
+delete_file("tut-signal.npz");
+println(sprintf("Checks passed: |H(8)| = 1/sqrt 2, |H(12)| = %.3f, RMS error %.3f -> %.3f.", f.magnitude[2], before, after));

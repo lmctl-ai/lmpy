@@ -1,0 +1,66 @@
+// access: write
+// Topic: comparing groups: two-sample t-test, one-way ANOVA and a chi-square test of independence (after: the R PlantGrowth /
+//   ToothGrowth teaching examples and the scipy-lectures statistics chapter)
+// What it does: imports a three-group table, runs the pooled t-test (ctrl vs trt2) as the slope of a dummy regression, the one-way
+//   ANOVA as the F-test of sm_ols with a categorical term, builds the group x flowered contingency table with frame_groupby and
+//   computes the chi-square statistic and its p-value with stats_dist; every p-value is cross-checked against the reference
+//   distribution and the ANOVA group means are checked against frame_groupby.
+// Data: examples/data/tut-groups.csv, 36 rows: weight ~ N(5.0 / 4.6 / 5.8, 0.6^2) for ctrl / trt1 / trt2 and a yes/no trait with
+//   P(yes) = 0.25 / 0.25 / 0.85 (seed 104).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-group-tests.lms   (writes and removes tut-groups*.npz in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+work = "tut-groups";
+function cleanup() { for (p in [work + ".npz", work + "-pair.npz", work + "-means.npz", work + "-xtab.npz"]) { if (file_exists(p)) { delete_file(p); } } }
+function fail(msg, obj) { println(msg, json_stringify(obj)); cleanup(); exit(1); }
+cleanup();   // a stale file from an interrupted run would be a CONFLICT
+loaded = pycli.frame_import({csv: "examples/data/tut-groups.csv", out: work + ".npz"});
+if (loaded.status == "simulated") { println("Group tests simulated."); exit(0); }
+if (loaded.status != "ok") { println(json_stringify(loaded)); exit(1); }
+
+// 1. Two-sample t-test (pooled variance) = t statistic of the group dummy in weight ~ group on the two groups.
+pair = pycli.frame_select({frame: work + ".npz", where: {col: "group", op: "ne", value: "trt1"}, out: work + "-pair.npz"});
+if (pair.status != "ok") { fail("frame_select:", pair); }
+tt = pycli.sm_ols({frame: work + "-pair.npz", y: "weight", terms: [{cat: "group", ref: "ctrl"}]});
+if (tt.status != "ok" || tt.result.status != "OK") { fail("t-test regression:", tt); }
+tc = tt.result.coefficients;
+println(sprintf("t-test ctrl vs trt2: difference %.3f (SE %.3f), t = %.3f on %d df, p = %.4f", tc.estimate[1], tc.std_err[1], tc.statistic[1], tt.result.df_resid, tc.p_value[1]));
+ptt = pycli.stats_dist({dist: "t", "fn": "sf", params: {df: tt.result.df_resid}, x: [abs(tc.statistic[1])]});
+if (ptt.status != "ok" || abs(2 * ptt.result.values[0] - tc.p_value[1]) > 0.000000001) { fail("two-sided t p-value does not match 2 * t.sf:", ptt); }
+
+// 2. One-way ANOVA: F-test of weight ~ group over the three groups.
+an = pycli.sm_ols({frame: work + ".npz", y: "weight", terms: [{cat: "group", ref: "ctrl"}]});
+if (an.status != "ok" || an.result.status != "OK") { fail("ANOVA regression:", an); }
+a = an.result;
+println(sprintf("ANOVA: F(%d, %d) = %.3f, p = %.4f, r2 = %.3f", a.df_model, a.df_resid, a.f_statistic, a.f_p_value, a.r2));
+pf = pycli.stats_dist({dist: "f", "fn": "sf", params: {dfn: a.df_model, dfd: a.df_resid}, x: [a.f_statistic]});
+if (pf.status != "ok" || abs(pf.result.values[0] - a.f_p_value) > 0.000000001) { fail("ANOVA p-value does not match F.sf:", pf); }
+means = pycli.frame_groupby({frame: work + ".npz", keys: ["group"], aggs: {weight: ["mean", "count"]}, out: work + "-means.npz"});
+if (means.status != "ok") { fail("frame_groupby:", means); }
+md = means.result.preview.data;
+for (i = 0; i < len(md.group); i = i + 1) { println(sprintf("  %-5s n=%d mean=%.3f", md.group[i], md.weight__count[i], md.weight__mean[i])); }
+// The treatment-coded coefficients are differences of group means (ctrl is the reference, groups are sorted).
+ac = a.coefficients;
+if (abs(ac.estimate[0] - md.weight__mean[0]) > 0.000000001 || abs(ac.estimate[1] - (md.weight__mean[1] - md.weight__mean[0])) > 0.000000001 || abs(ac.estimate[2] - (md.weight__mean[2] - md.weight__mean[0])) > 0.000000001) { fail("ANOVA coefficients are not the group-mean differences:", ac); }
+
+// 3. Chi-square test of independence between group and the yes/no trait, from a frame_groupby count table.
+xt = pycli.frame_groupby({frame: work + ".npz", keys: ["group", "flowered"], aggs: {weight: ["count"]}, out: work + "-xtab.npz"});
+if (xt.status != "ok") { fail("contingency groupby:", xt); }
+xd = xt.result.preview.data;
+groups = ["ctrl", "trt1", "trt2"]; levels = ["no", "yes"];
+table = [[0, 0], [0, 0], [0, 0]];
+for (i = 0; i < len(xd.group); i = i + 1) { table[index_of(groups, xd.group[i])][index_of(levels, xd.flowered[i])] = xd.weight__count[i]; }
+row = [0, 0, 0]; col = [0, 0]; n = 0;
+for (i = 0; i < 3; i = i + 1) { for (j = 0; j < 2; j = j + 1) { row[i] = row[i] + table[i][j]; col[j] = col[j] + table[i][j]; n = n + table[i][j]; } }
+chi2 = 0;
+for (i = 0; i < 3; i = i + 1) { for (j = 0; j < 2; j = j + 1) { expct = row[i] * col[j] / n; chi2 = chi2 + (table[i][j] - expct) * (table[i][j] - expct) / expct; } }
+pchi = pycli.stats_dist({dist: "chi2", "fn": "sf", params: {df: 2}, x: [chi2]});
+if (pchi.status != "ok" || pchi.result.status != "OK") { fail("chi2 sf:", pchi); }
+println(sprintf("chi-square independence (group x flowered): table %s, X2 = %.3f on 2 df, p = %.4f", json_stringify(table), chi2, pchi.result.values[0]));
+
+// Self-checks on the fixture: ctrl vs trt2 differ (p < 0.05), the ANOVA detects the group effect, the trait depends on the group,
+// and every count table sums to the 36 rows.
+if (tc.p_value[1] >= 0.05 || a.f_p_value >= 0.05 || pchi.result.values[0] >= 0.05) { fail("an effect built into the fixture was not detected at 5%", {t: tc.p_value[1], f: a.f_p_value, chi2: pchi.result.values[0]}); }
+if (n != 36 || row[0] != 12 || row[1] != 12 || row[2] != 12) { fail("contingency table does not account for every row:", table); }
+cleanup();
+println("Checks passed: p-values reproduced from the t, F and chi-square references; coefficients equal group-mean differences; all three effects detected.");

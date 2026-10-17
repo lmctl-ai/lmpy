@@ -1,0 +1,42 @@
+// access: read
+// Topic: ordinary least squares with diagnostics (after: the statsmodels "OLS" example notebook)
+// What it does: fits y ~ x1 + x2 by sm_ols straight from a CSV, prints the coefficient table, recomputes the F-test
+//   p-value with stats_dist (F survival function) and the confidence intervals with the t quantile, and checks that the
+//   residuals sum to zero, that ssr matches the residuals and that the generating parameters lie inside the intervals.
+// Data: examples/data/tut-ols.csv, 60 rows of y = 1.5 + 0.8 x1 - 2.0 x2 + N(0, 0.5^2) (seed 101, scripts/generate-tutorial-data.py).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-ols-diagnostics.lms   (cwd below HOME, examples/ copied next to cli.schema.dev.json)
+import "../cli.schema.dev.json" as pycli;
+
+truth = {const: 1.5, x1: 0.8, x2: -2.0};
+fit = pycli.sm_ols({csv: "examples/data/tut-ols.csv", y: "y", terms: [{var: "x1"}, {var: "x2"}], include: ["residuals"]});
+if (fit.status == "simulated") { println("OLS simulated."); exit(0); }
+if (fit.status != "ok" || fit.result.status != "OK") { println("sm_ols failed:", json_stringify(fit)); exit(1); }
+r = fit.result;
+c = r.coefficients;
+println(sprintf("n=%d  r2=%.4f  r2_adj=%.4f  sigma=%.4f  F=%.2f (p=%.5f)  DW=%.3f  cond=%.1f", r.n_obs, r.r2, r.r2_adj, r.sigma, r.f_statistic, r.f_p_value, r.durbin_watson, r.condition_number));
+println("term      estimate   std_err   t        p        95% CI");
+for (i = 0; i < len(c.names); i = i + 1) {
+  println(sprintf("%-8s %9.4f %9.4f %8.3f %8.5f  [%.4f, %.4f]", c.names[i], c.estimate[i], c.std_err[i], c.statistic[i], c.p_value[i], c.ci_lower[i], c.ci_upper[i]));
+}
+
+// Self-check 1: the generating parameters lie inside the 95% intervals (the data are fixed, so this is a stable fact of the fixture).
+for (i = 0; i < len(c.names); i = i + 1) {
+  t = truth[c.names[i]];
+  if (t < c.ci_lower[i] || t > c.ci_upper[i]) { println("true", c.names[i], "=", t, "outside the 95% interval"); exit(1); }
+}
+// Self-check 2: residuals sum to zero (intercept model) and reproduce ssr.
+sum_e = 0; ssr = 0;
+for (e in r.residuals) { sum_e = sum_e + e; ssr = ssr + e * e; }
+if (abs(sum_e) > 0.000001 || abs(ssr - r.ssr) > 0.000001 * r.ssr) { println("residuals disagree with the report", sum_e, ssr, r.ssr); exit(1); }
+// Self-check 3: the F p-value is the F(df_model, df_resid) survival function of the statistic.
+sf = pycli.stats_dist({dist: "f", "fn": "sf", params: {dfn: r.df_model, dfd: r.df_resid}, x: [r.f_statistic]});
+if (sf.status != "ok" || sf.result.status != "OK") { println(json_stringify(sf)); exit(1); }
+if (abs(sf.result.values[0] - r.f_p_value) > 0.000000000001 + 0.000001 * r.f_p_value) { println("F p-value mismatch", sf.result.values[0], r.f_p_value); exit(1); }
+// Self-check 4: the intervals are estimate +- t(0.975, df_resid) * std_err.
+q = pycli.stats_dist({dist: "t", "fn": "ppf", params: {df: r.df_resid}, x: [0.975]});
+if (q.status != "ok" || q.result.status != "OK") { println(json_stringify(q)); exit(1); }
+tq = q.result.values[0];
+for (i = 0; i < len(c.names); i = i + 1) {
+  if (abs(c.estimate[i] - tq * c.std_err[i] - c.ci_lower[i]) > 0.000000001 || abs(c.estimate[i] + tq * c.std_err[i] - c.ci_upper[i]) > 0.000000001) { println("CI does not match the t quantile"); exit(1); }
+}
+println(sprintf("Checks passed: truth inside every 95%% CI; sum(residuals)=%.9f; F p-value and t intervals reproduced (t=%.4f).", sum_e, tq));

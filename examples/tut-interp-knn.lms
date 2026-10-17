@@ -1,0 +1,71 @@
+// access: write
+// Topic: interpolation of sampled data and nearest-neighbour search (after: the scipy-lectures interpolation section, the
+//   scipy.interpolate tutorial and the scipy.spatial cKDTree tutorial)
+// What it does: interpolates 13 samples of f(x) = exp(-x/3) sin(2x) with linear, PCHIP and cubic-spline interpolants (interp_eval)
+//   on a fine grid where the true values are known, integrates the spline and compares with num_quad on the true function; then runs
+//   an exact 5-nearest-neighbour query on the four flower measurements (spatial_knn), verifies the returned distances by brute force
+//   in the script and classifies the queries by majority species.
+// Data: examples/data/tut-interp-nodes.csv (13 nodes on [0, 6]), tut-interp-grid.csv (59 points with the true f), tut-flowers.csv (150 rows, seed 113).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-interp-knn.lms   (writes and removes tut-interp*.npz / tut-flowers.npz in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+files = ["tut-interp-nodes.npz", "tut-interp-grid.npz", "tut-flowers.npz"];
+function cleanup() { for (p in files) { if (file_exists(p)) { delete_file(p); } } }
+function fail(msg, obj) { println(msg, json_stringify(obj)); cleanup(); exit(1); }
+cleanup();   // a stale file from an interrupted run would be a CONFLICT
+nodes = pycli.frame_import({csv: "examples/data/tut-interp-nodes.csv", out: "tut-interp-nodes.npz"});
+if (nodes.status == "simulated") { println("Interpolation simulated."); exit(0); }
+grid = pycli.frame_import({csv: "examples/data/tut-interp-grid.csv", out: "tut-interp-grid.npz"});
+flowers = pycli.frame_import({csv: "examples/data/tut-flowers.csv", out: "tut-flowers.npz"});
+if (nodes.status != "ok" || grid.status != "ok" || flowers.status != "ok") { fail("frame_import:", [nodes, grid, flowers]); }
+nx = pycli.frame_to_array({frame: "tut-interp-nodes.npz", columns: ["x"], squeeze: true});
+ny = pycli.frame_to_array({frame: "tut-interp-nodes.npz", columns: ["y"], squeeze: true});
+gx = pycli.frame_to_array({frame: "tut-interp-grid.npz", columns: ["x"], squeeze: true});
+gf = pycli.frame_to_array({frame: "tut-interp-grid.npz", columns: ["f"], squeeze: true});
+if (nx.status != "ok" || ny.status != "ok" || gx.status != "ok" || gf.status != "ok") { fail("frame_to_array:", [nx, ny, gx, gf]); }
+x = nx.result.values; y = ny.result.values; xg = gx.result.values; fg = gf.result.values;
+
+// 1. Three interpolants on the same grid; the spline is also integrated over the node range.
+errors = {}; spline_integral = 0;
+for (kind in ["linear", "pchip", "cubic"]) {
+  call = {kind: kind, x: x, y: y, x_new: xg};
+  if (kind == "cubic") { call.integrate = [0, 6]; }
+  r = pycli.interp_eval(call);
+  if (r.status != "ok" || r.result.status != "OK") { fail("interp_eval " + kind + ":", r); }
+  worst = 0; for (i = 0; i < len(xg); i = i + 1) { worst = max(worst, abs(r.result.values[i] - fg[i])); }
+  errors[kind] = worst;
+  if (kind == "cubic") { spline_integral = r.result.integral; }
+  println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", kind, len(xg), worst));
+}
+exact = pycli.num_quad({f: "exp(-x/3)*sin(2*x)", a: 0, b: 6, epsabs: 0, epsrel: 0.000000000001});
+if (exact.status != "ok" || exact.result.status != "OK") { fail("num_quad:", exact); }
+println(sprintf("integral over [0, 6]: cubic spline %.6f, quadrature of f %.6f", spline_integral, exact.result.value));
+// Self-checks: with node spacing h = 0.5 the interior spline error is about (5/384) h^4 max|f| = 0.013 (|f| <= 16) and larger
+// near the not-a-knot ends, so cubic < 0.05; the linear error scales like h^2 max|f''|/8 = 0.125, so linear > cubic; pchip (monotone,
+// third order) sits in between (< 0.15); the spline integral is within 0.01 of the true integral.
+if (errors.cubic > 0.05 || errors.pchip > 0.15 || errors.linear <= errors.cubic) { fail("interpolation errors outside the expected ordering / bounds:", errors); }
+if (abs(spline_integral - exact.result.value) > 0.01) { fail("spline integral differs from quadrature:", [spline_integral, exact.result.value]); }
+
+// 2. Nearest neighbours in the four-dimensional measurement space.
+feats = ["sepal_length", "sepal_width", "petal_length", "petal_width"];
+pts = pycli.frame_to_array({frame: "tut-flowers.npz", columns: feats});
+lab = pycli.frame_inspect({frame: "tut-flowers.npz", head: 150});
+if (pts.status != "ok" || lab.status != "ok") { fail("flowers:", [pts, lab]); }
+points = pts.result.values; speciesOf = lab.result.head.data.species;
+queries = [[5.0, 3.4, 1.5, 0.3], [5.9, 2.8, 4.3, 1.3], [6.4, 3.0, 5.4, 1.9]];
+expected = ["setosa", "versicolor", "virginica"];
+kn = pycli.spatial_knn({points: points, queries: queries, k: 5});
+if (kn.status != "ok" || kn.result.status != "OK") { fail("spatial_knn:", kn); }
+for (q = 0; q < len(queries); q = q + 1) {
+  votes = {}; for (j = 0; j < 5; j = j + 1) { s = speciesOf[kn.result.indices[q][j]]; votes[s] = (has_key(votes, s) ? votes[s] : 0) + 1; }
+  winner = ""; best = 0; for (s in keys(votes)) { if (votes[s] > best) { best = votes[s]; winner = s; } }
+  println(sprintf("query %s -> 5 nearest at distances %s, majority %s (%d of 5)", json_stringify(queries[q]), json_stringify(kn.result.distances[q]), winner, best));
+  if (winner != expected[q]) { fail("majority species is not the expected one for query " + str(q) + ":", votes); }
+  // Brute force: the five smallest Euclidean distances from this query to all points must equal the returned ones.
+  all = [];
+  for (i = 0; i < len(points); i = i + 1) { d2 = 0; for (c = 0; c < 4; c = c + 1) { d2 = d2 + (points[i][c] - queries[q][c]) * (points[i][c] - queries[q][c]); } all = concat(all, [sqrt(d2)]); }
+  srt = sort(all);
+  for (j = 0; j < 5; j = j + 1) { if (abs(srt[j] - kn.result.distances[q][j]) > 0.000000001) { fail("brute-force distances disagree with spatial_knn:", {brute: slice(srt, 0, 5), knn: kn.result.distances[q]}); } }
+}
+cleanup();
+println(sprintf("Checks passed: cubic error %.4f < 0.05, spline integral within 0.01 of quadrature, kNN distances verified by brute force, majority species as expected.", errors.cubic));

@@ -1,0 +1,75 @@
+// access: write
+// Topic: the diet problem as a linear programme, its integer version, and a small constrained minimisation (after: the classic
+//   Stigler diet problem as presented in LP tutorials, and the scipy.optimize tutorial's SLSQP example)
+// What it does: imports a food table, builds cost / nutrient vectors with frame_to_array, solves the cheapest diet meeting calorie,
+//   protein and calcium minimums (opt_linprog), re-solves with whole servings (integrality), reads the calorie shadow price from the
+//   duals and verifies it by re-solving with one more calorie; then minimises (x-1)^2 + (y-2.5)^2 under three linear inequalities
+//   with opt_minimize (SLSQP) and checks the known optimum.
+// Data: examples/data/tut-diet.csv, 8 foods with cost per serving and calories / protein (g) / calcium (mg) per serving (invented).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-lp-diet.lms   (writes and removes tut-diet.npz in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+if (file_exists("tut-diet.npz")) { delete_file("tut-diet.npz"); }   // a stale file from an interrupted run would be a CONFLICT
+loaded = pycli.frame_import({csv: "examples/data/tut-diet.csv", out: "tut-diet.npz"});
+if (loaded.status == "simulated") { println("Diet LP simulated."); exit(0); }
+if (loaded.status != "ok") { println(json_stringify(loaded)); exit(1); }
+function fail(msg, obj) { println(msg, json_stringify(obj)); delete_file("tut-diet.npz"); exit(1); }
+names = pycli.frame_inspect({frame: "tut-diet.npz", head: 8});
+if (names.status != "ok") { fail("frame_inspect:", names); }
+foods = names.result.head.data.food;
+tab = pycli.frame_to_array({frame: "tut-diet.npz", columns: ["cost", "calories", "protein", "calcium"]});
+if (tab.status != "ok" || tab.result.status != "OK") { fail("frame_to_array:", tab); }
+nf = tab.result.shape[0]; v = tab.result.values;
+cost = []; cal = []; prot = []; calc = [];
+for (i = 0; i < nf; i = i + 1) { cost = concat(cost, [v[i][0]]); cal = concat(cal, [v[i][1]]); prot = concat(prot, [v[i][2]]); calc = concat(calc, [v[i][3]]); }
+// Requirements: at least 2000 kcal, 55 g protein, 800 mg calcium; at most 2600 kcal; at most 3 servings of anything.
+need = {calories: 2000, protein: 55, calcium: 800}; cal_max = 2600;
+function neg(a) { out = []; for (t in a) { out = concat(out, [0 - t]); } return out; }
+a_ub = [neg(cal), neg(prot), neg(calc), cal];
+b_ub = [0 - need.calories, 0 - need.protein, 0 - need.calcium, cal_max];
+bounds = []; for (i = 0; i < nf; i = i + 1) { bounds = concat(bounds, [[0, 3]]); }
+lp = pycli.opt_linprog({c: cost, a_ub: a_ub, b_ub: b_ub, bounds: bounds});
+if (lp.status != "ok" || lp.result.status != "OK") { fail("opt_linprog:", lp); }
+x = lp.result.x;
+println(sprintf("cheapest diet: %.4f per day", lp.result.objective));
+for (i = 0; i < nf; i = i + 1) { if (x[i] > 0.000001) { println(sprintf("  %-8s %.3f servings", foods[i], x[i])); } }
+function dot(a, b) { t = 0; for (i = 0; i < len(a); i = i + 1) { t = t + a[i] * b[i]; } return t; }
+println(sprintf("  calories %.1f  protein %.1f g  calcium %.1f mg", dot(cal, x), dot(prot, x), dot(calc, x)));
+
+// Self-check 1: the solution is feasible and its cost is c.x (recomputed in the script).
+if (dot(cal, x) < need.calories - 0.000001 || dot(prot, x) < need.protein - 0.000001 || dot(calc, x) < need.calcium - 0.000001 || dot(cal, x) > cal_max + 0.000001) { fail("LP solution violates a requirement:", x); }
+for (t in x) { if (t < -0.000000001 || t > 3.000000001) { fail("LP solution violates a serving bound:", x); } }
+if (abs(dot(cost, x) - lp.result.objective) > 0.000000001) { fail("objective is not c.x:", lp.result); }
+// Self-check 2: strong duality: the objective equals b_ub . y_ub plus the bound duals times the bounds (lower bounds are 0 here).
+d = lp.result.duals; dual_obj = dot(b_ub, d.ub);
+for (i = 0; i < nf; i = i + 1) { dual_obj = dual_obj + 3 * d.upper[i]; }
+if (abs(dual_obj - lp.result.objective) > 0.000000001) { fail("dual objective differs from the primal:", {dual: dual_obj, primal: lp.result.objective}); }
+// Self-check 3: the calorie shadow price. The calorie row is -cal.x <= -2000 with dual y (<= 0 for a minimisation); asking for one
+// more calorie lowers b_ub by 1 and raises the cost by -y, as long as the optimal basis does not change (it does not for +1).
+y_cal = lp.result.duals.ub[0];
+b2 = concat([0 - need.calories - 1], slice(b_ub, 1));
+lp2 = pycli.opt_linprog({c: cost, a_ub: a_ub, b_ub: b2, bounds: bounds});
+if (lp2.status != "ok" || lp2.result.status != "OK") { fail("opt_linprog (+1 kcal):", lp2); }
+delta = lp2.result.objective - lp.result.objective;
+println(sprintf("calorie shadow price: dual %.6f, cost change for one extra calorie %.6f", y_cal, delta));
+if (y_cal > 0.000000001 || abs(delta + y_cal) > 0.000001) { fail("shadow price does not predict the re-solved cost:", {dual: y_cal, delta: delta}); }
+// Self-check 4: whole servings (MILP) cost at least as much as the relaxed LP and stay feasible.
+integrality = []; for (i = 0; i < nf; i = i + 1) { integrality = concat(integrality, ["integer"]); }
+ip = pycli.opt_linprog({c: cost, a_ub: a_ub, b_ub: b_ub, bounds: bounds, integrality: integrality});
+if (ip.status != "ok" || ip.result.status != "OK") { fail("opt_linprog (integer):", ip); }
+xi = ip.result.x;
+println(sprintf("whole servings: %.4f per day", ip.result.objective));
+for (i = 0; i < nf; i = i + 1) { if (xi[i] > 0.5) { println(sprintf("  %-8s %d servings", foods[i], round(xi[i]))); } }
+if (ip.result.objective < lp.result.objective - 0.000001) { fail("integer solution cheaper than the LP relaxation:", ip.result); }
+for (t in xi) { if (abs(t - round(t)) > 0.000001) { fail("integer solution is not integral:", xi); } }
+if (dot(cal, xi) < need.calories - 0.000001 || dot(prot, xi) < need.protein - 0.000001 || dot(calc, xi) < need.calcium - 0.000001) { fail("integer solution infeasible:", xi); }
+
+// Constrained minimisation (SLSQP): minimise (x-1)^2 + (y-2.5)^2 subject to x - 2y + 2 >= 0, -x - 2y + 6 >= 0, -x + 2y + 2 >= 0, x, y >= 0.
+// The unconstrained minimum (1, 2.5) violates the first constraint; the optimum sits on it at (1.4, 1.7).
+mn = pycli.opt_minimize({objective: "(x-1)^2 + (y-2.5)^2", x0: {x: 2, y: 0}, method: "SLSQP", bounds: {x: [0, null], y: [0, null]}, constraints: [{type: "ineq", expr: "x - 2*y + 2"}, {type: "ineq", expr: "-x - 2*y + 6"}, {type: "ineq", expr: "-x + 2*y + 2"}], tol: 0.000000000001});
+if (mn.status != "ok" || mn.result.status != "OK") { fail("opt_minimize:", mn); }
+pm = mn.result.par;
+println(sprintf("SLSQP: x=%.6f y=%.6f f=%.6f (active constraint x - 2y + 2 = %.9f)", pm.x, pm.y, mn.result.fun, pm.x - 2 * pm.y + 2));
+if (abs(pm.x - 1.4) > 0.00001 || abs(pm.y - 1.7) > 0.00001 || abs(mn.result.fun - 0.8) > 0.00001 || mn.result.constraint_violation > 0.000001) { fail("SLSQP did not reach (1.4, 1.7):", mn.result); }
+delete_file("tut-diet.npz");
+println("Checks passed: LP feasible with cost = c.x, strong duality, shadow price confirmed by re-solving, MILP >= LP and integral, SLSQP optimum (1.4, 1.7).");

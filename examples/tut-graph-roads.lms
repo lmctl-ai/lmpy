@@ -1,0 +1,53 @@
+// access: write
+// Topic: shortest paths on a road network (after: the networkx shortest-path tutorial and the CLRS Dijkstra / Bellman-Ford examples)
+// What it does: imports a two-way road table, finds the shortest route A -> J with Dijkstra (graph_paths), confirms it with
+//   Bellman-Ford and with the three shortest simple routes (Yen), counts the fewest road segments with BFS, lists the distance from A
+//   to every town, and checks that the reported length equals the sum of the road lengths along the returned route.
+// Data: examples/data/tut-roads.csv, 16 roads between 10 towns with lengths in km (invented).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-graph-roads.lms   (writes and removes tut-roads.npz in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+if (file_exists("tut-roads.npz")) { delete_file("tut-roads.npz"); }   // a stale file from an interrupted run would be a CONFLICT
+loaded = pycli.frame_import({csv: "examples/data/tut-roads.csv", out: "tut-roads.npz"});
+if (loaded.status == "simulated") { println("Routes simulated."); exit(0); }
+if (loaded.status != "ok") { println(json_stringify(loaded)); exit(1); }
+function fail(msg, obj) { println(msg, json_stringify(obj)); delete_file("tut-roads.npz"); exit(1); }
+table = pycli.frame_inspect({frame: "tut-roads.npz", head: 16});   // the import preview shows only the first 10 rows
+if (table.status != "ok" || table.result.shape[0] != 16) { fail("frame_inspect:", table); }
+roads = table.result.head.data;
+function road_length(u, v) {
+  for (i = 0; i < len(roads.from); i = i + 1) { if ((roads.from[i] == u && roads.to[i] == v) || (roads.from[i] == v && roads.to[i] == u)) { return roads.km[i]; } }
+  return -1;
+}
+function route_length(path) { t = 0; for (i = 1; i < len(path); i = i + 1) { l = road_length(path[i - 1], path[i]); if (l < 0) { return -1; } t = t + l; } return t; }
+
+base = {frame: "tut-roads.npz", from_column: "from", to_column: "to", weight_column: "km", directed: false, source: "A"};
+dj = pycli.graph_paths(merge(base, {method: "dijkstra", target: "J"}));
+if (dj.status != "ok" || dj.result.status != "OK") { fail("dijkstra:", dj); }
+println(sprintf("Dijkstra A -> J: %s, %.0f km", join(dj.result.path, " - "), dj.result.length));
+bf = pycli.graph_paths(merge(base, {method: "bellman_ford", target: "J"}));
+if (bf.status != "ok" || bf.result.status != "OK") { fail("bellman_ford:", bf); }
+k3 = pycli.graph_paths(merge(base, {method: "dijkstra", target: "J", k_shortest: 3}));
+if (k3.status != "ok" || k3.result.status != "OK") { fail("k_shortest:", k3); }
+println("three shortest simple routes:");
+for (p in k3.result.paths) { println(sprintf("  %-26s %.0f km (%d segments)", join(p.nodes, " - "), p.length, p.hops)); }
+hops = pycli.graph_paths({frame: "tut-roads.npz", from_column: "from", to_column: "to", directed: false, method: "bfs", source: "A", target: "J"});
+if (hops.status != "ok" || hops.result.status != "OK") { fail("bfs:", hops); }
+println(sprintf("fewest segments A -> J: %d (%s)", hops.result.length, join(hops.result.path, " - ")));
+allv = pycli.graph_paths(merge(base, {method: "dijkstra"}));
+if (allv.status != "ok" || allv.result.status != "OK") { fail("all distances:", allv); }
+for (i = 0; i < len(allv.result.nodes); i = i + 1) { println(sprintf("  A -> %s: %.0f km", allv.result.nodes[i], allv.result.distance[i])); }
+
+// Self-checks: the route length recomputed from the road table equals the reported distance; Bellman-Ford agrees; Yen's first
+// route is the Dijkstra route and the three lengths ascend; BFS uses no more segments than Dijkstra; every town is reached and
+// the single-target distance matches the all-targets table.
+if (abs(route_length(dj.result.path) - dj.result.length) > 0.000000001) { fail("route length does not match the road table:", dj.result); }
+if (abs(bf.result.length - dj.result.length) > 0.000000001) { fail("Bellman-Ford disagrees with Dijkstra:", [bf.result.length, dj.result.length]); }
+kp = k3.result.paths;
+if (k3.result.k_found != 3 || abs(kp[0].length - dj.result.length) > 0.000000001 || kp[1].length < kp[0].length || kp[2].length < kp[1].length) { fail("k-shortest routes are not ascending from the optimum:", k3.result); }
+for (p in kp) { if (abs(route_length(p.nodes) - p.length) > 0.000000001) { fail("a k-shortest route length is wrong:", p); } }
+if (hops.result.length > len(dj.result.path) - 1) { fail("BFS found more segments than the Dijkstra route uses:", hops.result); }
+j = index_of(allv.result.nodes, "J");
+if (allv.result.n_reachable != 10 || len(allv.result.nodes) != 10 || abs(allv.result.distance[j] - dj.result.length) > 0.000000001) { fail("all-targets distances inconsistent:", allv.result); }
+delete_file("tut-roads.npz");
+println(sprintf("Checks passed: A -> J = %.0f km by three methods, lengths verified against the road table, %d towns reached.", dj.result.length, allv.result.n_reachable));

@@ -1,0 +1,48 @@
+// access: read
+// Topic: the Lotka-Volterra predator-prey system (after: the scipy-lectures ODE section and the classic scipy.integrate
+//   odeint tutorial example)
+// What it does: integrates prey' = a prey - b prey pred, pred' = c prey pred - d pred with ode_solve (DOP853, event detection at
+//   the prey maxima), prints the orbit summary, measures the period from the prey peaks with sig_peaks, and checks three facts:
+//   at every prey maximum pred = a / b exactly, the conserved quantity c prey - d ln prey + b pred - a ln pred (ln through
+//   special_fn xlogy) stays constant along the orbit, and the peak spacing equals the event spacing.
+// Data: none (parameters a=1.1, b=0.4, c=0.1, d=0.4, start prey=10, pred=5; the textbook rabbit / fox values).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-ode-predator-prey.lms
+import "../cli.schema.dev.json" as pycli;
+
+P = {a: 1.1, b: 0.4, c: 0.1, d: 0.4};
+n_out = 241;
+sol = pycli.ode_solve({rhs: ["a*prey - b*prey*pred", "c*prey*pred - d*pred"], y0: [10, 5], states: ["prey", "pred"], params: P, t_span: [0, 30], max_output_points: n_out, method: "DOP853", rtol: 0.0000000001, atol: 0.000000000001, events: [{expr: "a - b*pred", direction: -1, terminal: false}]});
+if (sol.status == "simulated") { println("Predator-prey simulated."); exit(0); }
+if (sol.status != "ok" || sol.result.status != "OK") { println("ode_solve failed:", json_stringify(sol)); exit(1); }
+r = sol.result;
+prey = []; pred = [];
+for (row in r.y) { prey = concat(prey, [row[0]]); pred = concat(pred, [row[1]]); }
+println(sprintf("%d output points on [0, 30]; prey in [%.3f, %.3f], predators in [%.3f, %.3f]; %d prey maxima detected", len(r.t), min(prey), max(prey), min(pred), max(pred), r.event_counts[0]));
+for (i = 0; i < r.event_counts[0]; i = i + 1) { println(sprintf("  prey maximum at t=%.5f: prey=%.5f pred=%.5f", r.event_t[i], r.event_y[i][0], r.event_y[i][1])); }
+
+// Self-check 1: prey' = 0 and prey'' < 0 at a prey maximum means pred = a / b (2.75) there, independent of the solver tolerance.
+for (i = 0; i < r.event_counts[0]; i = i + 1) {
+  if (abs(r.event_y[i][1] - P.a / P.b) > 0.00001) { println("predators at a prey maximum are not a/b:", r.event_y[i][1]); exit(1); }
+}
+if (r.event_counts[0] < 2) { println("expected at least two prey maxima in 30 time units"); exit(1); }
+// Self-check 2: the first integral V = c prey - d ln prey + b pred - a ln pred is constant along the orbit.
+lp = pycli.special_fn({"fn": "xlogy", args: {x: 1, y: prey}});
+ld = pycli.special_fn({"fn": "xlogy", args: {x: 1, y: pred}});
+if (lp.status != "ok" || ld.status != "ok" || lp.result.status != "OK" || ld.result.status != "OK") { println(json_stringify([lp, ld])); exit(1); }
+V0 = P.c * prey[0] - P.d * lp.result.y[0] + P.b * pred[0] - P.a * ld.result.y[0];
+worst = 0;
+for (i = 0; i < len(prey); i = i + 1) {
+  V = P.c * prey[i] - P.d * lp.result.y[i] + P.b * pred[i] - P.a * ld.result.y[i];
+  worst = max(worst, abs(V - V0));
+}
+println(sprintf("conserved quantity V = %.10f, largest drift along the orbit %s", V0, str(worst)));
+if (worst > 0.000001) { println("the first integral drifts more than 1e-6"); exit(1); }
+// Self-check 3: the period from the sampled prey peaks (sig_peaks) agrees with the event times (the grid step is 0.125).
+pk = pycli.sig_peaks({x: prey, prominence: 1});
+if (pk.status != "ok" || pk.result.status != "OK") { println(json_stringify(pk)); exit(1); }
+dt = r.t[1] - r.t[0];
+period_events = r.event_t[1] - r.event_t[0];
+period_peaks = (pk.result.indices[1] - pk.result.indices[0]) * dt;
+println(sprintf("period: %.5f from the events, %.5f from the sampled peaks (grid %.3f); linearised 2 pi / sqrt(a d) = %.5f", period_events, period_peaks, dt, 2 * 3.141592653589793 / sqrt(P.a * P.d)));
+if (pk.result.n_peaks != r.event_counts[0] || abs(period_peaks - period_events) > dt) { println("peak spacing disagrees with the event spacing"); exit(1); }
+println("Checks passed: pred = a/b at every prey maximum, first integral conserved to 1e-6, peak period matches the events.");

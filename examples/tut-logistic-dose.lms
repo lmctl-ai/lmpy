@@ -1,0 +1,36 @@
+// access: read
+// Topic: logistic dose-response and the median lethal dose (after: the R ?glm budworm example in MASS)
+// What it does: fits dead ~ ldose with a binomial GLM (logit link) on one row per insect, prints the fitted curve at the
+//   tested doses, locates the dose with 50% mortality (LD50) two ways (closed form -b0/b1 and num_root on the fitted logit)
+//   and checks the fit against the generating curve.
+// Data: examples/data/tut-dose.csv, 240 rows: 40 insects at each dose 1,2,4,...,32; P(dead) = expit(-3 + 1.2 log2(dose)), seed 103.
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-logistic-dose.lms
+import "../cli.schema.dev.json" as pycli;
+
+true_b0 = -3; true_b1 = 1.2;
+fit = pycli.sm_glm({csv: "examples/data/tut-dose.csv", y: "dead", terms: [{var: "ldose"}], family: "binomial", link: "logit"});
+if (fit.status == "simulated") { println("Logistic fit simulated."); exit(0); }
+if (fit.status != "ok" || fit.result.status != "OK") { println("sm_glm failed:", json_stringify(fit)); exit(1); }
+r = fit.result; c = r.coefficients;
+b0 = c.estimate[0]; b1 = c.estimate[1];
+println(sprintf("logit P(dead) = %.3f + %.3f * log2(dose)   (SE %.3f, %.3f; deviance %.2f on %d df)", b0, b1, c.std_err[0], c.std_err[1], r.deviance, r.df_resid));
+// Fitted mortality at the tested doses, through the expit special function.
+ldoses = [0, 1, 2, 3, 4, 5];
+eta = [];
+for (l in ldoses) { eta = concat(eta, [b0 + b1 * l]); }
+pr = pycli.special_fn({"fn": "expit", args: {x: eta}});
+if (pr.status != "ok" || pr.result.status != "OK") { println(json_stringify(pr)); exit(1); }
+for (i = 0; i < len(ldoses); i = i + 1) { println(sprintf("dose %2d: fitted mortality %.3f", pow(2, ldoses[i]), pr.result.y[i])); }
+
+// LD50: closed form on the log2 scale, and the root of the fitted logit found numerically.
+ld50_closed = 0 - b0 / b1;
+root = pycli.num_root({f: str(b0) + " + " + str(b1) + " * x", lower: 0, upper: 5});
+if (root.status != "ok" || root.result.status != "OK") { println(json_stringify(root)); exit(1); }
+println(sprintf("LD50: log2 dose %.4f (closed form) vs %.4f (num_root); dose = %.3f; generating value log2 dose %.4f", ld50_closed, root.result.root, pow(2, ld50_closed), 0 - true_b0 / true_b1));
+
+// Self-checks: both LD50 routes agree, the coefficients are within 3 SE of the truth, and the fitted curve is monotone.
+if (abs(root.result.root - ld50_closed) > 0.000001) { println("num_root disagrees with the closed-form LD50"); exit(1); }
+if (abs(b0 - true_b0) > 3 * c.std_err[0] || abs(b1 - true_b1) > 3 * c.std_err[1]) { println("coefficients more than 3 SE from the generating values"); exit(1); }
+if (abs(ld50_closed - (0 - true_b0 / true_b1)) > 0.5) { println("LD50 more than half a doubling from the truth"); exit(1); }
+for (i = 1; i < len(ldoses); i = i + 1) { if (pr.result.y[i] <= pr.result.y[i - 1]) { println("fitted mortality is not increasing"); exit(1); } }
+println("Checks passed: LD50 routes agree to 1e-6, coefficients within 3 SE, monotone dose-response.");

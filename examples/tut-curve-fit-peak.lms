@@ -1,0 +1,54 @@
+// access: write
+// Topic: fitting a Gaussian peak on a baseline by nonlinear least squares (after: the scipy-lectures optimisation chapter
+//   "curve fitting" example and the R ?nls help page)
+// What it does: imports the spectrum, hands the columns to opt_least_squares as safetensors refs (frame_to_array_to), fits
+//   b + a exp(-(x - m)^2 / (2 s^2)), then minimises the same sum of squares with opt_minimize (a sum reducer over the data)
+//   and checks that both optimisers agree, that the fitted parameters are within 4 standard errors of the generating values and
+//   that the reported rss matches a recomputation at the fitted parameters.
+// Data: examples/data/tut-peak.csv, 101 points on x = 0..10: y = 0.3 + 2.0 exp(-(x - 4.5)^2 / (2 0.8^2)) + N(0, 0.05^2), seed 106.
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-curve-fit-peak.lms   (writes and removes tut-peak*.npz/.safetensors in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+E = 2.718281828459045;
+truth = {a: 2.0, b: 0.3, m: 4.5, s: 0.8};
+files = ["tut-peak.npz", "tut-peak-x.safetensors", "tut-peak-y.safetensors"];
+function cleanup() { for (p in files) { if (file_exists(p)) { delete_file(p); } } }
+function fail(msg, obj) { println(msg, json_stringify(obj)); cleanup(); exit(1); }
+cleanup();   // a stale file from an interrupted run would be a CONFLICT
+loaded = pycli.frame_import({csv: "examples/data/tut-peak.csv", out: "tut-peak.npz"});
+if (loaded.status == "simulated") { println("Curve fit simulated."); exit(0); }
+if (loaded.status != "ok") { fail("frame_import:", loaded); }
+xa = pycli.frame_to_array_to({frame: "tut-peak.npz", columns: ["x"], squeeze: true, out: "tut-peak-x.safetensors", key: "x"});
+ya = pycli.frame_to_array_to({frame: "tut-peak.npz", columns: ["y"], squeeze: true, out: "tut-peak-y.safetensors", key: "y"});
+if (xa.status != "ok" || ya.status != "ok") { fail("frame_to_array_to:", [xa, ya]); }
+data = {x: xa.result.artifacts.x.ref, y: ya.result.artifacts.y.ref};
+
+model = "b + a*exp(-(x-m)^2/(2*s^2))";
+fit = pycli.opt_least_squares({model: model, response: "y", data: data, x0: {a: 1, b: 0, m: 5, s: 1}});
+if (fit.status != "ok" || fit.result.status != "OK") { fail("opt_least_squares:", fit); }
+p = fit.result.par; se = fit.result.std_err;
+println(sprintf("least squares: a=%.4f (SE %.4f) b=%.4f (SE %.4f) m=%.4f (SE %.4f) s=%.4f (SE %.4f) rss=%.5f cov=%s", p.a, se.a, p.b, se.b, p.m, se.m, p.s, se.s, fit.result.rss, fit.result.cov_status));
+mn = pycli.opt_minimize({objective: "sum((y - (" + model + "))^2)", x0: {a: 1, b: 0, m: 5, s: 1}, data: data, method: "BFGS"});
+if (mn.status != "ok" || mn.result.status != "OK") { fail("opt_minimize:", mn); }
+q = mn.result.par;
+println(sprintf("minimize (BFGS on the same sum of squares): a=%.4f b=%.4f m=%.4f s=%.4f fun=%.5f", q.a, q.b, q.m, q.s, mn.result.fun));
+
+// Self-checks.
+for (name in ["a", "b", "m", "s"]) {
+  if (fit.result.cov_status != "OK" || se[name] <= 0) { fail("no usable standard errors:", fit.result); }
+  if (abs(p[name] - truth[name]) > 4 * se[name]) { fail("parameter " + name + " more than 4 SE from the generating value:", {fit: p[name], truth: truth[name], se: se[name]}); }
+  if (abs(p[name] - q[name]) > 0.001) { fail("the two optimisers disagree on " + name + ":", {least_squares: p[name], minimize: q[name]}); }
+}
+if (abs(mn.result.fun - fit.result.rss) > 0.000001) { fail("objective values differ:", {rss: fit.result.rss, fun: mn.result.fun}); }
+// Recompute the residual sum of squares from the table values at the fitted parameters.
+tab = pycli.frame_to_array({frame: "tut-peak.npz", columns: ["x", "y"]});
+if (tab.status != "ok") { fail("frame_to_array:", tab); }
+rss = 0; v = tab.result.values;
+for (i = 0; i < tab.result.shape[0]; i = i + 1) {
+  xi = v[i][0]; yi = v[i][1];
+  r = yi - (p.b + p.a * pow(E, 0 - (xi - p.m) * (xi - p.m) / (2 * p.s * p.s)));
+  rss = rss + r * r;
+}
+if (!is_number(rss) || abs(rss - fit.result.rss) > 0.000000001) { fail("recomputed rss differs:", {recomputed: rss, reported: fit.result.rss}); }
+cleanup();
+println(sprintf("Checks passed: parameters within 4 SE of (2.0, 0.3, 4.5, 0.8); optimisers agree to 1e-3; rss recomputed = %.6f.", rss));

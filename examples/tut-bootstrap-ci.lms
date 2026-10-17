@@ -1,0 +1,62 @@
+// access: write
+// Topic: a seeded bootstrap confidence interval for the mean of a skewed sample (after: the scipy-lectures statistics chapter and
+//   the classic "bootstrap the mean" exercise)
+// What it does: loads the sample, draws 200 bootstrap resamples with explicit PCG64 seeds (stats_dist rvs uniform, floor(u * n)
+//   as indices), reports the percentile interval and the bootstrap standard error, and compares them with the normal-theory
+//   t interval (stats_dist t ppf) and with the generating distribution's moments (stats_dist moments).
+// Data: examples/data/tut-bootstrap.csv, 40 draws from gamma(shape 2, scale 5): mean 10, variance 50 (seed 105).
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-bootstrap-ci.lms   (writes and removes tut-bootstrap.npz in cwd)
+import "../cli.schema.dev.json" as pycli;
+
+B = 200;
+if (file_exists("tut-bootstrap.npz")) { delete_file("tut-bootstrap.npz"); }   // a stale file from an interrupted run would be a CONFLICT
+loaded = pycli.frame_import({csv: "examples/data/tut-bootstrap.csv", out: "tut-bootstrap.npz"});
+if (loaded.status == "simulated") { println("Bootstrap simulated."); exit(0); }
+if (loaded.status != "ok") { println(json_stringify(loaded)); exit(1); }
+function fail(msg, obj) { println(msg, json_stringify(obj)); delete_file("tut-bootstrap.npz"); exit(1); }
+arr = pycli.frame_to_array({frame: "tut-bootstrap.npz", columns: ["value"], squeeze: true});
+if (arr.status != "ok" || arr.result.status != "OK") { fail("frame_to_array:", arr); }
+x = arr.result.values; n = len(x);
+mean = 0; for (v in x) { mean = mean + v; } mean = mean / n;
+ss = 0; for (v in x) { ss = ss + (v - mean) * (v - mean); }
+sd = sqrt(ss / (n - 1)); se = sd / sqrt(n);
+println(sprintf("sample: n=%d mean=%.4f sd=%.4f se=%.4f", n, mean, sd, se));
+
+// Bootstrap: B resamples of n indices each; 1000 uniforms per inline call, one explicit seed per call (the stream is reproducible).
+draws = []; seed = 1;
+while (len(draws) < B * n) {
+  u = pycli.stats_dist({dist: "uniform", "fn": "rvs", params: {"low": 0, "high": 1}, n: 1000, seed: seed});
+  if (u.status != "ok" || u.result.status != "OK") { fail("uniform draws:", u); }
+  draws = concat(draws, u.result.values); seed = seed + 1;
+}
+boot = [];
+for (b = 0; b < B; b = b + 1) {
+  total = 0;
+  for (i = 0; i < n; i = i + 1) { total = total + x[floor(draws[b * n + i] * n)]; }
+  boot = concat(boot, [total / n]);
+}
+bmean = 0; for (v in boot) { bmean = bmean + v; } bmean = bmean / B;
+bss = 0; for (v in boot) { bss = bss + (v - bmean) * (v - bmean); }
+bse = sqrt(bss / (B - 1));
+sorted = sort(boot);
+lo = sorted[floor(0.025 * B)]; hi = sorted[ceil(0.975 * B) - 1];
+println(sprintf("bootstrap (B=%d, seeds 1..%d): mean of means=%.4f SE=%.4f percentile 95%% CI=[%.4f, %.4f]", B, seed - 1, bmean, bse, lo, hi));
+
+// Normal-theory interval with the t quantile, and the generating distribution's moments for reference.
+q = pycli.stats_dist({dist: "t", "fn": "ppf", params: {df: n - 1}, x: [0.975]});
+if (q.status != "ok" || q.result.status != "OK") { fail("t quantile:", q); }
+tq = q.result.values[0];
+println(sprintf("t interval: [%.4f, %.4f] (t=%.4f on %d df)", mean - tq * se, mean + tq * se, tq, n - 1));
+m = pycli.stats_dist({dist: "gamma", "fn": "moments", params: {shape: 2, scale: 5}});
+if (m.status != "ok" || m.result.status != "OK") { fail("gamma moments:", m); }
+println("generating gamma(2, 5) moments:", json_stringify(m.result.moments));
+
+// Self-checks: the bootstrap SE is within 30% of s/sqrt(n); the bootstrap mean is within one SE of the sample mean (bias is small
+// for a mean); the percentile interval covers the true mean 10 and is about as wide as the t interval (ratio in [0.7, 1.3]).
+if (abs(bse - se) > 0.3 * se) { fail("bootstrap SE far from s/sqrt(n):", {bse: bse, se: se}); }
+if (abs(bmean - mean) > se) { fail("bootstrap mean biased:", {bmean: bmean, mean: mean}); }
+if (lo > 10 || hi < 10) { fail("percentile interval misses the true mean 10:", [lo, hi]); }
+ratio = (hi - lo) / (2 * tq * se);
+if (ratio < 0.7 || ratio > 1.3) { fail("interval width ratio outside [0.7, 1.3]:", ratio); }
+delete_file("tut-bootstrap.npz");
+println(sprintf("Checks passed: bootstrap SE %.4f vs %.4f, width ratio %.3f, interval covers the true mean.", bse, se, ratio));
