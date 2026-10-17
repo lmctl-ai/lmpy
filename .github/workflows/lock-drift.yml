@@ -33,7 +33,10 @@ jobs:
           base=$(sed -n 's/^ARG BASE=\(.*\)$/\1/p' docker/Dockerfile)
           pins=$(grep -E '^[A-Za-z0-9_]+==' "docker/requirements-${{ matrix.arch }}.lock" | sed 's/ --hash.*//' | tr '\n' ' ')
           docker run --rm -v "$PWD:/src" -w /src "$base" sh -c "python -m pip download --no-deps --only-binary=:all: -d /tmp/wheels $pins > /dev/null && python scripts/lock.py /tmp/wheels /src/fresh.lock"
-          if diff -u "docker/requirements-${{ matrix.arch }}.lock" fresh.lock > drift.diff; then
+          # Compare only the pin+hash lines, sorted: the comment header and the package order may differ between lock.py runs.
+          grep -E '^[A-Za-z0-9_]+==' "docker/requirements-${{ matrix.arch }}.lock" | sort > committed.pins
+          grep -E '^[A-Za-z0-9_]+==' fresh.lock | sort > fresh.pins
+          if diff -u committed.pins fresh.pins > drift.diff; then
             echo "## ${{ matrix.arch }}: no wheel hash drift" >> "$GITHUB_STEP_SUMMARY"
           else
             { echo "## ${{ matrix.arch }}: WHEEL HASH DRIFT"; echo '```diff'; cat drift.diff; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
