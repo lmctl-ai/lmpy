@@ -44,6 +44,8 @@ fixtures: every table is a seeded draw; `tut-flowers.csv` uses the iris species 
 The same seeded analysis through pycli (Python) and R (rcli shim) from one lmscript, with a side-by-side table and exit 1 on any
 disagreement beyond the stated tolerance (README "Cross-language agreement" explains the tolerance principles). Both shims on PATH:
 `export PATH="$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH"`; without rcli the R leg is skipped with a hint and the recipe exits 0.
+The R legs are local-only: rcli is a private repository the pycli CI cannot check out, so CI exercises only the Python leg and the
+parse / dry-run modes of these recipes.
 Each recipe was mutation-checked: perturbing the data fed to one side only makes it exit 1.
 
 | Recipe | Analysis | Data | Python / R operations | Tolerance (what is compared) |

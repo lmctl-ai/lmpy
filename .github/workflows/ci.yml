@@ -19,7 +19,6 @@ env:
   LMCPP_REF: f6c6f51797912a369d6b27cf9e96f148a9a0e4d1
   LMTS_REF: 31012f638613b74114b66bce01c99b8415248263
   LMCTL_VERSION: 0.2.207   # the lmscript used for the recipe acceptance on the development host
-  RCLI_REF: a8570350d9413803e0fb86416aa07d24db6a890c   # rcli (R through lmcpp) built natively for the examples/cross-*.lms R legs
 
 jobs:
   build-and-test:
@@ -51,12 +50,6 @@ jobs:
           repository: lmctl-ai/lmts
           ref: ${{ env.LMTS_REF }}
           path: lmts
-      - name: Checkout pinned rcli
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          repository: lmctlhq/rcli
-          ref: ${{ env.RCLI_REF }}
-          path: rcli
       - name: Host facts
         run: |
           uname -m; docker version --format '{{.Server.Version}} {{.Server.Arch}}'; python3 --version; df -h / | tail -1
@@ -66,18 +59,6 @@ jobs:
       - name: Documentation gate (host python only)
         working-directory: pycli
         run: python3 tests/docs_gate.py
-      - name: Build rcli natively (R 4.3.3 from the Ubuntu archive, lmcpp from the pinned checkout) for the cross-language recipes
-        id: rcli
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends r-base-core=4.3.3-2build2 cmake g++ ninja-build nlohmann-json3-dev
-          Rscript --version 2>&1 | grep -F '4.3.3'
-          cmake -S lmcpp -B lmcpp/build-host -G Ninja -DCMAKE_BUILD_TYPE=Release -DLMCPP_BUILD_TESTS=OFF -DLMCPP_STATIC_STDLIB=ON -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/lmcpp"
-          cmake --build lmcpp/build-host --parallel 2 && cmake --install lmcpp/build-host
-          cmake -S rcli -B rcli/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/lmcpp" -DBUILD_TESTING=OFF
-          cmake --build rcli/build --parallel 2
-          rcli/build/bin/rcli --schema > rcli-schema.json
-          python3 -c 'import json,sys; a=json.load(open("rcli-schema.json")); b=json.load(open("pycli/examples/schemas/rcli.cli.schema.v1.json")); sys.exit(0 if a==b else "examples/schemas/rcli.cli.schema.v1.json differs from the pinned rcli schema")'
       # Every gate after the test-image build runs even when an earlier gate failed (if: !cancelled() plus the outcome of the step it
       # needs), so one run shows all results per architecture; a failed step still fails the job.
       - name: Build the test image from the ${{ matrix.arch }} lock
@@ -127,11 +108,11 @@ jobs:
         if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
         working-directory: pycli
         run: docker run --rm --pull=never --network=none --user "$(id -u):$(id -g)" --entrypoint python3 -v "$PWD:/repo:ro" pycli:test /repo/scripts/generate-tutorial-data.py --check
-      - name: Run every recipe through the host shim (real, --check, --dry-run; rcli on PATH for the cross-* and oracle-* R legs)
+      - name: Run every recipe through the host shim (real, --check, --dry-run; the R legs of cross-* / oracle-* are local-only, rcli is private)
         id: recipes
-        if: ${{ !cancelled() && steps.lmscript.outcome == 'success' && steps.rcli.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.lmscript.outcome == 'success' }}
         working-directory: pycli
-        run: PATH="$GITHUB_WORKSPACE/rcli/build/bin:$PATH" scripts/run-recipes.sh
+        run: scripts/run-recipes.sh
       - name: Image size report
         if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
         working-directory: pycli
@@ -143,7 +124,7 @@ jobs:
         run: |
           { echo "## Gates (${{ matrix.arch }})"; echo "| gate | outcome |"; echo "|---|---|";
             echo "| test image build | ${{ steps.build_test.outcome }} |"; echo "| CTest | ${{ steps.ctest.outcome }} |"; echo "| notices | ${{ steps.notices.outcome }} |";
-            echo "| runtime build | ${{ steps.build_runtime.outcome }} |"; echo "| schema + provenance | ${{ steps.schema.outcome }} |"; echo "| rcli build | ${{ steps.rcli.outcome }} |"; echo "| tutorial data | ${{ steps.tutdata.outcome }} |"; echo "| recipes | ${{ steps.recipes.outcome }} |"; } | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "| runtime build | ${{ steps.build_runtime.outcome }} |"; echo "| schema + provenance | ${{ steps.schema.outcome }} |"; echo "| tutorial data | ${{ steps.tutdata.outcome }} |"; echo "| recipes | ${{ steps.recipes.outcome }} |"; } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Clean builder layers
         if: always()
         working-directory: pycli

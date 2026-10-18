@@ -156,8 +156,10 @@ algorithms and random streams differ, the partition does not); nonlinear least s
 tolerances set on both sides; Rosenbrock minimisers against the exact minimum (R's optim finite differences cap its precision at 1e-3);
 quadrature and roots at 1e-10; densities at 1e-13 and continuous quantiles at 1e-10 relative. Where the tools legitimately differ
 (R's undamped nls needs a data-derived start, R's "intercept" is the mean), the recipe header says so and compares the invariant
-quantity. No disagreement beyond tolerance was found (docs/parity.md). With rcli absent the R leg is skipped with a hint and the
-recipe exits 0; CI builds rcli natively (pinned revision, R 4.3.3 from the Ubuntu archive) so the R legs run on both architectures.
+quantity. No disagreement beyond tolerance was found (docs/parity.md). **The R legs are local-only**: rcli is a private repository
+that the pycli workflow cannot check out, so CI runs the recipes with the R leg skipped (hint printed, exit 0: the Python leg,
+`--check` and `--dry-run` are still gated) and the cross-language verdicts come from the development host (both architectures of
+pycli are covered by CI; the R comparison was run on aarch64 with rcli commit a857035, R 4.3.3).
 
 ```sh
 export PATH="$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH"   # pycli shim and rcli shim (rcli:runtime image built in that repo)

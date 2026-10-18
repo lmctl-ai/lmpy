@@ -63,7 +63,8 @@ Tolerances are never raised to hide a mismatch; every exceedance is a row in doc
 ## Cross-language agreement recipes (`examples/cross-*.lms`)
 
 Seven recipes run one seeded analysis through pycli and R (rcli) from a single lmscript and exit 1 on disagreement (README
-"Cross-language agreement" lists the tolerances). Results on the development host and in CI: no disagreement beyond tolerance.
+"Cross-language agreement" lists the tolerances). Results on the development host (rcli commit a857035, R 4.3.3; the R legs are
+local-only because rcli is private): no disagreement beyond tolerance.
 Observations recorded while writing them (legitimate differences, stated in the recipe headers): Poisson GLM standard errors differ
 by up to 6.4e-7 on the exposure fixture (R's summary.glm uses the working weights of the penultimate IRLS iterate, statsmodels
 recomputes them at the converged coefficients; estimates agree to 2e-10); R's nls (undamped Gauss-Newton) fails from the far start
