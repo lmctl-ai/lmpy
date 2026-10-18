@@ -5,8 +5,11 @@
 //   ANOVA as the F-test of sm_ols with a categorical term, builds the group x flowered contingency table with frame_groupby and
 //   computes the chi-square statistic and its p-value with stats_dist; every p-value is cross-checked against the reference
 //   distribution and the ANOVA group means are checked against frame_groupby.
-// Data: examples/data/tut-groups.csv, 36 rows: weight ~ N(5.0 / 4.6 / 5.8, 0.6^2) for ctrl / trt1 / trt2 and a yes/no trait with
-//   P(yes) = 0.25 / 0.25 / 0.85 (seed 104).
+// Data: examples/data/tut-groups.csv, 60 rows (20 per group): weight ~ N(5.0 / 4.6 / 5.8, 0.6^2) for ctrl / trt1 / trt2 and a yes/no
+//   trait with P(yes) = 0.25 / 0.25 / 0.85 (seed 104; 20 per group keeps every expected count of the contingency table above 5).
+// Caveats a tutorial reader should know: the single ctrl-vs-trt2 t-test is one of three possible pairwise comparisons, so its p-value
+//   would need a multiple-comparison adjustment (Bonferroni: multiply by 3) if all pairs were tested; the chi-square approximation
+//   needs expected counts of at least 5 (Cochran's rule), which the recipe prints and checks.
 // Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-group-tests.lms   (writes and removes tut-groups*.npz in cwd)
 import "../cli.schema.dev.json" as pycli;
 
@@ -42,6 +45,14 @@ for (i = 0; i < len(md.group); i = i + 1) { println(sprintf("  %-5s n=%d mean=%.
 // The treatment-coded coefficients are differences of group means (ctrl is the reference, groups are sorted).
 ac = a.coefficients;
 if (abs(ac.estimate[0] - md.weight__mean[0]) > 0.000000001 || abs(ac.estimate[1] - (md.weight__mean[1] - md.weight__mean[0])) > 0.000000001 || abs(ac.estimate[2] - (md.weight__mean[2] - md.weight__mean[0])) > 0.000000001) { fail("ANOVA coefficients are not the group-mean differences:", ac); }
+// Known answer: the generating differences are trt1 - ctrl = -0.4 and trt2 - ctrl = +0.8 (sd 0.6, 20 per group: SE of a difference
+// about 0.19); each estimate must be within 2.5 SE of its generating value (this fixture sits at 0.9 and 1.9 SE), so a shifted or
+// reversed treatment effect fails even when it is still "significant".
+truth_diff = {"group[T.trt1]": -0.4, "group[T.trt2]": 0.8};
+for (i = 1; i < len(ac.names); i = i + 1) {
+  if (abs(ac.estimate[i] - truth_diff[ac.names[i]]) > 2.5 * ac.std_err[i]) { fail("group difference " + ac.names[i] + " more than 2.5 SE from its generating value:", {estimate: ac.estimate[i], truth: truth_diff[ac.names[i]], se: ac.std_err[i]}); }
+}
+if (abs(tc.estimate[1] - 0.8) > 2.5 * tc.std_err[1]) { fail("t-test difference more than 2.5 SE from the generating +0.8:", tc); }
 
 // 3. Chi-square test of independence between group and the yes/no trait, from a frame_groupby count table.
 xt = pycli.frame_groupby({frame: work + ".npz", keys: ["group", "flowered"], aggs: {weight: ["count"]}, out: work + "-xtab.npz"});
@@ -54,13 +65,18 @@ row = [0, 0, 0]; col = [0, 0]; n = 0;
 for (i = 0; i < 3; i = i + 1) { for (j = 0; j < 2; j = j + 1) { row[i] = row[i] + table[i][j]; col[j] = col[j] + table[i][j]; n = n + table[i][j]; } }
 chi2 = 0;
 for (i = 0; i < 3; i = i + 1) { for (j = 0; j < 2; j = j + 1) { expct = row[i] * col[j] / n; chi2 = chi2 + (table[i][j] - expct) * (table[i][j] - expct) / expct; } }
+min_expected = 1000000;
+for (i = 0; i < 3; i = i + 1) { for (j = 0; j < 2; j = j + 1) { min_expected = min(min_expected, row[i] * col[j] / n); } }
 pchi = pycli.stats_dist({dist: "chi2", "fn": "sf", params: {df: 2}, x: [chi2]});
 if (pchi.status != "ok" || pchi.result.status != "OK") { fail("chi2 sf:", pchi); }
-println(sprintf("chi-square independence (group x flowered): table %s, X2 = %.3f on 2 df, p = %.4f", json_stringify(table), chi2, pchi.result.values[0]));
+println(sprintf("chi-square independence (group x flowered): table %s, X2 = %.3f on 2 df, p = %.4f (smallest expected count %.2f)", json_stringify(table), chi2, pchi.result.values[0], min_expected));
 
 // Self-checks on the fixture: ctrl vs trt2 differ (p < 0.05), the ANOVA detects the group effect, the trait depends on the group,
 // and every count table sums to the 36 rows.
 if (tc.p_value[1] >= 0.05 || a.f_p_value >= 0.05 || pchi.result.values[0] >= 0.05) { fail("an effect built into the fixture was not detected at 5%", {t: tc.p_value[1], f: a.f_p_value, chi2: pchi.result.values[0]}); }
-if (n != 36 || row[0] != 12 || row[1] != 12 || row[2] != 12) { fail("contingency table does not account for every row:", table); }
+if (n != 60 || row[0] != 20 || row[1] != 20 || row[2] != 20) { fail("contingency table does not account for every row:", table); }
+if (min_expected < 5) { fail("an expected count is below 5, the chi-square approximation is not justified:", min_expected); }
+// Bonferroni-adjusted pairwise t-test still significant, so the multiple-comparison caveat does not change the conclusion here.
+if (3 * tc.p_value[1] >= 0.05) { fail("ctrl vs trt2 is not significant after a Bonferroni adjustment for three pairs:", 3 * tc.p_value[1]); }
 cleanup();
-println("Checks passed: p-values reproduced from the t, F and chi-square references; coefficients equal group-mean differences; all three effects detected.");
+println("Checks passed: p-values reproduced from the t, F and chi-square references; coefficients equal group-mean differences and sit within 2.5 SE of the generating -0.4 / +0.8; all three effects detected (t-test also after Bonferroni); expected counts >= 5; every row counted.");

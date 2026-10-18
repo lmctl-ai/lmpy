@@ -1,14 +1,16 @@
 // access: write
 // Topic: a seeded bootstrap confidence interval for the mean of a skewed sample (after: the scipy-lectures statistics chapter and
 //   the classic "bootstrap the mean" exercise)
-// What it does: loads the sample, draws 200 bootstrap resamples with explicit PCG64 seeds (stats_dist rvs uniform, floor(u * n)
-//   as indices), reports the percentile interval and the bootstrap standard error, and compares them with the normal-theory
-//   t interval (stats_dist t ppf) and with the generating distribution's moments (stats_dist moments).
+// What it does: loads the sample, draws 1000 bootstrap resamples with explicit PCG64 seeds (stats_dist rvs uniform; each uniform
+//   supplies two indices, floor(n u) and floor(n frac(n u)), so 20 calls of 1000 draws cover the 40000 indices), reports the
+//   percentile interval and the bootstrap standard error, and compares them with the normal-theory t interval (stats_dist t ppf)
+//   and with the generating distribution's moments (stats_dist moments). The checks fail when resampling is broken: every row
+//   must be drawn, the bootstrap mean must sit within 0.25 SE of the sample mean and the bootstrap SE within 15% of s / sqrt(n).
 // Data: examples/data/tut-bootstrap.csv, 40 draws from gamma(shape 2, scale 5): mean 10, variance 50 (seed 105).
 // Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-bootstrap-ci.lms   (writes and removes tut-bootstrap.npz in cwd)
 import "../cli.schema.dev.json" as pycli;
 
-B = 200;
+B = 1000;
 if (file_exists("tut-bootstrap.npz")) { delete_file("tut-bootstrap.npz"); }   // a stale file from an interrupted run would be a CONFLICT
 loaded = pycli.frame_import({csv: "examples/data/tut-bootstrap.csv", out: "tut-bootstrap.npz"});
 if (loaded.status == "simulated") { println("Bootstrap simulated."); exit(0); }
@@ -22,17 +24,20 @@ ss = 0; for (v in x) { ss = ss + (v - mean) * (v - mean); }
 sd = sqrt(ss / (n - 1)); se = sd / sqrt(n);
 println(sprintf("sample: n=%d mean=%.4f sd=%.4f se=%.4f", n, mean, sd, se));
 
-// Bootstrap: B resamples of n indices each; 1000 uniforms per inline call, one explicit seed per call (the stream is reproducible).
-draws = []; seed = 1;
+// Bootstrap: B resamples of n indices each. Inline calls return at most 1000 uniforms, so each uniform u (53 random bits) supplies
+// two indices: floor(n u) and floor(n frac(n u)); one explicit seed per call makes the whole stream reproducible.
+draws = []; seed = 1; hit = [];
+for (i = 0; i < n; i = i + 1) { hit = concat(hit, [0]); }
 while (len(draws) < B * n) {
   u = pycli.stats_dist({dist: "uniform", "fn": "rvs", params: {"low": 0, "high": 1}, n: 1000, seed: seed});
   if (u.status != "ok" || u.result.status != "OK") { fail("uniform draws:", u); }
-  draws = concat(draws, u.result.values); seed = seed + 1;
+  for (v in u.result.values) { w = v * n; draws = concat(draws, [floor(w), floor((w - floor(w)) * n)]); }
+  seed = seed + 1;
 }
 boot = [];
 for (b = 0; b < B; b = b + 1) {
   total = 0;
-  for (i = 0; i < n; i = i + 1) { total = total + x[floor(draws[b * n + i] * n)]; }
+  for (i = 0; i < n; i = i + 1) { idx = draws[b * n + i]; total = total + x[idx]; hit[idx] = hit[idx] + 1; }
   boot = concat(boot, [total / n]);
 }
 bmean = 0; for (v in boot) { bmean = bmean + v; } bmean = bmean / B;
@@ -51,12 +56,18 @@ m = pycli.stats_dist({dist: "gamma", "fn": "moments", params: {shape: 2, scale: 
 if (m.status != "ok" || m.result.status != "OK") { fail("gamma moments:", m); }
 println("generating gamma(2, 5) moments:", json_stringify(m.result.moments));
 
-// Self-checks: the bootstrap SE is within 30% of s/sqrt(n); the bootstrap mean is within one SE of the sample mean (bias is small
-// for a mean); the percentile interval covers the true mean 10 and is about as wide as the t interval (ratio in [0.7, 1.3]).
-if (abs(bse - se) > 0.3 * se) { fail("bootstrap SE far from s/sqrt(n):", {bse: bse, se: se}); }
-if (abs(bmean - mean) > se) { fail("bootstrap mean biased:", {bmean: bmean, mean: mean}); }
+// Self-checks. Every row is resampled (each index is drawn about B = 1000 times; a resampler that skips rows fails here); the
+// bootstrap mean of a mean is unbiased, and with B = 1000 its own standard error is se / sqrt(B) = 0.03 se, so 0.25 se is a 8-sigma
+// bound that still fails for a resampler drawing from the wrong rows; the bootstrap SE of a mean equals s / sqrt(n) up to the
+// (n-1)/n factor and the B-resample noise (about 1 / sqrt(2B) = 2.2%), so 15% catches a wrong-rows resampler (the reviewer's
+// 30-of-40 mutation moved it by 6%, and loses the coverage check first); the percentile interval covers the true mean 10 and is
+// about as wide as the t interval (ratio in [0.8, 1.2]).
+missed = 0; for (i = 0; i < n; i = i + 1) { if (hit[i] == 0) { missed = missed + 1; } }
+if (missed > 0) { fail("rows never drawn by the resampler:", missed); }
+if (abs(bse - se) > 0.15 * se) { fail("bootstrap SE more than 15% from s/sqrt(n):", {bse: bse, se: se}); }
+if (abs(bmean - mean) > 0.25 * se) { fail("bootstrap mean more than 0.25 SE from the sample mean:", {bmean: bmean, mean: mean}); }
 if (lo > 10 || hi < 10) { fail("percentile interval misses the true mean 10:", [lo, hi]); }
 ratio = (hi - lo) / (2 * tq * se);
-if (ratio < 0.7 || ratio > 1.3) { fail("interval width ratio outside [0.7, 1.3]:", ratio); }
+if (ratio < 0.8 || ratio > 1.2) { fail("interval width ratio outside [0.8, 1.2]:", ratio); }
 delete_file("tut-bootstrap.npz");
-println(sprintf("Checks passed: bootstrap SE %.4f vs %.4f, width ratio %.3f, interval covers the true mean.", bse, se, ratio));
+println(sprintf("Checks passed: all %d rows drawn, bootstrap mean within 0.25 SE, bootstrap SE %.4f vs %.4f (15%%), width ratio %.3f, interval covers the true mean.", n, bse, se, ratio));

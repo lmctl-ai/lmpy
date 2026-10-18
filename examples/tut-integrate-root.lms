@@ -32,7 +32,7 @@ resid = En - e * sine(En) - M;
 println(sprintf("Kepler E - 0.3 sin E = 1: E = %.12f (%d iterations), residual recomputed %s", En, k.result.iterations, str(resid)));
 if (abs(resid) > 0.000000001) { println("Kepler root does not satisfy the equation"); exit(1); }
 
-// A square system: the circle x^2 + y^2 = 4 meets the parabola y = x^2 - 2 at x = +-sqrt((1 + sqrt(13)) / 2) ... use the closed form to check.
+// A square system: the circle x^2 + y^2 = 4 meets the parabola y = x^2 - 2; the closed form is derived below the call.
 sys = pycli.opt_root({equations: ["x^2 + y^2 - 4", "y - x^2 + 2"], start: {x: 1.5, y: 0.5}});
 if (sys.status != "ok" || sys.result.status != "OK") { println(json_stringify(sys)); exit(1); }
 sx = sys.result.x.x; sy = sys.result.x.y;

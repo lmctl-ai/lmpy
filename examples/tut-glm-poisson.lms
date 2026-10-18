@@ -19,9 +19,13 @@ for (i = 0; i < len(c.names); i = i + 1) {
   println(sprintf("%-12s %7.4f %7.4f   %6.3f  [%.3f, %.3f]", c.names[i], c.estimate[i], c.std_err[i], pow(E, c.estimate[i]), pow(E, c.ci_lower[i]), pow(E, c.ci_upper[i])));
 }
 
-// Self-check 1: each estimate is within 3 standard errors of the generating value (log scale).
+// Self-check 1: each estimate is within 2 standard errors of the generating value (log scale; this fixture sits at 0.3, 0.5 and 1.4
+// SE, so a generating B effect of 0.75 instead of 0.5, 2.2 SE away, fails), and the fitted coefficients are pinned to 1e-4 as a
+// tool-regression check (const 0.6725, group[T.B] 0.5481, group[T.C] -0.2436 on this table).
+pinned = [0.67251, 0.54809, -0.24359];
 for (i = 0; i < len(c.names); i = i + 1) {
-  if (abs(c.estimate[i] - truth[c.names[i]]) > 3 * c.std_err[i]) { println("estimate for", c.names[i], "is more than 3 SE from the truth"); exit(1); }
+  if (abs(c.estimate[i] - truth[c.names[i]]) > 2 * c.std_err[i]) { println("estimate for", c.names[i], "is more than 2 SE from the truth"); exit(1); }
+  if (abs(c.estimate[i] - pinned[i]) > 0.0001) { println("estimate for", c.names[i], "differs from the pinned fixture value", pinned[i]); exit(1); }
 }
 // Self-check 2: the deviance drop from the null model, referred to chi-square(df_model), rejects "no group effect".
 drop = r.null_deviance - r.deviance;
@@ -31,4 +35,4 @@ println(sprintf("likelihood-ratio test of the group effect: deviance drop %.3f o
 if (p.result.values[0] > 0.01) { println("the group effect should be detectable at the 1% level with this fixture"); exit(1); }
 // Self-check 3: residual deviance is on the scale of its degrees of freedom (no gross overdispersion in Poisson data).
 if (r.deviance / r.df_resid > 1.6 || r.deviance / r.df_resid < 0.5) { println("deviance / df_resid outside [0.5, 1.6]:", r.deviance / r.df_resid); exit(1); }
-println("Checks passed: estimates within 3 SE of the truth, group effect significant, dispersion near 1.");
+println("Checks passed: estimates within 2 SE of the truth and at their pinned values, group effect significant, dispersion near 1.");

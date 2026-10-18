@@ -1,10 +1,13 @@
 // access: read
 // Topic: ordinary least squares with diagnostics (after: the statsmodels "OLS" example notebook)
-// What it does: fits y ~ x1 + x2 by sm_ols straight from a CSV, prints the coefficient table, recomputes the F-test
-//   p-value with stats_dist (F survival function) and the confidence intervals with the t quantile, and checks that the
-//   residuals sum to zero, that ssr matches the residuals and that the generating parameters lie inside the intervals.
+// What it does: fits y ~ x1 + x2 by sm_ols straight from a CSV, prints the coefficient table and the diagnostics (sigma,
+//   Durbin-Watson, condition number), recomputes the F-test p-value with stats_dist (F survival function) and the confidence
+//   intervals with the t quantile, and checks that the residuals sum to zero, that ssr matches the residuals, that the generating
+//   parameters lie inside the intervals, that sigma is near the noise level, that the Durbin-Watson statistic shows no serial
+//   correlation and the condition number no collinearity, and that the fitted coefficients equal their pinned values.
 // Data: examples/data/tut-ols.csv, 60 rows of y = 1.5 + 0.8 x1 - 2.0 x2 + N(0, 0.5^2) (seed 101, scripts/generate-tutorial-data.py).
-// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-ols-diagnostics.lms   (cwd below HOME, examples/ copied next to cli.schema.dev.json)
+// Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-ols-diagnostics.lms   (run from the directory that holds
+//   cli.schema.dev.json and the examples/ tree, below HOME)
 import "../cli.schema.dev.json" as pycli;
 
 truth = {const: 1.5, x1: 0.8, x2: -2.0};
@@ -24,6 +27,14 @@ for (i = 0; i < len(c.names); i = i + 1) {
   t = truth[c.names[i]];
   if (t < c.ci_lower[i] || t > c.ci_upper[i]) { println("true", c.names[i], "=", t, "outside the 95% interval"); exit(1); }
 }
+// Self-check 1b: diagnostics. sigma estimates the noise sd 0.5 (chi-square with 57 df: within 20%); Durbin-Watson is near 2 for
+// independent errors (its sd is about 2/sqrt(n) = 0.26, so [1.5, 2.5]); the condition number of the scaled design stays below 30
+// (no collinearity between x1 and x2); the fitted coefficients are pinned to 1e-4 as a tool-regression check.
+if (abs(r.sigma - 0.5) > 0.1) { println("sigma far from the noise sd 0.5:", r.sigma); exit(1); }
+if (r.durbin_watson < 1.5 || r.durbin_watson > 2.5) { println("Durbin-Watson outside [1.5, 2.5]:", r.durbin_watson); exit(1); }
+if (r.condition_number > 30) { println("condition number above 30:", r.condition_number); exit(1); }
+pinned = [1.29961, 0.82797, -1.95025];
+for (i = 0; i < 3; i = i + 1) { if (abs(c.estimate[i] - pinned[i]) > 0.0001) { println("coefficient", c.names[i], "differs from its pinned value", pinned[i]); exit(1); } }
 // Self-check 2: residuals sum to zero (intercept model) and reproduce ssr.
 sum_e = 0; ssr = 0;
 for (e in r.residuals) { sum_e = sum_e + e; ssr = ssr + e * e; }
@@ -39,4 +50,4 @@ tq = q.result.values[0];
 for (i = 0; i < len(c.names); i = i + 1) {
   if (abs(c.estimate[i] - tq * c.std_err[i] - c.ci_lower[i]) > 0.000000001 || abs(c.estimate[i] + tq * c.std_err[i] - c.ci_upper[i]) > 0.000000001) { println("CI does not match the t quantile"); exit(1); }
 }
-println(sprintf("Checks passed: truth inside every 95%% CI; sum(residuals)=%.9f; F p-value and t intervals reproduced (t=%.4f).", sum_e, tq));
+println(sprintf("Checks passed: truth inside every 95%% CI; coefficients at their pinned values; sigma %.3f, DW %.3f, cond %.1f in range; sum(residuals)=%.9f; F p-value and t intervals reproduced (t=%.4f).", r.sigma, r.durbin_watson, r.condition_number, sum_e, tq));

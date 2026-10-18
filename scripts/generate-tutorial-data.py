@@ -49,11 +49,12 @@ def tables():
         dead = rng.random(40) < p
         rows += [(dose, ldose, int(d)) for d in dead]
     out.append(csv('tut-dose.csv', ['dose', 'ldose', 'dead'], rows))
-    # 4. Three treatment groups (PlantGrowth shape): weights N(5.0, 0.6), N(4.6, 0.6), N(5.8, 0.6), 12 per group, plus a yes/no trait.
+    # 4. Three treatment groups (PlantGrowth shape): weights N(5.0, 0.6), N(4.6, 0.6), N(5.8, 0.6), 20 per group, plus a yes/no trait
+    #    (20 per group keeps every expected count of the group x trait table above 5).
     rng = np.random.default_rng(104)
     rows = []
     for g, mu, p_flower in (('ctrl', 5.0, 0.25), ('trt1', 4.6, 0.25), ('trt2', 5.8, 0.85)):
-        w = rng.normal(mu, 0.6, 12); fl = rng.random(12) < p_flower
+        w = rng.normal(mu, 0.6, 20); fl = rng.random(20) < p_flower
         rows += [(g, wi, 'yes' if f else 'no') for wi, f in zip(w, fl)]
     out.append(csv('tut-groups.csv', ['group', 'weight', 'flowered'], rows))
     # 5. A skewed sample for the bootstrap: gamma(shape 2, scale 5), mean 10, n = 40.
@@ -80,7 +81,9 @@ def tables():
     for i in range(1, 300):
         x[i] = 2 + 0.7 * x[i - 1] + e[i]
     out.append(csv('tut-ar1.csv', ['t', 'x'], [(i, v) for i, v in enumerate(x[100:])]))
-    # 13. Three flower species with four measurements each (iris shape, invented means), 50 per species.
+    # 13. Three flower species with four measurements each, 50 per species: the species and column names and the per-species means
+    #     (rounded to one or two digits) follow Fisher's iris data (1936); the standard deviations are invented and every row is a fresh
+    #     normal draw, so no iris measurement appears here.
     rng = np.random.default_rng(113)
     rows = []
     means = {'setosa': (5.0, 3.4, 1.5, 0.25), 'versicolor': (5.9, 2.8, 4.3, 1.3), 'virginica': (6.6, 3.0, 5.6, 2.0)}
@@ -94,9 +97,10 @@ def tables():
     nodes = np.linspace(0, 6, 13); grid = np.linspace(0.1, 5.9, 59)
     out.append(csv('tut-interp-nodes.csv', ['x', 'y'], zip(nodes, f(nodes))))
     out.append(csv('tut-interp-grid.csv', ['x', 'f'], zip(grid, f(grid))))
-    # 15. A small road network: 10 towns, 16 two-way roads with lengths in km.
-    roads = [('A', 'B', 7), ('A', 'C', 9), ('A', 'F', 14), ('B', 'C', 10), ('B', 'D', 15), ('C', 'D', 11), ('C', 'F', 2), ('D', 'E', 6),
-             ('E', 'F', 9), ('E', 'G', 8), ('F', 'G', 12), ('G', 'H', 5), ('H', 'I', 4), ('D', 'I', 13), ('I', 'J', 3), ('E', 'J', 17)]
+    # 15. A small road network: 10 towns, 16 two-way roads with lengths in km (invented topology and weights; the shortest A -> J
+    #     route A-B-D-E-G-F-H-J = 5+9+3+7+2+10+4 = 40 km was verified with a pure-Python Dijkstra when the table was written).
+    roads = [('A', 'B', 5), ('A', 'C', 11), ('B', 'C', 4), ('B', 'D', 9), ('C', 'E', 6), ('D', 'E', 3), ('D', 'F', 8), ('E', 'G', 7),
+             ('F', 'G', 2), ('F', 'H', 10), ('G', 'I', 6), ('H', 'I', 3), ('H', 'J', 4), ('I', 'J', 7), ('C', 'F', 15), ('B', 'G', 14)]
     out.append(csv('tut-roads.csv', ['from', 'to', 'km'], roads))
     return out
 

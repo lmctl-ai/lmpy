@@ -37,7 +37,8 @@ if (w.status != "ok" || w.result.status != "OK") { fail("welch:", w); }
 println(sprintf("welch (nperseg 200, %d segments): peak at %.2f Hz", w.result.n_segments, w.result.peak_freq));
 
 // Self-checks: the two strongest peaks are the 5 Hz and 12 Hz tones (on-bin: 400 samples at 100 Hz give df = 0.25 Hz), with a
-// power ratio near 4 (amplitudes 1 and 0.5 -> A^2/2 = 0.5 and 0.125; the noise floor is about 0.3^2 / 400 per bin), and Welch agrees.
+// power ratio near 4 (amplitudes 1 and 0.5 -> A^2/2 = 0.5 and 0.125; the one-sided noise floor is about 2 sigma^2 / N = 2 0.3^2 / 400 =
+// 0.00045 per bin), and Welch agrees.
 if (pk.result.n_peaks < 2) { fail("fewer than two spectral peaks found:", pk.result); }
 f1 = s.f[pk.result.indices[order[0]]]; f2 = s.f[pk.result.indices[order[1]]];
 if (abs(f1 - 5) > 0.001 || abs(f2 - 12) > 0.001 || abs(s.peak_freq - 5) > 0.001) { fail("strongest peaks are not at 5 and 12 Hz:", [f1, f2, s.peak_freq]); }

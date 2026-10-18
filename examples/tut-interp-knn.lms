@@ -40,10 +40,11 @@ for (kind in ["linear", "pchip", "cubic"]) {
 exact = pycli.num_quad({f: "exp(-x/3)*sin(2*x)", a: 0, b: 6, epsabs: 0, epsrel: 0.000000000001});
 if (exact.status != "ok" || exact.result.status != "OK") { fail("num_quad:", exact); }
 println(sprintf("integral over [0, 6]: cubic spline %.6f, quadrature of f %.6f", spline_integral, exact.result.value));
-// Self-checks: with node spacing h = 0.5 the interior spline error is about (5/384) h^4 max|f| = 0.013 (|f| <= 16) and larger
-// near the not-a-knot ends, so cubic < 0.05; the linear error scales like h^2 max|f''|/8 = 0.125, so linear > cubic; pchip (monotone,
-// third order) sits in between (< 0.15); the spline integral is within 0.01 of the true integral.
-if (errors.cubic > 0.05 || errors.pchip > 0.15 || errors.linear <= errors.cubic) { fail("interpolation errors outside the expected ordering / bounds:", errors); }
+// Self-checks: with node spacing h = 0.5 the interior spline error is about (5/384) h^4 max|f| = 0.014 (max|f| = 16.9 on
+// [0, 6], from the fourth derivative of exp(-x/3) sin 2x) and larger near the not-a-knot ends; the measured 0.024 is pinned with a
+// 0.03 bound; the linear error scales like h^2 max|f''|/8 = 0.13, so linear > cubic; pchip (monotone, third order) sits in between
+// (measured 0.079, bound 0.10); the spline integral is within 0.01 of the true integral.
+if (errors.cubic > 0.03 || errors.pchip > 0.10 || errors.linear <= errors.cubic) { fail("interpolation errors outside the expected ordering / bounds:", errors); }
 if (abs(spline_integral - exact.result.value) > 0.01) { fail("spline integral differs from quadrature:", [spline_integral, exact.result.value]); }
 
 // 2. Nearest neighbours in the four-dimensional measurement space.
@@ -68,4 +69,4 @@ for (q = 0; q < len(queries); q = q + 1) {
   for (j = 0; j < 5; j = j + 1) { if (abs(srt[j] - kn.result.distances[q][j]) > 0.000000001) { fail("brute-force distances disagree with spatial_knn:", {brute: slice(srt, 0, 5), knn: kn.result.distances[q]}); } }
 }
 cleanup();
-println(sprintf("Checks passed: cubic error %.4f < 0.05, spline integral within 0.01 of quadrature, kNN distances verified by brute force, majority species as expected.", errors.cubic));
+println(sprintf("Checks passed: cubic error %.4f < 0.03, spline integral within 0.01 of quadrature, kNN distances verified by brute force, majority species as expected.", errors.cubic));

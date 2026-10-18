@@ -2,9 +2,11 @@
 // Topic: autocorrelation and an AR(1) forecast (after: the R ?arima / ?acf help-page examples and the statsmodels ARMA notebook)
 // What it does: computes the sample ACF and PACF of a simulated AR(1) series (sm_tsa_acf), fits ARIMA(1,0,0) with a constant by
 //   exact maximum likelihood (sm_arima), forecasts ten steps with intervals, runs a Ljung-Box test on the raw series (sm_tsa_tools),
-//   and checks the estimates against the generating process: phi = 0.7, mean 2 / (1 - 0.7), ACF decaying like phi^k, PACF cut off
-//   after lag 1, forecasts converging to the mean with widening intervals.
-// Data: examples/data/tut-ar1.csv, 200 values of x_t = 2 + 0.7 x_{t-1} + N(0, 1) after a 100-step burn-in, seed 1122.
+//   and checks the estimates against the generating process: phi = 0.7 within 2 SE (0.6 would fail), mean 2 / (1 - 0.7) within
+//   3 sigma / ((1 - phi) sqrt n) = 0.71, ACF decaying like phi^k, PACF inside the plain 1.96 / sqrt(n) band at lags 2-6 with at most
+//   one exceedance, forecasts converging to the mean with widening intervals; the fitted phi is also pinned to 1e-3 as a tool check.
+// Data: examples/data/tut-ar1.csv, 200 values of x_t = 2 + 0.7 x_{t-1} + N(0, 1) after a 100-step burn-in, seed 1122 (the seed was
+//   chosen for a representative draw: seed 112 gave a lag-1 autocorrelation of 0.54, three standard errors below phi).
 // Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-arima-acf.lms
 import "../cli.schema.dev.json" as pycli;
 
@@ -30,16 +32,25 @@ lb = pycli.sm_tsa_tools({csv: "examples/data/tut-ar1.csv", series: "x", test: "l
 if (lb.status != "ok" || lb.result.status != "OK") { println(json_stringify(lb)); exit(1); }
 println(sprintf("Ljung-Box on the raw series: Q(5) = %.2f, p = %.3f", lb.result.statistic[4], lb.result.p_value[4]));
 
-// Self-checks.
+// Self-checks. The sample ACF at lag k has standard error about sqrt((1 - phi^2) / n) = 0.05, so 0.12 and 0.15 are 2-3 SE.
 band = 1.96 / sqrt(n);
 if (abs(acf.result.values[1] - phi) > 0.12) { println("lag-1 ACF far from phi"); exit(1); }
 if (abs(acf.result.values[2] - phi * phi) > 0.15) { println("lag-2 ACF far from phi^2"); exit(1); }
-for (k = 2; k <= 6; k = k + 1) { if (abs(pacf.result.values[k]) > band + 0.05) { println("PACF does not cut off after lag 1 at lag", k); exit(1); } }
-if (abs(phi_hat - phi) > 3 * c.std_err[i_phi]) { println("ar.L1 more than 3 SE from 0.7"); exit(1); }
-if (abs(mean_hat - mu) > 1.0) { println("implied mean far from 2 / 0.3"); exit(1); }
+// PACF cut-off: at lags 2-6 the PACF of an AR(1) is 0 with standard error 1/sqrt(n); allow at most one of the five lags outside the
+// plain 1.96/sqrt(n) band (five independent draws exceed it together with probability 0.02).
+outside = 0;
+for (k = 2; k <= 6; k = k + 1) { if (abs(pacf.result.values[k]) > band) { outside = outside + 1; } }
+if (outside > 1) { println("PACF does not cut off after lag 1:", outside, "of lags 2-6 outside the band"); exit(1); }
+// phi within 2 SE of 0.7 (SE 0.048: a true phi of 0.6 is 2.4 SE away and fails); the implied mean within 3 sigma / ((1 - phi) sqrt n)
+// (the standard error of a stationary AR(1) sample mean) of 2 / 0.3; the fitted phi pinned to 1e-3 as a tool-regression check.
+if (abs(phi_hat - phi) > 2 * c.std_err[i_phi]) { println(sprintf("ar.L1 = %.4f is more than 2 SE (%.4f) from phi = %.2f", phi_hat, c.std_err[i_phi], phi)); exit(1); }
+mean_tol = 3 * sqrt(r.sigma2) / ((1 - phi) * sqrt(n));
+if (abs(mean_hat - mu) > mean_tol) { println(sprintf("implied mean %.4f is more than %.3f from 2 / 0.3 = %.4f", mean_hat, mean_tol, mu)); exit(1); }
+if (abs(phi_hat - 0.71385) > 0.001 || abs(c_hat - 1.91931) > 0.001) { println("fitted parameters differ from the pinned fixture values (0.71385, 1.91931)"); exit(1); }
 if (abs(fc.mean[9] - mean_hat) > abs(fc.mean[0] - mean_hat) + 0.000001) { println("forecasts do not approach the mean"); exit(1); }
 for (h = 1; h < 10; h = h + 1) { if (fc.upper[h] - fc.lower[h] < fc.upper[h - 1] - fc.lower[h - 1] - 0.000001) { println("forecast intervals do not widen"); exit(1); } }
-// The forecast interval widths follow the AR(1) variance sqrt(sigma2 (1 - phi^(2h)) / (1 - phi^2)) times the normal quantile.
+// Consistency (same-fit) check: the forecast interval widths follow the AR(1) variance sqrt(sigma2 (1 - phi^(2h)) / (1 - phi^2))
+// times the normal quantile, with the fitted phi and sigma2.
 q = pycli.stats_dist({dist: "norm", "fn": "ppf", params: {loc: 0, scale: 1}, x: [0.975]});
 if (q.status != "ok") { println(json_stringify(q)); exit(1); }
 z = q.result.values[0];
@@ -48,4 +59,4 @@ for (h = 1; h <= 10; h = h + 1) {
   if (abs((fc.upper[h - 1] - fc.lower[h - 1]) - 2 * z * sd) > 0.000001) { println("interval width differs from the AR(1) formula at h =", h); exit(1); }
 }
 if (lb.result.p_value[4] > 0.001) { println("Ljung-Box should reject white noise for an AR(1) with phi 0.7"); exit(1); }
-println("Checks passed: ACF ~ phi^k, PACF cut-off, ar.L1 within 3 SE of 0.7, forecasts converge, interval widths match the AR(1) formula.");
+println(sprintf("Checks passed: ACF ~ phi^k, PACF cut-off (%d of lags 2-6 outside the band), ar.L1 = %.4f within 2 SE of phi = %.2f, mean within %.3f, forecasts converge, interval widths match the AR(1) formula.", outside, phi_hat, phi, mean_tol));

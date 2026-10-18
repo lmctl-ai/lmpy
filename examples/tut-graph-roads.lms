@@ -3,7 +3,8 @@
 // What it does: imports a two-way road table, finds the shortest route A -> J with Dijkstra (graph_paths), confirms it with
 //   Bellman-Ford and with the three shortest simple routes (Yen), counts the fewest road segments with BFS, lists the distance from A
 //   to every town, and checks that the reported length equals the sum of the road lengths along the returned route.
-// Data: examples/data/tut-roads.csv, 16 roads between 10 towns with lengths in km (invented).
+// Data: examples/data/tut-roads.csv, 16 roads between 10 towns with lengths in km (invented topology and weights; the shortest
+//   A -> J route, 32 km by A-B-G-I-J, was computed independently with a pure-Python Dijkstra when the table was written).
 // Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-graph-roads.lms   (writes and removes tut-roads.npz in cwd)
 import "../cli.schema.dev.json" as pycli;
 
@@ -38,9 +39,14 @@ allv = pycli.graph_paths(merge(base, {method: "dijkstra"}));
 if (allv.status != "ok" || allv.result.status != "OK") { fail("all distances:", allv); }
 for (i = 0; i < len(allv.result.nodes); i = i + 1) { println(sprintf("  A -> %s: %.0f km", allv.result.nodes[i], allv.result.distance[i])); }
 
-// Self-checks: the route length recomputed from the road table equals the reported distance; Bellman-Ford agrees; Yen's first
-// route is the Dijkstra route and the three lengths ascend; BFS uses no more segments than Dijkstra; every town is reached and
-// the single-target distance matches the all-targets table.
+// Self-checks. Known answer first: the shortest route is A-B-G-I-J = 5 + 14 + 6 + 7 = 32 km (independent Dijkstra on the table), the
+// fewest segments is 4, and the distances from A are A 0, B 5, C 9, D 14, E 15, F 21, G 19, H 28, I 25, J 32. Then consistency: the
+// route length recomputed from the road table equals the reported length; Bellman-Ford agrees; Yen's first route is the Dijkstra
+// route and the three lengths ascend; BFS uses no more segments than Dijkstra; every town is reached.
+known = {length: 32, path: ["A", "B", "G", "I", "J"], hops: 4, distance: [0, 5, 9, 14, 15, 21, 19, 28, 25, 32]};
+if (dj.result.length != known.length || json_stringify(dj.result.path) != json_stringify(known.path)) { fail("Dijkstra differs from the known answer (32 km by A-B-G-I-J):", dj.result); }
+if (hops.result.length != known.hops) { fail("BFS differs from the known 4 segments:", hops.result); }
+for (i = 0; i < 10; i = i + 1) { if (allv.result.nodes[i] != char_at("ABCDEFGHIJ", i) || allv.result.distance[i] != known.distance[i]) { fail("distance table differs from the known answer:", allv.result); } }
 if (abs(route_length(dj.result.path) - dj.result.length) > 0.000000001) { fail("route length does not match the road table:", dj.result); }
 if (abs(bf.result.length - dj.result.length) > 0.000000001) { fail("Bellman-Ford disagrees with Dijkstra:", [bf.result.length, dj.result.length]); }
 kp = k3.result.paths;
@@ -50,4 +56,4 @@ if (hops.result.length > len(dj.result.path) - 1) { fail("BFS found more segment
 j = index_of(allv.result.nodes, "J");
 if (allv.result.n_reachable != 10 || len(allv.result.nodes) != 10 || abs(allv.result.distance[j] - dj.result.length) > 0.000000001) { fail("all-targets distances inconsistent:", allv.result); }
 delete_file("tut-roads.npz");
-println(sprintf("Checks passed: A -> J = %.0f km by three methods, lengths verified against the road table, %d towns reached.", dj.result.length, allv.result.n_reachable));
+println(sprintf("Checks passed: A -> J = %.0f km by A-B-G-I-J (known answer) and by three methods, 4 segments by BFS, distance table as known, lengths verified against the road table, %d towns reached.", dj.result.length, allv.result.n_reachable));

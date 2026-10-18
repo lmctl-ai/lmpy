@@ -3,8 +3,9 @@
 //   odeint tutorial example)
 // What it does: integrates prey' = a prey - b prey pred, pred' = c prey pred - d pred with ode_solve (DOP853, event detection at
 //   the prey maxima), prints the orbit summary, measures the period from the prey peaks with sig_peaks, and checks three facts:
-//   at every prey maximum pred = a / b exactly, the conserved quantity c prey - d ln prey + b pred - a ln pred (ln through
-//   special_fn xlogy) stays constant along the orbit, and the peak spacing equals the event spacing.
+//   every event is a real maximum of the sampled prey curve (not just the root of the event expression), the conserved quantity
+//   c prey - d ln prey + b pred - a ln pred (ln through special_fn xlogy) stays constant along the orbit, the peak spacing equals
+//   the event spacing, and the peak height and period match the values pinned for this orbit.
 // Data: none (parameters a=1.1, b=0.4, c=0.1, d=0.4, start prey=10, pred=5; the textbook rabbit / fox values).
 // Usage: export PATH=/path/to/pycli/bin:$PATH; lmscript examples/tut-ode-predator-prey.lms
 import "../cli.schema.dev.json" as pycli;
@@ -20,11 +21,20 @@ for (row in r.y) { prey = concat(prey, [row[0]]); pred = concat(pred, [row[1]]);
 println(sprintf("%d output points on [0, 30]; prey in [%.3f, %.3f], predators in [%.3f, %.3f]; %d prey maxima detected", len(r.t), min(prey), max(prey), min(pred), max(pred), r.event_counts[0]));
 for (i = 0; i < r.event_counts[0]; i = i + 1) { println(sprintf("  prey maximum at t=%.5f: prey=%.5f pred=%.5f", r.event_t[i], r.event_y[i][0], r.event_y[i][1])); }
 
-// Self-check 1: prey' = 0 and prey'' < 0 at a prey maximum means pred = a / b (2.75) there, independent of the solver tolerance.
+// Self-check 1: each event is a genuine maximum of the prey curve. The event expression a - b pred = 0 makes pred = a / b at the
+// event by construction (that alone would be circular), so compare the prey value at the event with the sampled prey on the
+// output grid: it must be at least the largest grid value, and the grid values on both sides of the event time must be lower.
+if (r.event_counts[0] < 2) { println("expected at least two prey maxima in 30 time units"); exit(1); }
 for (i = 0; i < r.event_counts[0]; i = i + 1) {
+  te = r.event_t[i]; pe = r.event_y[i][0];
+  if (pe < max(prey) - 0.000001) { println("the event prey value is below the sampled maximum:", pe, max(prey)); exit(1); }
+  k = 0; while (k < len(r.t) - 1 && r.t[k + 1] < te) { k = k + 1; }   // r.t[k] <= te < r.t[k+1]
+  if (prey[k] >= pe || prey[k + 1] >= pe || prey[k] <= prey[k - 1] || prey[k + 1] <= prey[k + 2]) { println("the prey curve is not rising into and falling out of the event at t =", te); exit(1); }
   if (abs(r.event_y[i][1] - P.a / P.b) > 0.00001) { println("predators at a prey maximum are not a/b:", r.event_y[i][1]); exit(1); }
 }
-if (r.event_counts[0] < 2) { println("expected at least two prey maxima in 30 time units"); exit(1); }
+// The orbit is deterministic (DOP853 at rtol 1e-10), so its peak height and period are pinned as known values of this fixture:
+// prey maximum 13.67603 at t = 10.07736 and 20.86624 (period 10.78888).
+if (abs(r.event_y[0][0] - 13.67603) > 0.0001 || abs(r.event_t[0] - 10.07736) > 0.0001 || abs(r.event_t[1] - 20.86624) > 0.0001) { println("peak height or times differ from the pinned orbit:", json_stringify(r.event_t), json_stringify(r.event_y)); exit(1); }
 // Self-check 2: the first integral V = c prey - d ln prey + b pred - a ln pred is constant along the orbit.
 lp = pycli.special_fn({"fn": "xlogy", args: {x: 1, y: prey}});
 ld = pycli.special_fn({"fn": "xlogy", args: {x: 1, y: pred}});
@@ -45,4 +55,4 @@ period_events = r.event_t[1] - r.event_t[0];
 period_peaks = (pk.result.indices[1] - pk.result.indices[0]) * dt;
 println(sprintf("period: %.5f from the events, %.5f from the sampled peaks (grid %.3f); linearised 2 pi / sqrt(a d) = %.5f", period_events, period_peaks, dt, 2 * 3.141592653589793 / sqrt(P.a * P.d)));
 if (pk.result.n_peaks != r.event_counts[0] || abs(period_peaks - period_events) > dt) { println("peak spacing disagrees with the event spacing"); exit(1); }
-println("Checks passed: pred = a/b at every prey maximum, first integral conserved to 1e-6, peak period matches the events.");
+println("Checks passed: events are true prey maxima (grid comparison), peak 13.67603 at t = 10.07736 / 20.86624 as pinned, first integral conserved to 1e-6, peak period matches the events.");
