@@ -1,0 +1,45 @@
+// access: read
+// Cross-language agreement: nonlinear least squares in Python (scipy least_squares through pycli opt_least_squares) and R (nls through rcli fit_nls).
+// What it does: fits the Gaussian peak b + a exp(-(x - m)^2 / (2 s^2)) to examples/data/tut-peak.csv with both tools from the same
+//   data-derived start (b = min y, a = max y - min y, m = x at the maximum, s = 1) and compares the four parameters, their standard
+//   errors and the residual standard deviation. The start matters: R's nls is undamped Gauss-Newton and stops with "step factor
+//   reduced below minFactor" from the far start (a 1, b 0, m 5, s 1) that scipy's trust-region solver accepts, a legitimate
+//   algorithmic difference, not a disagreement about the optimum.
+//   Both solvers are run with tight convergence tolerances (pycli tol 1e-12 on ftol/xtol/gtol; R nls tol 1e-8 on the relative-offset
+//   criterion, the tightest it reaches before its step halving hits minFactor), so the parameters are compared at 1e-6 relative to
+//   max(1, |value|) (nls stops within about tol x standard error of the optimum, 1e-9 here); standard errors (both from the Jacobian
+//   at the solution with the residual variance) at 1e-6 relative; sigma = sqrt(rss / (n - p)) at 1e-9 relative.
+// Data: examples/data/tut-peak.csv (seed 106).
+// Usage: export PATH=$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH; lmscript examples/cross-nls.lms   (rcli absent: the R leg is skipped with a hint, exit 0)
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+function check(label, a, b, tol) {
+  d = abs(a - b); ok = d <= tol;
+  println(sprintf("%-28s %20.12f %20.12f  %-24s %-12s %s", label, a, b, str(d), str(tol), ok ? "ok" : "FAIL"));
+  return ok ? 0 : 1;
+}
+rows = read_csv("examples/data/tut-peak.csv"); x = pluck(rows, "x"); y = pluck(rows, "y"); n = len(x);
+model = "b + a*exp(-(x-m)^2/(2*s^2))";
+ymin = min(y); ymax = max(y); imax = index_of(y, ymax);
+start = {a: ymax - ymin, b: ymin, m: x[imax], s: 1};
+println("start from the data:", json_stringify(start));
+py = pycli.opt_least_squares({model: model, response: "y", data: {x: x, y: y}, x0: start, tol: 0.000000000001});
+if (py.status == "simulated") { println("NLS agreement simulated."); exit(0); }
+if (py.status != "ok" || py.result.status != "OK" || py.result.cov_status != "OK") { println("pycli opt_least_squares failed:", json_stringify(py)); exit(1); }
+if (which("rcli") == null) { println("rcli is not on PATH: R leg skipped (export PATH=$HOME/repos/lmctlhq/rcli/bin:$PATH)"); exit(0); }
+r = rcli.fit_nls({response: "y", rhs: model, data: {x: x, y: y}, start: start, tol: 0.00000001, maxiter: 200});
+if (r.status != "ok" || !r.result.converged) { println("rcli fit_nls failed:", json_stringify(r)); exit(1); }
+p = py.result; q = r.result;
+sigma_py = sqrt(p.rss / (n - 4));
+println(sprintf("%-28s %20s %20s  %-24s %-12s %s", "quantity", "python", "r", "abs diff", "tolerance", "verdict"));
+bad = 0;
+for (name in ["a", "b", "m", "s"]) {
+  j = index_of(q.coefficients, name);
+  bad = bad + check("par " + name, p.par[name], q.estimate[j], 0.000001 * max(1, abs(p.par[name])));
+  bad = bad + check("se " + name, p.std_err[name], q.std_error[j], 0.000001 * p.std_err[name]);
+}
+bad = bad + check("sigma", sigma_py, q.sigma, 0.000000001 * q.sigma);
+bad = bad + check("residual df", n - 4, q.df, 0);
+if (bad > 0) { println(bad, "quantities disagree beyond tolerance"); exit(1); }
+println(sprintf("Agreement: Gaussian peak parameters, standard errors and sigma agree (python %d evaluations, R %d iterations).", p.n_residuals, q.iterations));

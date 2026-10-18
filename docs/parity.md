@@ -60,6 +60,18 @@ Tolerances are never raised to hide a mismatch; every exceedance is a row in doc
 | `graph_paths`, `graph_flow` | none | `graph-route-plan.lms` (CLRS hand values), pure-Python algorithms and the `opt_linprog` LP as oracles (tests/s8b2_graph.py, s8b2_review.py) | exact integers | no cross-tool pair |
 | `array_import` / `array_inspect` safetensors | torchcli tensors (same safetensors reader / writer lineage) | `bridge-ml.lms` writes and reads F64 safetensors; no torchcli leg on this host | bit-exact bytes | format parity by construction; a torchcli round-trip recipe is a candidate |
 
+## Cross-language agreement recipes (`examples/cross-*.lms`)
+
+Seven recipes run one seeded analysis through pycli and R (rcli) from a single lmscript and exit 1 on disagreement (README
+"Cross-language agreement" lists the tolerances). Results on the development host and in CI: no disagreement beyond tolerance.
+Observations recorded while writing them (legitimate differences, stated in the recipe headers): Poisson GLM standard errors differ
+by up to 6.4e-7 on the exposure fixture (R's summary.glm uses the working weights of the penultimate IRLS iterate, statsmodels
+recomputes them at the converged coefficients; estimates agree to 2e-10); R's nls (undamped Gauss-Newton) fails from the far start
+(a 1, b 0, m 5, s 1) that scipy's trust-region solver accepts and cannot reach a relative-offset tolerance below about 1e-8, so both
+sides start from data-derived values; R's optim BFGS stops about 2e-4 from Rosenbrock's minimum (finite differences with ndeps 1e-3)
+where scipy reaches 1e-5; ARIMA parameters differ by 7e-6 (phi) and 1e-4 (mean) between the two optimisers on the same likelihood
+(log-likelihoods within 1e-7).
+
 ## Deliberate protocol differences
 
 | Topic | pycli | sibling | Why |

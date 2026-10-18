@@ -1,0 +1,47 @@
+// access: read
+// Cross-language agreement: autocorrelation and an AR(1) maximum-likelihood fit in Python (statsmodels) and R (stats::arima).
+// What it does: on examples/data/tut-ar1.csv compares the ACF (lags 0-10) and the PACF (lags 1-10) from pycli sm_tsa_acf with R's acf /
+//   pacf through rcli, then fits ARIMA(1,0,0) with a constant by exact maximum likelihood on both sides (pycli sm_arima trend c,
+//   cov_type approx = the numerical Hessian R reports; rcli ts_arima method ML with include_mean) and compares phi, the process mean,
+//   the innovation variance, the log-likelihood and the standard error of phi.
+// Legitimate differences, and what is compared instead: statsmodels parameterises the constant as the regression intercept c
+//   (mean = c / (1 - phi)) while R's "intercept" is the mean itself, so the means are compared; the two optimisers stop at different
+//   points of the same likelihood, so parameters are compared at 1e-4 (far below their standard errors, about 0.05) and the
+//   log-likelihoods at 1e-6; standard errors come from finite-difference Hessians on both sides and are compared at 1e-3 relative.
+//   ACF and PACF are closed-form sums with the same n denominator (adjusted = false in pycli, R's default), tolerance 1e-12.
+// Data: examples/data/tut-ar1.csv (seed 1122).
+// Usage: export PATH=$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH; lmscript examples/cross-arima-acf.lms   (rcli absent: the R leg is skipped with a hint, exit 0)
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+function check(label, a, b, tol) {
+  d = abs(a - b); ok = d <= tol;
+  println(sprintf("%-28s %20.12f %20.12f  %-24s %-12s %s", label, a, b, str(d), str(tol), ok ? "ok" : "FAIL"));
+  return ok ? 0 : 1;
+}
+rows = read_csv("examples/data/tut-ar1.csv"); x = pluck(rows, "x");
+acf = pycli.sm_tsa_acf({columns: {x: x}, series: "x", kind: "acf", nlags: 10, adjusted: false});
+if (acf.status == "simulated") { println("ARIMA agreement simulated."); exit(0); }
+pacf = pycli.sm_tsa_acf({columns: {x: x}, series: "x", kind: "pacf", nlags: 10, method: "ywm"});
+fit = pycli.sm_arima({columns: {x: x}, series: "x", order: [1, 0, 0], trend: "c", cov_type: "approx"});
+for (r in [acf, pacf, fit]) { if (r.status != "ok" || r.result.status != "OK") { println("pycli failed:", json_stringify(r)); exit(1); } }
+if (which("rcli") == null) { println("rcli is not on PATH: R leg skipped (export PATH=$HOME/repos/lmctlhq/rcli/bin:$PATH)"); exit(0); }
+racf = rcli.ts_acf({x: x, lag_max: 10}); rpacf = rcli.ts_pacf({x: x, lag_max: 10});
+rfit = rcli.ts_arima({x: x, order: [1, 0, 0], method: "ML", include_mean: true});
+for (r in [racf, rpacf, rfit]) { if (r.status != "ok") { println("rcli failed:", json_stringify(r)); exit(1); } }
+bad = 0;
+println(sprintf("%-28s %20s %20s  %-24s %-12s %s", "quantity", "python", "r", "abs diff", "tolerance", "verdict"));
+for (k = 0; k <= 10; k = k + 1) { bad = bad + check("acf lag " + str(k), acf.result.values[k], racf.result.value[k], 0.000000000001); }
+for (k = 1; k <= 10; k = k + 1) { bad = bad + check("pacf lag " + str(k), pacf.result.values[k], rpacf.result.value[k - 1], 0.000000000001); }
+p = fit.result; c = p.coefficients; q = rfit.result;
+i_phi = index_of(c.names, "ar.L1"); i_c = index_of(c.names, "intercept");
+j_phi = index_of(q.coefficients, "ar1"); j_mu = index_of(q.coefficients, "intercept");
+phi_py = c.estimate[i_phi]; mean_py = c.estimate[i_c] / (1 - phi_py);
+if (!p.converged || !q.converged) { println("an ARIMA fit did not converge"); exit(1); }
+bad = bad + check("ar1 (phi)", phi_py, q.estimate[j_phi], 0.0001);
+bad = bad + check("process mean", mean_py, q.estimate[j_mu], 0.0001 * max(1, abs(mean_py)));
+bad = bad + check("sigma2", p.sigma2, q.sigma2, 0.0001 * p.sigma2);
+bad = bad + check("log-likelihood", p.llf, q.loglik, 0.000001 * max(1, abs(p.llf)));
+bad = bad + check("se(phi)", c.std_err[i_phi], q.std_error[j_phi], 0.001 * c.std_err[i_phi]);
+if (bad > 0) { println(bad, "quantities disagree beyond tolerance"); exit(1); }
+println(sprintf("Agreement: ACF/PACF to 1e-12; AR(1) phi %.5f vs %.5f, mean %.4f vs %.4f, llf %.4f vs %.4f.", phi_py, q.estimate[j_phi], mean_py, q.estimate[j_mu], p.llf, q.loglik));

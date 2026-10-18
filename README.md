@@ -68,7 +68,7 @@ lmscript --check examples/solve.lms && lmscript examples/solve.lms
 
 Verified from a fresh shell with nothing but `HOME` and `PATH` set (`env -i HOME=$HOME PATH=<pycli>/bin:<node>/bin:/usr/bin:/bin`):
 `solve`, `lstsq-fit`, `sales-report`, `graph-route-plan` and `distributions-tour` exit 0; `pycli py_info` from `/tmp` is refused with
-`INVALID_REQUEST` (exit 2) before Docker is touched. `scripts/run-recipes.sh` runs all 45 recipes (examples/README.md lists them, including the fifteen `tut-*` tutorial conversions) in real, `--check` and `--dry-run`
+`INVALID_REQUEST` (exit 2) before Docker is touched. `scripts/run-recipes.sh` runs all 52 recipes (examples/README.md lists them, including the fifteen `tut-*` tutorial conversions and the seven `cross-*` Python/R agreement recipes) in real, `--check` and `--dry-run`
 modes the same way (the optional `rcli`, `statsrust` and `lmda` legs print their setup hints when those tools are not on PATH).
 
 Working-directory rule and shim hardening: the shim bind-mounts exactly the current directory (read / write) into the container and
@@ -142,6 +142,27 @@ and every compile-time cap with its meaning. A status or code that is not in tha
   is a fresh process in a fresh container (0.65-1.6 s per call, docs/timings.md); large results go to artifacts, not to stdout.
 * **Not an installer or a publisher.** Images are built locally (`scripts/build.sh`), never pulled or pushed; nothing in CI publishes
   (RELEASE.md).
+
+## Cross-language agreement
+
+Seven recipes, `examples/cross-*.lms`, run the same seeded analysis through pycli (Python) and through R via the rcli shim from one
+lmscript (both schemas imported with distinct aliases), print a side-by-side table (quantity, python, r, abs diff, tolerance, verdict)
+and exit 1 on any disagreement. Tolerances are principled, never bit-exact except for pure arithmetic: OLS at 64 eps cond(X) (cond^2
+for standard errors); GLMs at the IRLS stopping tolerance (1e-6 on estimates, 1e-5 on standard errors because R takes the working
+weights from the penultimate iterate); test statistics at 1e-10 and p-values at 1e-12 relative; ACF/PACF at 1e-12; ARIMA parameters at
+1e-4 and log-likelihoods at 1e-6 (same likelihood, different optimiser stopping points), comparing the process mean because statsmodels
+parameterises the intercept differently from R; k-means by the adjusted Rand index and the within-cluster sum of squares (the
+algorithms and random streams differ, the partition does not); nonlinear least squares at 1e-6 relative with the convergence
+tolerances set on both sides; Rosenbrock minimisers against the exact minimum (R's optim finite differences cap its precision at 1e-3);
+quadrature and roots at 1e-10; densities at 1e-13 and continuous quantiles at 1e-10 relative. Where the tools legitimately differ
+(R's undamped nls needs a data-derived start, R's "intercept" is the mean), the recipe header says so and compares the invariant
+quantity. No disagreement beyond tolerance was found (docs/parity.md). With rcli absent the R leg is skipped with a hint and the
+recipe exits 0; CI builds rcli natively (pinned revision, R 4.3.3 from the Ubuntu archive) so the R legs run on both architectures.
+
+```sh
+export PATH="$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH"   # pycli shim and rcli shim (rcli:runtime image built in that repo)
+lmscript examples/cross-ols.lms
+```
 
 ## Timings
 

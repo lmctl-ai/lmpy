@@ -1,0 +1,66 @@
+// access: write
+// Cross-language agreement: k-means in Python (scikit-learn, k-means++ seeded) and R (stats::kmeans, Hartigan-Wong, nstart 10).
+// What it does: clusters the two petal measurements of examples/data/tut-flowers.csv into three groups with pycli ml_fit / ml_predict
+//   and with rcli cluster_kmeans, then compares the two partitions with the adjusted Rand index computed here from the 3 x 3
+//   contingency table, and the within-cluster sums of squares recomputed from each tool's labels and the data.
+// Legitimate differences: the algorithms (Lloyd with k-means++ starts vs Hartigan-Wong with ten random starts) and the random
+//   streams differ, so labels, label order and seeds are never compared; the invariant quantities are the partition (ARI must be at
+//   least 0.95; identical partitions give 1) and the total within-cluster sum of squares, which must agree to 1e-9 relative when the
+//   partitions are identical and to 1% otherwise (both reach the same local optimum on well-separated groups). R's tot_withinss is also
+//   checked against the recomputation from its own labels (pure arithmetic, 1e-9 relative).
+// Data: examples/data/tut-flowers.csv (seed 113).
+// Usage: export PATH=$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH; lmscript examples/cross-kmeans.lms   (writes and removes cross-kmeans*.safetensors/.npz in cwd; rcli absent: R leg skipped, exit 0)
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+files = ["cross-kmeans-model.safetensors", "cross-kmeans-labels.npz"];
+function cleanup() { for (p in files) { if (file_exists(p)) { delete_file(p); } } }
+function fail(msg, obj) { println(msg, json_stringify(obj)); cleanup(); exit(1); }
+cleanup();
+rows = read_csv("examples/data/tut-flowers.csv"); pl = pluck(rows, "petal_length"); pw = pluck(rows, "petal_width"); n = len(pl);
+km = pycli.ml_fit({columns: {pl: pl, pw: pw}, family: "kmeans", features: ["pl", "pw"], params: {n_clusters: 3}, preprocess: {scale: false, one_hot: []}, seed: 7, out: files[0]});
+if (km.status == "simulated") { println("k-means agreement simulated."); exit(0); }
+if (km.status != "ok" || km.result.status != "OK") { fail("pycli ml_fit failed:", km); }
+lab = pycli.ml_predict({columns: {pl: pl, pw: pw}, model: files[0], kind: "predict", out: files[1]});
+if (lab.status != "ok" || lab.result.status != "OK") { fail("pycli ml_predict failed:", lab); }
+arr = pycli.frame_to_array({frame: files[1], columns: ["prediction"], squeeze: true});
+if (arr.status != "ok") { fail("frame_to_array failed:", arr); }
+a = arr.result.values;
+if (which("rcli") == null) { println("rcli is not on PATH: R leg skipped (export PATH=$HOME/repos/lmctlhq/rcli/bin:$PATH)"); cleanup(); exit(0); }
+r = rcli.cluster_kmeans({data: {pl: pl, pw: pw}, k: 3, seed: 7, nstart: 10, iter_max: 100, algorithm: "Hartigan-Wong"});
+if (r.status != "ok") { fail("rcli cluster_kmeans failed:", r); }
+b = r.result.cluster;
+// Within-cluster sum of squares from labels: sum over clusters of squared distances to the cluster mean.
+function wss(labels, ks) {
+  sx = []; sy = []; cnt = [];
+  for (k = 0; k < ks; k = k + 1) { sx = concat(sx, [0]); sy = concat(sy, [0]); cnt = concat(cnt, [0]); }
+  for (i = 0; i < n; i = i + 1) { k = labels[i]; sx[k] = sx[k] + pl[i]; sy[k] = sy[k] + pw[i]; cnt[k] = cnt[k] + 1; }
+  t = 0;
+  for (i = 0; i < n; i = i + 1) { k = labels[i]; dx = pl[i] - sx[k] / cnt[k]; dy = pw[i] - sy[k] / cnt[k]; t = t + dx * dx + dy * dy; }
+  return t;
+}
+b0 = []; for (v in b) { b0 = concat(b0, [v - 1]); }   // R labels are 1-based
+wss_py = wss(a, 3); wss_r = wss(b0, 3);
+// Adjusted Rand index from the contingency table.
+function comb2(m) { return m * (m - 1) / 2; }
+tab = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; ra = [0, 0, 0]; cb = [0, 0, 0];
+for (i = 0; i < n; i = i + 1) { tab[a[i]][b0[i]] = tab[a[i]][b0[i]] + 1; ra[a[i]] = ra[a[i]] + 1; cb[b0[i]] = cb[b0[i]] + 1; }
+sum_ij = 0; sum_a = 0; sum_b = 0;
+for (i = 0; i < 3; i = i + 1) { sum_a = sum_a + comb2(ra[i]); sum_b = sum_b + comb2(cb[i]); for (j = 0; j < 3; j = j + 1) { sum_ij = sum_ij + comb2(tab[i][j]); } }
+expected = sum_a * sum_b / comb2(n); maxidx = (sum_a + sum_b) / 2;
+ari = (sum_ij - expected) / (maxidx - expected);
+println("contingency (python rows x r columns):", json_stringify(tab));
+println(sprintf("%-28s %20s %20s  %-24s %-12s %s", "quantity", "python", "r", "abs diff", "tolerance", "verdict"));
+bad = 0;
+function check(label, a, b, tol) {
+  d = abs(a - b); ok = d <= tol;
+  println(sprintf("%-28s %20.12f %20.12f  %-24s %-12s %s", label, a, b, str(d), str(tol), ok ? "ok" : "FAIL"));
+  return ok ? 0 : 1;
+}
+bad = bad + check("adjusted Rand index", ari, 1, 0.05);
+bad = bad + check("total within SS", wss_py, wss_r, (ari == 1 ? 0.000000001 : 0.01) * wss_r);
+bad = bad + check("r tot_withinss (self)", r.result.tot_withinss, wss_r, 0.000000001 * wss_r);
+bad = bad + check("cluster sizes sorted", max(ra), max(cb), ari == 1 ? 0 : 5);
+cleanup();
+if (bad > 0) { println(bad, "quantities disagree beyond tolerance"); exit(1); }
+println(sprintf("Agreement: partitions agree (ARI = %.4f), within-cluster SS %.6f vs %.6f.", ari, wss_py, wss_r));

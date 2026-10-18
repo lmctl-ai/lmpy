@@ -1,0 +1,75 @@
+// access: read
+// Cross-language agreement: unconstrained minimisation, quadrature, root finding and distribution functions in Python (scipy) and R.
+// What it does: minimises Rosenbrock's function by BFGS from (-1.2, 1) on both sides (pycli opt_minimize, rcli opt_minimize), integrates
+//   exp(-x^2) over [-40, 40] (QUADPACK on both sides: pycli num_quad, rcli num_integrate), solves Kepler's equation E - 0.3 sin E = 1 by
+//   bracketing (brentq vs uniroot), and evaluates quantiles, densities and probabilities of seven distribution families (pycli
+//   stats_dist, rcli dist_quantile / dist_density / dist_probability).
+// Tolerances: the two BFGS runs stop at different points, so each minimiser is compared with the exact minimum (1, 1): scipy
+//   (analytic-quality finite differences, step 1.5e-8) at 1e-4, R's optim (finite differences with ndeps = 1e-3, which caps the
+//   attainable precision) at 1e-3, and both objective values must be below 1e-6; the integral is compared at 1e-10 absolute (and with sqrt(pi));
+//   the roots at 1e-10 (both bracketing methods were asked for 1e-12); densities and probabilities at 1e-13 relative (closed forms,
+//   different libraries); continuous quantiles at 1e-10 relative (both invert iteratively); discrete quantiles exactly.
+// Data: none.
+// Usage: export PATH=$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH; lmscript examples/cross-numerics.lms   (rcli absent: the R leg is skipped with a hint, exit 0)
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+function check(label, a, b, tol) {
+  d = abs(a - b); ok = d <= tol;
+  println(sprintf("%-32s %20.14f %20.14f  %-24s %-12s %s", label, a, b, str(d), str(tol), ok ? "ok" : "FAIL"));
+  return ok ? 0 : 1;
+}
+PI = 3.141592653589793;
+mn = pycli.opt_minimize({objective: "(1-a)^2+100*(b-a^2)^2", x0: {a: -1.2, b: 1}, method: "BFGS"});
+if (mn.status == "simulated") { println("Numerics agreement simulated."); exit(0); }
+qd = pycli.num_quad({f: "exp(-x^2)", a: -40, b: 40, epsabs: 0, epsrel: 0.000000000001});
+rt = pycli.num_root({f: "x - 0.3*sin(x) - 1", lower: 0, upper: PI, method: "brentq", xtol: 0.000000000001});
+for (r in [mn, qd, rt]) { if (r.status != "ok" || r.result.status != "OK") { println("pycli failed:", json_stringify(r)); exit(1); } }
+// Distribution cases: [label, pycli dist, fn, params, x, rcli op, rcli args, tolerance kind]
+cases = [
+  ["norm ppf 0.975", "norm", "ppf", {loc: 0, scale: 1}, 0.975, "q", {dist: "norm", mean: 0, sd: 1}, "q"],
+  ["t(7) pdf 2", "t", "pdf", {df: 7}, 2, "d", {dist: "t", df: 7}, "d"],
+  ["t(7) ppf 0.9", "t", "ppf", {df: 7}, 0.9, "q", {dist: "t", df: 7}, "q"],
+  ["chi2(4) cdf 3", "chi2", "cdf", {df: 4}, 3, "p", {dist: "chisq", df: 4}, "d"],
+  ["gamma(2, scale 5) ppf 0.1", "gamma", "ppf", {shape: 2, scale: 5}, 0.1, "q", {dist: "gamma", shape: 2, rate: 0.2}, "q"],
+  ["gamma(2, scale 5) pdf 7", "gamma", "pdf", {shape: 2, scale: 5}, 7, "d", {dist: "gamma", shape: 2, rate: 0.2}, "d"],
+  ["beta(2,3) pdf 0.3", "beta", "pdf", {a: 2, b: 3}, 0.3, "d", {dist: "beta", a: 2, b: 3}, "d"],
+  ["beta(2,3) cdf 0.3", "beta", "cdf", {a: 2, b: 3}, 0.3, "p", {dist: "beta", a: 2, b: 3}, "d"],
+  ["binom(10, 0.3) pmf 4", "binom", "pdf", {n: 10, p: 0.3}, 4, "d", {dist: "binom", size: 10, prob: 0.3}, "d"],
+  ["binom(10, 0.3) ppf 0.6", "binom", "ppf", {n: 10, p: 0.3}, 0.6, "q", {dist: "binom", size: 10, prob: 0.3}, "exact"],
+  ["pois(2.5) pmf 3", "poisson", "pdf", {lam: 2.5}, 3, "d", {dist: "pois", lambda: 2.5}, "d"],
+  ["pois(2.5) cdf 4", "poisson", "cdf", {lam: 2.5}, 4, "p", {dist: "pois", lambda: 2.5}, "d"]
+];
+pyv = [];
+for (c in cases) {
+  d = pycli.stats_dist({dist: c[1], "fn": c[2], params: c[3], x: [c[4]]});
+  if (d.status != "ok" || d.result.status != "OK") { println("pycli stats_dist failed for", c[0], json_stringify(d)); exit(1); }
+  pyv = concat(pyv, [d.result.values[0]]);
+}
+if (which("rcli") == null) { println("rcli is not on PATH: R leg skipped (export PATH=$HOME/repos/lmctlhq/rcli/bin:$PATH)"); exit(0); }
+rm = rcli.opt_minimize({objective: "(1-a)^2+100*(b-a^2)^2", start: {a: -1.2, b: 1}, method: "BFGS", maxit: 1000, reltol: 0.000000000000001});
+rq = rcli.num_integrate({f: "exp(-x^2)", lower: -40, upper: 40, rel_tol: 0.000000000001, abs_tol: 0.000000000001});
+rr = rcli.num_root({f: "x-0.3*sin(x)-1", lower: 0, upper: PI, tol: 0.000000000001});
+for (r in [rm, rq, rr]) { if (r.status != "ok") { println("rcli failed:", json_stringify(r)); exit(1); } }
+println(sprintf("%-32s %20s %20s  %-24s %-12s %s", "quantity", "python", "r", "abs diff", "tolerance", "verdict"));
+bad = 0;
+bad = bad + check("rosenbrock a - 1 (python)", mn.result.par.a, 1, 0.0001);
+bad = bad + check("rosenbrock a - 1 (r)", rm.result.par.a, 1, 0.001);
+bad = bad + check("rosenbrock b - 1 (python)", mn.result.par.b, 1, 0.0001);
+bad = bad + check("rosenbrock b - 1 (r)", rm.result.par.b, 1, 0.001);
+bad = bad + check("rosenbrock f (both < 1e-6)", mn.result.fun, rm.result.value, 0.000001);
+if (mn.result.fun > 0.000001 || rm.result.value > 0.000001) { println("a minimiser stopped above 1e-6"); bad = bad + 1; }
+bad = bad + check("integral exp(-x^2)", qd.result.value, rq.result.value, 0.0000000001);
+bad = bad + check("integral vs sqrt(pi)", qd.result.value, sqrt(PI), 0.0000000001);
+bad = bad + check("kepler root", rt.result.root, rr.result.root, 0.0000000001);
+for (i = 0; i < len(cases); i = i + 1) {
+  c = cases[i]; args = c[6]; rv = null;
+  if (c[5] == "q") { args.p = [c[4]]; rv = rcli.dist_quantile(args); }
+  if (c[5] == "d") { args.x = [c[4]]; rv = rcli.dist_density(args); }
+  if (c[5] == "p") { args.q = [c[4]]; rv = rcli.dist_probability(args); }
+  if (rv.status != "ok") { println("rcli failed for", c[0], json_stringify(rv)); exit(1); }
+  tol = c[7] == "exact" ? 0 : (c[7] == "q" ? 0.0000000001 : 0.0000000000001) * abs(rv.result.value[0]);
+  bad = bad + check(c[0], pyv[i], rv.result.value[0], tol);
+}
+if (bad > 0) { println(bad, "quantities disagree beyond tolerance"); exit(1); }
+println("Agreement: Rosenbrock minimum, Gaussian integral, Kepler root and twelve distribution values agree between scipy and R.");

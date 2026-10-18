@@ -39,6 +39,23 @@ fixtures: every table is a seeded draw; `tut-flowers.csv` uses the iris species 
 1936 data (invented standard deviations, no original measurement), the road network is invented, and the SLSQP problem in
 `tut-lp-diet.lms` is the one from the scipy.optimize tutorial (credited there).
 
+## Cross-language agreement (`cross-*`)
+
+The same seeded analysis through pycli (Python) and R (rcli shim) from one lmscript, with a side-by-side table and exit 1 on any
+disagreement beyond the stated tolerance (README "Cross-language agreement" explains the tolerance principles). Both shims on PATH:
+`export PATH="$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH"`; without rcli the R leg is skipped with a hint and the recipe exits 0.
+Each recipe was mutation-checked: perturbing the data fed to one side only makes it exit 1.
+
+| Recipe | Analysis | Data | Python / R operations | Tolerance (what is compared) |
+|---|---|---|---|---|
+| `cross-ols.lms` | OLS y ~ x1 + x2 | `tut-ols.csv` | `sm_ols` / `fit_lm` | coefficients 64 eps cond(X), standard errors 64 eps cond(X)^2, R^2 and sigma 1e-12 |
+| `cross-glm.lms` | logistic (dead ~ ldose) and Poisson with exposure (count ~ group) | `tut-dose.csv`, `tut-poisson.csv` | `sm_glm`, `special_fn` / `fit_glm` | estimates 1e-6, standard errors 1e-5 (penultimate-iterate weights in R), deviances 1e-8 relative |
+| `cross-tests.lms` | pooled t-test (regression t vs t.test), chi-square independence (hand statistic + chi2 sf vs chisq.test) | `tut-groups.csv` | `sm_ols`, `stats_dist` / `test_htest` | statistics 1e-10, df exact, p-values 1e-12 relative |
+| `cross-arima-acf.lms` | ACF / PACF lags 1-10, ARIMA(1,0,0) with constant by exact ML | `tut-ar1.csv` | `sm_tsa_acf`, `sm_arima` / `ts_acf`, `ts_pacf`, `ts_arima` | ACF/PACF 1e-12; phi and process mean 1e-4; sigma2 1e-4 relative; log-likelihood 1e-6 relative; se(phi) 1e-3 relative |
+| `cross-kmeans.lms` | k-means, 3 clusters on the petal measurements | `tut-flowers.csv` | `ml_fit`, `ml_predict`, `frame_to_array` / `cluster_kmeans` | adjusted Rand index >= 0.95 (1 here); within-cluster SS 1e-9 relative when the partitions coincide, 1% otherwise |
+| `cross-nls.lms` | Gaussian peak by nonlinear least squares from a data-derived start | `tut-peak.csv` | `opt_least_squares` / `fit_nls` | parameters and standard errors 1e-6 relative, sigma 1e-9 relative, df exact |
+| `cross-numerics.lms` | Rosenbrock BFGS, integral of exp(-x^2), Kepler root, twelve distribution values | none | `opt_minimize`, `num_quad`, `num_root`, `stats_dist` / `opt_minimize`, `num_integrate`, `num_root`, `dist_*` | minimisers vs (1, 1): 1e-4 scipy, 1e-3 R optim; integral and root 1e-10; densities / probabilities 1e-13 relative, continuous quantiles 1e-10 relative, discrete quantiles exact |
+
 ## Other recipes
 
 | Recipe | What it shows |

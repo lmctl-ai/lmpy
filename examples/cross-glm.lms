@@ -1,0 +1,54 @@
+// access: read
+// Cross-language agreement: logistic and Poisson generalized linear models in Python (pycli sm_glm, statsmodels IRLS) and R (rcli fit_glm, glm).
+// What it does: fits dead ~ ldose (binomial, logit) on examples/data/tut-dose.csv and count ~ group with log(hours) as the exposure
+//   (Poisson, log) on examples/data/tut-poisson.csv with both tools, from the same inline columns (the group factor is passed to R as two
+//   treatment dummies built here; the exposure goes to pycli as the exposure column and to R as an offset vector log(hours) computed
+//   with pycli special_fn xlogy), and compares estimates, standard errors, deviance and null deviance. Both stop IRLS on a relative
+//   deviance change of 1e-8, which bounds the parameter difference at roughly sqrt(1e-8) = 1e-4 in the worst case and far less in
+//   practice (the two fits land within 1e-9 of each other), so the tolerance is 1e-6 absolute on estimates and 1e-8 relative on the
+//   deviances. Standard errors get 1e-5: R's summary.glm uses the working weights of the penultimate IRLS iterate while statsmodels
+//   recomputes them at the converged coefficients, a difference of the order of the last IRLS step (6e-7 on the Poisson fit here,
+//   1e-15 on the logistic fit, which converges in fewer effective steps).
+// Data: examples/data/tut-dose.csv (seed 103), examples/data/tut-poisson.csv (seed 102).
+// Usage: export PATH=$PWD/bin:$HOME/repos/lmctlhq/rcli/bin:$PATH; lmscript examples/cross-glm.lms   (rcli absent: the R leg is skipped with a hint, exit 0)
+import "../cli.schema.dev.json" as pycli;
+import "schemas/rcli.cli.schema.v1.json" as rcli;
+
+function check(label, a, b, tol) {
+  d = abs(a - b); ok = d <= tol;
+  println(sprintf("%-28s %20.12f %20.12f  %-24s %-12s %s", label, a, b, str(d), str(tol), ok ? "ok" : "FAIL"));
+  return ok ? 0 : 1;
+}
+TOL = 0.000001; SETOL = 0.00001; RTOL = 0.00000001;
+dose = read_csv("examples/data/tut-dose.csv"); ldose = pluck(dose, "ldose"); dead = pluck(dose, "dead");
+pois = read_csv("examples/data/tut-poisson.csv"); group = pluck(pois, "group"); hours = pluck(pois, "hours"); count = pluck(pois, "count");
+gB = []; gC = [];
+for (g in group) { gB = concat(gB, [g == "B" ? 1 : 0]); gC = concat(gC, [g == "C" ? 1 : 0]); }
+
+py1 = pycli.sm_glm({columns: {dead: dead, ldose: ldose}, y: "dead", terms: [{var: "ldose"}], family: "binomial", link: "logit"});
+if (py1.status == "simulated") { println("GLM agreement simulated."); exit(0); }
+if (py1.status != "ok" || py1.result.status != "OK") { println("pycli logistic failed:", json_stringify(py1)); exit(1); }
+py2 = pycli.sm_glm({columns: {count: count, gB: gB, gC: gC, hours: hours}, y: "count", terms: [{var: "gB"}, {var: "gC"}], family: "poisson", link: "log", exposure: "hours"});
+if (py2.status != "ok" || py2.result.status != "OK") { println("pycli poisson failed:", json_stringify(py2)); exit(1); }
+lh = pycli.special_fn({"fn": "xlogy", args: {x: 1, y: hours}});
+if (lh.status != "ok" || lh.result.status != "OK") { println(json_stringify(lh)); exit(1); }
+if (which("rcli") == null) { println("rcli is not on PATH: R leg skipped (export PATH=$HOME/repos/lmctlhq/rcli/bin:$PATH)"); exit(0); }
+r1 = rcli.fit_glm({response: "dead", predictors: ["ldose"], data: {dead: dead, ldose: ldose}, family: "binomial"});
+r2 = rcli.fit_glm({response: "count", predictors: ["gB", "gC"], data: {count: count, gB: gB, gC: gC}, family: "poisson", offset: lh.result.y});
+if (r1.status != "ok" || r2.status != "ok") { println("rcli fit_glm failed:", json_stringify([r1, r2])); exit(1); }
+
+bad = 0;
+println(sprintf("%-28s %20s %20s  %-24s %-12s %s", "quantity", "python", "r", "abs diff", "tolerance", "verdict"));
+for (pair in [["logistic", py1.result, r1.result], ["poisson", py2.result, r2.result]]) {
+  name = pair[0]; p = pair[1]; q = pair[2]; c = p.coefficients;
+  if (!p.converged || !q.converged) { println(name, "did not converge on one side"); exit(1); }
+  for (i = 0; i < len(c.names); i = i + 1) {
+    bad = bad + check(name + " coef " + c.names[i], c.estimate[i], q.estimate[i], TOL);
+    bad = bad + check(name + " se " + c.names[i], c.std_err[i], q.std_error[i], SETOL);
+  }
+  bad = bad + check(name + " deviance", p.deviance, q.deviance, RTOL * p.deviance);
+  bad = bad + check(name + " null deviance", p.null_deviance, q.null_deviance, RTOL * p.null_deviance);
+  println(sprintf("  %s: IRLS iterations python %d, r %d", name, p.n_iter, q.iterations));
+}
+if (bad > 0) { println(bad, "quantities disagree beyond tolerance"); exit(1); }
+println("Agreement: logistic and Poisson GLM estimates (1e-6), standard errors (1e-5) and deviances (1e-8 relative) agree.");
