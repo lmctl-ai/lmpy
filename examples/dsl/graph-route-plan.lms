@@ -1,0 +1,76 @@
+// access: write (a temporary graph-route-plan.dslb, removed)
+// What it does: the _dsl_ version of ../graph-route-plan.lms. Two edge lists as CSV text (a road network with travel minutes,
+//   and a pipe network with capacities and unit costs) -> frames -> graphs -> shortest route, the three best routes, the
+//   Bellman-Ford and BFS cross-checks, then maximum flow, minimum cut and minimum-cost flow -> a short report. Every number is
+//   checked against values worked out by hand from the literal edges: Dijkstra's example from CLRS (figure 24.6) and the CLRS
+//   flow network of figure 26.1 (maximum flow 23, minimum cut 23).
+// Tolerance: exact (integer weights and capacities; no rounding is involved).
+// How to run: lmscript examples/dsl/graph-route-plan.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let roads = csv("from,to,minutes\ns,t,10\ns,y,5\nt,y,2\nt,x,1\ny,t,3\ny,x,9\ny,z,2\nx,z,4\nz,x,6\nz,s,7\n");
+let pipes = csv("from,to,cap,cost\ns,v1,16,1\ns,v2,13,1\nv2,v1,4,1\nv1,v3,12,1\nv3,v2,9,1\nv2,v4,14,1\nv4,v3,7,1\nv3,t,20,1\nv4,t,4,1\n");
+let net = graph(roads, "from", "to", "minutes", true);
+
+let best = net.shortest_path("s", "x");
+out.check("dijkstra status OK", best.ok());
+# hand: s-y 5, y-t 3, t-x 1 = 9 (the CLRS shortest-path tree); s-t-x = 11; s-y-x = 14; s-y-z-x = 13
+out.check("route s,y,t,x", best.strs("path").join(",") == "s,y,t,x");
+out.check("route length 9", best.num("length") == 9.0);
+out.check("route has 3 legs", best.int("hops") == 3);
+out.put("route", best.strs("path").join(" > "));
+out.put("length", best.num("length"));
+out.put("hops", best.int("hops"));
+
+let three = net.k_shortest("s", "x", 3);
+out.check("k_shortest found 3", three.ok() && three.int("k_found") == 3);
+out.close("three best route lengths 9, 11, 13", three.vec("lengths"), vec(9.0, 11.0, 13.0), 0.0);
+out.put("lengths", three.vec("lengths"));
+
+let bf = net.distances("s", opts().set("method", "bellman_ford"));
+out.check("bellman_ford status OK", bf.ok());
+# nodes come sorted: s, t, x, y, z
+out.check("bellman_ford nodes", bf.strs("nodes").join(",") == "s,t,x,y,z");
+out.close("bellman_ford distances (s 0, t 8, x 9, y 5, z 7)", bf.vec("distance"), vec("0 8 9 5 7"), 0.0);
+
+let hops = net.shortest_path("s", "x", opts().set("method", "bfs"));
+out.check("bfs: s-t-x has two legs", hops.ok() && hops.int("hops") == 2);
+
+let pipe = graph(pipes, "from", "to", true, opts().set("weight", "cost").set("capacity", "cap"));
+let mf = pipe.max_flow("s", "t");
+let mc = pipe.min_cut("s", "t");
+out.check("max_flow and min_cut status OK", mf.ok() && mc.ok());
+out.check("max flow 23 (CLRS)", mf.num("value") == 23.0);
+out.check("min cut 23 (CLRS)", mc.num("value") == 23.0);
+out.check("cut capacities sum to 23", mc.vec("cut_capacity").sum() == 23.0);
+# conservation by hand: what leaves s equals what enters t equals 23
+let out_s = 0.0;
+let into_t = 0.0;
+let fl = mf.vec("flow");
+for (i in range(0, fl.len())) {
+  if (mf.strs("flow_from").at(i) == "s") { out_s = out_s + fl.at(i); }
+  if (mf.strs("flow_to").at(i) == "t") { into_t = into_t + fl.at(i); }
+}
+out.check("flow is conserved at the terminals", out_s == 23.0 && into_t == 23.0);
+out.put("max_flow", mf.num("value"));
+out.put("min_cut", mc.num("value"));
+out.put("n_cut_edges", mc.int("n_cut_edges"));
+
+let mcf = pipe.min_cost_flow("s", "t", 10.0);
+out.check("min_cost_flow status OK", mcf.ok());
+# hand: s-v1-v3-t has three pipes and capacity 12 >= 10, so 10 units cost 3 each
+out.check("min cost 30", mcf.num("cost") == 30.0);
+out.put("cost", mcf.num("cost"));
+let over = pipe.min_cost_flow("s", "t", 100.0);
+out.check("100 units are INFEASIBLE (max flow 23)", over.status() == "INFEASIBLE");
+end _dsl_
+
+v = lmnum.run(prog, "graph-route-plan");
+println(sprintf("fastest route s -> x: %s in %d minutes (%d legs)", v.route, v.length, v.hops));
+println("three best route lengths:", json_stringify(v.lengths));
+println("bellman_ford distances from s agree with the hand tree (s 0, y 5, z 7, t 8, x 9)");
+println(sprintf("max flow %d, min cut %d over %d cut edges", v.max_flow, v.min_cut, v.n_cut_edges));
+println(sprintf("cheapest way to move 10 units (one cost unit per pipe): %d", v.cost));
+println("100 units: INFEASIBLE, as the 23-unit maximum flow requires");
+println("Graph route plan passed.");

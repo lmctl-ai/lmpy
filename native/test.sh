@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # lmnum gate: build, static-link check, schema drift, signature parity with the lmscript compiler, every _dsl_ example.
-# Usage: native/test.sh [BUILD_DIR]   (env: LMNUM_DEPS, LMSCRIPT_BIN, LMNUM_EXAMPLES="a b" to run a subset)
+# Usage: native/test.sh [BUILD_DIR]   (env: LMNUM_DEPS, LMSCRIPT_BIN, JOBS, LMNUM_EXAMPLES="a b" to run a subset)
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
@@ -12,7 +12,7 @@ bad() { echo "FAIL $1"; failn=$((failn+1)); }
 
 "$HERE/scripts/sync-sdk.sh" --verify >/dev/null && ok "vendored dslvm.hpp matches sdk.lock" || bad "dslvm.hpp hash"
 cmake -S "$HERE" -B "$BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release ${LMNUM_DEPS:+-DLMNUM_DEPS="$LMNUM_DEPS"} >/dev/null
-cmake --build "$BUILD" -j"$(nproc)" >/dev/null
+cmake --build "$BUILD" -j"${JOBS:-$(nproc)}" >/dev/null
 BIN="$BUILD/lmnum"
 # Only glibc may be a shared dependency (libstdc++, libgcc and every numerical library are linked in).
 deps="$({ ldd "$BIN" 2>&1 || true; } | awk '{print $1}' | grep -v -E '^(linux-vdso\.so|/lib/ld-linux|/lib64/ld-linux|ld-linux|libc\.so|libm\.so|libpthread\.so|libdl\.so|librt\.so|not)' || true)"

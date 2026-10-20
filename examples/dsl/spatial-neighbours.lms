@@ -1,0 +1,88 @@
+// access: write (a temporary spatial-neighbours.dslb, removed)
+// What it does: the _dsl_ version of ../spatial-neighbours.lms. 40 deterministic pseudo-random "depots" in the unit square and
+//   5 "customers": the 3 nearest depots of every customer (knn), the area and perimeter of the region the depots span (hull)
+//   and the depot-to-depot distance matrix (cdist). Every answer is cross-checked inside the DSL without trusting the library:
+//   brute-force sorted distances, the shoelace area and polygon perimeter of the returned hull vertices, and the hand formula
+//   for every matrix entry.
+// Known answers: the hull has 12 of the 40 depots on its boundary, area 0.660687856 and perimeter 3.083394704
+//   (scipy.spatial.ConvexHull 1.16.2 on the same points, oracle venv).
+// Tolerance: 1e-12 for distances, area and perimeter; 1e-9 for the pinned scipy area and perimeter.
+// How to run: lmscript examples/dsl/spatial-neighbours.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let depots = mat(40, 2);
+let seed = 2024;
+for (i in range(0, 40)) {
+  seed = (75 * seed + 74) % 65537;
+  depots.set(i, 0, float(seed) / 65537.0);
+  seed = (75 * seed + 74) % 65537;
+  depots.set(i, 1, float(seed) / 65537.0);
+}
+let customers = mat("0.1 0.1; 0.9 0.2; 0.5 0.5; 0.2 0.8; 0.95 0.95");
+
+let nn = knn(depots, customers, 3);
+out.check("knn status OK", nn.ok());
+let ind = nn.mat("indices");
+let dst = nn.mat("distances");
+let worst = 0.0;
+for (q in range(0, 5)) {
+  let all = vec();
+  for (j in range(0, 40)) {
+    all.push(hypot(depots.at(j, 0) - customers.at(q, 0), depots.at(j, 1) - customers.at(q, 1)));
+  }
+  let sorted = all.sort();
+  for (m in range(0, 3)) {
+    worst = max(worst, abs(dst.at(q, m) - sorted.at(m)));
+    # the reported index must really be at the reported distance
+    let j = int(ind.at(q, m));
+    worst = max(worst, abs(hypot(depots.at(j, 0) - customers.at(q, 0), depots.at(j, 1) - customers.at(q, 1)) - dst.at(q, m)));
+  }
+}
+out.check("neighbour distances agree with brute force (1e-12)", worst <= 0.000000000001);
+out.put("indices", ind);
+out.put("distances", dst);
+
+let h = hull(depots);
+out.check("hull status OK", h.ok());
+# shoelace over the hull vertices (2-D hulls list them counter-clockwise) and the perimeter from the same polygon
+let v = h.vec("vertices");
+let area2 = 0.0;
+let perimeter = 0.0;
+for (a in range(0, v.len())) {
+  let p = int(v.at(a));
+  let r = int(v.at((a + 1) % v.len()));
+  area2 = area2 + depots.at(p, 0) * depots.at(r, 1) - depots.at(r, 0) * depots.at(p, 1);
+  perimeter = perimeter + hypot(depots.at(r, 0) - depots.at(p, 0), depots.at(r, 1) - depots.at(p, 1));
+}
+out.check("counter-clockwise vertex order", area2 > 0.0);
+out.close("hull area equals the shoelace area", h.num("volume"), abs(area2) / 2.0, 0.000000000001);
+out.close("hull perimeter equals the polygon perimeter", h.num("area"), perimeter, 0.000000000001);
+out.check("12 depots on the boundary (scipy)", h.int("n_vertices") == 12);
+out.close("area as scipy", h.num("volume"), 0.6606878557, 0.000000001);
+out.close("perimeter as scipy", h.num("area"), 3.0833947043, 0.000000001);
+out.put("n_vertices", h.int("n_vertices"));
+out.put("volume", h.num("volume"));
+out.put("shoelace", abs(area2) / 2.0);
+out.put("area", h.num("area"));
+out.put("perimeter", perimeter);
+
+let first = depots.block(0, 0, 6, 2);
+let d = cdist(first, "euclidean");
+let dworst = 0.0;
+for (a in range(0, 6)) {
+  out.check("diagonal " + str(a) + " is zero", d.at(a, a) == 0.0);
+  for (b in range(0, 6)) {
+    dworst = max(dworst, abs(d.at(a, b) - hypot(first.at(a, 0) - first.at(b, 0), first.at(a, 1) - first.at(b, 1))));
+  }
+}
+out.check("distance matrix matches the hand formula (1e-12)", dworst <= 0.000000000001);
+end _dsl_
+
+v = lmnum.run(prog, "spatial-neighbours");
+for (q = 0; q < 5; q = q + 1) {
+  println(sprintf("customer %d nearest depots %d, %d, %d at distances %.4f %.4f %.4f", q, v.indices[q][0], v.indices[q][1], v.indices[q][2],
+    v.distances[q][0], v.distances[q][1], v.distances[q][2]));
+}
+println(sprintf("hull: %d of 40 depots on the boundary, area %.9f (shoelace %.9f), perimeter %.9f (polygon %.9f)", v.n_vertices, v.volume, v.shoelace, v.area, v.perimeter));
+println("6 x 6 depot distance matrix matches the hand formula; the spatial story passed.");
