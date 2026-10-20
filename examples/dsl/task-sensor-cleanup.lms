@@ -1,0 +1,75 @@
+// access: write (the raw and cleaned sensor CSVs, removed; a temporary .dslb)
+// Task: clean a noisy sensor recording and measure the signal it carries, in one native program.
+//   1. synthesise 10 s at 200 Hz: a 3 Hz vibration, 50 Hz mains hum, white noise (seeded) and three spikes; write it as CSV;
+//   2. read it back and remove the spikes with a rolling-median / MAD rule (Hampel filter);
+//   3. design a 4th-order Butterworth band-stop (45-55 Hz) and a 10 Hz low-pass, apply both zero-phase (filtfilt);
+//   4. Welch spectra before and after: the hum must drop by more than 40 dB while the 3 Hz line keeps its power;
+//   5. find the vibration peaks, estimate the frequency from their spacing and the amplitude from their heights;
+//   6. export the cleaned series.
+// Checks: all three spikes found and nothing else; hum attenuation > 40 dB; 3 Hz power kept within 10%; frequency within 0.5% of 3 Hz;
+//   amplitude within 5% of 1.0; 30 cycles detected.
+// How to run: lmscript examples/dsl/task-sensor-cleanup.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let fs = 200.0;
+# step 1
+let t = arange(2000).div(fs);
+let clean = t.mul(2.0 * pi() * 3.0).apply("sin(x)");
+let hum = t.mul(2.0 * pi() * 50.0).apply("0.5 * sin(x)");
+let raw = clean + hum + rng(7).normal(2000, 0.0, 0.1);
+raw.set(400, 6.0);
+raw.set(1203, -5.0);
+raw.set(1777, 7.5);
+frame().with("t", t).with("value", raw).write_csv("sensor-raw-dsl.csv");
+# step 2: Hampel filter (window 11, 3 scaled MADs); rolling windows trail, so the window centred on i ends at i + 5
+let x = read_csv("sensor-raw-dsl.csv").col("value");
+let med = x.rolling(11, "median");
+let dev = (x - med).abs();
+let mad = dev.rolling(11, "median").mul(1.4826);
+let spikes = vec();
+let y = x.copy();
+for (i in range(5, x.len() - 5)) {
+  let m = med.at(i + 5);
+  if (abs(x.at(i) - m) > 3.0 * mad.at(i + 5) && abs(x.at(i) - m) > 1.0) { spikes.push(float(i)); y.set(i, m); }
+}
+out.put("spikes", spikes);
+out.close("the three spikes and nothing else", spikes, vec(400.0, 1203.0, 1777.0), 0.0);
+# step 3
+let notch = iir("butter", 4, vec(45.0, 55.0), opts().set("btype", "bandstop").set("fs", fs));
+let low = iir("butter", 4, 10.0, opts().set("fs", fs));
+out.check("filters stable", notch.stable() && low.stable());
+let z = low.filtfilt(notch.filtfilt(y));
+# step 4
+let w = opts().set("nperseg", 400);
+let before = welch(y, fs, w);
+let after = welch(z, fs, w);
+let f = before.vec("f");
+let i50 = f.sub(50.0).abs().argmin();
+let i3 = f.sub(3.0).abs().argmin();
+let hum_db = 10.0 * log10(before.vec("pxx").at(i50) / after.vec("pxx").at(i50));
+let keep3 = after.vec("pxx").at(i3) / before.vec("pxx").at(i3);
+out.put("hum_attenuation_db", hum_db);
+out.put("power_kept_3hz", keep3);
+out.check("hum attenuated by more than 40 dB", hum_db > 40.0);
+out.close("3 Hz power kept within 10%", keep3, 1.0, 0.1);
+# step 5
+let pk = find_peaks(z, opts().set("height", 0.5).set("distance", 30));
+let idx = pk.vec("indices");
+let period = idx.diff().mean() / fs;
+out.put("cycles", idx.len());
+out.put("frequency", 1.0 / period);
+out.put("amplitude", pk.vec("peak_heights").mean());
+out.check("30 cycles", idx.len() == 30);
+out.close_rel("frequency within 0.5% of 3 Hz", 1.0 / period, 3.0, 0.005);
+out.close_rel("amplitude within 5% of 1.0", pk.vec("peak_heights").mean(), 1.0, 0.05);
+out.put("rms_error_vs_clean", (z - clean).pow(2.0).mean());
+# step 6
+frame().with("t", t).with("value", z).write_csv("sensor-clean-dsl.csv");
+end _dsl_
+
+v = lmnum.run(prog, "task-sensor-cleanup");
+println(sprintf("spikes removed at samples %s; hum attenuated %.1f dB; 3 Hz power kept %.3f", json_stringify(v.spikes), v.hum_attenuation_db, v.power_kept_3hz));
+println(sprintf("%d cycles, frequency %.4f Hz, amplitude %.3f; mean squared error to the clean signal %.5f", v.cycles, v.frequency, v.amplitude, v.rms_error_vs_clean));
+for (path in ["sensor-raw-dsl.csv", "sensor-clean-dsl.csv"]) { delete_file(path); }
+println("Sensor cleanup task passed.");
