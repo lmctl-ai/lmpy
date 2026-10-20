@@ -366,3 +366,78 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
 
+## Signal processing
+
+IIR filter design and filtering (`iir` -> `Filter`, pycli `sig_filter`), spectral estimates (`periodogram`, `welch`, `csd`, `coherence`, `spectrogram`; pycli `sig_spectrum`), peak finding (`find_peaks`, `peak_prominences`, `peak_widths`; pycli `sig_peaks`), FFT (pocketfft), windows, detrending, convolution and Savitzky-Golay smoothing. Ports of scipy.signal 1.16: the same zpk prototypes, bilinear transform and pole-zero pairing (`zpk2sos`, pairing nearest), the same padding in `filtfilt` (odd extension, scipy's default padlen) and the same find_peaks selection order. Frequencies are in Hz when `fs` is given, otherwise fractions of the Nyquist frequency (scipy's convention).
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `coherence(Vec, Vec, float) -> Res` | magnitude-squared coherence |Pxy|^2 / (Pxx Pyy): fields f, cxy, df, n_segments, n_bins, peak_index, peak_freq |
+| `coherence(Vec, Vec, float, Opts) -> Res` | coherence with `window`, `nperseg`, `noverlap`, `nfft`, `detrend` |
+| `convolve(Vec, Vec, string) -> Vec` | discrete linear convolution (numpy.convolve), mode full, same or valid |
+| `csd(Vec, Vec, float) -> Res` | cross spectral density (Welch): fields f, pxy_re, pxy_im, magnitude, df, n_segments, n_bins, peak_index, peak_freq |
+| `csd(Vec, Vec, float, Opts) -> Res` | csd with the welch options |
+| `detrend(Vec, string) -> Vec` | remove the mean (constant) or the least-squares line (linear) (scipy.signal.detrend) |
+| `fft(Vec, Vec) -> Res` | complex FFT of re + i im (numpy.fft.fft): fields re, im |
+| `fftfreq(int, float) -> Vec` | sample frequencies of fft (numpy.fft.fftfreq) |
+| `fftshift(Vec) -> Vec` | move the zero-frequency term to the centre (numpy.fft.fftshift) |
+| `filtfilt(Vec, Vec, Vec) -> Vec` | zero-phase filtering with b/a (scipy filtfilt: odd extension, padlen 3*max(len(a), len(b))) |
+| `filtfilt(Vec, Vec, Vec, Opts) -> Vec` | filtfilt with `padtype` (odd, even, constant, none) and `padlen` |
+| `find_peaks(Vec) -> Res` | all local maxima (scipy find_peaks, pycli sig_peaks): fields status (OK or NO_PEAKS), indices, n_peaks |
+| `find_peaks(Vec, Opts) -> Res` | find_peaks with `height`, `threshold`, `prominence`, `width`, `plateau_size` (a minimum, or Vec (min, max), nan = open), `distance`, `wlen`, `rel_height`; adds scipy's properties for the options given: peak_heights, left/right_thresholds, prominences, left/right_bases, widths, width_heights, left/right_ips, plateau_sizes, left/right_edges |
+| `freqz(Vec, Vec, Vec) -> Res` | frequency response of b/a at angular frequencies w (rad/sample): fields freqs, magnitude, phase |
+| `freqz(Vec, Vec, Vec, float) -> Res` | frequency response of b/a at frequencies in Hz for sampling frequency fs |
+| `ifft(Vec, Vec) -> Res` | inverse complex FFT with 1/n scaling (numpy.fft.ifft): fields re, im |
+| `iir(string, int, float) -> Filter` | design a digital IIR filter (pycli sig_filter): kind butter, cheby1, cheby2, ellip, bessel; order 1..20; cutoff in Hz with `fs`, else a fraction of Nyquist; one cutoff = lowpass, two = bandpass by default |
+| `iir(string, int, Vec) -> Filter` | iir with one (low/high) or two (band) cutoff frequencies |
+| `iir(string, int, float, Opts) -> Filter` | iir with options: `btype` lowpass/highpass/bandpass/bandstop, `fs` (Hz), `rp` (dB, cheby1/ellip), `rs` (dB, cheby2/ellip), `norm` (bessel: phase (default), delay, mag) |
+| `iir(string, int, Vec, Opts) -> Filter` | iir with cutoff frequencies and options (see above) |
+| `irfft(Vec, Vec, int) -> Vec` | inverse of rfft with output length n (numpy.fft.irfft) |
+| `lfilter(Vec, Vec, Vec) -> Vec` | filter x with transfer function b/a, zero initial state (scipy lfilter, direct form II transposed) |
+| `peak_prominences(Vec, Vec) -> Res` | prominence of each peak index (scipy peak_prominences): fields prominences, left_bases, right_bases |
+| `peak_prominences(Vec, Vec, Opts) -> Res` | peak_prominences with `wlen` (window length in samples) |
+| `peak_widths(Vec, Vec) -> Res` | width of each peak at half prominence (scipy peak_widths): fields widths, width_heights, left_ips, right_ips |
+| `peak_widths(Vec, Vec, Opts) -> Res` | peak_widths with `rel_height` (default 0.5) and `wlen` |
+| `periodogram(Vec, float) -> Res` | periodogram (pycli sig_spectrum method periodogram; boxcar window, constant detrend, density): fields status, method, window, n_samples, n_segments, n_bins, df, f, pxx, total_power, enbw, peak_index, peak_freq |
+| `periodogram(Vec, float, Opts) -> Res` | periodogram with `window` (name or Vec), `nfft`, `detrend` (constant, linear, none), `return_onesided`, `scaling` (density, spectrum) |
+| `rfft(Vec) -> Res` | real-input FFT (numpy.fft.rfft): fields re, im (n/2+1 values) |
+| `rfft(Vec, int) -> Res` | rfft of x truncated or zero-padded to n |
+| `rfft_abs(Vec) -> Vec` | magnitudes |rfft(x)| |
+| `rfftfreq(int, float) -> Vec` | sample frequencies of rfft for n samples spaced d apart (numpy.fft.rfftfreq) |
+| `savgol(Vec, int, int) -> Vec` | Savitzky-Golay smoothing (scipy savgol_filter, mode interp): window_length, polyorder |
+| `savgol(Vec, int, int, Opts) -> Vec` | savgol with `deriv`, `delta`, `mode` (interp, mirror, nearest, constant, wrap), `cval` |
+| `savgol_coeffs(int, int) -> Vec` | Savitzky-Golay convolution coefficients (scipy savgol_coeffs) |
+| `sos_filter(Mat) -> Filter` | a Filter from given second-order sections (n x 6, a0 = 1 in column 3); frequencies as fractions of Nyquist |
+| `sos_filter(Mat, float) -> Filter` | a Filter from second-order sections with a sampling frequency fs (Hz) |
+| `spectrogram(Vec, float) -> Res` | spectrogram (scipy defaults: tukey 0.25 window, nperseg 256, noverlap nperseg/8, density): fields f, t, sxx (Mat, frequencies x times) |
+| `spectrogram(Vec, float, Opts) -> Res` | spectrogram with `window`, `nperseg`, `noverlap`, `nfft`, `detrend`, `return_onesided`, `scaling` |
+| `welch(Vec, float) -> Res` | Welch PSD (hann, nperseg 256 or the signal length, 50% overlap): same fields as periodogram |
+| `welch(Vec, float, Opts) -> Res` | Welch PSD with `window`, `nperseg`, `noverlap`, `nfft`, `detrend`, `return_onesided`, `scaling`, `average` (mean, median) |
+| `window(string, int) -> Vec` | periodic window of length n as scipy get_window: hann, hamming, blackman, boxcar, bartlett, flattop, parzen, bohman, blackmanharris, nuttall, barthann, cosine, triang, tukey (alpha 0.5) |
+| `window(string, int, Opts) -> Vec` | window with `sym` (bool, symmetric instead of periodic) and the shape parameter `alpha` (tukey), `beta` (kaiser) or `std` (gaussian) |
+
+### Type `Filter`
+
+Digital IIR filter in second-order sections (scipy `iirfilter(..., output='sos')`).
+
+| Method | Meaning |
+|---|---|
+| `ba() -> Res` | transfer-function coefficients b, a (scipy zpk2tf; poorly conditioned for high orders: prefer sos) |
+| `filter(Vec) -> Vec` | causal filtering with zero initial state (scipy sosfilt) |
+| `filtfilt(Vec) -> Vec` | zero-phase forward-backward filtering (scipy sosfiltfilt: odd extension, padlen 3*(2*n_sections+1-...)) |
+| `filtfilt(Vec, Opts) -> Vec` | sosfiltfilt with options `padtype` (odd, even, constant, none) and `padlen` (int) |
+| `fs() -> float` | sampling frequency (NaN when frequencies are fractions of Nyquist) |
+| `gain(float) -> float` | |H| at one frequency (Hz with fs, else a fraction of Nyquist) |
+| `info() -> Res` | pycli sig_filter fields: status, family, order, btype, n_sections, sos, max_pole_radius, stable, marginal |
+| `marginal() -> bool` | a pole within 1e-6 of the unit circle (rings for a very long time) |
+| `max_pole_radius() -> float` | largest pole modulus of the rounded sections (50-digit arithmetic, as pycli) |
+| `n_sections() -> int` | number of second-order sections |
+| `order() -> int` | filter order as designed (for sos_filter: the number of nonzero denominator terms) |
+| `response(Vec) -> Res` | frequency response at the given frequencies (Hz with fs, else fractions of Nyquist): fields freqs, magnitude, phase (radians) |
+| `sos() -> Mat` | second-order sections (n_sections x 6: b0 b1 b2 a0 a1 a2) |
+| `stable() -> bool` | all poles strictly inside the unit circle (max_pole_radius < 1) |
+| `status() -> string` | OK, or UNSTABLE (filter and filtfilt refuse an unstable filter) |
+| `zpk() -> Res` | zeros, poles and gain of the digital design: fields z_re, z_im, p_re, p_im, k (designed filters only) |
+

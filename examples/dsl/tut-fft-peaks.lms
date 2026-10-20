@@ -1,0 +1,60 @@
+// access: write (a temporary tut-fft-peaks.dslb, removed)
+// Topic: the spectrum of a noisy two-tone signal and peak finding (after: the scipy-lectures signal processing chapter and the
+//   scipy.signal periodogram / find_peaks tutorials)
+// What it does: the _dsl_ version of ../tut-fft-peaks.lms. Reads the sampled signal (read_csv; no npz/safetensors round trip), estimates
+//   its periodogram (spectrum scaling), finds the spectral peaks with find_peaks (prominence >= 0.02), repeats the estimate with Welch
+//   averaging, and checks that the two strongest peaks sit on the 5 Hz and 12 Hz bins with the expected 4:1 power ratio (amplitudes 1
+//   and 0.5) and that Welch agrees on the dominant frequency.
+// Data: examples/data/tut-signal.csv, 400 samples at 100 Hz: sin(2 pi 5 t) + 0.5 sin(2 pi 12 t) + N(0, 0.3^2), seed 110.
+// Known answers pinned from scipy 1.16.2 (oracle venv): peak powers 0.4949340703519228 (5 Hz) and 0.1360777784207671 (12 Hz).
+// Tolerance: frequencies within 0.001 Hz; ratio in [3, 5.5]; 5 Hz power within 0.1 of A^2/2 = 0.5; pinned powers within 1e-9.
+// How to run: lmscript examples/dsl/tut-fft-peaks.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let fs = 100.0;
+let x = read_csv("../data/tut-signal.csv").col("signal");
+let s = periodogram(x, fs, opts().set("scaling", "spectrum"));
+let f = s.vec("f");
+let pxx = s.vec("pxx");
+out.put("n_bins", s.int("n_bins"));
+out.put("df", s.num("df"));
+out.put("peak_freq", s.num("peak_freq"));
+out.put("total_power", s.num("total_power"));
+let pk = find_peaks(pxx, opts().set("prominence", 0.02));
+let idx = pk.vec("indices");
+# order the peaks by height, largest first
+let h = pxx.take(idx);
+let order = h.argsort().reverse();
+let oidx = idx.take(order);
+out.put("n_peaks", pk.int("n_peaks"));
+out.put("freqs", f.take(oidx));
+out.put("heights", h.take(order));
+out.put("prominences", pk.vec("prominences").take(order));
+out.put("widths", peak_widths(pxx, oidx).vec("widths"));
+let w = welch(x, fs, opts().set("nperseg", 200).set("scaling", "spectrum"));
+out.put("welch_segments", w.int("n_segments"));
+out.put("welch_peak_freq", w.num("peak_freq"));
+
+out.check("at least two spectral peaks", pk.int("n_peaks") >= 2);
+let f1 = f.at(int(oidx.at(0)));
+let f2 = f.at(int(oidx.at(1)));
+let ratio = h.take(order).at(0) / h.take(order).at(1);
+out.put("ratio", ratio);
+out.close("strongest peak at 5 Hz", f1, 5.0, 0.001);
+out.close("second peak at 12 Hz", f2, 12.0, 0.001);
+out.close("periodogram peak at 5 Hz", s.num("peak_freq"), 5.0, 0.001);
+out.check("power ratio in [3, 5.5]", ratio >= 3.0 && ratio <= 5.5);
+out.close("5 Hz power near A^2/2 = 0.5", h.take(order).at(0), 0.5, 0.1);
+out.close("Welch peak at 5 Hz", w.num("peak_freq"), 5.0, 0.001);
+out.close("peak powers match scipy", h.take(order).slice(0, 2), vec(0.4949340703519228, 0.1360777784207671), 0.000000001);
+end _dsl_
+
+v = lmnum.run(prog, "tut-fft-peaks");
+println(sprintf("periodogram: %d bins, df=%.3f Hz, peak at %.2f Hz, total power %.4f", v.n_bins, v.df, v.peak_freq, v.total_power));
+println(sprintf("%d spectral peaks with prominence >= 0.02:", v.n_peaks));
+for (k = 0; k < v.n_peaks; k = k + 1) {
+  println(sprintf("  %.2f Hz  power %.4f  prominence %.4f  width %.2f bins", v.freqs[k], v.heights[k], v.prominences[k], v.widths[k]));
+}
+println(sprintf("welch (nperseg 200, %d segments): peak at %.2f Hz", v.welch_segments, v.welch_peak_freq));
+println(sprintf("Checks passed: tones at %.2f and %.2f Hz, power ratio %.2f, Welch peak %.2f Hz.", v.freqs[0], v.freqs[1], v.ratio, v.welch_peak_freq));

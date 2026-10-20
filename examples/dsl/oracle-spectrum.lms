@@ -1,0 +1,77 @@
+// access: write (a temporary oracle-spectrum.dslb, removed)
+// What it does: the _dsl_ version of ../oracle-spectrum.lms. Estimates the power spectrum of two exact on-bin tones plus a DC offset
+//   (periodogram, boxcar window, no detrend, density scaling, fs = 1) and checks it three ways: (1) Parseval / closed forms computed from
+//   the samples (the integral of the one-sided density is the mean square; each on-bin tone of amplitude A has density A^2 N / 2 at fs = 1);
+//   (2) a Welch estimate peaks at the same tone frequency with the tone power A^2/2; (3) the original compared lmda series_spectrum bin by
+//   bin at run time; here the bins are pinned known answers from scipy 1.16.2 (oracle venv: signal.periodogram on the same samples):
+//   pxx[0, 1, 63, 64, 65, 100, 160, 256] = 128, 1.278e-33, 3.345e-33, 2304, 4.294e-33, 2.573e-33, 256, 3.155e-30.
+// Tolerance: 1e-9 relative for the closed forms and relative to the largest bin for the pinned bins; Welch 1e-6.
+// How to run: lmscript examples/dsl/oracle-spectrum.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let n = 512;
+# tones at bins 64 and 160 of 512: rotate unit vectors by the exact angles pi/4 and 5*pi/8
+let c1 = sqrt(0.5);
+let s1 = sqrt(0.5);
+let c2 = 0.0 - sqrt((1.0 - sqrt(0.5)) / 2.0);
+let s2 = sqrt((1.0 + sqrt(0.5)) / 2.0);
+let u1c = 1.0;
+let u1s = 0.0;
+let u2c = 1.0;
+let u2s = 0.0;
+let x = vec();
+for (i in range(0, n)) {
+  x.push(0.5 + 3.0 * u1s + 1.0 * u2s);
+  let t1c = u1c * c1 - u1s * s1;
+  let t1s = u1s * c1 + u1c * s1;
+  u1c = t1c;
+  u1s = t1s;
+  let t2c = u2c * c2 - u2s * s2;
+  let t2s = u2s * c2 + u2c * s2;
+  u2c = t2c;
+  u2s = t2s;
+}
+let ms = x.square().mean();
+let p = periodogram(x, 1.0, opts().set("window", "boxcar").set("detrend", "none").set("nfft", 512));
+let pxx = p.vec("pxx");
+out.put("n_bins", p.int("n_bins"));
+out.put("df", p.num("df"));
+out.put("peak_index", p.int("peak_index"));
+out.put("peak_freq", p.num("peak_freq"));
+out.put("total_power", p.num("total_power"));
+out.put("mean_square", ms);
+out.put("pxx64", pxx.at(64));
+out.put("pxx160", pxx.at(160));
+out.put("pxx0", pxx.at(0));
+out.check("status OK", p.ok());
+out.close_rel("Parseval: integral = mean square", p.num("total_power"), ms, 0.000000001);
+out.close_rel("tone 1 (A = 3): A^2 N / 2 = 2304", pxx.at(64), 2304.0, 0.000000001);
+out.close_rel("tone 2 (A = 1): A^2 N / 2 = 256", pxx.at(160), 256.0, 0.000000001);
+out.close_rel("DC: 0.5^2 N = 128", pxx.at(0), 0.25 * float(n), 0.000000001);
+out.check("peak at bin 64", p.int("peak_index") == 64);
+# leg 3: pinned scipy bins, compared relative to the largest bin
+let want = vec("128 1.2781028147152481e-33 3.3453500084552009e-33 2304 4.2938700721608209e-33 2.5726469284008127e-33 256 3.1554436208840472e-30");
+let got = pxx.take(vec("0 1 63 64 65 100 160 256"));
+let gap = got.sub(want).abs().max() / pxx.max();
+out.put("pinned_gap", gap);
+out.check("pinned scipy bins within 1e-9 of the largest bin", gap <= 0.000000001);
+
+let w = welch(x, 256.0, opts().set("nperseg", 128).set("noverlap", 64).set("window", "hann").set("detrend", "constant").set("scaling", "spectrum").set("nfft", 128));
+out.put("welch_peak_freq", w.num("peak_freq"));
+out.put("welch_segments", w.int("n_segments"));
+out.put("welch_peak", w.vec("pxx").at(w.int("peak_index")));
+out.close("Welch peak at 32 Hz", w.num("peak_freq"), 32.0, 0.000001);
+out.close("Welch tone power A^2/2 = 4.5", w.vec("pxx").at(w.int("peak_index")), 4.5, 0.000001);
+end _dsl_
+
+v = lmnum.run(prog, "oracle-spectrum");
+println(sprintf("lmnum periodogram: %d bins, df %.9f, peak at bin %d (f = %.9f), total power %.12f", v.n_bins, v.df, v.peak_index, v.peak_freq, v.total_power));
+println("leg 1: closed forms");
+println(sprintf("  Parseval: integral %.12f vs mean square %.12f", v.total_power, v.mean_square));
+println(sprintf("  tone 1 (A = 3) bin 64: %.9f expected 2304", v.pxx64));
+println(sprintf("  tone 2 (A = 1) bin 160: %.9f expected 256", v.pxx160));
+println(sprintf("  DC bin: %.9f expected 128", v.pxx0));
+println(sprintf("leg 2: Welch (hann, 128-sample segments, fs 256): peak at %.6f Hz, expected 32; %d segments; tone power %.9f expected 4.5", v.welch_peak_freq, v.welch_segments, v.welch_peak));
+println(sprintf("leg 3: pinned scipy periodogram bins: largest difference relative to the largest bin %.15f", v.pinned_gap));
+println("Spectrum agrees within 1e-9.");
