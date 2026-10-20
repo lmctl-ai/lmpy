@@ -1,0 +1,75 @@
+// access: write (the predictions CSV and the saved model, removed; a temporary .dslb)
+// Task: build, validate and ship a species classifier from a raw CSV, in one native program.
+//   1. read the measurements and encode the species text labels as class codes;
+//   2. standardise the four features and project them on two principal components (how much variance do they keep?);
+//   3. unsupervised check: k-means with 3 clusters on the standardised features must recover the species (adjusted Rand index);
+//   4. compare three classifiers by stratified 5-fold cross-validation (logistic regression, k-nearest neighbours, LDA);
+//   5. refit the best one on all rows, compute the confusion matrix and per-class metrics on the training data;
+//   6. save the model, reload it and check that the reloaded model predicts identically; write the predictions as CSV.
+// Data: examples/data/tut-flowers.csv (150 rows; species means from Fisher's iris, fresh draws; see ../README.md).
+// Tolerance: PCA keeps >= 85% of the variance in 2 components; ARI >= 0.7; best CV accuracy >= 0.9; reload is exact.
+// How to run: lmscript examples/dsl/task-flower-classifier.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+# step 1
+let raw = read_csv("../data/tut-flowers.csv");
+let enc = label_encode(raw.text("species"));
+let y = enc.vec("codes");
+let classes = enc.strs("classes");
+let x = raw.to_mat(strs("sepal_length, sepal_width, petal_length, petal_width"));
+out.put("rows", x.rows());
+out.put("classes", classes);
+# step 2
+let scaler = ml_fit("standard_scaler", x);
+let z = scaler.transform(x);
+let pca = ml_fit("pca", z, opts().set("n_components", 2));
+let kept = pca.params().vec("explained_variance_ratio").sum();
+out.put("pca_variance_kept", kept);
+out.check("2 components keep >= 85% of the variance", kept >= 0.85);
+# step 3
+let km = kmeans(z, 3, opts().set("seed", 0).set("n_init", 10));
+let ari = adjusted_rand_score(y, km.labels());
+out.put("kmeans_ari", ari);
+out.check("k-means recovers the species (ARI >= 0.7)", ari >= 0.7);
+# step 4: model selection
+let kinds = strs("logistic, knn_classifier, lda");
+let best = "";
+let best_score = -1.0;
+let scores = vec();
+for (k in kinds) {
+  let cv = ml_cv(k, x, y, 5, opts().set("cv", "stratified").set("scale", true));
+  scores.push(cv.num("mean"));
+  if (cv.num("mean") > best_score) { best_score = cv.num("mean"); best = k; }
+}
+out.put("cv_kinds", kinds);
+out.put("cv_accuracy", scores);
+out.put("best", best);
+out.check("best CV accuracy >= 0.9", best_score >= 0.9);
+# step 5
+let model = ml_fit(best, x, y, opts().set("scale", true));
+let pred = model.predict(x);
+let m = ml_metrics(y, pred, opts().set("average", "macro"));
+out.put("train_accuracy", m.num("accuracy"));
+out.put("confusion", m.mat("confusion_matrix"));
+out.put("f1_macro", m.num("f1"));
+out.check("training accuracy >= 0.95", m.num("accuracy") >= 0.95);
+out.close("confusion diagonal = accuracy", m.mat("confusion_matrix").trace() / float(x.rows()), m.num("accuracy"), 0.000000000001);
+# step 6: ship
+model.save("flower-model-dsl.json");
+let again = load_model("flower-model-dsl.json");
+out.check("reloaded model predicts identically", again.predict(x).sub(pred).abs().max() == 0.0);
+let labels = strs();
+for (p in pred) { labels.push(classes.at(int(p))); }
+raw.with("predicted", labels).write_csv("flower-predictions-dsl.csv");
+remove_file("flower-model-dsl.json");
+end _dsl_
+
+v = lmnum.run(prog, "task-flower-classifier");
+println(sprintf("%d flowers, classes %s; 2 principal components keep %.1f%% of the variance; k-means ARI %.3f", v.rows, json_stringify(v.classes), 100 * v.pca_variance_kept, v.kmeans_ari));
+for (i = 0; i < len(v.cv_kinds); i = i + 1) { println(sprintf("  5-fold CV %-15s accuracy %.3f", v.cv_kinds[i], v.cv_accuracy[i])); }
+println(sprintf("best: %s; training accuracy %.3f, macro F1 %.3f; confusion %s", v.best, v.train_accuracy, v.f1_macro, json_stringify(v.confusion)));
+rows = len(split(trim(read_file("flower-predictions-dsl.csv")), "\n")) - 1;
+println(f"predictions written for {rows} flowers");
+delete_file("flower-predictions-dsl.csv");
+println("Flower classifier task passed.");
