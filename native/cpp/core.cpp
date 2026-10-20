@@ -189,7 +189,7 @@ void register_core(Api& api) {
     for (size_t i = 0; i < vv(s).size(); ++i) if (av(a[0])[i] != 0 && !std::isnan(av(a[0])[i])) r.push_back(vv(s)[i]);
     return vecv(std::move(r));
   });
-  api.method(Vt, "find", {Vt}, Vt, "indexes whose mask entry is nonzero (numpy.flatnonzero)", [](void* s, Args&) {
+  api.method(Vt, "find", {}, Vt, "indexes of the nonzero, non-NaN entries (numpy.flatnonzero of a mask)", [](void* s, Args&) {
     V r;
     for (size_t i = 0; i < vv(s).size(); ++i) if (vv(s)[i] != 0 && !std::isnan(vv(s)[i])) r.push_back(double(i));
     return vecv(std::move(r));
