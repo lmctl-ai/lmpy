@@ -1,0 +1,51 @@
+// access: write (a temporary cross-ols.dslb, removed)
+// Cross-language agreement: ordinary least squares in lmnum (`ols`) and R (lm).
+// What it does: the _dsl_ version of ../cross-ols.lms. Reads examples/data/tut-ols.csv, fits y ~ x1 + x2 and compares the three
+//   coefficients, their standard errors, R^2 and sigma with R 4.3.3 lm() values pinned here (Rscript: summary(lm(y ~ x1 + x2))).
+//   Both are closed-form least squares (lmnum: SVD pseudo-inverse as statsmodels; R: Householder QR), so the only legitimate difference
+//   is rounding: the coefficient tolerance is 64 eps cond(X) max(1, |b|) and the standard-error tolerance 64 eps cond(X)^2 max(1, se),
+//   with the condition number from `ols`; R^2 and sigma are compared at 1e-12.
+// Data: examples/data/tut-ols.csv (seed 101, scripts/generate-tutorial-data.py).
+// How to run: lmscript examples/dsl/cross-ols.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = read_csv("../data/tut-ols.csv");
+let fit = ols(f, "y", "x1 + x2");
+let c = fit.res("coefficients");
+let est = c.vec("estimate");
+let se = c.vec("std_err");
+let eps = 0.0000000000000002220446049250313;
+let cond = fit.num("condition_number");
+# R 4.3.3: coef(lm(y ~ x1 + x2)), summary()$coefficients[, 2], $r.squared, $sigma
+let r_est = vec("1.29961021150139500, 0.82796628335910294, -1.95024818850243320");
+let r_se = vec("0.139399040020853848, 0.022830973115314592, 0.059458271404857349");
+out.check("status OK", fit.ok());
+for (i in range(0, 3)) {
+  let name = c.strs("names").at(i);
+  out.close("coef " + name, est.at(i), r_est.at(i), 64.0 * eps * cond * max(1.0, abs(est.at(i))));
+  out.close("se " + name, se.at(i), r_se.at(i), 64.0 * eps * cond * cond * max(1.0, se.at(i)));
+}
+out.close("r2", fit.num("r2"), 0.97498987753829969, 0.000000000001);
+out.close("sigma", fit.num("sigma"), 0.51034083925136497, 0.000000000001);
+out.put("n", fit.int("n_obs"));
+out.put("cond", cond);
+out.put("names", c.strs("names"));
+out.put("estimate", est);
+out.put("std_err", se);
+out.put("r_est", r_est);
+out.put("r_se", r_se);
+out.put("r2", fit.num("r2"));
+out.put("sigma", fit.num("sigma"));
+end _dsl_
+
+v = lmnum.run(prog, "cross-ols");
+println(sprintf("n = %d, cond(X) = %.3f", v.n, v.cond));
+println(sprintf("%-12s %20s %20s", "quantity", "lmnum", "r"));
+for (i = 0; i < 3; i = i + 1) {
+  println(sprintf("%-12s %20.14f %20.14f", "coef " + v.names[i], v.estimate[i], v.r_est[i]));
+  println(sprintf("%-12s %20.14f %20.14f", "se " + v.names[i], v.std_err[i], v.r_se[i]));
+}
+println(sprintf("%-12s %20.14f %20.14f", "r2", v.r2, 0.97498987753829969));
+println(sprintf("%-12s %20.14f %20.14f", "sigma", v.sigma, 0.51034083925136497));
+println("Agreement: lmnum and R OLS coefficients, standard errors, R^2 and sigma agree within rounding (cond-derived tolerances).");

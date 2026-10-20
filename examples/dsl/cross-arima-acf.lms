@@ -1,0 +1,56 @@
+// access: write (a temporary cross-arima-acf.dslb, removed)
+// Cross-language agreement: autocorrelation and an AR(1) maximum-likelihood fit in lmnum and R (stats::acf, pacf, arima).
+// What it does: the _dsl_ version of ../cross-arima-acf.lms. On examples/data/tut-ar1.csv compares the ACF (lags 0-10) and the PACF
+//   (lags 1-10, method ywm = R's) with R 4.3.3, then fits ARIMA(1,0,0) with a constant by exact maximum likelihood (`arima` trend c,
+//   cov_type approx = the numerical Hessian R reports) and compares phi, the process mean, the innovation variance, the log-likelihood
+//   and the standard error of phi with R's arima(method = "ML", include.mean = TRUE). R values pinned here with Rscript.
+// Legitimate differences: statsmodels/lmnum parameterise the constant as the regression intercept c (mean = c / (1 - phi)) while R's
+//   "intercept" is the mean itself, so the means are compared; the optimisers stop at different points of the same likelihood, so
+//   parameters are compared at 1e-4 and the log-likelihoods at 1e-6 relative; standard errors come from different numerical Hessians
+//   (complex step here, finite differences in R) and are compared at 1e-3 relative. ACF/PACF are closed-form sums, tolerance 1e-12.
+// Data: examples/data/tut-ar1.csv (seed 1122).
+// How to run: lmscript examples/dsl/cross-arima-acf.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let x = read_csv("../data/tut-ar1.csv").col("x");
+let a = acf(x, 10);
+let p = pacf(x, 10, opts().set("method", "ywm"));
+let fit = arima(x, 1, 0, 0, opts().set("trend", "c").set("cov_type", "approx"));
+# R 4.3.3: acf(x, lag.max = 10)$acf, pacf(x, lag.max = 10)$acf
+let r_acf = vec("1.0, 0.701960932116279857, 0.457705900621417416, 0.237770859254070599, 0.135111907115343710, 0.166922871654954175, 0.181799546107359683, 0.176132506445617981, 0.097334540504189757, 0.031112832995472933, -0.016008896036961168");
+let r_pacf = vec("0.7019609321162796345, -0.0690846542912023076, -0.1133498560112926185, 0.0617859694127978268, 0.1844836807161228942, -0.0070606021243262021, -0.0153052927137010981, -0.0830346694136912533, 0.0075055228436601311, -0.0170151295906890362");
+out.close("acf lags 0-10", a.vec("values"), r_acf, 0.000000000001);
+out.close("pacf lags 1-10", p.vec("values").slice(1, 11), r_pacf, 0.000000000001);
+let c = fit.res("coefficients");
+let names = c.strs("names");
+let phi = c.vec("estimate").at(names.index("ar.L1"));
+let mean = c.vec("estimate").at(names.index("intercept")) / (1.0 - phi);
+let se_phi = c.vec("std_err").at(names.index("ar.L1"));
+# R 4.3.3: arima(x, order = c(1, 0, 0), method = "ML", include.mean = TRUE): ar1, intercept (the mean), sigma2, loglik, se(ar1)
+out.check("status OK", fit.ok());
+out.check("converged", fit.flag("converged"));
+out.close("ar1 (phi)", phi, 0.71385836898428601, 0.0001);
+out.close("process mean", mean, 6.70749182205643990, 0.0001 * max(1.0, abs(mean)));
+out.close("sigma2", fit.num("sigma2"), 0.86909790100145301, 0.0001 * fit.num("sigma2"));
+out.close("log-likelihood", fit.num("llf"), -270.11401716897842, 0.000001 * max(1.0, abs(fit.num("llf"))));
+out.close("se(phi)", se_phi, 0.049934050645164874, 0.001 * se_phi);
+out.put("acf", a.vec("values"));
+out.put("pacf", p.vec("values"));
+out.put("phi", phi);
+out.put("mean", mean);
+out.put("sigma2", fit.num("sigma2"));
+out.put("llf", fit.num("llf"));
+out.put("se_phi", se_phi);
+end _dsl_
+
+v = lmnum.run(prog, "cross-arima-acf");
+println("acf lags 0-10:  " + json_stringify(v.acf));
+println("pacf lags 0-10: " + json_stringify(v.pacf));
+println(sprintf("%-16s %18s %18s", "quantity", "lmnum", "r"));
+println(sprintf("%-16s %18.10f %18.10f", "ar1 (phi)", v.phi, 0.71385836898428601));
+println(sprintf("%-16s %18.10f %18.10f", "process mean", v.mean, 6.70749182205643990));
+println(sprintf("%-16s %18.10f %18.10f", "sigma2", v.sigma2, 0.86909790100145301));
+println(sprintf("%-16s %18.10f %18.10f", "log-likelihood", v.llf, -270.11401716897842));
+println(sprintf("%-16s %18.10f %18.10f", "se(phi)", v.se_phi, 0.049934050645164874));
+println(sprintf("Agreement: ACF/PACF to 1e-12; AR(1) phi %.5f vs %.5f, mean %.4f vs %.4f, llf %.4f vs %.4f.", v.phi, 0.71385836898428601, v.mean, 6.70749182205643990, v.llf, -270.11401716897842));

@@ -1,0 +1,80 @@
+// access: write (a temporary oracle-tsa-tools.dslb, removed)
+// What it does: the _dsl_ version of ../oracle-tsa-tools.lms. Generates the same deterministic AR(1) series (coefficient 0.6, 120 points,
+//   noise from a 65537-modulus LCG), runs `acf`, `ljung_box`, `adfuller`, `kpss` and `pacf` and checks them (1) against closed forms
+//   worked out in the DSL (lag-k autocorrelation by dot products, the Ljung-Box statistic by its formula and its chi-square(2), chi-square(4)
+//   p-values in closed form) and (2) against statsmodels 0.14.6 values pinned from the oracle venv (adfuller, kpss, ywadjusted pacf; the
+//   original compared those with statsrust).
+// Tolerance: correlations and statistics 1e-9 (relative for Ljung-Box); p-values 1e-8 (ADF: MacKinnon surface, same table).
+// How to run: lmscript examples/dsl/oracle-tsa-tools.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let x = vec();
+let seed = 99;
+let prev = 0.0;
+for (i in range(0, 120)) {
+  seed = (75 * seed + 74) % 65537;
+  let e = (float(seed) / 65537.0 - 0.5) * 3.4;
+  prev = 0.6 * prev + e;
+  x.push(prev);
+}
+let n = x.len();
+let xc = x.sub(x.mean());
+let den = xc.dot(xc);
+# lag-k autocorrelations by dot products of the demeaned series
+let rho = vec(1.0);
+for (k in range(1, 5)) { rho.push(xc.slice(k, n).dot(xc.slice(0, n - k)) / den); }
+
+let a = acf(x, 4);
+let worst = 0.0;
+for (k in range(1, 5)) {
+  out.close("acf lag " + str(k), a.vec("values").at(k), rho.at(k), 0.000000001);
+  worst = max(worst, abs(a.vec("values").at(k) - rho.at(k)));
+}
+# Ljung-Box by its formula; chi-square survival in closed form for even degrees of freedom
+let q2 = 0.0;
+let q4 = 0.0;
+for (k in range(1, 5)) {
+  let term = float(n) * float(n + 2) * rho.at(k) * rho.at(k) / float(n - k);
+  if (k <= 2) { q2 = q2 + term; }
+  q4 = q4 + term;
+}
+let p2 = exp(-q2 / 2.0);
+let p4 = (1.0 + q4 / 2.0) * exp(-q4 / 2.0);
+let lb = ljung_box(x, vec(2.0, 4.0));
+out.close_rel("ljung_box Q(2)", lb.vec("statistic").at(0), q2, 0.000000001);
+out.close_rel("ljung_box Q(4)", lb.vec("statistic").at(1), q4, 0.000000001);
+out.close_rel("ljung_box p(2)", lb.vec("p_value").at(0), p2, 0.000000001);
+out.close_rel("ljung_box p(4)", lb.vec("p_value").at(1), p4, 0.000000001);
+# statsmodels 0.14.6: adfuller(x) (constant, AIC), kpss(x) (level, auto lags), pacf(x, 4, method="ywadjusted")
+let adf = adfuller(x);
+out.close("adf statistic", adf.num("statistic"), -3.2984950487184848, 0.000000001);
+out.close("adf p-value", adf.num("p_value"), 0.014945880026726855, 0.00000001);
+out.check("adf used lag 11", adf.int("used_lag") == 11);
+out.check("adf nobs 108", adf.int("nobs") == 108);
+out.close("adf 5% critical value", adf.res("critical_values").num("5%"), -2.8886968193364835, 0.000000001);
+out.close("adf icbest (data units)", adf.num("icbest"), 305.78244588959376, 0.000000001);
+let kp = kpss(x);
+out.close("kpss statistic", kp.num("statistic"), 0.07731006535876418, 0.000000001);
+out.check("kpss lags 4", kp.int("lags") == 4);
+out.check("kpss p-value bounded above 0.1", kp.num("p_value") == 0.1 && kp.text("p_value_bounded") == "above");
+let pc = pacf(x, 4, opts().set("method", "ywadjusted"));
+out.close("pacf ywadjusted", pc.vec("values"), vec("1.0, 0.533722454, -0.000955471616, 0.0297757450, -0.0567671125"), 0.000000001);
+out.put("acf", a.vec("values"));
+out.put("q", vec(q2, q4));
+out.put("lb_q", lb.vec("statistic"));
+out.put("lb_p", lb.vec("p_value"));
+out.put("adf", vec(adf.num("statistic"), adf.num("p_value")));
+out.put("adf_lag", adf.int("used_lag"));
+out.put("kpss", kp.num("statistic"));
+out.put("kpss_p", kp.num("p_value"));
+out.put("kpss_lags", kp.int("lags"));
+out.put("worst", worst);
+end _dsl_
+
+v = lmnum.run(prog, "oracle-tsa-tools");
+println("acf lags 0-4: " + json_stringify(v.acf));
+println(sprintf("ljung_box Q(2) %.12f Q(4) %.12f  p %.15f %.15f (closed forms %.12f %.12f)", v.lb_q[0], v.lb_q[1], v.lb_p[0], v.lb_p[1], v.q[0], v.q[1]));
+println(sprintf("adfuller: statistic %.9f p %.9f used lag %d; kpss: statistic %.9f p %.3f lags %d", v.adf[0], v.adf[1], v.adf_lag, v.kpss, v.kpss_p, v.kpss_lags));
+println("largest acf difference from the dot products: " + str(v.worst));
+println("Time-series tests agree: statistics within 1e-9, p-values within 1e-8.");
