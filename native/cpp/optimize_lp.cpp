@@ -209,10 +209,12 @@ Res* linprog_run(const std::vector<double>& cin, const Opts& o) {
   if (have_duals) {
     // stationarity of the scaled-back problem: sign*c = A_ub' y_ub + A_eq' y_eq + z_lo + z_up
     double dual_error = 0;
-    for (int i = 0; i < mu; ++i) if (y_ub(i) > 0) dual_error = INF;
+    // sign conditions up to rounding: HiGHS reports degenerate duals like -1e-16 (relative to the largest cost)
+    double sign_tol = 1e-9 * std::max(1.0, c.cwiseAbs().maxCoeff());
+    for (int i = 0; i < mu; ++i) if (y_ub(i) > sign_tol) dual_error = INF;
     for (int j = 0; j < n; ++j) {
-      if (z_lo(j) < 0 || z_up(j) > 0) dual_error = INF;
-      if ((!std::isfinite(lower(j)) && z_lo(j) != 0) || (!std::isfinite(upper(j)) && z_up(j) != 0)) dual_error = INF;
+      if (z_lo(j) < -sign_tol || z_up(j) > sign_tol) dual_error = INF;
+      if ((!std::isfinite(lower(j)) && std::fabs(z_lo(j)) > sign_tol) || (!std::isfinite(upper(j)) && std::fabs(z_up(j)) > sign_tol)) dual_error = INF;
     }
     LD dual_obj = 0, gap_scale = 0;
     for (int j = 0; j < n; ++j) gap_scale += std::fabs(LD(sign) * c(j) * x(j));

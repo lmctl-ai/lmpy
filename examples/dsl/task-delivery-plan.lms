@@ -1,0 +1,73 @@
+// access: write (temporary .dslb)
+// Task: plan deliveries from two depots to five customers over a road network, in one native program.
+//   1. build the road graph (14 two-way roads, km);
+//   2. all-pairs shortest distances; extract the depot x customer distance table;
+//   3. solve the transportation LP: minimise sum(km * units) with depot supplies (<=) and customer demands (=);
+//   4. verify the LP by strong duality (supply prices . supplies + demand prices . demands = cost) and feasibility;
+//   5. for every shipment in the plan, recover the actual route (Dijkstra path) and check its length against the table.
+// Known answers (networkx 3.x shortest paths + scipy 1.16.2 linprog/highs, recomputed by hand from the table): minimum cost 851
+//   unit-km; D1 ships C1 20, C2 15, C3 15; D2 ships C3 10, C4 18, C5 22; depot D2's supply is binding (dual -10).
+// How to run: lmscript examples/dsl/task-delivery-plan.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+# step 1
+let g = graph(false);
+g.edge("D1", "J1", 4.0); g.edge("D1", "C1", 7.0); g.edge("J1", "C1", 2.0); g.edge("J1", "J2", 5.0);
+g.edge("J2", "C2", 3.0); g.edge("J2", "C3", 6.0); g.edge("C2", "C3", 4.0); g.edge("D2", "J3", 3.0);
+g.edge("J3", "C3", 2.0); g.edge("J3", "C4", 5.0); g.edge("D2", "C5", 6.0); g.edge("C4", "C5", 3.0);
+g.edge("J2", "J3", 4.0); g.edge("C1", "C2", 6.0);
+let depots = strs("D1, D2");
+let customers = strs("C1, C2, C3, C4, C5");
+let supply = vec(60.0, 50.0);
+let demand = vec("20 15 25 18 22");
+# step 2
+let all = g.all_distances();
+let names = all.strs("nodes");
+let dmat = all.mat("distance");
+let nd = depots.len();
+let nc = customers.len();
+let km = mat(nd, nc);
+for (i in range(0, nd)) {
+  for (j in range(0, nc)) { km.set(i, j, dmat.at(names.index(depots.at(i)), names.index(customers.at(j)))); }
+}
+out.put("distance_table", km);
+# step 3: variables x[i * nc + j] = units from depot i to customer j
+let a_ub = mat(nd, nd * nc);
+let a_eq = mat(nc, nd * nc);
+for (i in range(0, nd)) {
+  for (j in range(0, nc)) { a_ub.set(i, i * nc + j, 1.0); a_eq.set(j, i * nc + j, 1.0); }
+}
+let lp = linprog(km.flatten(), opts().set("A_ub", a_ub).set("b_ub", supply).set("A_eq", a_eq).set("b_eq", demand));
+out.check("LP solved", lp.ok());
+let plan = mat(lp.vec("x"), nd, nc);
+out.put("plan", plan);
+out.put("cost", lp.num("fun"));
+out.close("minimum cost (known answer)", lp.num("fun"), 851.0, 0.000001);
+out.close("known plan", lp.vec("x"), vec("20 15 15 0 0 0 0 10 18 22"), 0.000001);
+# step 4: duality and feasibility
+let dual_ub = lp.vec("ineqlin_marginals");
+let dual_eq = lp.vec("eqlin_marginals");
+out.close("strong duality", dual_ub.dot(supply) + dual_eq.dot(demand), lp.num("fun"), 0.000001);
+out.close("demands met", a_eq * lp.vec("x"), demand, 0.000001);
+out.check("supplies respected", (a_ub * lp.vec("x") - supply).max() <= 0.000001);
+out.close("D2 supply is binding", dual_ub.at(1), -10.0, 0.000001);
+# step 5: routes for the shipments
+let routes = strs();
+for (i in range(0, nd)) {
+  for (j in range(0, nc)) {
+    if (plan.at(i, j) > 0.5) {
+      let p = g.shortest_path(depots.at(i), customers.at(j));
+      out.close("route length " + depots.at(i) + "-" + customers.at(j), p.num("length"), km.at(i, j), 0.0);
+      routes.push(fmt(plan.at(i, j), 0) + " units " + p.strs("path").join(" > ") + " (" + fmt(p.num("length"), 0) + " km)");
+    }
+  }
+}
+out.put("routes", routes);
+end _dsl_
+
+v = lmnum.run(prog, "task-delivery-plan");
+println(sprintf("depot x customer km: %s", json_stringify(v.distance_table)));
+println(sprintf("minimum transport cost %.0f unit-km over %d shipments:", v.cost, len(v.routes)));
+for (r in v.routes) { println("  " + r); }
+println("Delivery plan task passed.");
