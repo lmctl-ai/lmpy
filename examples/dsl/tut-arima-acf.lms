@@ -1,0 +1,97 @@
+// access: write (a temporary tut-arima-acf.dslb, removed)
+// Topic: autocorrelation and an AR(1) forecast (after: the R ?arima / ?acf help-page examples and the statsmodels ARMA notebook)
+// What it does: the _dsl_ version of ../tut-arima-acf.lms. One DSL program computes the sample ACF and PACF (ywm) of a simulated AR(1)
+//   series, fits ARIMA(1,0,0) with a constant by exact maximum likelihood (`arima`), forecasts ten steps with intervals, runs a
+//   Ljung-Box test on the raw series, and checks the estimates against the generating process: phi = 0.7 within 2 SE (0.6 would fail),
+//   mean 2 / (1 - 0.7) within 3 sigma / ((1 - phi) sqrt n), ACF decaying like phi^k, PACF inside the plain 1.96 / sqrt(n) band at lags
+//   2-6 with at most one exceedance, forecasts converging to the mean with widening intervals whose widths follow the AR(1) formula;
+//   the fitted phi and intercept are also pinned to 1e-3 as a tool check.
+// Data: examples/data/tut-ar1.csv, 200 values of x_t = 2 + 0.7 x_{t-1} + N(0, 1) after a 100-step burn-in, seed 1122.
+// Tolerance: as the original: lag-1 ACF within 0.12 of phi, lag-2 within 0.15 of phi^2 (2-3 SE); pinned parameters 1e-3; interval
+//   widths 1e-6; Ljung-Box p < 0.001.
+// How to run: lmscript examples/dsl/tut-arima-acf.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let x = read_csv("../data/tut-ar1.csv").col("x");
+let phi = 0.7;
+let mu = 2.0 / (1.0 - phi);
+let a = acf(x, 6);
+let pc = pacf(x, 6, opts().set("method", "ywm"));
+out.check("acf status OK", a.ok());
+let n = a.int("n");
+let av = a.vec("values");
+let pv = pc.vec("values");
+let fit = arima(x, 1, 0, 0, opts().set("trend", "c").set("forecast_steps", 10));
+out.check("arima status OK", fit.ok());
+let c = fit.res("coefficients");
+let names = c.strs("names");
+let i_phi = names.index("ar.L1");
+let i_c = names.index("intercept");
+let phi_hat = c.vec("estimate").at(i_phi);
+let c_hat = c.vec("estimate").at(i_c);
+let se_phi = c.vec("std_err").at(i_phi);
+let mean_hat = c_hat / (1.0 - phi_hat);
+let sigma2 = fit.num("sigma2");
+let fc = fit.res("forecast");
+let fm = fc.vec("mean");
+let width = fc.vec("upper").sub(fc.vec("lower"));
+let lb = ljung_box(x, 5);
+
+# The sample ACF at lag k has standard error about sqrt((1 - phi^2) / n) = 0.05, so 0.12 and 0.15 are 2-3 SE.
+let band = 1.96 / sqrt(float(n));
+out.close("lag-1 ACF near phi", av.at(1), phi, 0.12);
+out.close("lag-2 ACF near phi^2", av.at(2), phi * phi, 0.15);
+# PACF cut-off: at most one of lags 2-6 outside the plain 1.96/sqrt(n) band.
+let outside = 0;
+for (k in range(2, 7)) {
+  if (abs(pv.at(k)) > band) { outside = outside + 1; }
+}
+out.check("PACF cuts off after lag 1 (at most one of lags 2-6 outside the band)", outside <= 1);
+# phi within 2 SE of 0.7; the implied mean within 3 sigma / ((1 - phi) sqrt n) of 2 / 0.3; parameters pinned to 1e-3.
+out.check("ar.L1 within 2 SE of phi", abs(phi_hat - phi) <= 2.0 * se_phi);
+let mean_tol = 3.0 * sqrt(sigma2) / ((1.0 - phi) * sqrt(float(n)));
+out.close("implied mean near 2 / 0.3", mean_hat, mu, mean_tol);
+out.close("ar.L1 at its pinned value", phi_hat, 0.71385, 0.001);
+out.close("intercept at its pinned value", c_hat, 1.91931, 0.001);
+out.check("forecasts approach the mean", abs(fm.at(9) - mean_hat) <= abs(fm.at(0) - mean_hat) + 0.000001);
+for (h in range(1, 10)) {
+  out.check("forecast interval widens at h = " + str(h + 1), width.at(h) >= width.at(h - 1) - 0.000001);
+}
+# Same-fit consistency: interval widths = 2 z sqrt(sigma2 (1 - phi^(2h)) / (1 - phi^2)) with the fitted phi and sigma2.
+let z = dist("norm").ppf(0.975);
+for (h in range(1, 11)) {
+  let sd = sqrt(sigma2 * (1.0 - pow(phi_hat, 2.0 * float(h))) / (1.0 - phi_hat * phi_hat));
+  out.close("interval width follows the AR(1) formula at h = " + str(h), width.at(h - 1), 2.0 * z * sd, 0.000001);
+}
+out.check("Ljung-Box rejects white noise", lb.vec("p_value").at(4) <= 0.001);
+out.put("n", n);
+out.put("acf", av);
+out.put("pacf", pv);
+out.put("pacf_lo", pc.vec("ci_lower"));
+out.put("pacf_hi", pc.vec("ci_upper"));
+out.put("c_hat", c_hat);
+out.put("se_c", c.vec("std_err").at(i_c));
+out.put("phi_hat", phi_hat);
+out.put("se_phi", se_phi);
+out.put("sigma2", sigma2);
+out.put("llf", fit.num("llf"));
+out.put("aic", fit.num("aic"));
+out.put("mean_hat", mean_hat);
+out.put("mu", mu);
+out.put("fc_mean", fm);
+out.put("fc_lower", fc.vec("lower"));
+out.put("fc_upper", fc.vec("upper"));
+out.put("lb_q5", lb.vec("statistic").at(4));
+out.put("lb_p5", lb.vec("p_value").at(4));
+out.put("outside", outside);
+out.put("mean_tol", mean_tol);
+end _dsl_
+
+v = lmnum.run(prog, "tut-arima-acf");
+println("lag  acf     phi^k   pacf    pacf 95% band");
+for (k = 0; k <= 6; k = k + 1) { println(sprintf("%3d  %6.3f  %6.3f  %6.3f  [%.3f, %.3f]", k, v.acf[k], pow(0.7, k), v.pacf[k], v.pacf_lo[k], v.pacf_hi[k])); }
+println(sprintf("ARIMA(1,0,0)+c: intercept %.4f (SE %.4f), ar.L1 %.4f (SE %.4f), sigma2 %.4f, llf %.3f, AIC %.2f, implied mean %.4f (true %.4f)", v.c_hat, v.se_c, v.phi_hat, v.se_phi, v.sigma2, v.llf, v.aic, v.mean_hat, v.mu));
+for (h = 0; h < 10; h = h + 1) { println(sprintf("  h=%2d  forecast %.4f  [%.4f, %.4f]", h + 1, v.fc_mean[h], v.fc_lower[h], v.fc_upper[h])); }
+println(sprintf("Ljung-Box on the raw series: Q(5) = %.2f, p = %.3f", v.lb_q5, v.lb_p5));
+println(sprintf("Checks passed: ACF ~ phi^k, PACF cut-off (%d of lags 2-6 outside the band), ar.L1 = %.4f within 2 SE of phi = %.2f, mean within %.3f, forecasts converge, interval widths match the AR(1) formula.", v.outside, v.phi_hat, 0.7, v.mean_tol));

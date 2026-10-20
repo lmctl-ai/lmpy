@@ -1,0 +1,72 @@
+// access: write (a temporary tut-ols-diagnostics.dslb, removed)
+// Topic: ordinary least squares with diagnostics (after: the statsmodels "OLS" example notebook)
+// What it does: the _dsl_ version of ../tut-ols-diagnostics.lms. Fits y ~ x1 + x2 with `ols` straight from the CSV (residuals
+//   included), reports the coefficient table and the diagnostics (sigma, Durbin-Watson, condition number), recomputes the F-test
+//   p-value with the F survival function and the confidence intervals with the t quantile (`dist`), and checks that the residuals sum
+//   to zero, that ssr matches the residuals, that the generating parameters lie inside the intervals, that sigma is near the noise
+//   level, that the Durbin-Watson statistic shows no serial correlation and the condition number no collinearity, and that the fitted
+//   coefficients equal their pinned values. All of it is one DSL program.
+// Data: examples/data/tut-ols.csv, 60 rows of y = 1.5 + 0.8 x1 - 2.0 x2 + N(0, 0.5^2) (seed 101, scripts/generate-tutorial-data.py).
+// Tolerance: as the original: pinned coefficients 1e-4; sigma within 0.1 of 0.5; DW in [1.5, 2.5]; cond < 30; sum(residuals) 1e-6,
+//   ssr 1e-6 relative; F p-value 1e-12 + 1e-6 relative; interval ends 1e-9.
+// How to run: lmscript examples/dsl/tut-ols-diagnostics.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let fit = ols(read_csv("../data/tut-ols.csv"), "y", "x1 + x2", opts().set("include", strs("residuals")));
+out.check("status OK", fit.ok());
+let c = fit.res("coefficients");
+let names = c.strs("names");
+let est = c.vec("estimate");
+let se = c.vec("std_err");
+let lo = c.vec("ci_lower");
+let hi = c.vec("ci_upper");
+# Self-check 1: the generating parameters (const 1.5, x1 0.8, x2 -2.0) lie inside the 95% intervals.
+let truth = vec(1.5, 0.8, -2.0);
+out.check("names const,x1,x2", names.join(",") == "const,x1,x2");
+for (i in range(0, 3)) {
+  out.check("true " + names.at(i) + " inside the 95% interval", truth.at(i) >= lo.at(i) && truth.at(i) <= hi.at(i));
+}
+# Self-check 1b: sigma estimates the noise sd 0.5 (within 20%); Durbin-Watson near 2 ([1.5, 2.5]); the condition number of the
+# scaled design below 30; the fitted coefficients pinned to 1e-4 as a tool-regression check.
+let sigma = fit.num("sigma");
+let dw = fit.num("durbin_watson");
+let cond = fit.num("condition_number");
+out.close("sigma near the noise sd 0.5", sigma, 0.5, 0.1);
+out.check("Durbin-Watson in [1.5, 2.5]", dw >= 1.5 && dw <= 2.5);
+out.check("condition number below 30", cond <= 30.0);
+out.close("coefficients at their pinned values", est, vec(1.29961, 0.82797, -1.95025), 0.0001);
+# Self-check 2: residuals sum to zero (intercept model) and reproduce ssr.
+let e = fit.vec("residuals");
+let sum_e = e.sum();
+let ssr = e.dot(e);
+out.close("sum of residuals is 0", sum_e, 0.0, 0.000001);
+out.close_rel("residuals reproduce ssr", ssr, fit.num("ssr"), 0.000001);
+# Self-check 3: the F p-value is the F(df_model, df_resid) survival function of the statistic.
+let sf = dist("f", opts().set("dfn", fit.num("df_model")).set("dfd", fit.num("df_resid"))).sf(fit.num("f_statistic"));
+out.close("F p-value = F.sf(F)", sf, fit.num("f_p_value"), 0.000000000001 + 0.000001 * fit.num("f_p_value"));
+# Self-check 4: the intervals are estimate +- t(0.975, df_resid) * std_err.
+let tq = dist("t", opts().set("df", fit.num("df_resid"))).ppf(0.975);
+out.close("ci_lower = estimate - t * se", lo, est.sub(se.mul(tq)), 0.000000001);
+out.close("ci_upper = estimate + t * se", hi, est.add(se.mul(tq)), 0.000000001);
+out.put("n", fit.int("n_obs"));
+out.put("r2", fit.num("r2"));
+out.put("r2_adj", fit.num("r2_adj"));
+out.put("sigma", sigma);
+out.put("f", fit.num("f_statistic"));
+out.put("f_p", fit.num("f_p_value"));
+out.put("dw", dw);
+out.put("cond", cond);
+out.put("coefficients", c);
+out.put("sum_e", sum_e);
+out.put("tq", tq);
+end _dsl_
+
+v = lmnum.run(prog, "tut-ols-diagnostics");
+println(sprintf("n=%d  r2=%.4f  r2_adj=%.4f  sigma=%.4f  F=%.2f (p=%.5f)  DW=%.3f  cond=%.1f", v.n, v.r2, v.r2_adj, v.sigma, v.f, v.f_p, v.dw, v.cond));
+println("term      estimate   std_err   t        p        95% CI");
+c = v.coefficients;
+for (i = 0; i < len(c.names); i = i + 1) {
+  println(sprintf("%-8s %9.4f %9.4f %8.3f %8.5f  [%.4f, %.4f]", c.names[i], c.estimate[i], c.std_err[i], c.statistic[i], c.p_value[i], c.ci_lower[i], c.ci_upper[i]));
+}
+println(sprintf("Checks passed: truth inside every 95%% CI; coefficients at their pinned values; sigma %.3f, DW %.3f, cond %.1f in range; sum(residuals)=%.9f; F p-value and t intervals reproduced (t=%.4f).", v.sigma, v.dw, v.cond, v.sum_e, v.tq));
