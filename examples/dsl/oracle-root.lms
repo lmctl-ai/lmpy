@@ -1,0 +1,47 @@
+// access: write (a temporary oracle-root.dslb, removed)
+// What it does: the _dsl_ version of ../oracle-root.lms. Solves the same equations with `root` (the bracketed brentq form,
+//   then hybr and lm on a system) and `root_scalar`, and checks the known answers: the classic root of x^3 - 2x - 5
+//   (2.0945514815423265) and the circle/line system x^2 + y^2 = 4, x = y (x = y = sqrt 2). A system with no real root
+//   must be reported as NO_CONVERGENCE with its residual, never as success. The original also ran R's uniroot through
+//   rcli; that leg is now the pinned known value (R's uniroot with tol 1e-14 agrees with it to 1e-12).
+// Tolerance: 1e-12 for the bracketed scalar root; 1e-8 for the nonlinear systems; best residual of x^2 + 1 >= 0.99.
+// Reference: scipy 1.16.2 brentq on [2, 3] with xtol 1e-14 converges in 7 iterations to 2.094551481542327.
+// How to run: lmscript examples/dsl/oracle-root.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let known = 2.0945514815423265;
+let b = root(strs("x^3 - 2*x - 5"), strs("x"), vec(2.0), opts().set("bracket", vec(2.0, 3.0)).set("xtol", 0.00000000000001));
+let n = root_scalar("x^3 - 2*x - 5", "x", 2.0, 3.0, opts().set("xtol", 0.00000000000001));
+out.check("bracketed root status OK", b.ok());
+out.check("root_scalar status OK", n.ok());
+out.close("root (brentq bracket) vs known", b.vec("x").at(0), known, 0.000000000001);
+out.close("root_scalar vs known", n.num("root"), known, 0.000000000001);
+out.put("bracket_root", b.vec("x").at(0));
+out.put("scalar_root", n.num("root"));
+out.put("worst", max(abs(b.vec("x").at(0) - known), abs(n.num("root") - known)));
+let sqrt2 = sqrt(2.0);
+let methods = strs("hybr, lm");
+for (m in methods) {
+  let s = root(strs("x^2 + y^2 - 4, x - y"), strs("x, y"), vec(1.0, 1.0), opts().set("method", m));
+  out.check(m + " status OK", s.ok());
+  out.close(m + " x", s.res("par").num("x"), sqrt2, 0.00000001);
+  out.close(m + " y", s.res("par").num("y"), sqrt2, 0.00000001);
+  out.put(m, s);
+}
+let none = root(strs("x^2 + 1"), strs("x"), vec(1.0));
+out.check("x^2 + 1 is NO_CONVERGENCE", none.status() == "NO_CONVERGENCE");
+out.check("x^2 + 1 best residual >= 0.99", none.num("residual_max") >= 0.99);
+out.put("none", none);
+end _dsl_
+
+v = lmnum.run(prog, "oracle-root");
+println(sprintf("root of x^3 - 2x - 5: known %.16f | root (brentq bracket) %.16f | root_scalar %.16f", 2.0945514815423265, v.bracket_root, v.scalar_root));
+println(sprintf("scalar root: 2 solver(s) agree with the known value, largest error %.12f", v.worst));
+for (m in ["hybr", "lm"]) {
+  s = v[m];
+  err = max(abs(s.par.x - sqrt(2)), abs(s.par.y - sqrt(2)));
+  println(sprintf("system with %-4s: x = %.12f y = %.12f residual %.12f error %.12f (%d evaluations)", m, s.par.x, s.par.y, s.residual_max, err, s.evals));
+}
+println(sprintf("x^2 + 1 = 0: status %s, best residual %.3f (the solver's own success flag is not trusted)", v.none.status, v.none.residual_max));
+println("Root finding agrees.");

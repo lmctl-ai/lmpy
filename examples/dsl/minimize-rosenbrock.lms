@@ -1,0 +1,42 @@
+// access: write (a temporary minimize-rosenbrock.dslb, removed)
+// What it does: the _dsl_ version of ../minimize-rosenbrock.lms. Minimises Rosenbrock's function twice with `minimize`
+//   (BFGS with finite differences, then with analytic gradient expressions) and checks the known minimum (1, 1), an
+//   independent recomputation of the objective at the reported point, and that the analytic gradient needs fewer
+//   objective evaluations.
+// Tolerance: parameters within 1e-3 of 1 and value below 1e-6 (finite differences); within 1e-6 of 1 (analytic gradient);
+//   the recomputed objective within 1e-9 of the reported value.
+// Reference: scipy 1.16.2 minimize(method="BFGS", tol=1e-6) reports nit 33 with nfev 120 (finite differences) and 40
+//   (gradient); lmnum's BFGS is a port of scipy's and reproduces both on this host (recorded, not asserted, because the
+//   finite-difference trajectory is sensitive to the last bit of the BLAS products).
+// How to run: lmscript examples/dsl/minimize-rosenbrock.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let objective = "100*(y-x^2)^2 + (1-x)^2";
+let names = strs("x, y");
+let x0 = vec(-1.2, 1.0);
+let fd = minimize(objective, names, x0, opts().set("method", "BFGS").set("tol", 0.000001));
+out.check("finite differences: status OK", fd.ok());
+let x = fd.res("par").num("x");
+let y = fd.res("par").num("y");
+out.close("fd x", x, 1.0, 0.001);
+out.close("fd y", y, 1.0, 0.001);
+out.check("fd value below 1e-6", fd.num("fun") <= 0.000001);
+# independent check: the objective recomputed at the reported point (DSL arithmetic, not the expression engine)
+let recomputed = 100.0 * (y - x * x) * (y - x * x) + (1.0 - x) * (1.0 - x);
+out.close("objective recomputed at par", recomputed, fd.num("fun"), 0.000000001);
+let exact = minimize(objective, names, x0, opts().set("method", "BFGS").set("tol", 0.000001)
+  .set("gradient", strs("-400*x*(y-x^2) - 2*(1-x), 200*(y-x^2)")));
+out.check("analytic gradient: status OK", exact.ok());
+out.close("gradient x", exact.res("par").num("x"), 1.0, 0.000001);
+out.close("gradient y", exact.res("par").num("y"), 1.0, 0.000001);
+out.check("analytic gradient needs fewer evaluations", exact.int("nfev") < fd.int("nfev"));
+out.check("gradient expressions agree with finite differences at x0", exact.strs("warnings").len() == 0);
+out.put("fd", fd);
+out.put("exact", exact);
+end _dsl_
+
+v = lmnum.run(prog, "minimize-rosenbrock");
+println(sprintf("finite differences: x=%.6f y=%.6f value=%.10f nfev=%d", v.fd.par.x, v.fd.par.y, v.fd.fun, v.fd.nfev));
+println(sprintf("analytic gradient:  x=%.6f y=%.6f value=%.10f nfev=%d", v.exact.par.x, v.exact.par.y, v.exact.fun, v.exact.nfev));
+println("Rosenbrock oracle passed.");

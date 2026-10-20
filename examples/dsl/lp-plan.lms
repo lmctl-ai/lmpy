@@ -1,0 +1,29 @@
+// access: write (a temporary lp-plan.dslb, removed)
+// What it does: the _dsl_ version of ../lp-plan.lms. Reads a one-row demand table (the original wrote it to
+//   demand-s4.csv and imported it; here it is parsed from text with `csv`), builds the production LP
+//   min cost_r x + cost_p y  s.t.  x + y >= total_units, x + 3y >= quality_min, 0 <= x <= regular_capacity,
+//   0 <= y <= premium_capacity  and solves it with `linprog` (HiGHS).
+// Known answer: x + y = 3 and x + 3y = 5 give regular = 2, premium = 1, total cost = 4 (by hand).
+// Tolerance: 1e-8 on x and on the objective.
+// How to run: lmscript examples/dsl/lp-plan.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let d = csv("total_units,quality_min,regular_capacity,premium_capacity,regular_cost,premium_cost\n3,5,4,3,1,2\n");
+let c = vec(d.num("regular_cost", 0), d.num("premium_cost", 0));
+# >= rows written as <= rows with negated coefficients
+let plan = linprog(c, opts().set("A_ub", mat("-1 -1; -1 -3")).set("b_ub", vec(-d.num("total_units", 0), -d.num("quality_min", 0)))
+  .set("lower", vec(0.0, 0.0)).set("upper", vec(d.num("regular_capacity", 0), d.num("premium_capacity", 0))));
+out.check("status OK", plan.ok());
+let x = plan.vec("x");
+out.close("regular", x.at(0), 2.0, 0.00000001);
+out.close("premium", x.at(1), 1.0, 0.00000001);
+out.close("total cost", plan.num("objective"), 4.0, 0.00000001);
+out.check("optimality verified by the certificate", plan.flag("optimality_verified"));
+out.put("x", x);
+out.put("objective", plan.num("objective"));
+end _dsl_
+
+v = lmnum.run(prog, "lp-plan");
+println(sprintf("regular=%.6f premium=%.6f total_cost=%.6f", v.x[0], v.x[1], v.objective));
+println("Production plan passed.");

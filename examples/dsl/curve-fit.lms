@@ -1,0 +1,41 @@
+// access: write (a temporary curve-fit.dslb, removed)
+// What it does: the _dsl_ version of ../curve-fit.lms. Generates exponential-decay data y = c + a*exp(-b*t) plus
+//   closed-form deterministic pseudo-noise, fits it with `least_squares` (model + response, data bound with `$t`, `$y`),
+//   and checks the recovered parameters, the residual level, the reported standard errors and an independent
+//   recomputation of the residual sum of squares.
+// Tolerance: parameters within 0.05 of the generating values (2.5, 0.7, 0.1); rss below the bound set by the noise
+//   (30 * 0.02^2); standard errors positive with se(a) <= 0.2; recomputed rss within 1e-9.
+// Reference: scipy 1.16.2 curve_fit on the same data gives a = 2.50061136, b = 0.70214783, c = 0.10159852 with standard
+//   errors 0.0087055, 0.0062139, 0.0055016 (checked here to 1e-6).
+// How to run: lmscript examples/dsl/curve-fit.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let t = arange(30).mul(0.2);
+# deterministic zig-zag noise in [-0.02, 0.02]: ((i*37 + 11) mod 17 - 8) / 400
+let noise = arange(30).apply("((x * 37 + 11) - 17 * floor((x * 37 + 11) / 17) - 8) / 400");
+let y = t.apply("0.1 + 2.5*exp(-0.7*x)").add(noise);
+let fit = least_squares("c + a*exp(-b*t)", "y", strs("a, b, c"), vec(1.0, 0.2, 0.0), opts().set("$t", t).set("$y", y));
+out.check("status OK", fit.ok());
+let p = fit.res("par");
+out.close("a", p.num("a"), 2.5, 0.05);
+out.close("b", p.num("b"), 0.7, 0.05);
+out.close("c", p.num("c"), 0.1, 0.05);
+# the generating parameters are a feasible point, so the least-squares residual cannot exceed the injected noise
+out.check("rss within the noise bound", fit.num("rss") <= 30.0 * 0.02 * 0.02);
+let se = fit.res("std_err");
+out.check("cov_status OK", fit.text("cov_status") == "OK");
+out.check("standard errors positive and small", se.num("a") > 0.0 && se.num("b") > 0.0 && se.num("a") <= 0.2);
+# independent residual recomputation at the fitted parameters (Vec arithmetic, not the solver)
+let r = y.sub(t.mul(-p.num("b")).exp().mul(p.num("a")).add(p.num("c")));
+out.close("rss recomputed", r.dot(r), fit.num("rss"), 0.000000001);
+out.close("curve_fit se(a)", se.num("a"), 0.00870549212362281, 0.000001);
+out.close("curve_fit se(b)", se.num("b"), 0.00621391816949541, 0.000001);
+out.close("curve_fit se(c)", se.num("c"), 0.00550160763524679, 0.000001);
+out.put("fit", fit);
+end _dsl_
+
+v = lmnum.run(prog, "curve-fit");
+p = v.fit.par;
+println(sprintf("a=%.4f b=%.4f c=%.4f  rss=%.8f  m=%d  cov=%s", p.a, p.b, p.c, v.fit.rss, v.fit.n_residuals, v.fit.cov_status));
+println("Curve-fit oracle passed.");

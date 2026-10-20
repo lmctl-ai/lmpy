@@ -1,0 +1,50 @@
+// access: write (a temporary tut-curve-fit-peak.dslb, removed)
+// Topic: fitting a Gaussian peak on a baseline by nonlinear least squares (after: the scipy-lectures optimisation chapter
+//   "curve fitting" example and the R ?nls help page)
+// What it does: the _dsl_ version of ../tut-curve-fit-peak.lms. Reads the spectrum, fits b + a exp(-(x - m)^2 / (2 s^2))
+//   with `least_squares` (the columns go in as `$x`, `$y` data vectors: no safetensors hand-off is needed in one DSL
+//   program), then minimises the same sum of squares with `minimize` (BFGS on a sum reducer over the data) and checks that
+//   both optimisers agree, that the fitted parameters are within 4 standard errors of the generating values and that the
+//   reported rss matches a recomputation at the fitted parameters.
+// Tolerance: within 4 SE of (2.0, 0.3, 4.5, 0.8); optimisers agree to 1e-3; objective values to 1e-6; recomputed rss 1e-9.
+// Data: examples/data/tut-peak.csv, 101 points on x = 0..10: y = 0.3 + 2.0 exp(-(x - 4.5)^2 / (2 0.8^2)) + N(0, 0.05^2), seed 106.
+// How to run: lmscript examples/dsl/tut-curve-fit-peak.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = read_csv("../data/tut-peak.csv");
+let x = f.col("x");
+let y = f.col("y");
+let model = "b + a*exp(-(x-m)^2/(2*s^2))";
+let names = strs("a, b, m, s");
+let x0 = vec(1.0, 0.0, 5.0, 1.0);
+let fit = least_squares(model, "y", names, x0, opts().set("$x", x).set("$y", y));
+out.check("least_squares status OK", fit.ok());
+out.check("cov_status OK", fit.text("cov_status") == "OK");
+let mn = minimize("sum((y - (" + model + "))^2)", names, x0, opts().set("method", "BFGS").set("$x", x).set("$y", y));
+out.check("minimize status OK", mn.ok());
+let p = fit.vec("x");
+let q = mn.vec("x");
+let se = fit.vec("se");
+let truth = vec(2.0, 0.3, 4.5, 0.8);
+for (i in range(0, 4)) {
+  out.check("se " + names.at(i) + " > 0", se.at(i) > 0.0);
+  out.close(names.at(i) + " within 4 SE of the generating value", p.at(i), truth.at(i), 4.0 * se.at(i));
+  out.close("optimisers agree on " + names.at(i), q.at(i), p.at(i), 0.001);
+}
+out.close("objective values agree", mn.num("fun"), fit.num("rss"), 0.000001);
+# recompute the residual sum of squares from the table at the fitted parameters (Vec arithmetic, not the solver)
+let z = x.sub(p.at(2)).square().mul(-1.0 / (2.0 * p.at(3) * p.at(3))).exp();
+let r = y.sub(z.mul(p.at(0)).add(p.at(1)));
+let rss = r.dot(r);
+out.close("recomputed rss", rss, fit.num("rss"), 0.000000001);
+out.put("fit", fit);
+out.put("mn", mn);
+out.put("rss", rss);
+end _dsl_
+
+v = lmnum.run(prog, "tut-curve-fit-peak");
+p = v.fit.par; se = v.fit.std_err; q = v.mn.par;
+println(sprintf("least squares: a=%.4f (SE %.4f) b=%.4f (SE %.4f) m=%.4f (SE %.4f) s=%.4f (SE %.4f) rss=%.5f cov=%s", p.a, se.a, p.b, se.b, p.m, se.m, p.s, se.s, v.fit.rss, v.fit.cov_status));
+println(sprintf("minimize (BFGS on the same sum of squares): a=%.4f b=%.4f m=%.4f s=%.4f fun=%.5f", q.a, q.b, q.m, q.s, v.mn.fun));
+println(sprintf("Checks passed: parameters within 4 SE of (2.0, 0.3, 4.5, 0.8); optimisers agree to 1e-3; rss recomputed = %.6f.", v.rss));
