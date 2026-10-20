@@ -1,0 +1,93 @@
+// access: write (a temporary tut-graph-roads.dslb, removed)
+// Topic: shortest paths on a road network (after: the networkx shortest-path tutorial and the CLRS Dijkstra / Bellman-Ford examples)
+// What it does: the _dsl_ version of ../tut-graph-roads.lms. Reads a two-way road table, finds the shortest route A -> J with
+//   Dijkstra, confirms it with Bellman-Ford and with the three shortest simple routes (Yen), counts the fewest road segments
+//   with BFS, lists the distance from A to every town, and checks that every reported length equals the sum of the road
+//   lengths along the returned route (recomputed in the DSL from the table itself).
+// Data: examples/data/tut-roads.csv, 16 roads between 10 towns with lengths in km (invented topology and weights; the shortest
+//   A -> J route, 32 km by A-B-G-I-J, was computed independently with a pure-Python Dijkstra when the table was written).
+// Known answers: A -> J = 32 km by A-B-G-I-J, 4 segments by BFS, distances from A: A 0, B 5, C 9, D 14, E 15, F 21, G 19,
+//   H 28, I 25, J 32. The three shortest simple routes are A-B-G-I-J 32, A-B-G-I-H-J 32 and A-B-C-E-G-I-J 35 km
+//   (networkx 3.x shortest_simple_paths, oracle venv; the two 32 km routes come in networkx's order).
+// Tolerance: 1e-9 km (integer road lengths).
+// How to run: lmscript examples/dsl/tut-graph-roads.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+fn road_length(from: StrVec, to: StrVec, km: Vec, u: string, v: string) -> float {
+  let found = -1.0;
+  for (i in range(0, from.len())) {
+    if ((from.at(i) == u && to.at(i) == v) || (from.at(i) == v && to.at(i) == u)) { found = km.at(i); }
+  }
+  return found;
+}
+fn route_length(from: StrVec, to: StrVec, km: Vec, path: StrVec) -> float {
+  let total = 0.0;
+  for (i in range(1, path.len())) {
+    let l = road_length(from, to, km, path.at(i - 1), path.at(i));
+    if (l < 0.0) { total = nan(); }
+    total = total + l;
+  }
+  return total;
+}
+
+let roads = read_csv("../data/tut-roads.csv");
+out.check("16 roads", roads.nrows() == 16);
+let from = roads.text("from");
+let to = roads.text("to");
+let km = roads.col("km");
+let g = graph(roads, "from", "to", "km", false);
+
+let dj = g.shortest_path("A", "J");
+out.check("dijkstra status OK", dj.ok());
+out.check("Dijkstra route A-B-G-I-J (known answer)", dj.strs("path").join("-") == "A-B-G-I-J");
+out.close("Dijkstra length 32 km (known answer)", dj.num("length"), 32.0, 0.000000001);
+out.close("route length matches the road table", route_length(from, to, km, dj.strs("path")), dj.num("length"), 0.000000001);
+out.put("route", dj.strs("path").join(" - "));
+out.put("length", dj.num("length"));
+
+let bf = g.shortest_path("A", "J", opts().set("method", "bellman_ford"));
+out.check("bellman_ford status OK", bf.ok());
+out.close("Bellman-Ford agrees with Dijkstra", bf.num("length"), dj.num("length"), 0.000000001);
+
+let k3 = g.k_shortest("A", "J", 3);
+out.check("k_shortest status OK, 3 found", k3.ok() && k3.int("k_found") == 3);
+let kl = k3.vec("lengths");
+out.close("Yen's first route is the Dijkstra optimum", kl.at(0), dj.num("length"), 0.000000001);
+out.check("k-shortest lengths ascend", kl.at(1) >= kl.at(0) && kl.at(2) >= kl.at(1));
+out.close("three shortest lengths 32, 32, 35 (networkx)", kl, vec(32.0, 32.0, 35.0), 0.000000001);
+out.check("three shortest routes in networkx order", k3.strs("paths").join(" ") == "A,B,G,I,J A,B,G,I,H,J A,B,C,E,G,I,J");
+let paths = k3.strs("paths");
+let routes = strs();
+for (i in range(0, 3)) {
+  let p = split(paths.at(i), ",");
+  out.close("k-shortest route " + str(i) + " length matches the road table", route_length(from, to, km, p), kl.at(i), 0.000000001);
+  routes.push(pad(p.join(" - "), 26) + " " + fmt(kl.at(i), 0) + " km (" + str(p.len() - 1) + " segments)");
+}
+out.put("k_routes", routes);
+
+let hops = g.shortest_path("A", "J", opts().set("method", "bfs"));
+out.check("bfs status OK", hops.ok());
+out.check("fewest segments is 4 (known answer)", hops.num("length") == 4.0);
+out.check("BFS uses no more segments than the Dijkstra route", hops.int("hops") <= dj.int("hops"));
+out.put("bfs_length", hops.num("length"));
+out.put("bfs_path", hops.strs("path").join(" - "));
+
+let allv = g.distances("A");
+out.check("all distances status OK", allv.ok());
+out.check("every town reached", allv.int("n_reachable") == 10 && allv.strs("nodes").len() == 10);
+out.check("towns in order A..J", allv.strs("nodes").join("") == "ABCDEFGHIJ");
+out.close("distance table (known answer)", allv.vec("distance"), vec("0 5 9 14 15 21 19 28 25 32"), 0.000000001);
+out.close("distance to J equals the route length", allv.vec("distance").at(allv.strs("nodes").index("J")), dj.num("length"), 0.000000001);
+out.put("nodes", allv.strs("nodes"));
+out.put("distance", allv.vec("distance"));
+out.put("n_reachable", allv.int("n_reachable"));
+end _dsl_
+
+v = lmnum.run(prog, "tut-graph-roads");
+println(sprintf("Dijkstra A -> J: %s, %.0f km", v.route, v.length));
+println("three shortest simple routes:");
+for (r in v.k_routes) { println("  " + r); }
+println(sprintf("fewest segments A -> J: %d (%s)", v.bfs_length, v.bfs_path));
+for (i = 0; i < len(v.nodes); i = i + 1) { println(sprintf("  A -> %s: %.0f km", v.nodes[i], v.distance[i])); }
+println(sprintf("Checks passed: A -> J = %.0f km by A-B-G-I-J (known answer) and by three methods, 4 segments by BFS, distance table as known, lengths verified against the road table, %d towns reached.", v.length, v.n_reachable));

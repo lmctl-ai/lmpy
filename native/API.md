@@ -366,3 +366,65 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
 
+## Spatial
+
+Nearest neighbours, distance matrices and convex hulls on point matrices whose rows are points (pycli `spatial_knn`, `spatial_dist`, `spatial_hull`; scipy.spatial semantics). Neighbour rows are ordered by distance and then by point index; indices are 0-based and returned as float matrices.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `cdist(Mat, Mat, string) -> Mat` | distance matrix between the rows of a and b (scipy cdist; pycli spatial_dist): euclidean, sqeuclidean, cityblock, chebyshev, minkowski, cosine, correlation, hamming, jaccard (non-zero is true), canberra, braycurtis, mahalanobis |
+| `cdist(Mat, Mat, string, Opts) -> Mat` | cdist with options: `p` (minkowski), `vi` (Mat, mahalanobis inverse covariance, symmetric within 1e-12), `allow_nan` (undefined pairs become NaN instead of an error) |
+| `cdist(Mat, string) -> Mat` | distance matrix of the rows of a with themselves (symmetric, zero diagonal for a true metric) |
+| `hull(Mat) -> Res` | convex hull of 2-D or 3-D points (scipy ConvexHull, Qhull Qt; pycli spatial_hull convex_hull): status OK/DEGENERATE, volume, area, vertices (Vec of indices; 2-D counter-clockwise from the lowest index), simplices (Mat: edges in 2-D, outward counter-clockwise triangles in 3-D), n_vertices, n_simplices, n_points, dim |
+| `knn(Mat, Mat, int) -> Res` | k nearest points of every query row, Euclidean (pycli spatial_knn): indices, distances (queries x k), status, n_points, n_queries, k, p, search |
+| `knn(Mat, Mat, int, Opts) -> Res` | knn with options: `p` (Minkowski norm in [1, 64] or inf(); default 2) |
+| `knn(Mat, int) -> Res` | k nearest points of every point among the points themselves (a point is its own nearest neighbour) |
+| `knn(Mat, int, Opts) -> Res` | self-query knn with options: `p`, `exclude_self` (drop each point from its own list) |
+| `knn_radius(Mat, Mat, float) -> Res` | all points within a distance (inclusive) of every query (pycli spatial_knn radius mode): counts per query, flat indices and distances (CSR layout), n_pairs |
+| `knn_radius(Mat, Mat, float, Opts) -> Res` | knn_radius with options: `p`, `max_pairs` (default 1000000; more is an error) |
+| `knn_radius(Mat, float, Opts) -> Res` | radius neighbours of every point among the points themselves; options `p`, `max_pairs`, `exclude_self` |
+| `pdist(Mat, string) -> Vec` | condensed pairwise distances (scipy pdist): d(0,1), d(0,2), ..., d(n-2,n-1) |
+| `pdist(Mat, string, Opts) -> Vec` | pdist with the cdist options |
+
+## Graphs
+
+Directed or undirected graphs with string node names, built edge by edge or from a frame's edge list; shortest paths (Dijkstra, Bellman-Ford, BFS hops, Yen's k shortest simple paths, all pairs) and flows (maximum flow, minimum cut, minimum-cost flow) with pycli's `graph_paths` / `graph_flow` result fields and statuses (OK, UNREACHABLE, NEGATIVE_CYCLE, INFEASIBLE, UNBALANCED, NUMERICAL_FAILURE). Node lists are sorted by name (numerically when every name is an integer). Parallel edges keep the smallest weight for paths and add capacities for flows.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `graph(bool) -> Graph` | empty graph (true: directed); add edges with `edge` |
+| `graph(Frame, string, string, bool) -> Graph` | graph from an edge list frame (from column, to column, directed) with unit weights |
+| `graph(Frame, string, string, string, bool) -> Graph` | graph from an edge list frame with a weight column (from, to, weight, directed) |
+| `graph(Frame, string, string, bool, Opts) -> Graph` | graph from an edge list frame with options `weight` (column; default unit weights) and `capacity` (column, for flows) |
+
+### Type `Graph`
+
+Graph: nodes are strings; each edge has a weight (path length, or the unit cost for min_cost_flow) and an optional capacity.
+
+| Method | Meaning |
+|---|---|
+| `all_distances() -> Res` | all-pairs Dijkstra distances (scipy csgraph): nodes (sorted), distance (Mat, NaN = unreachable), n_unreachable_pairs |
+| `all_distances(Opts) -> Res` | all pairs with `method` dijkstra, bellman_ford (Johnson; status NEGATIVE_CYCLE with `cycle`) or bfs |
+| `directed() -> bool` | whether the graph is directed |
+| `distances(string) -> Res` | Dijkstra distances from a source to every reachable node (pycli graph_paths without a target): nodes, distance, hops, predecessor ("" for the source), n_reachable, n_unreachable |
+| `distances(string, Opts) -> Res` | distances with `method` dijkstra, bellman_ford or bfs |
+| `edge(string, string, float) -> Graph` | *in place*: add an edge u -> v (both ways when undirected) with a weight; returns the graph |
+| `edge(string, string, float, float) -> Graph` | *in place*: add an edge with a weight and a capacity (for flows); returns the graph |
+| `has_node(string) -> bool` | whether a node exists |
+| `k_shortest(string, string, int) -> Res` | the k shortest simple paths, shortest first (Yen; networkx shortest_simple_paths): k_found, paths (StrVec of comma-joined node names), lengths, hops; status UNREACHABLE when there is none |
+| `k_shortest(string, string, int, Opts) -> Res` | k_shortest with `method` dijkstra (weights) or bfs (edge counts) |
+| `max_flow(string, string) -> Res` | maximum flow (Dinitz; pycli graph_flow max_flow): value, flow_from, flow_to, flow (edges with positive flow, sorted), n_flow_edges, integral, tolerance |
+| `min_cost_flow(string, string, float) -> Res` | cheapest way to send an integer amount from source to sink (edge weight = unit cost; integer capacities and costs): status OK/INFEASIBLE, cost, flow_from, flow_to, flow |
+| `min_cost_flow(StrVec, Vec) -> Res` | minimum-cost flow for node supplies (positive) and demands (negative); status UNBALANCED when they do not sum to zero |
+| `min_cut(string, string) -> Res` | minimum s-t cut (networkx minimum_cut partition): value, cut_from, cut_to, cut_capacity, n_cut_edges, source_side, source_side_size |
+| `n_edges() -> int` | edges as added (parallel edges and self loops included) |
+| `n_nodes() -> int` | node count |
+| `node(string) -> Graph` | *in place*: add a node (no-op when present); returns the graph |
+| `nodes() -> StrVec` | node names in sorted order |
+| `shortest_path(string, string) -> Res` | Dijkstra shortest path (pycli graph_paths with a target): status OK/UNREACHABLE, path (StrVec), length, hops, n_reachable, n_unreachable, n_nodes, n_edges |
+| `shortest_path(string, string, Opts) -> Res` | shortest path with `method` dijkstra (non-negative weights), bellman_ford (negative weights; status NEGATIVE_CYCLE with `cycle`) or bfs (fewest edges; length = hops) |
+
