@@ -366,3 +366,24 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
 
+## Optimisation, roots, quadrature and linear programming
+
+Minimisation (`minimize`, scipy.optimize.minimize), nonlinear least squares (`least_squares`, scipy.optimize.least_squares with curve_fit covariances), bracketed and multivariate roots (`root_scalar`, `root`), adaptive quadrature (`quad`, QUADPACK) and LP/MILP (`linprog`, HiGHS). Objectives, models and equations are expression strings in pycli's grammar; the unknowns are named by a StrVec, and option keys starting with `$` bind constants and data vectors (`opts().set("$x", xs)`). Numerical outcomes are a `status` (OK, NO_CONVERGENCE, EVAL_LIMIT, TIME_LIMIT, NON_FINITE, NUMERICAL_FAILURE, ...); bad input is a run-time error. Every expression evaluation counts against `max_evals` (default 500000) and the optional `time_limit` (seconds); a stopped run reports the best point so far.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `least_squares(string, string, StrVec, Vec, Opts) -> Res` | fit model(row) to the response data vector (pycli opt_least_squares): residual_i = (model - response_i) / sigma_i, every `$` data vector read row by row; options: method (trf, dogbox, lm), loss (linear, soft_l1, huber, cauchy, arctan), f_scale, tol (ftol = xtol = gtol, default 1e-10), max_nfev (default 1000), lower/upper, absolute_sigma, max_evals, time_limit, $name bindings, sigma (float or Vec). Result: x, par, std_err, se, cov (curve_fit convention), cov_status, cost, rss, residuals, status, nfev, optimality, jacobian_condition |
+| `least_squares(StrVec, StrVec, Vec, Opts) -> Res` | minimise the sum of squared residual expressions (concatenated; one naming a data vector yields one residual per row, one with a reducer or none yields one); options: method (trf, dogbox, lm), loss (linear, soft_l1, huber, cauchy, arctan), f_scale, tol (ftol = xtol = gtol, default 1e-10), max_nfev (default 1000), lower/upper, absolute_sigma, max_evals, time_limit, $name bindings. Result as the model form |
+| `linprog(Vec) -> Res` | minimise c.x subject to x >= 0 (HiGHS; see the Opts form) |
+| `linprog(Vec, Opts) -> Res` | LP/MILP with HiGHS (pycli opt_linprog, scipy linprog method highs): options A_ub, b_ub, A_eq, b_eq (Mat/Vec), lower/upper (Vec; default 0 and +inf), integrality (Vec of 0/1), maximize, time_limit (default 10 s), node_limit, maxiter, mip_rel_gap. Result: x, fun (= objective), slack, con, status, message, nit, mip, ineqlin_marginals, eqlin_marginals, lower_marginals, upper_marginals, duals {ub, eq, lower, upper}, mip_gap, mip_node_count, primal_feasible, optimality_verified |
+| `minimize(string, StrVec, Vec) -> Res` | minimise an expression over the named unknowns from x0 (pycli opt_minimize, BFGS): x, par, fun, status, message, nit, nfev, njev, evals |
+| `minimize(string, StrVec, Vec, Opts) -> Res` | minimize with options: method (Nelder-Mead, Powell, BFGS, L-BFGS-B, SLSQP; default SLSQP with constraints, L-BFGS-B with bounds, else BFGS), tol, maxiter (default 1000), max_evals, time_limit, gradient (StrVec, one expression per unknown; checked against finite differences at x0), lower/upper (Vec; NaN or +-inf = open), eq/ineq (StrVec; ineq means expr >= 0; SLSQP), nonfinite (inf|error), $name bindings; result adds constraint_violation with constraints |
+| `quad(string, string, float, float) -> Res` | integral of f(var) from a to b (pycli num_quad; QUADPACK QAGS, QAGI for inf()/-inf() limits): value, abserr, neval, subdivisions, status |
+| `quad(string, string, float, float, Opts) -> Res` | quad with options epsabs, epsrel (default 1.49e-8), limit (subintervals, default 50), points (Vec of break points, QAGP), max_evals, time_limit, $name bindings |
+| `root(StrVec, StrVec, Vec) -> Res` | solve n equations = 0 in n named unknowns from x0 with MINPACK hybr (pycli opt_root); success is verified by max|f| <= residual_tol: x, par, fun, residual_norm, residual_max, nfev, status, evals |
+| `root(StrVec, StrVec, Vec, Opts) -> Res` | root with options method (hybr, lm; brentq with bracket), bracket (Vec lower, upper: one equation, x0 ignored), xtol (default 1e-12), residual_tol (default 1e-8), maxiter (brentq only), max_evals, time_limit, $name bindings |
+| `root_scalar(string, string, float, float) -> Res` | bracketed root of f(var) on [lower, upper] with brentq (pycli num_root): root, f_root, iterations, function_calls, status, evals |
+| `root_scalar(string, string, float, float, Opts) -> Res` | root_scalar with options method (brentq, bisect, ridder, toms748), xtol (default 2e-12), rtol (default 4 eps), maxiter (default 100), max_evals, time_limit, $name bindings |
+
