@@ -300,6 +300,8 @@ void register_core(Api& api) {
   api.fn("strs", {}, St, "empty list", [](Args&) { return strsv({}); });
   api.fn("strs", {"string"}, St, "comma-separated names, trimmed: `strs(\"x1, x2\")`", [](Args& a) {
     std::vector<std::string> r; for (auto& p : split_text(a[0].s, ",")) { auto t = trim(p); if (!t.empty()) r.push_back(t); } return strsv(std::move(r)); });
+  api.fn("strs", {"int", "string"}, St, "n copies of one string (a label column)", [](Args& a) {
+    if (a[0].i < 0) fail("strs: negative count"); return strsv(std::vector<std::string>(size_t(a[0].i), a[1].s)); });
   api.fn("split", {"string", "string"}, St, "split text on a separator (no trimming)", [](Args& a) { return strsv(split_text(a[0].s, a[1].s)); });
   api.method(St, "len", {}, "int", "length", [](void* s, Args&) { return I(int64_t(static_cast<StrVec*>(s)->v.size())); });
   api.method(St, "at", {"int"}, "string", "element i", [](void* s, Args& a) { auto& v = static_cast<StrVec*>(s)->v; return S(v[index_arg(a[0].i, v.size(), "StrVec.at")]); });

@@ -122,6 +122,7 @@ Operators: `*` → `mul`, `+` → `add`, `-` → `sub`, `neg` → `neg`, `r*` �
 | `split(string, string) -> StrVec` | split text on a separator (no trimming) |
 | `strs() -> StrVec` | empty list |
 | `strs(string) -> StrVec` | comma-separated names, trimmed: `strs("x1, x2")` |
+| `strs(int, string) -> StrVec` | n copies of one string (a label column) |
 
 ### Type `StrVec`
 

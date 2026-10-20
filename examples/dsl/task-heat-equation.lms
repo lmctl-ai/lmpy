@@ -1,0 +1,58 @@
+// access: write (the temperature-profile CSV, removed; a temporary .dslb)
+// Task: simulate heat conduction along a rod and verify the simulation, in one native program.
+//   1. assemble the 1-D Laplacian on 199 interior grid points as a sparse matrix;
+//   2. build the Crank-Nicolson operators A = I + r/2 L and B = I - r/2 L (r = alpha dt / h^2);
+//   3. march 200 time steps in a DSL loop, u <- A^{-1} (B u), each step a sparse LU solve;
+//   4. compare with the analytic solution u(x, t) = sin(pi x) exp(-alpha pi^2 t) and check the decay rate;
+//   5. check energy decay and the maximum principle along the way, export the final profile as CSV.
+// Why a DSL: the 200-step loop runs inside lmnum; with a one-op-per-process CLI it would be 200 process starts and 200 artifacts.
+// Tolerance: Crank-Nicolson is second order: max error below 2e-5 at t = 0.1; the decay rate within 1e-3 of alpha pi^2.
+// How to run: lmscript examples/dsl/task-heat-equation.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let n = 199;
+let h = 1.0 / float(n + 1);
+let alpha = 1.0;
+let dt = 0.0005;
+let steps = 200;
+let r = alpha * dt / (h * h);
+# step 1-2: operators (L = tridiag(1, -2, 1) / h^2 is folded into r)
+let a = tridiag(n, -0.5 * r, 1.0 + r, -0.5 * r);
+let b = tridiag(n, 0.5 * r, 1.0 - r, 0.5 * r);
+let x = arange(n).add(1.0).mul(h);
+let u = x.mul(pi()).apply("sin(x)");
+let energy = u.dot(u);
+let monotone = true;
+let bounded = true;
+# step 3: time stepping
+for (k in range(0, steps)) {
+  u = a.solve(b * u);
+  let e = u.dot(u);
+  if (e >= energy) { monotone = false; }
+  energy = e;
+  if (u.max() > 1.0 || u.min() < 0.0) { bounded = false; }
+}
+let t = dt * float(steps);
+# step 4: analytic comparison
+let exact = x.mul(pi()).apply("sin(x)").mul(exp(-alpha * pi() * pi() * t));
+let err = (u - exact).abs().max();
+let rate = -log(u.max()) / t;
+out.put("time", t);
+out.put("max_error", err);
+out.put("decay_rate", rate);
+out.put("peak", u.max());
+out.close("Crank-Nicolson error at t=0.1", err, 0.0, 0.00002);
+out.close("decay rate alpha pi^2", rate, alpha * pi() * pi(), 0.001);
+out.check("energy decreases every step", monotone);
+out.check("maximum principle 0 <= u <= 1", bounded);
+# step 5: export
+frame().with("x", x).with("u", u).with("exact", exact).write_csv("heat-profile-dsl.csv");
+end _dsl_
+
+v = lmnum.run(prog, "task-heat-equation");
+println(sprintf("t = %.3f: peak %.6f, max |u - exact| = %.8f, decay rate %.5f (alpha pi^2 = %.5f)", v.time, v.peak, v.max_error, v.decay_rate, 9.869604401089358));
+rows = len(split(trim(read_file("heat-profile-dsl.csv")), "\n")) - 1;
+println(f"profile exported: {rows} grid points");
+delete_file("heat-profile-dsl.csv");
+println("Heat equation task passed.");

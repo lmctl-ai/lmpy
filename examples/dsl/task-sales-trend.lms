@@ -1,0 +1,74 @@
+// access: write (the generated store sales and the forecast CSV, removed; a temporary .dslb)
+// Task: from store-level daily sales to a 14-day forecast, in one native program.
+//   1. read the per-store daily CSV (two stores, 120 days);
+//   2. total the stores per day (groupby date);
+//   3. turn the ISO dates into a day index;
+//   4. fit trend + weekly seasonality by least squares: total ~ 1 + t + sin(2 pi t / 7) + cos(2 pi t / 7);
+//   5. check the fit against the generating parameters and the residual noise level;
+//   6. forecast the next 14 days, append them to the daily table and write weekly totals (actual and forecast) to CSV.
+// Data: generated below: total = 400 + 1.5 t + 60 sin(2 pi t/7) + 24 cos(2 pi t/7) + a deterministic zig-zag in [-8, 8], split 60/40.
+// Tolerance: coefficients within 0.5 (intercept), 0.02 (slope), 1.0 (seasonal terms) of the truth; residual sd below 8.
+// How to run: lmscript examples/dsl/task-sales-trend.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+text = "date,store,sales\n";
+for (t = 0; t < 120; t = t + 1) {
+  day = parse_day(t);
+  total = 400 + 1.5 * t + 60 * sine(2 * 3.141592653589793 * t / 7) + 24 * cosine(2 * 3.141592653589793 * t / 7) + ((t * 37 + 11) % 17 - 8);
+  text = text + sprintf("%s,north,%.4f\n%s,south,%.4f\n", day, 0.6 * total, day, 0.4 * total);
+}
+write_file("store-sales-dsl.csv", text);
+
+// lmscript has no trigonometry or date arithmetic: small helpers for the generator only
+function sine(x) { while (x > 3.141592653589793) { x = x - 2 * 3.141592653589793; } term = x; s = x; for (k = 1; k < 30; k = k + 1) { term = 0 - term * x * x / ((2 * k) * (2 * k + 1)); s = s + term; } return s; }
+function cosine(x) { return sine(x + 3.141592653589793 / 2); }
+function parse_day(t) {
+  months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  m = 0; d = t;
+  while (d >= months[m]) { d = d - months[m]; m = m + 1; }
+  return sprintf("2026-%02d-%02d", m + 1, d + 1);
+}
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+# steps 1-3
+let stores = read_csv("store-sales-dsl.csv");
+let daily = stores.groupby(strs("date"), "sales:sum|count");
+out.check("both stores every day", daily.col("sales__count").min() == 2.0);
+let days = daily.times("date").sub(parse_time("2026-01-01")).div(86400.0);
+let y = daily.col("sales__sum");
+# step 4
+let w = 2.0 * pi() / 7.0;
+let design = cols(ones(days.len()), days, days.mul(w).apply("sin(x)"), days.mul(w).apply("cos(x)"));
+let fit = design.lstsq(y);
+let c = fit.vec("x");
+# step 5
+let resid = y - design * c;
+let sd = resid.std(1);
+out.close("intercept", c.at(0), 400.0, 0.5);
+out.close("slope per day", c.at(1), 1.5, 0.02);
+out.close("weekly sine", c.at(2), 60.0, 1.0);
+out.close("weekly cosine", c.at(3), 24.0, 1.0);
+out.check("residual sd below the noise bound", sd < 8.0);
+# step 6: forecast and weekly report
+let future = arange(14).add(days.max() + 1.0);
+let fdesign = cols(ones(14), future, future.mul(w).apply("sin(x)"), future.mul(w).apply("cos(x)"));
+let forecast = fdesign * c;
+let dates = strs();
+for (d in future) { dates.push(format_time(parse_time("2026-01-01") + d * 86400.0)); }
+let actual = daily.select(strs("date")).with("sales", y).with("kind", strs(days.len(), "actual"));
+let ahead = frame().with("date", dates).with("sales", forecast).with("kind", strs(14, "forecast"));
+let weekly = actual.concat(ahead).resample("date", "W", "sales:sum|count");
+weekly.write_csv("sales-forecast-dsl.csv");
+out.put("coefficients", c);
+out.put("residual_sd", sd);
+out.put("forecast", forecast);
+out.put("weeks", weekly.nrows());
+out.check("forecast keeps the trend", forecast.mean() > y.slice(-14, 120).mean());
+end _dsl_
+
+v = lmnum.run(prog, "task-sales-trend");
+c = v.coefficients;
+println(sprintf("fit: %.2f + %.4f t + %.2f sin + %.2f cos   (residual sd %.2f)", c[0], c[1], c[2], c[3], v.residual_sd));
+println(sprintf("next 14 days: %.1f ... %.1f; weekly report has %d weeks", v.forecast[0], v.forecast[13], v.weeks));
+for (path in ["store-sales-dsl.csv", "sales-forecast-dsl.csv"]) { delete_file(path); }
+println("Sales trend task passed.");
