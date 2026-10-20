@@ -1,0 +1,63 @@
+// access: write (a temporary sig-denoise-peaks.dslb, removed)
+// What it does: the _dsl_ version of ../sig-denoise-peaks.lms. A synthetic noisy record (four smooth pulses at known positions plus
+//   deterministic pseudo-random noise, 100 Hz sampling) is low-pass filtered with a zero-phase 4th-order Butterworth (iir +
+//   Filter.filtfilt, second-order sections) and its peaks are located with find_peaks. The filtered peaks must sit within 2 samples of
+//   the true pulse centres with heights within 15 %; the unfiltered record is shown for contrast (many noise peaks above the same threshold).
+// Known answers pinned from scipy 1.16.2 (oracle venv: iirfilter/sosfiltfilt/find_peaks/peak_prominences/peak_widths on the same record):
+//   48 raw maxima above 0.5; |H(1, 6, 20 Hz)| = 0.9999997287249233, 0.7071067811865475, 0.00475228009444154; filtered peaks at 60, 150, 240,
+//   330 with heights 2.6604456542241035, 2.0102210931764453, 4.134897792022717, 2.432603377653339.
+// Tolerance: positions within 2 samples, heights within 15 % of the truth; |H(6 Hz)| = 1/sqrt 2 within 1e-9; pinned scipy values within 1e-9.
+// How to run: lmscript examples/dsl/sig-denoise-peaks.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let centres = vec("60 150 240 330");
+let heights = vec("3.0 2.0 4.0 2.5");
+let x = vec();
+let seed = 12345;
+for (i in range(0, 400)) {
+  let v = 0.0;
+  for (k in range(0, 4)) {
+    let t = (float(i) - centres.at(k)) / 14.0;
+    if (abs(t) < 1.0) { v = v + heights.at(k) * (1.0 - t * t) * (1.0 - t * t); }
+  }
+  seed = (75 * seed + 74) % 65537;
+  x.push(v + (float(seed) / 65537.0 - 0.5) * 1.2);
+}
+let raw = find_peaks(x, opts().set("height", 0.5));
+out.put("raw_peaks", raw.int("n_peaks"));
+out.check("raw record: 48 maxima above 0.5 (scipy)", raw.int("n_peaks") == 48);
+
+let f = iir("butter", 4, 6.0, opts().set("btype", "lowpass").set("fs", 100.0));
+let mag = f.response(vec(1.0, 6.0, 20.0)).vec("magnitude");
+out.put("n_sections", f.n_sections());
+out.put("stable", f.stable());
+out.put("magnitude", mag);
+out.close("-3 dB point at 6 Hz", mag.at(1), 0.7071067811865476, 0.000000001);
+out.close("|H| matches scipy", mag, vec(0.9999997287249233, 0.7071067811865475, 0.00475228009444154), 0.000000001);
+
+let y = f.filtfilt(x);
+let pk = find_peaks(y, opts().set("height", 1.0).set("distance", 40.0));
+let idx = pk.vec("indices");
+out.put("n_peaks", pk.int("n_peaks"));
+out.check("four peaks", pk.int("n_peaks") == 4);
+let h = pk.vec("peak_heights");
+out.put("indices", idx);
+out.put("heights", h);
+out.put("prominences", peak_prominences(y, idx).vec("prominences"));
+out.put("widths", peak_widths(y, idx).vec("widths"));
+out.close("positions within 2 samples", idx, centres, 2.0);
+out.check("heights within 15 %", h.sub(heights).abs().div(heights).max() <= 0.15);
+out.close("heights match scipy", h, vec(2.6604456542241035, 2.0102210931764453, 4.134897792022717, 2.432603377653339), 0.000000001);
+end _dsl_
+
+v = lmnum.run(prog, "sig-denoise-peaks");
+println(sprintf("raw record: %d local maxima above 0.5 (mostly noise)", v.raw_peaks));
+println(sprintf("filter: %d sections, stable %s, |H| at 1, 6, 20 Hz = %.6f %.6f %.6f (one pass; filtfilt squares it)", v.n_sections, json_stringify(v.stable), v.magnitude[0], v.magnitude[1], v.magnitude[2]));
+println(sprintf("filtered record: %d peaks", v.n_peaks));
+truth = [60, 150, 240, 330];
+amp = [3.0, 2.0, 4.0, 2.5];
+for (k = 0; k < 4; k = k + 1) {
+  println(sprintf("  peak %d: index %d (true %d), height %.3f (true %.1f), prominence %.3f, width %.1f samples", k, v.indices[k], truth[k], v.heights[k], amp[k], v.prominences[k], v.widths[k]));
+}
+println("Denoise-and-detect pipeline passed.");

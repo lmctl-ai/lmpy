@@ -1,0 +1,50 @@
+// access: write (a temporary tut-butterworth.dslb, removed)
+// Topic: Butterworth low-pass filtering of a noisy signal (after: the scipy.signal butter / sosfiltfilt tutorial and the
+//   scipy-lectures signal chapter)
+// What it does: the _dsl_ version of ../tut-butterworth.lms. Designs a 4th-order Butterworth low-pass at 8 Hz for a 100 Hz signal
+//   (iir, second-order sections), reports the magnitude response at the two tone frequencies, applies it forward-backward (zero phase,
+//   Filter.filtfilt) to the sampled signal, and checks the design (|H| = 1/sqrt 2 at the cutoff, stable), the attenuation of the 12 Hz
+//   tone, and that the filtered signal is much closer to the clean 5 Hz tone than the raw signal was.
+// Data: examples/data/tut-signal.csv, 400 samples at 100 Hz: tone5 = sin(2 pi 5 t); signal = tone5 + 0.5 sin(2 pi 12 t) + N(0, 0.3^2), seed 110.
+// Known answers pinned from scipy 1.16.2 (oracle venv: iirfilter/sosfreqz/sosfiltfilt): |H(5, 8, 12, 25 Hz)| = 0.9896786643632661,
+//   0.707106781186548, 0.17415343689792068, 0.00434591013482678; RMS to the clean tone raw 0.48188759247096985, filtered 0.12244635324725554.
+// Tolerance: |H(8)| within 1e-4 of 1/sqrt 2; the original's bounds; pinned scipy values within 1e-9.
+// How to run: lmscript examples/dsl/tut-butterworth.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let fs = 100.0;
+let cutoff = 8.0;
+let tbl = read_csv("../data/tut-signal.csv");
+let x = tbl.col("signal");
+let tone = tbl.col("tone5");
+let flt = iir("butter", 4, cutoff, opts().set("btype", "lowpass").set("fs", fs));
+let mag = flt.response(vec(5.0, cutoff, 12.0, 25.0)).vec("magnitude");
+out.put("n_sections", flt.n_sections());
+out.put("max_pole_radius", flt.max_pole_radius());
+out.put("stable", flt.stable());
+out.put("magnitude", mag);
+let y = flt.filtfilt(x);
+let before = sqrt(x.sub(tone).square().mean());
+let after = sqrt(y.sub(tone).square().mean());
+out.put("before", before);
+out.put("after", after);
+
+out.check("stable", flt.stable() && flt.max_pole_radius() < 1.0);
+out.close("|H| at the cutoff is 1/sqrt(2)", mag.at(1), 0.7071067811865476, 0.0001);
+out.check("|H(12 Hz)| in (0.1, analogue 0.194)", mag.at(2) <= 1.0 / sqrt(1.0 + pow(1.5, 8.0)) && mag.at(2) >= 0.1);
+out.check("|H(25 Hz)| below 0.01", mag.at(3) <= 0.01);
+out.check("5 Hz tone kept (|H| >= 0.97)", mag.at(0) >= 0.97);
+out.check("filtered length", y.len() == x.len());
+out.check("filtering brings the signal close to the clean tone", before >= 0.4 && after <= 0.2 && after <= before / 2.0);
+out.close("|H| matches scipy", mag, vec(0.9896786643632661, 0.707106781186548, 0.17415343689792068, 0.00434591013482678), 0.000000001);
+out.close("raw RMS matches scipy", before, 0.48188759247096985, 0.000000001);
+out.close("filtered RMS matches scipy", after, 0.12244635324725554, 0.000000001);
+end _dsl_
+
+v = lmnum.run(prog, "tut-butterworth");
+println(sprintf("butter order 4 lowpass 8 Hz at fs 100: %d sections, max pole radius %.4f, stable=%s", v.n_sections, v.max_pole_radius, str(v.stable)));
+labels = ["5 Hz (kept tone)", "8 Hz (cutoff)", "12 Hz (rejected tone)", "25 Hz"];
+for (i = 0; i < 4; i = i + 1) { println(sprintf("  |H| at %-22s %.4f  (forward-backward: %.4f)", labels[i], v.magnitude[i], v.magnitude[i] * v.magnitude[i])); }
+println(sprintf("RMS distance to the clean 5 Hz tone: raw %.4f, filtered %.4f", v.before, v.after));
+println(sprintf("Checks passed: |H(8)| = 1/sqrt 2, |H(12)| = %.3f, RMS error %.3f -> %.3f.", v.magnitude[2], v.before, v.after));
