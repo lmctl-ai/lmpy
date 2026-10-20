@@ -13,6 +13,7 @@ hashes are pinned in `deps.lock`.
 | nanoflann | 1.6.1 | BSD-2-Clause | `licenses/nanoflann-COPYING` | kd-tree nearest neighbours |
 | LBFGSpp | 0.3.0 | MIT | `licenses/LBFGSpp-LICENSE.md` | L-BFGS(-B) |
 | Spectra | 1.0.1 | MPL-2.0 (files unmodified, source at the pinned URL) | `licenses/spectra-LICENSE` | symmetric sparse eigenvalues |
+| xsf (scipy special functions) | commit 4fff9b2 (pinned by scipy 1.16.2) | BSD-3-Clause; bundles Cephes (BSD-3-Clause) and Faddeeva (MIT) | `licenses/xsf-LICENSE`, `licenses/xsf-LICENSES_bundled.txt` | special functions and distribution kernels |
 | HiGHS | 1.7.2 | MIT | `licenses/HiGHS-LICENSE.txt` | linear and mixed-integer programming |
 
 Runtime libraries:

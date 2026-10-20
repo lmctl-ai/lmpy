@@ -1,0 +1,66 @@
+// access: write (a temporary distributions-tour.dslb, removed)
+// What it does: the _dsl_ version of ../distributions-tour.lms. Tours distribution families that R does not offer through rcli: a generalised
+//   extreme value (genextreme), a heavy-tailed skewed family (skewnorm), johnsonsu and a discrete one (zipf). It checks the Gumbel special case of
+//   genextreme (c = 0: cdf = exp(-exp(-x))), the round trips cdf(ppf(p)) = p (discrete: cdf(ppf(p)) >= p), the closed-form moments of the
+//   skew-normal, that t(1) has no mean, and that seeded variates are reproducible. Scipy's parameterisation: genextreme c = -xi of the usual GEV
+//   shape xi.
+// Tolerance: 1e-12 relative for the Gumbel closed form, 1e-9 for the round trips and the skew-normal moments, exact for the reproducibility check.
+// How to run: lmscript examples/dsl/distributions-tour.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+fn round_trip(label: string, d: Dist, levels: Vec, discrete: bool) -> void {
+  let q = d.ppf(levels);
+  let back = d.cdf(q);
+  out.put(label + "_quantiles", q);
+  out.put(label + "_cdf", back);
+  for (i in range(0, levels.len())) {
+    if (discrete) {
+      out.check(label + ": cdf(ppf(p)) >= p", back.at(i) >= levels.at(i));
+    } else {
+      out.close(label + ": cdf(ppf(p)) = p", back.at(i), levels.at(i), 0.000000001);
+    }
+  }
+}
+let xs = vec("-1 0 1 2.5");
+let g = dist("genextreme", opts().set("c", 0.0)).cdf(xs);
+out.put("gumbel", g);
+for (i in range(0, 4)) {
+  let want = exp(0.0 - exp(0.0 - xs.at(i)));
+  out.check("genextreme c=0 is the Gumbel law at x = " + str(xs.at(i)), abs(g.at(i) - want) <= 0.000000000001 * want);
+}
+let levels = vec(0.1, 0.5, 0.9);
+round_trip("genextreme", dist("genextreme", opts().set("c", 0.2).set("loc", 1.0).set("scale", 2.0)), levels, false);
+round_trip("skewnorm", dist("skewnorm", opts().set("a", 4.0)), levels, false);
+round_trip("johnsonsu", dist("johnsonsu", opts().set("a", 0.5).set("b", 1.5)), levels, false);
+round_trip("zipf", dist("zipf", opts().set("a", 3.0)), levels, true);
+let m = dist("skewnorm", opts().set("a", 3.0)).moments();
+let delta = 3.0 / sqrt(10.0);
+let hand_mean = delta * sqrt(2.0 / pi());
+let hand_var = 1.0 - 2.0 * delta * delta / pi();
+out.put("skewnorm_mean", m.num("mean"));
+out.put("skewnorm_var", m.num("var"));
+out.put("hand_mean", hand_mean);
+out.put("hand_var", hand_var);
+out.close("skewnorm mean = closed form", m.num("mean"), hand_mean, 0.000000001);
+out.close("skewnorm variance = closed form", m.num("var"), hand_var, 0.000000001);
+let t1 = dist("t", opts().set("df", 1.0)).moments();
+out.put("t1_undefined", t1.strs("moments_undefined"));
+out.check("t(1) has no mean", t1.strs("moments_undefined").contains("mean"));
+let ge = dist("genextreme", opts().set("c", 0.2));
+let a = ge.rvs(5, 42);
+let b = ge.rvs(5, 42);
+out.put("rvs", a);
+out.close("seed 42 reproduces the stream", a, b, 0.0);
+out.check("a shorter n is a prefix", ge.rvs(3, 42).at(2) == a.at(2));
+end _dsl_
+
+v = lmnum.run(prog, "distributions-tour");
+println("genextreme with c = 0 equals exp(-exp(-x)):", json_stringify(v.gumbel));
+for (name in ["genextreme", "skewnorm", "johnsonsu", "zipf"]) {
+  println(name + ": quantiles " + json_stringify(v[name + "_quantiles"]) + " cdf at the quantiles " + json_stringify(v[name + "_cdf"]));
+}
+println(sprintf("skewnorm(a=3): mean %.12f (hand %.12f), variance %.12f (hand %.12f)", v.skewnorm_mean, v.hand_mean, v.skewnorm_var, v.hand_var));
+println("t(1) has no mean: moments_undefined =", json_stringify(v.t1_undefined));
+println("seed 42 reproduces the same five genextreme variates:", json_stringify(v.rvs));
+println("Distribution tour passed.");

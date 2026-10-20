@@ -6,3 +6,4 @@ nanoflann|https://github.com/jlblancoc/nanoflann/archive/refs/tags/v1.6.1.tar.gz
 lbfgspp|https://github.com/yixuan/LBFGSpp/archive/refs/tags/v0.3.0.tar.gz|490720b9d5acce6459cb0336ca3ae0ffc48677225f0ebfb35c9bef6baefdfc6a|LBFGSpp-0.3.0|MIT
 highs|https://github.com/ERGO-Code/HiGHS/archive/refs/tags/v1.7.2.tar.gz|5ff96c14ae19592d3568e9ae107624cbaf3409d328fb1a586359f0adf9b34bf7|HiGHS-1.7.2|MIT
 spectra|https://github.com/yixuan/spectra/archive/refs/tags/v1.0.1.tar.gz|919e3fbc8c539a321fd5a0766966922b7637cc52eb50a969241a997c733789f3|spectra-1.0.1|MPL-2.0
+xsf|https://github.com/scipy/xsf/archive/4fff9b2cb2b5c31a0cf0b0f609d2699a5eeac53b.tar.gz|4f04c708f5e8302a40fe00932b05072b62b8e1f44641405ed83106f8006b92e7|xsf-4fff9b2cb2b5c31a0cf0b0f609d2699a5eeac53b|BSD-3-Clause (scipy special functions; bundles Cephes BSD-3-Clause, Faddeeva MIT; the xsf commit scipy 1.16.2 pins)
