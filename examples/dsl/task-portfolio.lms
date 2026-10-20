@@ -1,0 +1,91 @@
+// access: write (temporary .dslb)
+// Task: build minimum-risk portfolios from simulated returns, in one native program.
+//   1. simulate 2000 days of returns for 4 assets with a known covariance (Cholesky factor times seeded normals);
+//   2. estimate the mean vector and the covariance matrix with matrix algebra;
+//   3. global minimum-variance weights in closed form, w = S^-1 1 / (1' S^-1 1);
+//   4. the same portfolio with SLSQP (budget constraint) from an objective string built in the DSL: both must agree;
+//   5. an efficient frontier: long-only SLSQP portfolios for 6 target returns, risk must rise with the target;
+//   6. one-day 99% value at risk of the minimum-variance portfolio (normal model).
+// Checks: estimated covariance close to the truth (0.15); closed form and SLSQP agree to 1e-6; weights sum to 1; the frontier is monotone
+//   and every frontier point meets its target and the long-only bounds; VaR = -(mu + z_0.01 sigma).
+// How to run: lmscript examples/dsl/task-portfolio.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+# step 1: true covariance (daily %) and means
+let truth = mat("1.00 0.30 0.20 0.10; 0.30 0.64 0.12 0.08; 0.20 0.12 0.36 0.05; 0.10 0.08 0.05 0.25");
+let mu_true = vec(0.30, 0.25, 0.20, 0.15);
+let n = 2000;
+let l = truth.cholesky();
+let gen = rng(42);
+let r = mat(n, 4);
+for (i in range(0, n)) {
+  let day = l * gen.standard_normal(4) + mu_true;
+  for (j in range(0, 4)) { r.set(i, j, day.at(j)); }
+}
+# step 2: S = (R'R - n mu mu') / (n - 1)
+let mu = r.col_means();
+let m1 = cols(mu);
+let s = (r.t() * r - m1 * m1.t() * float(n)) * (1.0 / float(n - 1));
+out.put("covariance", s);
+out.check("estimated covariance within 0.15 of the truth", s.max_abs_diff(truth) < 0.15);
+# step 3: closed form
+let u = s.solve(ones(4));
+let w_cf = u.div(u.sum());
+out.put("min_var_weights", w_cf);
+# step 4: SLSQP from a generated objective: sum_ij s_ij w_i w_j with $s_ij bound as constants
+let names = strs();
+let objective = "0";
+let budget = "-1";
+let o = opts().set("method", "SLSQP").set("tol", 0.000000000001);
+for (i in range(0, 4)) {
+  names.push("w" + str(i));
+  budget = budget + "+w" + str(i);
+  o.set("$m" + str(i), mu.at(i));
+  for (j in range(0, 4)) {
+    objective = objective + "+s" + str(i) + str(j) + "*w" + str(i) + "*w" + str(j);
+    o.set("$s" + str(i) + str(j), s.at(i, j));
+  }
+}
+o.set("eq", strs(budget));
+let opt = minimize(objective, names, full(4, 0.25), o);
+out.check("SLSQP converged", opt.ok());
+out.close("closed form = SLSQP", opt.vec("x"), w_cf, 0.000001);
+out.close("weights sum to 1", opt.vec("x").sum(), 1.0, 0.000000001);
+let sigma = sqrt(w_cf.dot(s * w_cf));
+let ret = w_cf.dot(mu);
+out.put("min_var_risk", sigma);
+out.put("min_var_return", ret);
+# step 5: long-only frontier between the minimum-variance return and 95% of the best asset's mean
+let targets = linspace(max(ret, mu.min()), 0.95 * mu.max(), 6);
+let risks = vec();
+let ok = true;
+for (target in targets) {
+  let ret_expr = "-" + str(target);
+  for (i in range(0, 4)) { ret_expr = ret_expr + "+m" + str(i) + "*w" + str(i); }
+  let of = opts().set("method", "SLSQP").set("tol", 0.000000000001).set("eq", strs(budget)).set("ineq", strs(ret_expr));
+  of.set("lower", zeros(4)).set("upper", ones(4));
+  for (i in range(0, 4)) { of.set("$m" + str(i), mu.at(i)); for (j in range(0, 4)) { of.set("$s" + str(i) + str(j), s.at(i, j)); } }
+  let p = minimize(objective, names, full(4, 0.25), of);
+  let w = p.vec("x");
+  if (!p.ok() || w.min() < -0.000001 || w.dot(mu) < target - 0.000001) { ok = false; }
+  risks.push(sqrt(p.num("fun")));
+}
+out.put("frontier_targets", targets);
+out.put("frontier_risks", risks);
+out.check("every frontier point feasible", ok);
+out.check("risk rises with the target return", risks.diff().min() >= -0.000000001);
+# step 6
+let z = dist("norm").ppf(0.01);
+let var99 = -(ret + z * sigma);
+out.put("var_99", var99);
+out.close("VaR = -(mu + z sigma)", var99, -ret + 2.3263478740408408 * sigma, 0.000000001);
+end _dsl_
+
+v = lmnum.run(prog, "task-portfolio");
+w = v.min_var_weights;
+println(sprintf("minimum-variance weights %.3f %.3f %.3f %.3f: daily risk %.4f%%, return %.4f%%", w[0], w[1], w[2], w[3], v.min_var_risk, v.min_var_return));
+println("long-only efficient frontier (target return -> risk):");
+for (i = 0; i < len(v.frontier_targets); i = i + 1) { println(sprintf("  %.4f%% -> %.4f%%", v.frontier_targets[i], v.frontier_risks[i])); }
+println(sprintf("one-day 99%% VaR of the minimum-variance portfolio: %.3f%%", v.var_99));
+println("Portfolio task passed.");
