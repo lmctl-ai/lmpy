@@ -26,6 +26,10 @@ registry the bytecode is bound to). Do not edit by hand: change the C++ definiti
 | `vec(float, float) -> Vec` | two-element vector |
 | `vec(float, float, float) -> Vec` | three-element vector |
 | `vec(float, float, float, float) -> Vec` | four-element vector |
+| `vec(float, float, float, float, float) -> Vec` | 5-element vector |
+| `vec(float, float, float, float, float, float) -> Vec` | 6-element vector |
+| `vec(float, float, float, float, float, float, float) -> Vec` | 7-element vector |
+| `vec(float, float, float, float, float, float, float, float) -> Vec` | 8-element vector |
 | `vec(string) -> Vec` | parse numbers separated by spaces/commas (brackets allowed, `nan` accepted): `vec("1 2.5 -3")` |
 | `zeros(int) -> Vec` | n zeros |
 

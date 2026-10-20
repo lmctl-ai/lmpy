@@ -131,6 +131,10 @@ void register_core(Api& api) {
   api.fn("vec", {"float", "float"}, Vt, "two-element vector", [](Args& a) { return vecv(V{a[0].f, a[1].f}); });
   api.fn("vec", {"float", "float", "float"}, Vt, "three-element vector", [](Args& a) { return vecv(V{a[0].f, a[1].f, a[2].f}); });
   api.fn("vec", {"float", "float", "float", "float"}, Vt, "four-element vector", [](Args& a) { return vecv(V{a[0].f, a[1].f, a[2].f, a[3].f}); });
+  api.fn("vec", {"float", "float", "float", "float", "float"}, Vt, "5-element vector", [](Args& a) { return vecv(V{a[0].f, a[1].f, a[2].f, a[3].f, a[4].f}); });
+  api.fn("vec", {"float", "float", "float", "float", "float", "float"}, Vt, "6-element vector", [](Args& a) { return vecv(V{a[0].f, a[1].f, a[2].f, a[3].f, a[4].f, a[5].f}); });
+  api.fn("vec", {"float", "float", "float", "float", "float", "float", "float"}, Vt, "7-element vector", [](Args& a) { return vecv(V{a[0].f, a[1].f, a[2].f, a[3].f, a[4].f, a[5].f, a[6].f}); });
+  api.fn("vec", {"float", "float", "float", "float", "float", "float", "float", "float"}, Vt, "8-element vector", [](Args& a) { return vecv(V{a[0].f, a[1].f, a[2].f, a[3].f, a[4].f, a[5].f, a[6].f, a[7].f}); });
   api.fn("vec", {"string"}, Vt, "parse numbers separated by spaces/commas (brackets allowed, `nan` accepted): `vec(\"1 2.5 -3\")`",
          [](Args& a) { return vecv(parse_numbers(a[0].s)); });
   api.fn("zeros", {"int"}, Vt, "n zeros", [](Args& a) { if (a[0].i < 0) fail("zeros: negative length"); return vecv(V(size_t(a[0].i), 0.0)); });
