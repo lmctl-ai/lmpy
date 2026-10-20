@@ -1,0 +1,79 @@
+// access: write (a temporary cross-kmeans.dslb, removed)
+// What it does: the _dsl_ version of ../cross-kmeans.lms. Clusters the two petal measurements of the flowers table into three
+//   groups with ml_fit("kmeans", ...) (k-means++, n_init 10, seed 7) and checks agreement with R's stats::kmeans (Hartigan-Wong,
+//   nstart 10, set.seed(7)), whose result is pinned here: the R partition is rebuilt by assigning every row to the nearest pinned R
+//   centre, then compared with lmnum's labels by the adjusted Rand index; the within-cluster sum of squares is recomputed from
+//   lmnum's labels and the data and compared with R's tot.withinss.
+// Legitimate differences: algorithms (Lloyd vs Hartigan-Wong), random streams and label order differ, so labels are never
+//   compared directly; the invariants are the partition (ARI) and the within-cluster SS.
+// Known answers: R 4.x kmeans: tot.withinss 16.564069607631957, sizes 49 50 51, centres (1.5508429, 0.25693178),
+//   (4.2602488367346938, 1.3040031632653064), (5.5888913921568637, 1.9847863333333333). scikit-learn 1.7.2 KMeans(random_state=7)
+//   gives the same partition and inertia 16.564069607631957.
+// Tolerance: ARI = 1 (the original accepts >= 0.95); within SS 1e-9 relative (identical partitions); centres 1e-9.
+// Data: examples/data/tut-flowers.csv (seed 113).
+// How to run: lmscript examples/dsl/cross-kmeans.lms
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = read_csv("../data/tut-flowers.csv");
+let x = f.to_mat(strs("petal_length, petal_width"));
+let n = x.rows();
+let km = ml_fit("kmeans", x, opts().set("n_clusters", 3).set("seed", 7));
+let a = km.labels();
+# R's centres (pinned) and the R partition they induce
+let rc = mat("1.5508428999999999 0.25693178; 4.2602488367346938 1.3040031632653064; 5.5888913921568637 1.9847863333333333");
+let b = zeros(n);
+for (i in range(0, n)) {
+  let best = 0;
+  let bd = 0.0;
+  for (k in range(0, 3)) {
+    let dx = x.at(i, 0) - rc.at(k, 0);
+    let dy = x.at(i, 1) - rc.at(k, 1);
+    let d = dx * dx + dy * dy;
+    if (k == 0 || d < bd) { best = k; bd = d; }
+  }
+  b.set(i, float(best));
+}
+let ari = adjusted_rand_score(a, b);
+# within-cluster SS recomputed from lmnum's labels: sum of squared distances to each cluster's mean
+let c = km.centers();
+let wss = 0.0;
+let sizes = zeros(3);
+for (k in range(0, 3)) {
+  let rows = a.eq(float(k)).find(vec());
+  sizes.set(k, float(rows.len()));
+  let part = x.take_rows(rows);
+  let mu = part.col_means();
+  for (i in range(0, part.rows())) {
+    let dx = part.at(i, 0) - mu.at(0);
+    let dy = part.at(i, 1) - mu.at(1);
+    wss = wss + dx * dx + dy * dy;
+  }
+}
+let wss_r = 16.564069607631957;
+out.put("ari", ari);
+out.put("wss", wss);
+out.put("wss_r", wss_r);
+out.put("inertia", km.inertia());
+out.put("sizes", sizes.sort());
+out.close("adjusted Rand index vs R", ari, 1.0, 0.0);
+out.close_rel("total within SS vs R tot.withinss", wss, wss_r, 0.000000001);
+out.close_rel("lmnum inertia vs recomputed within SS", km.inertia(), wss, 0.000000001);
+out.close("cluster sizes sorted (R: 49 50 51)", sizes.sort(), vec(49.0, 50.0, 51.0), 0.0);
+# centres agree with R's up to label order
+let worst = 0.0;
+for (k in range(0, 3)) {
+  let near = 1000000.0;
+  for (j in range(0, 3)) { near = min(near, hypot(c.at(k, 0) - rc.at(j, 0), c.at(k, 1) - rc.at(j, 1))); }
+  worst = max(worst, near);
+}
+out.close("centres vs R (matched)", worst, 0.0, 0.000000001);
+out.check("status OK", km.ok());
+end _dsl_
+
+v = lmnum.run(prog, "cross-kmeans");
+println(sprintf("%-28s %20s %20s", "quantity", "lmnum", "r"));
+println(sprintf("%-28s %20.12f %20.12f", "adjusted Rand index", v.ari, 1));
+println(sprintf("%-28s %20.12f %20.12f", "total within SS", v.wss, v.wss_r));
+println("cluster sizes sorted:", json_stringify(v.sizes));
+println(sprintf("Agreement: partitions agree (ARI = %.4f), within-cluster SS %.6f vs %.6f.", v.ari, v.wss, v.wss_r));

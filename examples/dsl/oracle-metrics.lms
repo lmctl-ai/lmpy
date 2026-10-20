@@ -1,0 +1,57 @@
+// access: write (a temporary oracle-metrics.dslb, removed)
+// What it does: the _dsl_ version of ../oracle-metrics.lms. Scores one set of binary predictions (8 rows: label, hard
+//   prediction, probability) with ml_metrics and checks every number against values worked out by hand from the confusion
+//   counts. The original's lmda eval_classify / eval_roc leg agreed with the same hand values to 1e-12; they are the pinned
+//   known answers. Also checks tied scores (counting 1/2), a small regression, and the UNDEFINED status for a constant target.
+// Known answers (hand): TP 3, FP 2, FN 1, TN 2; accuracy 5/8, balanced accuracy (3/4 + 2/4)/2, precision 3/5, recall 3/4,
+//   f1 6/9, roc_auc 15/16, Brier 0.9425/8; ties: roc_auc 0.75, Brier 0.1975; regression mse 0.375, mae 0.5,
+//   r2 1 - 1.5/29.1875.
+// Tolerance: 1e-12 absolute (ratios of small integers), as the original.
+// How to run: lmscript examples/dsl/oracle-metrics.lms
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let t = csv("y,p,s\n1,1,0.9\n0,0,0.2\n1,0,0.4\n1,1,0.8\n0,1,0.55\n0,1,0.1\n1,1,0.7\n0,0,0.3\n");
+let names = strs("accuracy, balanced_accuracy, precision, recall, f1, confusion_matrix, roc_auc, brier, log_loss");
+let m = ml_metrics(t.col("y"), t.col("p"), opts().set("y_score", t.col("s")).set("pos_label", 1.0).set("average", "binary").set("metrics", names));
+let tol = 0.000000000001;
+out.check("status OK", m.status() == "OK");
+out.close("accuracy", m.num("accuracy"), 5.0 / 8.0, tol);
+out.close("balanced_accuracy", m.num("balanced_accuracy"), (3.0 / 4.0 + 2.0 / 4.0) / 2.0, tol);
+out.close("precision", m.num("precision"), 3.0 / 5.0, tol);
+out.close("recall", m.num("recall"), 3.0 / 4.0, tol);
+out.close("f1", m.num("f1"), 6.0 / 9.0, tol);
+out.close("roc_auc", m.num("roc_auc"), 15.0 / 16.0, tol);
+out.close("brier", m.num("brier"), (0.01 + 0.04 + 0.36 + 0.04 + 0.3025 + 0.01 + 0.09 + 0.09) / 8.0, tol);
+let conf = m.mat("confusion_matrix");
+out.check("confusion matrix [[2, 2], [1, 3]]", conf.at(0, 0) == 2.0 && conf.at(0, 1) == 2.0 && conf.at(1, 0) == 1.0 && conf.at(1, 1) == 3.0);
+out.put("metrics", m);
+# tied scores count 1/2: positives 0.5 0.5, negatives 0.5 0.2 -> (0.5 + 0.5 + 1 + 1) / 4 = 0.75
+let ties = ml_metrics(vec("1 0 1 0"), opts().set("y_score", vec("0.5 0.5 0.5 0.2")).set("pos_label", 1.0).set("metrics", strs("roc_auc, brier")));
+out.close("tied roc_auc", ties.num("roc_auc"), 0.75, tol);
+out.close("tied brier", ties.num("brier"), 0.1975, tol);
+out.put("ties_roc_auc", ties.num("roc_auc"));
+out.put("ties_brier", ties.num("brier"));
+# errors 0.5 0.5 0 1: mse 1.5/4, mae 0.5, r2 = 1 - 1.5 / sum((y - 2.875)^2)
+let reg = ml_metrics(vec("3 -0.5 2 7"), vec("2.5 0 2 8"), opts().set("metrics", strs("mse, mae, r2")));
+out.close("mse", reg.num("mse"), 0.375, tol);
+out.close("mae", reg.num("mae"), 0.5, tol);
+out.close("r2", reg.num("r2"), 1.0 - 1.5 / 29.1875, tol);
+let flat = ml_metrics(vec("2 2 2"), vec("1 2 3"), opts().set("metrics", strs("r2, mse")));
+out.check("constant target: status UNDEFINED", flat.status() == "UNDEFINED");
+out.check("constant target: r2 listed as undefined", flat.res("undefined").keys().len() == 1 && flat.res("undefined").has("r2"));
+out.check("constant target: mse still defined", flat.num("mse") == 2.0 / 3.0);
+out.put("flat_reason", flat.res("undefined").text("r2"));
+end _dsl_
+
+v = lmnum.run(prog, "oracle-metrics");
+r = v.metrics;
+println("quantity | lmnum | hand");
+hand = {accuracy: 5 / 8, balanced_accuracy: (3 / 4 + 2 / 4) / 2, precision: 3 / 5, recall: 3 / 4, f1: 6 / 9, roc_auc: 15 / 16, brier: (0.01 + 0.04 + 0.36 + 0.04 + 0.3025 + 0.01 + 0.09 + 0.09) / 8};
+for (name in ["accuracy", "balanced_accuracy", "precision", "recall", "f1", "roc_auc", "brier"]) {
+  println(sprintf("  %s | %.15f | %.15f", name, r[name], hand[name]));
+}
+println("confusion matrix:", json_stringify(r.confusion_matrix));
+println("tied scores: roc_auc", v.ties_roc_auc, "and brier", v.ties_brier);
+println("r2 for a constant target:", v.flat_reason);
+println("Metrics agree within 1e-12.");

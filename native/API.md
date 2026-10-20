@@ -366,3 +366,52 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
 
+## Machine learning
+
+scikit-learn 1.7.2 subset (pycli `ml_fit`, `ml_predict`, `ml_cv`, `ml_metrics`). `ml_fit(kind, x, y)` fits a supervised `Estimator` (kinds linear, ridge, lasso, elastic_net, logistic, linear_svc, gaussian_nb, lda, knn_classifier, knn_regressor; classes are the sorted distinct y values) and `ml_fit(kind, x)` an unsupervised one (kmeans, pca, standard_scaler). Hyperparameters use pycli's ml-spec names and defaults (alpha, l1_ratio, C, tol, max_iter, class_weight, var_smoothing, n_components, n_neighbors, weights, n_clusters, n_init, init, seed, whiten, fit_intercept) plus `scale` (pycli preprocess.scale). Estimator status is OK, RANK_DEFICIENT (linear) or NO_CONVERGENCE. Random forests and gradient boosting are not supported. k-means and shuffled CV draw from numpy's RandomState(seed) (MT19937), as sklearn does.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `adjusted_rand_score(Vec, Vec) -> float` | adjusted Rand index of two labelings (sklearn.metrics.adjusted_rand_score; 1 = same partition) |
+| `kmeans(Mat, int) -> Estimator` | k-means with k clusters (sklearn KMeans, Lloyd, k-means++, n_init 10, seed 0) |
+| `kmeans(Mat, int, Opts) -> Estimator` | k-means with options seed, n_init, max_iter, tol, init |
+| `label_encode(StrVec) -> Res` | text labels to codes (sklearn LabelEncoder): fields codes (Vec, 0-based index into classes), classes (sorted StrVec) |
+| `load_model(string) -> Estimator` | read a model written by Estimator.save (JSON, format lmnum_model 1) |
+| `ml_cv(string, Mat, Vec, int) -> Res` | k-fold cross-validation (pycli ml_cv): stratified for classifiers (accuracy), kfold for regressors (r2), no shuffle |
+| `ml_cv(string, Mat, Vec, int, Opts) -> Res` | cross-validation with options cv (kfold|stratified|group|timeseries), shuffle, seed, groups (Vec), metrics (StrVec: accuracy, f1_macro, roc_auc, log_loss | mse, mae, r2), scoring, and the kind's hyperparameters and scale. Result: status, scores, mean, std (scoring metric), metric_scores/metric_mean/metric_std (per metric), train_rows, test_rows, test_fold, completed_folds |
+| `ml_fit(string, Mat, Vec) -> Estimator` | fit a supervised model (pycli ml_fit): kind, features x (rows x p), target y (class labels or values) |
+| `ml_fit(string, Mat, Vec, Opts) -> Estimator` | fit a supervised model with hyperparameters and `scale` (standardise features first; learned from the training rows) |
+| `ml_fit(string, Mat) -> Estimator` | fit an unsupervised model: kmeans (2 clusters), pca (2 components) or standard_scaler |
+| `ml_fit(string, Mat, Opts) -> Estimator` | fit an unsupervised model with options: kmeans n_clusters, n_init (10), max_iter (300), tol (1e-8), init (k-means++|random), seed (0); pca n_components, whiten |
+| `ml_metrics(Vec, Vec) -> Res` | metrics of predictions (pycli ml_metrics): classification (integral labels, <= 30) gives accuracy, balanced_accuracy, precision, recall, f1, confusion_matrix, labels; otherwise r2, mse, rmse, mae. status OK or UNDEFINED (see undefined) |
+| `ml_metrics(Vec, Vec, Opts) -> Res` | metrics with options metrics (StrVec), kind (auto|classification|regression), average (binary|macro|micro|weighted), pos_label, zero_division (undefined|0|1), y_score (Vec: roc_auc, log_loss, brier) |
+| `ml_metrics(Vec, Opts) -> Res` | metrics from y_true and options only (y_pred and/or y_score given as options) |
+
+### Type `Estimator`
+
+A fitted scikit-learn-style model: predict, predict_proba, decision_function, transform, score, params, save.
+
+| Method | Meaning |
+|---|---|
+| `centers() -> Mat` | k-means cluster centres (one row per cluster) |
+| `classes() -> Vec` | sorted class labels (classifiers) |
+| `coef() -> Mat` | coefficients as a matrix: one row per decision function (regressors and binary classifiers: 1 row) |
+| `decision_function(Mat) -> Mat` | decision scores (logistic, linear_svc, lda); binary models give one column, positive for classes()[1] |
+| `inertia() -> float` | k-means within-cluster sum of squared distances |
+| `intercept() -> Vec` | intercepts, one per decision function (regressors: one value) |
+| `json() -> string` | the model file text (JSON) |
+| `kind() -> string` | the family (linear, logistic, kmeans, ...) |
+| `labels() -> Vec` | k-means cluster index of every training row |
+| `n_iter() -> int` | iterations used (lasso/elastic_net epochs, logistic/linear_svc Newton steps, k-means Lloyd iterations of the best run) |
+| `ok() -> bool` | status is OK |
+| `params() -> Res` | fitted attributes (sklearn names without the trailing underscore): coef, intercept, classes, rank, theta, var, means, priors, scalings, cluster_centers, inertia, labels, components, mean, explained_variance(_ratio), singular_values, scale, n_iter ... |
+| `predict(Mat) -> Vec` | predictions: class labels, regression values or cluster indexes (pycli ml_predict kind predict) |
+| `predict_proba(Mat) -> Mat` | class probabilities, one column per class in classes() order (logistic, gaussian_nb, lda, knn_classifier) |
+| `save(string) -> void` | write the model as JSON (atomic replace); load_model reads it back with identical predictions |
+| `score(Mat, Vec) -> float` | accuracy (classifiers) or R^2 (regressors) on x, y |
+| `status() -> string` | OK, RANK_DEFICIENT (linear: minimum-norm solution kept) or NO_CONVERGENCE |
+| `task() -> string` | regression, classification, clustering, decomposition or scaling |
+| `transform(Mat) -> Mat` | standard_scaler: standardised x; pca: component scores; lda: discriminant axes; kmeans: distances to the centres |
+
