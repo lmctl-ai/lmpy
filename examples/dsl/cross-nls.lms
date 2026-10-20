@@ -1,0 +1,58 @@
+// access: write (a temporary cross-nls.dslb, removed)
+// What it does: the _dsl_ version of ../cross-nls.lms. Fits the Gaussian peak b + a exp(-(x - m)^2 / (2 s^2)) to
+//   examples/data/tut-peak.csv with `least_squares` from the data-derived start (b = min y, a = max y - min y, m = x at
+//   the maximum, s = 1) and tight tolerances (tol 1e-12), then compares the four parameters, their standard errors and
+//   the residual standard deviation with R's nls on the same data and start. The original ran R through rcli at run
+//   time; here R's answers are pinned.
+// Reference (R 4.x, nls(y ~ b + a*exp(-(x-m)^2/(2*s^2)), start as above, nls.control(tol = 1e-8, maxiter = 200)),
+//   converged in 5 iterations, residual df 97):
+//   a 1.98202770043575, b 0.29765590688849, m 4.50643602440724, s 0.80767613694484;
+//   std. errors 0.015974902548798, 0.00622634143996067, 0.00722572673329521, 0.00806760325899711; sigma 0.0474400458518345.
+// Tolerance (as the original): parameters 1e-6 * max(1, |value|) (nls stops within about tol x SE of the optimum);
+//   standard errors 1e-6 relative; sigma = sqrt(rss / (n - p)) 1e-9 relative; residual df exact.
+// Data: examples/data/tut-peak.csv (seed 106).
+// How to run: lmscript examples/dsl/cross-nls.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = read_csv("../data/tut-peak.csv");
+let x = f.col("x");
+let y = f.col("y");
+let n = x.len();
+let start = vec(y.max() - y.min(), y.min(), x.at(y.argmax()), 1.0);
+let names = strs("a, b, m, s");
+let fit = least_squares("b + a*exp(-(x-m)^2/(2*s^2))", "y", names, start, opts().set("$x", x).set("$y", y).set("tol", 0.000000000001));
+out.check("status OK", fit.ok());
+out.check("cov_status OK", fit.text("cov_status") == "OK");
+let r_par = vec(1.98202770043575, 0.29765590688849, 4.50643602440724, 0.80767613694484);
+let r_se = vec(0.015974902548798, 0.00622634143996067, 0.00722572673329521, 0.00806760325899711);
+let r_sigma = 0.0474400458518345;
+let p = fit.vec("x");
+let se = fit.vec("se");
+for (i in range(0, 4)) {
+  out.close("par " + names.at(i), p.at(i), r_par.at(i), 0.000001 * max(1.0, abs(p.at(i))));
+  out.close("se " + names.at(i), se.at(i), r_se.at(i), 0.000001 * r_se.at(i));
+}
+let sigma = sqrt(fit.num("rss") / float(n - 4));
+out.close("sigma", sigma, r_sigma, 0.000000001 * r_sigma);
+out.check("residual df", n - 4 == 97);
+out.put("start", start);
+out.put("par", p);
+out.put("se", se);
+out.put("r_par", r_par);
+out.put("r_se", r_se);
+out.put("sigma", sigma);
+out.put("r_sigma", r_sigma);
+out.put("nfev", fit.int("nfev"));
+end _dsl_
+
+v = lmnum.run(prog, "cross-nls");
+println("start from the data:", json_stringify(v.start));
+println(sprintf("%-28s %20s %20s  %-24s", "quantity", "lmnum", "r (pinned)", "abs diff"));
+names = ["a", "b", "m", "s"];
+for (i = 0; i < 4; i = i + 1) {
+  println(sprintf("%-28s %20.12f %20.12f  %s", "par " + names[i], v.par[i], v.r_par[i], str(abs(v.par[i] - v.r_par[i]))));
+  println(sprintf("%-28s %20.12f %20.12f  %s", "se " + names[i], v.se[i], v.r_se[i], str(abs(v.se[i] - v.r_se[i]))));
+}
+println(sprintf("%-28s %20.12f %20.12f  %s", "sigma", v.sigma, v.r_sigma, str(abs(v.sigma - v.r_sigma))));
+println(sprintf("Agreement: Gaussian peak parameters, standard errors and sigma agree with R's nls (lmnum %d evaluations).", v.nfev));

@@ -22,5 +22,13 @@ Runtime libraries:
   dependency (enforced by `test.sh`). `-DLMNUM_FULL_STATIC=ON` links it statically too; do not publish such a binary
   without relinking materials.
 
-Ported algorithms and their sources (BSD-licensed scipy, statsmodels, scikit-learn and numpy code; public-domain QUADPACK,
-MINPACK and netlib routines) are credited in comments in the files that contain them.
+Ported algorithms (credited in the file headers that contain them):
+- scipy (BSD-3-Clause): solve_ivp solvers and tableaux, filter design and zpk2sos, peak finding, spectral estimators,
+  savgol, BFGS/Nelder-Mead/Powell/SLSQP drivers, least_squares (TRF/dogbox/LM), root finders, linprog result conventions.
+- numpy (BSD-3-Clause): PCG64, SeedSequence, Generator samplers (ziggurat normal/exponential, gamma, binomial, ...),
+  MT19937 RandomState (used for scikit-learn-compatible k-means and fold shuffles).
+- statsmodels (BSD-3-Clause): SARIMAX state-space likelihood, MacKinnon ADF response surfaces, KPSS tables, GLM IRLS.
+- scikit-learn (BSD-3-Clause): coordinate descent, k-means++ seeding, fold assignment, metrics, svd_flip.
+- networkx (BSD-3-Clause): Dinitz max flow and minimum cut partition, Yen k-shortest paths.
+- QUADPACK (public domain): adaptive Gauss-Kronrod quadrature. MINPACK (MINPACK licence, via Eigen's
+  `unsupported/NonLinearOptimization`, MPL-2.0): Powell hybrid and Levenberg-Marquardt root finding.

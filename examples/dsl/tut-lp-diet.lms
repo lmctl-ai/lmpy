@@ -1,0 +1,102 @@
+// access: write (a temporary tut-lp-diet.dslb, removed)
+// Topic: the diet problem as a linear programme, its integer version, and a small constrained minimisation (after: the
+//   classic Stigler diet problem as presented in LP tutorials, and the scipy.optimize tutorial's SLSQP example)
+// What it does: the _dsl_ version of ../tut-lp-diet.lms. Reads the food table, solves the cheapest diet meeting calorie,
+//   protein and calcium minimums (`linprog`), re-solves with whole servings (integrality), reads the calorie shadow price
+//   from the duals and verifies it by re-solving with one more calorie; then minimises (x-1)^2 + (y-2.5)^2 under three
+//   linear inequalities with `minimize` (SLSQP) and checks the known optimum.
+// Known answers: milk, bread and rice hit their 3-serving caps (the three cheapest calories) and beans fill the calorie
+//   gap: (2000 - 3 (160 + 140 + 200)) / 230 = 500 / 230 servings, cost 3 (0.25 + 0.20 + 0.15) + 0.40 * 500 / 230 =
+//   2.669565, calorie shadow price 0.40 / 230 per kcal. Whole servings: milk 2, beans 3, bread 3, rice 3 = 2.75 (the
+//   known optimum of this table, as pinned by the original). SLSQP: the optimum sits on x - 2y + 2 = 0 at (1.4, 1.7), f = 0.8.
+// Tolerance: as the original (objectives and servings 1e-4, feasibility 1e-6, c.x and strong duality 1e-9, shadow price
+//   1e-6, SLSQP 1e-5).
+// Data: examples/data/tut-diet.csv, 8 foods with cost per serving and calories / protein (g) / calcium (mg) per serving.
+// How to run: lmscript examples/dsl/tut-lp-diet.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = read_csv("../data/tut-diet.csv");
+let foods = f.text("food");
+let cost = f.col("cost");
+let cal = f.col("calories");
+let prot = f.col("protein");
+let calc = f.col("calcium");
+let nf = cost.len();
+# requirements: at least 2000 kcal, 55 g protein, 800 mg calcium; at most 2600 kcal; at most 3 servings of anything
+let a_ub = cols(cal.neg(), prot.neg(), calc.neg(), cal).t();
+let b_ub = vec("-2000 -55 -800 2600");
+let caps = full(nf, 3.0);
+let lp = linprog(cost, opts().set("A_ub", a_ub).set("b_ub", b_ub).set("upper", caps));
+out.check("LP status OK", lp.ok());
+let x = lp.vec("x");
+let obj = lp.num("objective");
+# self-check 0: the known answer
+out.close("LP objective (known 2.669565)", obj, 1.8 + 0.4 * 500.0 / 230.0, 0.0001);
+let want = zeros(nf);
+for (i in range(0, nf)) {
+  let name = foods.at(i);
+  if (name == "milk" || name == "bread" || name == "rice") { want.set(i, 3.0); }
+  if (name == "beans") { want.set(i, 500.0 / 230.0); }
+}
+out.close("LP servings (known solution)", x, want, 0.0001);
+# self-check 1: feasible, and the cost is c.x
+out.check("calories >= 2000", cal.dot(x) >= 2000.0 - 0.000001);
+out.check("protein >= 55", prot.dot(x) >= 55.0 - 0.000001);
+out.check("calcium >= 800", calc.dot(x) >= 800.0 - 0.000001);
+out.check("calories <= 2600", cal.dot(x) <= 2600.0 + 0.000001);
+out.check("serving bounds", x.min() >= -0.000000001 && x.max() <= 3.000000001);
+out.close("objective is c.x", cost.dot(x), obj, 0.000000001);
+# self-check 2: strong duality, objective = b_ub . y_ub + upper bounds . upper duals (lower bounds are 0)
+let d = lp.res("duals");
+let dual_obj = b_ub.dot(d.vec("ub")) + caps.dot(d.vec("upper"));
+out.close("strong duality", dual_obj, obj, 0.000000001);
+# self-check 3: the calorie shadow price predicts the cost of one more calorie (lower b_ub[0] by 1)
+let y_cal = d.vec("ub").at(0);
+let b2 = b_ub.copy().set(0, -2001.0);
+let lp2 = linprog(cost, opts().set("A_ub", a_ub).set("b_ub", b2).set("upper", caps));
+out.check("re-solve status OK", lp2.ok());
+let delta = lp2.num("objective") - obj;
+out.check("calorie dual <= 0", y_cal <= 0.000000001);
+out.close("shadow price predicts the re-solved cost", delta, -y_cal, 0.000001);
+out.close("calorie dual (known -0.40/230)", y_cal, -0.4 / 230.0, 0.000001);
+# self-check 4: whole servings (MILP) cost at least the LP relaxation, are integral and feasible
+let ip = linprog(cost, opts().set("A_ub", a_ub).set("b_ub", b_ub).set("upper", caps).set("integrality", ones(nf)));
+out.check("MILP status OK", ip.ok());
+let xi = ip.vec("x");
+out.check("MILP >= LP", ip.num("objective") >= obj - 0.000001);
+out.close("MILP objective (known 2.75)", ip.num("objective"), 2.75, 0.0001);
+out.close("MILP integral", xi, xi.round(), 0.000001);
+out.check("MILP feasible", cal.dot(xi) >= 2000.0 - 0.000001 && prot.dot(xi) >= 55.0 - 0.000001 && calc.dot(xi) >= 800.0 - 0.000001);
+# constrained minimisation (SLSQP): x - 2y + 2 >= 0, -x - 2y + 6 >= 0, -x + 2y + 2 >= 0, x, y >= 0
+let mn = minimize("(x-1)^2 + (y-2.5)^2", strs("x, y"), vec(2.0, 0.0), opts().set("method", "SLSQP")
+  .set("lower", vec(0.0, 0.0)).set("ineq", strs("x - 2*y + 2, -x - 2*y + 6, -x + 2*y + 2")).set("tol", 0.000000000001));
+out.check("SLSQP status OK", mn.ok());
+let pm = mn.res("par");
+out.close("SLSQP x", pm.num("x"), 1.4, 0.00001);
+out.close("SLSQP y", pm.num("y"), 1.7, 0.00001);
+out.close("SLSQP f", mn.num("fun"), 0.8, 0.00001);
+out.check("SLSQP constraint violation <= 1e-6", mn.num("constraint_violation") <= 0.000001);
+out.put("foods", foods);
+out.put("x", x);
+out.put("objective", obj);
+out.put("calories", cal.dot(x));
+out.put("protein", prot.dot(x));
+out.put("calcium", calc.dot(x));
+out.put("y_cal", y_cal);
+out.put("delta", delta);
+out.put("milp_x", xi);
+out.put("milp_objective", ip.num("objective"));
+out.put("slsqp", mn);
+end _dsl_
+
+v = lmnum.run(prog, "tut-lp-diet");
+println(sprintf("cheapest diet: %.4f per day", v.objective));
+for (i = 0; i < len(v.foods); i = i + 1) { if (v.x[i] > 0.000001) { println(sprintf("  %-8s %.3f servings", v.foods[i], v.x[i])); } }
+println(sprintf("  calories %.1f  protein %.1f g  calcium %.1f mg", v.calories, v.protein, v.calcium));
+println(sprintf("calorie shadow price: dual %.6f, cost change for one extra calorie %.6f", v.y_cal, v.delta));
+println(sprintf("whole servings: %.4f per day", v.milp_objective));
+for (i = 0; i < len(v.foods); i = i + 1) { if (v.milp_x[i] > 0.5) { println(sprintf("  %-8s %d servings", v.foods[i], round(v.milp_x[i]))); } }
+pm = v.slsqp.par;
+println(sprintf("SLSQP: x=%.6f y=%.6f f=%.6f (active constraint x - 2y + 2 = %.9f)", pm.x, pm.y, v.slsqp.fun, pm.x - 2 * pm.y + 2));
+println("Checks passed: LP = 2.669565 and MILP = 2.75 as known, shadow price 0.40/230, LP feasible with cost = c.x, strong duality, shadow price confirmed by re-solving, MILP >= LP and integral, SLSQP optimum (1.4, 1.7).");
