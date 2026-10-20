@@ -1,0 +1,54 @@
+// access: write (a temporary ode-fit.dslb, removed)
+// What it does: the _dsl_ version of ../ode-fit.lms. Simulates an SIR epidemic with `ode` (DOP853, rtol 1e-10, atol 1e-12, t = 0..12),
+//   multiplies the infected curve by seeded lognormal measurement noise (`dist("lognorm", mu 0, sigma 0.05).rvs(13, 2025)`,
+//   numpy Generator(PCG64(2025)): the same noise on every run, checked by drawing it twice) and recovers the early exponential
+//   growth rate with `least_squares` (model a*exp(r*t)). The reference rate comes from fitting the noise-free trajectory with the
+//   same model, so the check does not depend on a textbook value. The whole recipe (solve, noise, two fits, checks) is one DSL
+//   program. No restructuring was needed: the original fits the closed-form growth model to the solved trajectory, it does not
+//   fit ODE parameters (an objective cannot call ode()).
+// Tolerance (as the original): noisy growth rate within 0.02 of the noise-free rate, amplitude within 25 %, and the noise-free
+//   rate in [0.18, 0.2] (beta S/N - gamma = 0.2 at the start).
+// Reference: numpy 2.3.3 Generator(PCG64(2025)).lognormal(0, 0.05, 13) and scipy 1.16.2 solve_ivp(DOP853) + least_squares (trf,
+//   tol 1e-10) in the oracle venv give the same 13 noise factors (pinned at 1e-15), the noise-free fit r = 0.197569912,
+//   a = 1.010089636 and the noisy fit r = 0.203942778, a = 0.962875576 (pinned here at 1e-6; additions to the original).
+// How to run: lmscript examples/dsl/ode-fit.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let o = opts().set("method", "DOP853").set("rtol", 0.0000000001).set("atol", 0.000000000001).set("t_eval", arange(13));
+o.set("$b", 0.3).set("$g", 0.1).set("$population", 1000.0);
+let traj = ode(strs("-b*s*i/population, b*s*i/population-g*i, g*i"), strs("s, i, r"), vec(999.0, 1.0, 0.0), 0.0, 12.0, o);
+out.check("ode: status OK", traj.ok());
+let t = traj.vec("t");
+out.check("13 output times", t.len() == 13);
+let infected = traj.mat("y").col(1);
+let ln = dist("lognorm", opts().set("mu", 0.0).set("sigma", 0.05));
+let noise = ln.rvs(13, 2025);
+let again = ln.rvs(13, 2025);
+out.check("the seeded noise is reproducible", noise.sub(again).abs().max() == 0.0);
+out.close("noise = numpy Generator(PCG64(2025)).lognormal(0, 0.05, 13)", noise, vec("0.89488264358823355 1.0013008279761724 0.97341141859907732 0.94510462930680705 0.88506575944090404 1.0390112815658321 0.96272693184090496 1.0134393163115385 1.0357119271707771 1.0147132556079079 0.99014423535076079 1.0334870431208916 1.0263387639605308"), 0.000000000000001);
+let observed = infected.mul(noise);
+let reference = least_squares("a*exp(r*t)", "y", strs("a, r"), vec(1.0, 0.1), opts().set("$t", t).set("$y", infected));
+let fit = least_squares("a*exp(r*t)", "y", strs("a, r"), vec(1.0, 0.1), opts().set("$t", t).set("$y", observed));
+out.check("noise-free fit: status OK", reference.ok());
+out.check("noisy fit: status OK", fit.ok());
+let r0 = reference.res("par").num("r");
+let a0 = reference.res("par").num("a");
+let r1 = fit.res("par").num("r");
+let a1 = fit.res("par").num("a");
+out.close("noisy rate within 0.02 of the noise-free rate", r1, r0, 0.02);
+out.close("noisy amplitude within 25 %", a1 / a0, 1.0, 0.25);
+out.check("noise-free rate close to beta S/N - gamma = 0.2", r0 >= 0.18 && r0 <= 0.2);
+out.close("pinned noise-free rate (scipy)", r0, 0.19756991239751059, 0.000001);
+out.close("pinned noise-free amplitude (scipy)", a0, 1.01008963635093, 0.000001);
+out.close("pinned noisy rate (scipy)", r1, 0.20394277767505006, 0.000001);
+out.close("pinned noisy amplitude (scipy)", a1, 0.96287557602989149, 0.000001);
+out.put("reference", reference);
+out.put("fit", fit);
+out.put("noise", noise);
+end _dsl_
+
+v = lmnum.run(prog, "ode-fit");
+println(sprintf("noise-free growth rate %.5f (amplitude %.4f); noisy fit %.5f (amplitude %.4f), standard error of the rate %.5f",
+  v.reference.par.r, v.reference.par.a, v.fit.par.r, v.fit.par.a, v.fit.std_err.r));
+println("ODE fit with seeded noise passed.");

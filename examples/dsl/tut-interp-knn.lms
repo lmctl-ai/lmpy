@@ -1,0 +1,106 @@
+// access: write (a temporary tut-interp-knn.dslb, removed)
+// Topic: interpolation of sampled data and nearest-neighbour search (after: the scipy-lectures interpolation section, the
+//   scipy.interpolate tutorial and the scipy.spatial cKDTree tutorial)
+// What it does: the _dsl_ version of ../tut-interp-knn.lms. Interpolates 13 samples of f(x) = exp(-x/3) sin(2x) with linear, PCHIP
+//   and cubic-spline interpolants (`interp`) on a fine grid where the true values are known, integrates the spline and compares it
+//   with `quad` on the true function; then runs an exact 5-nearest-neighbour query on the four flower measurements (`knn`),
+//   verifies the returned distances by brute force (Vec arithmetic over the columns, then sort) and classifies the queries by
+//   majority species. The original's npz round trips (frame_import, frame_to_array) are gone: frames and arrays are DSL values.
+// Data: ../data/tut-interp-nodes.csv (13 nodes on [0, 6]), tut-interp-grid.csv (59 points with the true f), tut-flowers.csv
+//   (150 rows, seed 113).
+// Tolerance (as the original): with node spacing h = 0.5 the interior spline error is about (5/384) h^4 max|f''''| = 0.014 and
+//   larger near the not-a-knot ends; the measured 0.024 is held to a 0.03 bound; linear error > cubic error; pchip below 0.10
+//   (measured 0.079); the spline integral within 0.01 of the quadrature; brute-force distances within 1e-9; majority species
+//   setosa, versicolor, virginica.
+// Reference (an addition to the original): scipy 1.16.2 in the oracle venv gives max errors 0.0923770 (make_interp_spline k=1),
+//   0.0789277 (PchipInterpolator), 0.0242377 (CubicSpline), spline integral 0.441784275 and quad 0.436816051 (pinned at 1e-9),
+//   and cKDTree query distances (pinned at 1e-12).
+// How to run: lmscript examples/dsl/tut-interp-knn.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let nodes = read_csv("../data/tut-interp-nodes.csv");
+let grid = read_csv("../data/tut-interp-grid.csv");
+let x = nodes.col("x");
+let y = nodes.col("y");
+let xg = grid.col("x");
+let fg = grid.col("f");
+
+# 1. three interpolants on the same grid; the spline is also integrated over the node range
+let lin = interp("linear", x, y).eval(xg).sub(fg).abs().max();
+let pch = interp("pchip", x, y).eval(xg).sub(fg).abs().max();
+let spline = interp("cubic", x, y);
+let cub = spline.eval(xg).sub(fg).abs().max();
+let spline_integral = spline.integrate(0.0, 6.0);
+let exact = quad("exp(-x/3)*sin(2*x)", "x", 0.0, 6.0, opts().set("epsabs", 0.0).set("epsrel", 0.000000000001));
+out.check("quad: status OK", exact.ok());
+out.check("cubic error below 0.03", cub <= 0.03);
+out.check("pchip error below 0.10", pch <= 0.10);
+out.check("linear error above cubic error", lin > cub);
+out.close("spline integral within 0.01 of quadrature", spline_integral, exact.num("value"), 0.01);
+out.close("scipy make_interp_spline(k=1) error", lin, 0.092377000000000042, 0.000000001);
+out.close("scipy PchipInterpolator error", pch, 0.078927672606814214, 0.000000001);
+out.close("scipy CubicSpline error", cub, 0.024237686143011861, 0.000000001);
+out.close("scipy CubicSpline integral", spline_integral, 0.44178427486187849, 0.000000001);
+out.close("scipy quad", exact.num("value"), 0.43681605087099667, 0.000000001);
+out.put("n_grid", xg.len());
+out.put("linear", lin);
+out.put("pchip", pch);
+out.put("cubic", cub);
+out.put("spline_integral", spline_integral);
+out.put("quad", exact.num("value"));
+
+# 2. nearest neighbours in the four-dimensional measurement space
+let flowers = read_csv("../data/tut-flowers.csv");
+let feats = strs("sepal_length, sepal_width, petal_length, petal_width");
+let points = flowers.to_mat(feats);
+let species = flowers.text("species");
+let queries = mat("5.0 3.4 1.5 0.3; 5.9 2.8 4.3 1.3; 6.4 3.0 5.4 1.9");
+let expected = strs("setosa, versicolor, virginica");
+let scipy_d = mat("0.17652671038117698 0.17687300206645454 0.22715497508529284 0.29255063538642301 0.30066218219623159; 0.24550932331380002 0.24857611410793298 0.25038240439575626 0.26925151101154499 0.280652847915356; 0.1566338677330027 0.20383290903335449 0.20900959736337499 0.23129490208605971 0.25132526353313545");
+let kn = knn(points, queries, 5);
+out.check("knn: status OK", kn.ok());
+let idx = kn.mat("indices");
+let dist5 = kn.mat("distances");
+out.put("distances", dist5);
+let winners = strs();
+for (q in range(0, 3)) {
+  # majority vote among the 5 neighbours (first label reaching the highest count wins, as the original)
+  let winner = "";
+  let best = 0;
+  for (j in range(0, 5)) {
+    let s = species.at(int(idx.at(q, j)));
+    let votes = 0;
+    for (k in range(0, 5)) {
+      if (species.at(int(idx.at(q, k))) == s) { votes = votes + 1; }
+    }
+    if (votes > best) {
+      best = votes;
+      winner = s;
+    }
+  }
+  winners.push(winner + " (" + str(best) + " of 5)");
+  out.check("majority species for query " + str(q) + " is " + expected.at(q), winner == expected.at(q));
+  # brute force: the five smallest Euclidean distances from this query to all points equal the returned ones
+  let d2 = zeros(points.rows());
+  for (c in range(0, 4)) {
+    let diff = points.col(c).sub(queries.at(q, c));
+    d2 = d2.add(diff.mul(diff));
+  }
+  let srt = d2.sqrt().sort().slice(0, 5);
+  out.close("brute-force distances for query " + str(q), dist5.row(q), srt, 0.000000001);
+  out.close("scipy cKDTree distances for query " + str(q), dist5.row(q), scipy_d.row(q), 0.000000000001);
+}
+out.put("winners", winners);
+end _dsl_
+
+v = lmnum.run(prog, "tut-interp-knn");
+println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", "linear", v.n_grid, v.linear));
+println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", "pchip", v.n_grid, v.pchip));
+println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", "cubic", v.n_grid, v.cubic));
+println(sprintf("integral over [0, 6]: cubic spline %.6f, quadrature of f %.6f", v.spline_integral, v.quad));
+queries = [[5.0, 3.4, 1.5, 0.3], [5.9, 2.8, 4.3, 1.3], [6.4, 3.0, 5.4, 1.9]];
+for (q = 0; q < 3; q = q + 1) {
+  println(sprintf("query %s -> 5 nearest at distances %s, majority %s", json_stringify(queries[q]), json_stringify(v.distances[q]), v.winners[q]));
+}
+println(sprintf("Checks passed: cubic error %.4f < 0.03, spline integral within 0.01 of quadrature, kNN distances verified by brute force, majority species as expected.", v.cubic));
