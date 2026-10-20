@@ -1,0 +1,97 @@
+// access: write (a temporary tut-bootstrap-ci.dslb, removed)
+// Topic: a seeded bootstrap confidence interval for the mean of a skewed sample (after: the scipy-lectures statistics chapter and
+//   the classic "bootstrap the mean" exercise)
+// What it does: the _dsl_ version of ../tut-bootstrap-ci.lms. Loads the sample, draws 1000 bootstrap resamples with explicit PCG64
+//   seeds (dist("uniform").rvs: each uniform supplies two indices, floor(n u) and floor(n frac(n u)), so 20 calls of 1000 draws,
+//   seeds 1..20, cover the 40000 indices, exactly as the original), reports the percentile interval and the bootstrap standard
+//   error, and compares them with the normal-theory t interval (Dist.ppf) and the generating distribution's moments
+//   (Dist.moments). The checks fail when resampling is broken: every row must be drawn, the bootstrap mean must sit within
+//   0.25 SE of the sample mean and the bootstrap SE within 15% of s / sqrt(n).
+// Data: examples/data/tut-bootstrap.csv, 40 draws from gamma(shape 2, scale 5): mean 10, variance 50 (seed 105).
+// Known answers pinned from the oracle venv (numpy 2.3.3 Generator(PCG64(seed)).uniform, the original's index rule; scipy 1.16.2
+//   t.ppf): bootstrap mean 11.121018445975002, SE 1.380186198928135, percentile interval [8.44875735, 13.685547324999998],
+//   t(39) quantile 2.0226909200367604; fewest draws of any row 929.
+// Tolerance: the original's bounds; pinned values within 1e-9.
+// How to run: lmscript examples/dsl/tut-bootstrap-ci.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let B = 1000;
+let x = read_csv("../data/tut-bootstrap.csv").col("value");
+let n = x.len();
+let nf = float(n);
+let mean = x.mean();
+let sd = x.std(1);
+let se = sd / sqrt(nf);
+
+# Bootstrap indices: each uniform u gives floor(n u) and floor(n frac(n u)), in that order (column_stack then row-major flatten).
+let unif = dist("uniform", opts().set("low", 0.0).set("high", 1.0));
+let draws = vec();
+let seed = 1;
+while (draws.len() < B * n) {
+  let w = unif.rvs(1000, seed).mul(nf);
+  let first = w.floor();
+  draws.extend(cols(first, w.sub(first).mul(nf).floor()).flatten());
+  seed = seed + 1;
+}
+let boot = vec();
+for (b in range(0, B)) { boot.push(x.take(draws.slice(b * n, (b + 1) * n)).mean()); }
+let bmean = boot.mean();
+let bse = boot.std(1);
+let sorted = boot.sort();
+# lo = sorted[floor(0.025 B)], hi = sorted[ceil(0.975 B) - 1]
+let lo = sorted.at(B * 25 / 1000);
+let hi = sorted.at((B * 975 + 999) / 1000 - 1);
+
+# Normal-theory interval and the generating distribution's moments.
+let tq = dist("t", opts().set("df", float(n - 1))).ppf(0.975);
+let m = dist("gamma", opts().set("shape", 2.0).set("scale", 5.0)).moments();
+
+let missed = 0;
+let fewest = B * n;
+for (i in range(0, n)) {
+  let c = draws.eq(float(i)).count();
+  if (c == 0) { missed = missed + 1; }
+  fewest = min(fewest, c);
+}
+let ratio = (hi - lo) / (2.0 * tq * se);
+
+# Self-checks of the original: every row resampled; bootstrap mean within 0.25 SE (an 8-sigma bound for B = 1000); bootstrap SE
+# within 15% of s / sqrt(n); the percentile interval covers the true mean 10 and is about as wide as the t interval.
+out.check("40000 indices from seeds 1..20", draws.len() == B * n && seed - 1 == 20);
+out.check("every row drawn by the resampler", missed == 0);
+out.check("bootstrap SE within 15% of s/sqrt(n)", abs(bse - se) <= 0.15 * se);
+out.check("bootstrap mean within 0.25 SE of the sample mean", abs(bmean - mean) <= 0.25 * se);
+out.check("percentile interval covers the true mean 10", lo <= 10.0 && hi >= 10.0);
+out.check("interval width ratio in [0.8, 1.2]", ratio >= 0.8 && ratio <= 1.2);
+out.close("gamma(2, 5) mean 10", m.num("mean"), 10.0, 0.000000001);
+out.close("gamma(2, 5) variance 50", m.num("var"), 50.0, 0.000000001);
+# Pinned known answers (numpy/scipy oracle with the same seeds and index rule).
+out.close("pinned bootstrap mean", bmean, 11.121018445975002, 0.000000001);
+out.close("pinned bootstrap SE", bse, 1.380186198928135, 0.000000001);
+out.close("pinned percentile lower", lo, 8.44875735, 0.000000001);
+out.close("pinned percentile upper", hi, 13.685547324999998, 0.000000001);
+out.close("pinned t quantile", tq, 2.0226909200367604, 0.000000001);
+out.check("pinned fewest draws of a row (929)", fewest == 929);
+
+out.put("n", n);
+out.put("mean", mean);
+out.put("sd", sd);
+out.put("se", se);
+out.put("B", B);
+out.put("last_seed", seed - 1);
+out.put("bmean", bmean);
+out.put("bse", bse);
+out.put("lo", lo);
+out.put("hi", hi);
+out.put("tq", tq);
+out.put("moments", m);
+out.put("ratio", ratio);
+end _dsl_
+
+v = lmnum.run(prog, "tut-bootstrap-ci");
+println(sprintf("sample: n=%d mean=%.4f sd=%.4f se=%.4f", v.n, v.mean, v.sd, v.se));
+println(sprintf("bootstrap (B=%d, seeds 1..%d): mean of means=%.4f SE=%.4f percentile 95%% CI=[%.4f, %.4f]", v.B, v.last_seed, v.bmean, v.bse, v.lo, v.hi));
+println(sprintf("t interval: [%.4f, %.4f] (t=%.4f on %d df)", v.mean - v.tq * v.se, v.mean + v.tq * v.se, v.tq, v.n - 1));
+println(sprintf("generating gamma(2, 5) moments: mean %.4f var %.4f skew %.6f excess kurtosis %.4f", v.moments.mean, v.moments.var, v.moments.skew, v.moments.kurtosis));
+println(sprintf("Checks passed: all %d rows drawn, bootstrap mean within 0.25 SE, bootstrap SE %.4f vs %.4f (15%%), width ratio %.3f, interval covers the true mean.", v.n, v.bse, v.se, v.ratio));

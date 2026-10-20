@@ -1,0 +1,61 @@
+// access: write (a temporary sensor-pipeline.dslb, removed)
+// What it does: the _dsl_ version of ../sensor-pipeline.lms. A sensor record sampled every 5 s (three smooth bursts plus deterministic
+//   pseudo-random noise from the same integer LCG) is written as CSV text with 6-decimal values, parsed (csv), averaged to one-minute
+//   bins (Frame.resample "1min", value:mean), low-pass filtered with a zero-phase Butterworth (iir + Filter.filtfilt = sosfiltfilt)
+//   and searched for peaks (find_peaks height 2.5, distance 15). The three bursts must come back within one minute of the truth.
+//   pycli needed five files (CSV, two npz frames, two safetensors arrays) to pass the data between ops; here it stays in memory.
+// Known answers pinned from the oracle venv (pandas 2.3.3 read_csv + resample("1min").mean(), scipy 1.16.2 butter/sosfiltfilt/
+//   find_peaks): 100 bins summing to 197.87164716666666; 2 sections, max pole radius 0.9089561776827397; peaks at minutes 19, 50, 80
+//   with heights 3.082172668213415, 3.9931713559519317, 3.5094399219507935.
+// Tolerance: peak minutes within 1 of the true burst centres (minute 20, 50 and 80), as the original; pinned values within 1e-9.
+// How to run: lmscript examples/dsl/sensor-pipeline.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let centres = vec(20.0, 50.0, 80.0);
+let heights = vec(4.0, 6.0, 5.0);
+let t0 = parse_time("2026-02-01T00:00:00Z");
+let seed = 777;
+let text = "ts,value\n";
+for (i in range(0, 1200)) {
+  let minutes = float(i) / 12.0;
+  let v = 1.0;
+  for (k in range(0, 3)) {
+    let u = (minutes - centres.at(k)) / 6.0;
+    if (abs(u) < 1.0) { v = v + heights.at(k) * (1.0 - u * u) * (1.0 - u * u); }
+  }
+  seed = (75 * seed + 74) % 65537;
+  v = v + (float(seed) / 65537.0 - 0.5) * 2.4;
+  text = text + format_time(t0 + float(i * 5)) + "," + fmt(v, 6) + "\n";
+}
+let raw = csv(text);
+let minutes = raw.resample("ts", "1min", "value:mean");
+let m = minutes.col("value__mean");
+let flt = iir("butter", 4, 0.08, opts().set("btype", "lowpass"));
+let y = flt.filtfilt(m);
+let p = find_peaks(y, opts().set("height", 2.5).set("distance", 15));
+let idx = p.vec("indices");
+
+out.check("1200 raw rows", raw.nrows() == 1200);
+out.check("100 one-minute bins", m.len() == 100);
+out.check("filter stable", flt.stable());
+out.check("three bursts found", p.int("n_peaks") == 3);
+out.close("bursts within one minute of 20, 50, 80", idx, centres, 1.0);
+out.close("pinned sum of the minute means", m.sum(), 197.87164716666666, 0.000000001);
+out.close("pinned max pole radius", flt.max_pole_radius(), 0.9089561776827397, 0.000000001);
+out.close("pinned peak minutes", idx, vec(19.0, 50.0, 80.0), 0.0);
+out.close("pinned peak heights", p.vec("peak_heights"), vec(3.082172668213415, 3.9931713559519317, 3.5094399219507935), 0.000000001);
+
+out.put("bins", m.len());
+out.put("first_bin", minutes.cell("ts", 0));
+out.put("n_sections", flt.n_sections());
+out.put("stable", flt.stable());
+out.put("indices", idx);
+out.put("heights", p.vec("peak_heights"));
+end _dsl_
+
+v = lmnum.run(prog, "sensor-pipeline");
+println(sprintf("resampled to %d one-minute means (first bin %s)", v.bins, v.first_bin));
+println(sprintf("filter: %d sections, stable %s", v.n_sections, json_stringify(v.stable)));
+println(sprintf("%d peaks at minutes %s with heights %s", len(v.indices), json_stringify(v.indices), json_stringify(v.heights)));
+println("Sensor pipeline passed.");
