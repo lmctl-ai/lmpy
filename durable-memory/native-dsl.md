@@ -1,7 +1,8 @@
 # lmnum: pycli as one native executable driven by `_dsl_` bytecode
 
-Status (2026-10-20): foundation built on branch `native-dsl`. This document sets the direction and the conventions every
-op family follows. It supersedes the language choice in [native-plan.md](native-plan.md) (Rust, lmapi ops). That plan's
+Status (2026-10-20): all op families implemented on branch `native-dsl`; all 52 pycli recipes ported to `examples/dsl/`
+plus 9 new examples (8 multi-step `task-*`); `native/test.sh` 66/66. See §6 for what differs from pycli and what is open.
+This document sets the direction and the conventions every op family follows. It supersedes the language choice in [native-plan.md](native-plan.md) (Rust, lmapi ops). That plan's
 op mapping, clean-room rules (§4) and tolerance tiers (§3) still apply.
 
 ## 1. What changes
@@ -114,3 +115,30 @@ Rules for a family file:
 - The `oracle-*` and `cross-*` originals compare pycli with sibling tools (rcli, statsrust, lmda) at run time. Their DSL
   versions instead assert the pinned known answers those comparisons established (from the oracle venv or R),
   because the point here is lmnum's own correctness.
+
+## 6. State and open items (2026-10-20)
+
+- **Families:**
+  - core, frames, linear algebra, sparse, statistics (31 distributions, xsf special functions, numpy-identical PCG64);
+  - optimisation (scipy drivers, HiGHS), ODE (scipy solve_ivp ports), interpolation, signal, spatial, graphs;
+  - statistical models (OLS/GLM/SARIMAX/tsa), machine learning.
+  
+  Each family's merge commit message on `native-dsl` lists its accuracy against the oracle and its deviations.
+- **Binary:** `lmnum` is about 12 MB (aarch64, Release). glibc is its only shared dependency (decision 2026-10-20). A full
+  task example (compile, run, report) takes about 0.2 s, against 0.4–1.4 s per op with the Docker pycli.
+- **Deliberate differences from pycli** (details in API.md and the merge messages):
+  - Not implemented: random forests and gradient boosting (clear error), `trust-constr`, analog filter design, hulls above 3-D.
+  - No `_to` artifact twins; arrays are values. Explicit file I/O exists: CSV, `.npy`, safetensors, model JSON.
+  - Bad input is a located run-time error instead of a status code. Numerical outcomes keep pycli's `status` strings.
+  - LSODA is RK45 switching to BDF, not ODEPACK. L-BFGS-B is LBFGSpp (same optimum, different counts).
+- **Open:**
+  1. `lmnum` serves only the `_dsl_` interface. The old lmapi call form (`pycli.op({...})` through `cli.schema.dev.json`)
+     is not served; a thin adapter could map ops onto the same C++ functions if still needed.
+  2. Builds are verified on aarch64/glibc only. Untested: x86-64, macOS, Windows, and a release build on an old glibc
+     for portability.
+  3. lmscript limitations met while porting:
+     - `sprintf` has no `%g`/`%e`;
+     - an apostrophe in a `//` comment inside `_dsl_` is a compile error (use `#` lines);
+     - a DSL local cannot reuse a schema function name (`dist`, `full`, `root`, ...).
+  4. Run-time objects live in an arena for the whole run. Very long loops that create objects grow memory.
+  5. CI for `native/test.sh` is not wired yet. It needs the deps fetch (about 5 min to build HiGHS) and `lmscript` from npm.
