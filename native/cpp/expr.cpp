@@ -388,3 +388,24 @@ std::vector<std::string> expr_names(const std::string& text) {
 }
 
 }  // namespace lmnum
+
+namespace lmnum {
+std::vector<VecRef> ExprBindings::refs() const {
+  std::vector<VecRef> r;
+  for (auto& v : vector_values) r.push_back(VecRef{v.data(), v.size()});
+  return r;
+}
+ExprBindings expr_bindings(const Opts& o) {
+  ExprBindings b;
+  for (auto& kv : o.items) {
+    if (kv.first.empty() || kv.first[0] != '$') continue;
+    std::string name = kv.first.substr(1);
+    if (name.empty()) fail("option '$' needs a name after the dollar sign");
+    const Item* it = o.find(kv.first);  // marks the key used
+    if (it->kind == Item::NUM || it->kind == Item::INT) { b.scalar_names.push_back(name); b.scalar_values.push_back(it->kind == Item::NUM ? it->f : double(it->i)); }
+    else if (it->kind == Item::VEC) { b.vector_names.push_back(name); b.vector_values.push_back(it->vec); }
+    else fail("option '" + kv.first + "' must be a float, int or Vec (an expression binding)");
+  }
+  return b;
+}
+}  // namespace lmnum

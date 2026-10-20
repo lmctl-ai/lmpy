@@ -36,3 +36,18 @@ double expr_eval(const ExprProgram& p, const double* vars, const VecRef* vecs = 
 std::vector<std::string> expr_names(const std::string& text);
 
 }  // namespace lmnum
+
+namespace lmnum {
+struct Opts;
+// Named constants and data for expressions, taken from an operation's Opts: every key starting with `$` binds the name
+// after the `$` (`opts().set("$beta", 0.3).set("$x", xs)`): float/int values are scalars, Vec values are vectors.
+// Reading them marks the keys used for Opts::finish.
+struct ExprBindings {
+  std::vector<std::string> scalar_names;
+  std::vector<double> scalar_values;
+  std::vector<std::string> vector_names;
+  std::vector<std::vector<double>> vector_values;
+  std::vector<VecRef> refs() const;  // VecRef views of vector_values, in vector_names order
+};
+ExprBindings expr_bindings(const Opts& o);
+}  // namespace lmnum
