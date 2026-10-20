@@ -1,0 +1,97 @@
+// access: write (a temporary tut-group-tests.dslb, removed)
+// Topic: comparing groups: two-sample t-test, one-way ANOVA and a chi-square test of independence (after: the R PlantGrowth /
+//   ToothGrowth teaching examples and the scipy-lectures statistics chapter)
+// What it does: the _dsl_ version of ../tut-group-tests.lms. One DSL program reads the three-group table, runs the pooled t-test
+//   (ctrl vs trt2) as the slope of a dummy regression (`ols` on the two groups), the one-way ANOVA as the F-test of `ols` with a
+//   categorical term, builds the group x flowered contingency table with `groupby` and computes the chi-square statistic and its
+//   p-value with `dist`; every p-value is cross-checked against the reference distribution, and the ANOVA coefficients are checked
+//   against the `groupby` group means. The original passed .npz artifacts between frame_import / frame_select / frame_groupby calls;
+//   here the frames stay in memory.
+// Data: examples/data/tut-groups.csv, 60 rows (20 per group): weight ~ N(5.0 / 4.6 / 5.8, 0.6^2) for ctrl / trt1 / trt2 and a yes/no
+//   trait with P(yes) = 0.25 / 0.25 / 0.85 (seed 104; 20 per group keeps every expected count of the contingency table above 5).
+// Caveats a tutorial reader should know: the single ctrl-vs-trt2 t-test is one of three possible pairwise comparisons, so its p-value
+//   would need a multiple-comparison adjustment (Bonferroni: multiply by 3) if all pairs were tested; the chi-square approximation
+//   needs expected counts of at least 5 (Cochran's rule), which the recipe prints and checks.
+// Tolerance: as the original: p-values against t.sf / F.sf 1e-9; coefficients vs group-mean differences 1e-9; group differences
+//   within 2.5 SE of the generating -0.4 / +0.8; effects significant at 5% (t-test also after Bonferroni); expected counts >= 5.
+// How to run: lmscript examples/dsl/tut-group-tests.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = read_csv("../data/tut-groups.csv");
+# 1. Two-sample t-test (pooled variance) = t statistic of the group dummy in weight ~ group on the two groups (group != trt1).
+let pair = f.where("group", "ctrl").concat(f.where("group", "trt2"));
+let tt = ols(pair, "weight", "C(group, ctrl)");
+out.check("t-test regression status OK", tt.ok());
+let tc = tt.res("coefficients");
+let t_diff = tc.vec("estimate").at(1);
+let t_se = tc.vec("std_err").at(1);
+let t_stat = tc.vec("statistic").at(1);
+let t_p = tc.vec("p_value").at(1);
+let ptt = dist("t", opts().set("df", tt.num("df_resid"))).sf(abs(t_stat));
+out.close("two-sided t p-value = 2 t.sf(|t|)", 2.0 * ptt, t_p, 0.000000001);
+# 2. One-way ANOVA: F-test of weight ~ group over the three groups.
+let an = ols(f, "weight", "C(group, ctrl)");
+out.check("ANOVA regression status OK", an.ok());
+let pf = dist("f", opts().set("dfn", an.num("df_model")).set("dfd", an.num("df_resid"))).sf(an.num("f_statistic"));
+out.close("ANOVA p-value = F.sf(F)", pf, an.num("f_p_value"), 0.000000001);
+let means = f.groupby(strs("group"), "weight:mean|count");
+let gm = means.col("weight__mean");
+# The treatment-coded coefficients are differences of group means (ctrl is the reference, groups are sorted).
+let ac = an.res("coefficients");
+let ae = ac.vec("estimate");
+let ase = ac.vec("std_err");
+out.check("groups ctrl,trt1,trt2", means.text("group").join(",") == "ctrl,trt1,trt2");
+out.check("ANOVA names", ac.strs("names").join(",") == "const,group[T.trt1],group[T.trt2]");
+out.close("const = ctrl mean", ae.at(0), gm.at(0), 0.000000001);
+out.close("group[T.trt1] = trt1 mean - ctrl mean", ae.at(1), gm.at(1) - gm.at(0), 0.000000001);
+out.close("group[T.trt2] = trt2 mean - ctrl mean", ae.at(2), gm.at(2) - gm.at(0), 0.000000001);
+# Known answer: the generating differences are trt1 - ctrl = -0.4 and trt2 - ctrl = +0.8; each within 2.5 SE.
+out.check("group[T.trt1] within 2.5 SE of -0.4", abs(ae.at(1) + 0.4) <= 2.5 * ase.at(1));
+out.check("group[T.trt2] within 2.5 SE of +0.8", abs(ae.at(2) - 0.8) <= 2.5 * ase.at(2));
+out.check("t-test difference within 2.5 SE of +0.8", abs(t_diff - 0.8) <= 2.5 * t_se);
+# 3. Chi-square test of independence between group and the yes/no trait, from a groupby count table (a missing cell is 0).
+let xt = f.groupby(strs("group, flowered"), "weight:count");
+let groups = strs("ctrl, trt1, trt2");
+let levels = strs("no, yes");
+let table = mat(3, 2);
+for (i in range(0, xt.nrows())) {
+  table.set(groups.index(xt.cell("group", i)), levels.index(xt.cell("flowered", i)), xt.num("weight__count", i));
+}
+let rsum = table.row_sums();
+let csum = table.col_sums();
+let n = table.sum();
+let chi2 = 0.0;
+let min_expected = 1000000.0;
+for (i in range(0, 3)) {
+  for (j in range(0, 2)) {
+    let e = rsum.at(i) * csum.at(j) / n;
+    chi2 = chi2 + (table.at(i, j) - e) * (table.at(i, j) - e) / e;
+    min_expected = min(min_expected, e);
+  }
+}
+let pchi = dist("chi2", opts().set("df", 2.0)).sf(chi2);
+# Self-checks: the effects built into the fixture are detected at 5%, every row is counted, expected counts >= 5, and the
+# Bonferroni-adjusted pairwise t-test is still significant.
+out.check("ctrl vs trt2 differ at 5%", t_p < 0.05);
+out.check("ANOVA detects the group effect at 5%", an.num("f_p_value") < 0.05);
+out.check("trait depends on the group at 5%", pchi < 0.05);
+out.check("contingency table counts every row (60 = 3 x 20)", n == 60.0 && rsum.at(0) == 20.0 && rsum.at(1) == 20.0 && rsum.at(2) == 20.0);
+out.check("every expected count >= 5", min_expected >= 5.0);
+out.check("ctrl vs trt2 significant after Bonferroni (3 pairs)", 3.0 * t_p < 0.05);
+out.put("t", vec(t_diff, t_se, t_stat, t_p));
+out.put("t_df", tt.num("df_resid"));
+out.put("anova", vec(an.num("df_model"), an.num("df_resid"), an.num("f_statistic"), an.num("f_p_value")));
+out.put("anova_r2", an.num("r2"));
+out.put("means", means);
+out.put("table", table);
+out.put("chi2", vec(chi2, pchi, min_expected));
+end _dsl_
+
+v = lmnum.run(prog, "tut-group-tests");
+println(sprintf("t-test ctrl vs trt2: difference %.3f (SE %.3f), t = %.3f on %d df, p = %.4f", v.t[0], v.t[1], v.t[2], v.t_df, v.t[3]));
+println(sprintf("ANOVA: F(%d, %d) = %.3f, p = %.4f, r2 = %.3f", v.anova[0], v.anova[1], v.anova[2], v.anova[3], v.anova_r2));
+md = v.means.data;
+for (i = 0; i < len(md.group); i = i + 1) { println(sprintf("  %-5s n=%d mean=%.3f", md.group[i], md.weight__count[i], md.weight__mean[i])); }
+println(sprintf("chi-square independence (group x flowered): table %s, X2 = %.3f on 2 df, p = %.4f (smallest expected count %.2f)", json_stringify(v.table), v.chi2[0], v.chi2[1], v.chi2[2]));
+println("Checks passed: p-values reproduced from the t, F and chi-square references; coefficients equal group-mean differences and sit within 2.5 SE of the generating -0.4 / +0.8; all three effects detected (t-test also after Bonferroni); expected counts >= 5; every row counted.");

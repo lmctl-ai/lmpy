@@ -1,0 +1,76 @@
+// access: write (a temporary cross-tests.dslb, removed)
+// Cross-language agreement: a pooled two-sample t-test and a chi-square test of independence in lmnum and R.
+// What it does: the _dsl_ version of ../cross-tests.lms. On examples/data/tut-groups.csv, (1) the pooled t-test ctrl vs trt2 is the
+//   t statistic of the group dummy in a two-group regression (`ols`; `ttest_ind` is checked to give the same answer), (2) the
+//   chi-square test of the 3 x 2 group x flowered table uses the statistic computed in the DSL from a `groupby` count table and the
+//   chi-square survival function from `dist`. Both are compared with R 4.3.3 values pinned here, computed with Rscript:
+//     t.test(weight[group == "ctrl"], weight[group == "trt2"], var.equal = TRUE)
+//     chisq.test(table(group, flowered), correct = FALSE)
+//   (the original called R through rcli test_htest at run time).
+// Tolerance: as the original: statistics 1e-10 absolute (pure arithmetic), degrees of freedom exact, p-values 1e-12 relative
+//   (t and chi-square distribution functions: lmnum vs R's pt / pchisq).
+// Data: examples/data/tut-groups.csv (seed 104).
+// How to run: lmscript examples/dsl/cross-tests.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = read_csv("../data/tut-groups.csv");
+let ctrl = f.where("group", "ctrl");
+let trt2 = f.where("group", "trt2");
+let fit = ols(ctrl.concat(trt2), "weight", "C(group, ctrl)");
+out.check("ols status OK", fit.ok());
+let c = fit.res("coefficients");
+let t = c.vec("statistic").at(1);
+let p = c.vec("p_value").at(1);
+let diff = c.vec("estimate").at(1);
+let ti = ttest_ind(ctrl.col("weight"), trt2.col("weight"));
+# Chi-square statistic from the table (expected = row total * column total / n); a missing cell of the groupby is 0.
+let xt = f.groupby(strs("group, flowered"), "weight:count");
+let groups = strs("ctrl, trt1, trt2");
+let levels = strs("no, yes");
+let table = mat(3, 2);
+for (i in range(0, xt.nrows())) {
+  table.set(groups.index(xt.cell("group", i)), levels.index(xt.cell("flowered", i)), xt.num("weight__count", i));
+}
+let rsum = table.row_sums();
+let csum = table.col_sums();
+let n = table.sum();
+let x2 = 0.0;
+for (i in range(0, 3)) {
+  for (j in range(0, 2)) {
+    let e = rsum.at(i) * csum.at(j) / n;
+    x2 = x2 + (table.at(i, j) - e) * (table.at(i, j) - e) / e;
+  }
+}
+let pchi = dist("chi2", opts().set("df", 2.0)).sf(x2);
+# R 4.3.3 (see the header). R's t is (mean ctrl - mean trt2) / se; the regression t of the trt2 dummy has the opposite sign.
+let r_t = -2.637463045457129507;
+let r_df = 38.0;
+let r_p = 0.012035780813443074;
+let r_diff = 5.619018999999999764 - 5.188206600000000002;
+let r_x2 = 34.725274725274730;
+let r_pchi = 0.000000028807289832856468;
+out.close("t statistic |t|", abs(t), abs(r_t), 0.0000000001);
+out.check("t df", fit.num("df_resid") == r_df);
+out.close_rel("t p-value", p, r_p, 0.000000000001);
+out.close("mean difference", diff, r_diff, 0.0000000001);
+out.close("ttest_ind statistic", ti.num("statistic"), r_t, 0.0000000001);
+out.close_rel("ttest_ind p-value", ti.num("pvalue"), r_p, 0.000000000001);
+out.close("chi-square statistic", x2, r_x2, 0.0000000001);
+out.close_rel("chi-square p-value", pchi, r_pchi, 0.000000000001);
+out.put("t", vec(abs(t), abs(r_t)));
+out.put("df", vec(fit.num("df_resid"), r_df));
+out.put("p", vec(p, r_p));
+out.put("diff", vec(diff, r_diff));
+out.put("ti", vec(ti.num("statistic"), ti.num("pvalue")));
+out.put("x2", vec(x2, r_x2));
+out.put("pchi", vec(pchi, r_pchi));
+end _dsl_
+
+v = lmnum.run(prog, "cross-tests");
+println(sprintf("%-28s %20s %20s  %s", "quantity", "lmnum", "r", "abs diff"));
+for (q in [["t statistic |t|", v.t], ["t df", v.df], ["t p-value", v.p], ["mean difference", v.diff], ["chi-square statistic", v.x2], ["chi-square p-value", v.pchi]]) {
+  println(sprintf("%-28s %20.12f %20.12f  %s", q[0], q[1][0], q[1][1], str(abs(q[1][0] - q[1][1]))));
+}
+println(sprintf("ttest_ind: t = %.12f, p = %.12f", v.ti[0], v.ti[1]));
+println(sprintf("Agreement: pooled t-test (t = %.4f, p = %.5f) and chi-square test (X2 = %.4f, p = %.5f) agree between lmnum and R.", v.t[0], v.p[0], v.x2[0], v.pchi[0]));

@@ -1,0 +1,59 @@
+// access: write (a temporary tut-glm-poisson.dslb, removed)
+// Topic: Poisson regression for counts with an exposure offset (after: the R ?glm help page and the statsmodels GLM notebook)
+// What it does: the _dsl_ version of ../tut-glm-poisson.lms. Fits count ~ C(group, A) with hours as the exposure by `glm` (poisson,
+//   log link), reports rate ratios with intervals, refers the deviance drop to chi-square(df_model) with `dist`, and checks the group
+//   rate ratios against the values the data were generated with, all in one DSL program.
+// Data: examples/data/tut-poisson.csv, 90 rows (30 per group A/B/C): count ~ Poisson(2 * exp(0.5 [B] - 0.4 [C]) * hours), seed 102.
+// Tolerance: as the original: each estimate within 2 SE of the generating value (log scale; the fixture sits at 0.3, 0.5 and 1.4 SE)
+//   and within 1e-4 of its pinned fixture value; likelihood-ratio p < 0.01; deviance / df_resid in [0.5, 1.6].
+// How to run: lmscript examples/dsl/tut-glm-poisson.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let fit = glm(read_csv("../data/tut-poisson.csv"), "count", "C(group, A)", "poisson", opts().set("link", "log").set("exposure", "hours"));
+out.check("status OK", fit.ok());
+out.check("converged", fit.flag("converged"));
+let c = fit.res("coefficients");
+let names = c.strs("names");
+let est = c.vec("estimate");
+let se = c.vec("std_err");
+out.check("names const,group[T.B],group[T.C]", names.join(",") == "const,group[T.B],group[T.C]");
+# Self-check 1: each estimate within 2 SE of the generating value (log 2, 0.5, -0.4) and at its pinned fixture value (1e-4).
+let truth = vec(0.6931471805599453, 0.5, -0.4);
+let pinned = vec(0.67251, 0.54809, -0.24359);
+for (i in range(0, 3)) {
+  out.check("estimate for " + names.at(i) + " within 2 SE of the truth", abs(est.at(i) - truth.at(i)) <= 2.0 * se.at(i));
+  out.close("estimate for " + names.at(i) + " at its pinned value", est.at(i), pinned.at(i), 0.0001);
+}
+# Self-check 2: the deviance drop from the null model, referred to chi-square(df_model), rejects "no group effect" at 1%.
+let drop = fit.num("null_deviance") - fit.num("deviance");
+let p = dist("chi2", opts().set("df", fit.num("df_model"))).sf(drop);
+out.check("group effect significant at 1%", p <= 0.01);
+# Self-check 3: residual deviance on the scale of its degrees of freedom (no gross overdispersion).
+let disp = fit.num("deviance") / fit.num("df_resid");
+out.check("deviance / df_resid in [0.5, 1.6]", disp >= 0.5 && disp <= 1.6);
+out.put("n", fit.int("n_obs"));
+out.put("n_iter", fit.int("n_iter"));
+out.put("deviance", fit.num("deviance"));
+out.put("null_deviance", fit.num("null_deviance"));
+out.put("df_resid", fit.num("df_resid"));
+out.put("df_model", fit.num("df_model"));
+out.put("aic", fit.num("aic"));
+out.put("names", names);
+out.put("estimate", est);
+out.put("std_err", se);
+out.put("rr", est.exp());
+out.put("rr_lo", c.vec("ci_lower").exp());
+out.put("rr_hi", c.vec("ci_upper").exp());
+out.put("drop", drop);
+out.put("p", p);
+end _dsl_
+
+v = lmnum.run(prog, "tut-glm-poisson");
+println(sprintf("poisson/log, n=%d, converged in %d IRLS steps; deviance=%.3f on %d df (null %.3f), AIC=%.2f", v.n, v.n_iter, v.deviance, v.df_resid, v.null_deviance, v.aic));
+println("term          coef     se      rate ratio  [95% CI]");
+for (i = 0; i < len(v.names); i = i + 1) {
+  println(sprintf("%-12s %7.4f %7.4f   %6.3f  [%.3f, %.3f]", v.names[i], v.estimate[i], v.std_err[i], v.rr[i], v.rr_lo[i], v.rr_hi[i]));
+}
+println(sprintf("likelihood-ratio test of the group effect: deviance drop %.3f on %d df, p = %.5f", v.drop, v.df_model, v.p));
+println("Checks passed: estimates within 2 SE of the truth and at their pinned values, group effect significant, dispersion near 1.");
