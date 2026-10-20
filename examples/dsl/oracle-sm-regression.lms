@@ -1,0 +1,44 @@
+// access: write (a temporary oracle-sm-regression.dslb, removed)
+// What it does: the _dsl_ version of ../oracle-sm-regression.lms. Fits y ~ x1 + x2 + g + x1:x2 (treatment coding, reference level a)
+//   with `ols` and checks coefficients, standard errors, R^2 and sigma against R 4.3.3 lm() (the golden constants of the original,
+//   computed once by scripts/s5-r-golden.py). The original's rcli and statsrust legs compared the same closed-form least squares and
+//   are covered by these constants.
+// Tolerance: 1e-9 absolute for coefficients, standard errors, R^2 and sigma (same closed-form least squares everywhere).
+// How to run: lmscript examples/dsl/oracle-sm-regression.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let f = frame()
+  .with("x1", vec("0.0, 9.02439, 8.04878, 7.073171, 6.097561, 5.121951, 4.146341, 3.170732, 2.195122, 1.219512, 0.243902, 9.268293, 8.292683, 7.317073, 6.341463, 5.365854, 4.390244, 3.414634, 2.439024, 1.463415, 0.487805, 9.512195, 8.536585, 7.560976, 6.585366, 5.609756, 4.634146, 3.658537, 2.682927, 1.707317, 0.731707, 9.756098, 8.780488, 7.804878, 6.829268, 5.853659, 4.878049, 3.902439, 2.926829, 1.95122"))
+  .with("x2", vec("-2.0, -1.361702, -0.723404, -0.085106, 0.553191, 1.191489, 1.829787, 2.468085, -1.893617, -1.255319, -0.617021, 0.021277, 0.659574, 1.297872, 1.93617, 2.574468, -1.787234, -1.148936, -0.510638, 0.12766, 0.765957, 1.404255, 2.042553, 2.680851, -1.680851, -1.042553, -0.404255, 0.234043, 0.87234, 1.510638, 2.148936, 2.787234, -1.574468, -0.93617, -0.297872, 0.340426, 0.978723, 1.617021, 2.255319, 2.893617"))
+  .with("g", strs("a, c, b, b, a, c, c, b, a, a, c, b, b, a, c, c, b, a, a, c, b, b, a, c, c, b, a, a, c, b, b, a, c, c, b, a, a, c, b, b"))
+  .with("y", vec("2.954535, 17.671755, 17.105806, 13.838887, 13.773494, 9.689788, 8.672194, 6.434021, 6.664264, 5.512977, 1.526185, 19.097022, 17.600086, 15.232588, 13.199891, 10.925678, 10.344611, 7.838138, 7.456069, 4.511963, 1.263234, 19.60068, 19.377061, 17.51056, 14.25616, 12.121329, 10.377497, 8.979624, 5.846226, 3.205993, 1.559838, 22.300896, 17.319633, 16.189567, 13.954069, 12.869558, 11.204965, 8.764896, 6.180387, 3.597162"));
+let fit = ols(f, "y", "x1 + x2 + C(g, a) + x1:x2");
+let c = fit.res("coefficients");
+let est = c.vec("estimate");
+let se = c.vec("std_err");
+# R 4.3.3 lm(y ~ x1 + x2 + g + x1:x2)
+let r_est = vec("1.7549211662843887, 1.927896524977624, -0.7343884399456135, -0.6372879302822495, -0.6199909538782493, 0.12986471104707903");
+let r_se = vec("0.2124369971649228, 0.032195098397045985, 0.13555392712021316, 0.25839144486044796, 0.2450738527567276, 0.023668847562198447");
+out.check("status OK", fit.ok());
+out.check("names", c.strs("names").join(",") == "const,x1,x2,g[T.b],g[T.c],x1:x2");
+out.close("estimate vs R", est, r_est, 0.000000001);
+out.close("std_err vs R", se, r_se, 0.000000001);
+out.close("r2 vs R", fit.num("r2"), 0.9919897066087565, 0.000000001);
+out.close("sigma vs R", fit.num("sigma"), 0.5511915069887131, 0.000000001);
+out.put("names", c.strs("names"));
+out.put("estimate", est);
+out.put("std_err", se);
+out.put("worst", est.sub(r_est).abs().max());
+out.put("worst_se", se.sub(r_se).abs().max());
+out.put("r2", fit.num("r2"));
+out.put("sigma", fit.num("sigma"));
+end _dsl_
+
+v = lmnum.run(prog, "oracle-sm-regression");
+println("coefficient names: " + json_stringify(v.names));
+for (i = 0; i < len(v.names); i = i + 1) {
+  println(sprintf("  %-8s estimate %.12f  std_err %.12f", v.names[i], v.estimate[i], v.std_err[i]));
+}
+println(sprintf("r2 %.12f  sigma %.12f; largest difference from R: estimate %s, std_err %s", v.r2, v.sigma, str(v.worst), str(v.worst_se)));
+println("OLS agrees within 1e-9.");

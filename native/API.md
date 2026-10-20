@@ -366,3 +366,34 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
 
+## Statistical models
+
+Regression models and time-series statistics after statsmodels 0.14 (pycli `sm_ols`, `sm_glm`, `sm_arima`, `sm_tsa_acf`, `sm_tsa_tools`). Model terms are strings: a numeric column `x1`, an interaction `x1:x2`, a categorical `C(g)` or `C(g, ref)` (treatment coding; the reference defaults to the first sorted level; columns are named `g[T.level]`; a text column is categorical without `C`), an expression `I(x1^2)` (pycli expression grammar over the numeric columns and `$` scalar bindings), raw powers `poly(x, 3)` (named `x`, `x^2`, `x^3`), `1`/`const` to place the intercept and `0`/`-1` to drop it. Results keep pycli's field names; undefined uncertainty (rank deficiency, no residual degrees of freedom) is NaN. Common options of `ols`/`glm`: `cov_type` (nonrobust, HC0-HC3, cluster with `groups`), `use_t`, `alpha` (interval level 1-alpha), `na_action` (error or drop), `include` (StrVec: fitted, residuals), `intercept` (bool).
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `acf(Vec, int) -> Res` | sample autocorrelation at lags 0..nlags (pycli sm_tsa_acf kind acf; statsmodels acf, divide by n): n, lags, values, ci_lower, ci_upper (Bartlett, 95%), status |
+| `acf(Vec, int, Opts) -> Res` | acf with options: `adjusted` (divide by n - k), `alpha`, `qstat` (adds Ljung-Box `qstat` and `pvalues` for lags 1..nlags), `fft` (accepted; sums are direct) |
+| `adfuller(Vec) -> Res` | augmented Dickey-Fuller unit-root test (pycli sm_tsa_tools adfuller; constant, AIC lag choice): statistic, p_value (MacKinnon), used_lag, nobs, critical_values {1%, 5%, 10%}, icbest, maxlag |
+| `adfuller(Vec, Opts) -> Res` | adfuller with options: `regression` (c, ct, ctt, n), `maxlag` (int; default ceil(12 (n/100)^(1/4)) clipped), `autolag` (AIC, BIC, t-stat, none) |
+| `arima(Vec, int, int, int) -> Res` | ARIMA(p, d, q) by exact maximum likelihood (pycli sm_arima; statsmodels SARIMAX state space): coefficients {names, estimate, std_err (opg), statistic, p_value, ci_lower, ci_upper}, params, param_names, bse, sigma2, llf, aic, bic, hqic, nobs_effective, residuals, converged, status (NaN = missing) |
+| `arima(Vec, int, int, int, Opts) -> Res` | ARIMA with options: `trend` (n, c, t, ct; c is the regression intercept), `seasonal_order` (Vec [P, D, Q, s]), `exog` (Mat), `exog_names`, `exog_future` (Mat), `forecast_steps` (adds forecast {mean, lower, upper}), `alpha`, `cov_type` (opg, oim, approx, none), `method` (lbfgs/bfgs), `maxiter` (200), `start_params` (Vec, statsmodels order), `enforce_stationarity`, `enforce_invertibility` |
+| `glm(Frame, string, StrVec, string) -> Res` | GLM by IRLS (pycli sm_glm) with family gaussian, poisson, binomial, gamma, inverse_gaussian or negative_binomial and its default link: coefficients, deviance, null_deviance, pearson_chi2, scale, llf, aic, bic, df_model, df_resid, converged, n_iter, status |
+| `glm(Frame, string, StrVec, string, Opts) -> Res` | GLM with options: `link`, `offset` / `exposure` (columns; exposure needs the log link), `var_weights` (alias `weights`), `freq_weights`, `nb_alpha` (negative binomial dispersion, default 1), `maxiter` (100), `tol` (1e-8, absolute deviance change), `cov_type`, `groups`, `use_t`, `alpha`, `na_action`, `include`, `intercept` |
+| `glm(Frame, string, string, string) -> Res` | GLM with a `+`-joined right-hand side: `glm(f, "count", "C(group)", "poisson")` |
+| `glm(Frame, string, string, string, Opts) -> Res` | GLM with a `+`-joined right-hand side and options |
+| `kpss(Vec) -> Res` | KPSS stationarity test (pycli sm_tsa_tools kpss; level, automatic lags): statistic, p_value (table interpolation), p_value_bounded none/above/below, lags, critical_values {10%, 5%, 2.5%, 1%} |
+| `kpss(Vec, Opts) -> Res` | kpss with options: `regression` (c or ct), `nlags` ("auto", "legacy" or an int) |
+| `ljung_box(Vec, int) -> Res` | Ljung-Box test of no autocorrelation for lags 1..m (pycli sm_tsa_tools ljung_box): lags, statistic, p_value, model_df |
+| `ljung_box(Vec, int, Opts) -> Res` | ljung_box with options: `model_df` (fitted ARMA parameters; lags model_df+1..m are tested against chi2(lag - model_df)), `boxpierce` (adds bp_statistic, bp_p_value) |
+| `ljung_box(Vec, Vec) -> Res` | ljung_box at an explicit strictly increasing list of lags |
+| `ljung_box(Vec, Vec, Opts) -> Res` | ljung_box at explicit lags with options (`model_df`, `boxpierce`) |
+| `ols(Frame, string, StrVec) -> Res` | OLS of column y on the terms (pycli sm_ols): coefficients {names, estimate, std_err, statistic, p_value, ci_lower, ci_upper}, n_obs, r2, r2_adj, sigma, f_statistic, f_p_value, llf, aic, bic, ssr, df_model, df_resid, rank, condition_number, durbin_watson, jarque_bera, omnibus, skew, kurtosis, coding, status |
+| `ols(Frame, string, StrVec, Opts) -> Res` | OLS/WLS with options: `weights` (column: WLS), `cov_type`, `groups` (cluster column), `use_t`, `alpha`, `na_action`, `include`, `intercept` |
+| `ols(Frame, string, string) -> Res` | OLS with the terms written as one right-hand side joined by `+`: `ols(f, "y", "x1 + x2 + C(g, a) + x1:x2")` |
+| `ols(Frame, string, string, Opts) -> Res` | OLS/WLS with a `+`-joined right-hand side and options |
+| `pacf(Vec, int) -> Res` | partial autocorrelation at lags 0..nlags by Yule-Walker with n denominator (pycli sm_tsa_acf kind pacf, method ywm = R's pacf): values, ci_lower, ci_upper (+-z/sqrt(n)) |
+| `pacf(Vec, int, Opts) -> Res` | pacf with options: `method` (ywm, ywadjusted, ols, ols-inefficient, ols-adjusted, ldadjusted, ldb), `alpha`; nlags < n/2 |
+
