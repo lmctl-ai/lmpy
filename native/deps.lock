@@ -1,0 +1,7 @@
+# name|url|sha256|top-level directory inside the archive|licence
+eigen|https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz|8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72|eigen-3.4.0|MPL-2.0 (EIGEN_MPL2_ONLY enforced)
+boost|https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.gz|2575e74ffc3ef1cd0babac2c1ee8bdb5782a0ee672b1912da40e5b4b591ca01f|boost_1_86_0|BSL-1.0
+pocketfft|https://github.com/mreineck/pocketfft/archive/4d865cba24359b05b37da4e75aee24498c3b78e7.tar.gz|db236e44b1020dd0b415e5040ce10d8be604fefb7ce83ec0b32bc0f78975aa2f|pocketfft-4d865cba24359b05b37da4e75aee24498c3b78e7|BSD-3-Clause
+nanoflann|https://github.com/jlblancoc/nanoflann/archive/refs/tags/v1.6.1.tar.gz|e258d6fd6ad18e1809fa9c081553e78036fd6e7b418d3762875c2c5a015dd431|nanoflann-1.6.1|BSD-2-Clause
+lbfgspp|https://github.com/yixuan/LBFGSpp/archive/refs/tags/v0.3.0.tar.gz|490720b9d5acce6459cb0336ca3ae0ffc48677225f0ebfb35c9bef6baefdfc6a|LBFGSpp-0.3.0|MIT
+highs|https://github.com/ERGO-Code/HiGHS/archive/refs/tags/v1.7.2.tar.gz|5ff96c14ae19592d3568e9ae107624cbaf3409d328fb1a586359f0adf9b34bf7|HiGHS-1.7.2|MIT

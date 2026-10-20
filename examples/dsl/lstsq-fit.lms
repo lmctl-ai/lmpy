@@ -1,0 +1,34 @@
+// access: write (a temporary lstsq-fit.dslb, removed)
+// What it does: the _dsl_ version of ../lstsq-fit.lms. Fits y = c0 + c1 x + c2 x^2 to generated data by least squares, then
+//   verifies the fit with two checks that do not trust the solver: the residual is close to the injected noise level, and the
+//   normal equations A^T r = 0 hold. The whole computation runs inside the native host; lmscript only compiles and reports.
+// Tolerance: coefficients within 0.05 of the generating values; |A^T r| <= 1e-9.
+// How to run: lmscript examples/dsl/lstsq-fit.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let truth = vec(2.0, 3.0, -0.5);
+let x = arange(21).mul(0.25);
+# deterministic zig-zag noise in [-0.02, 0.02]
+let noise = arange(21).apply("((x * 37 + 11) - 17 * floor((x * 37 + 11) / 17) - 8) / 400");
+let a = cols(ones(21), x, x.square());
+let b = a * truth + noise;
+let fit = a.lstsq(b);
+let c = fit.vec("x");
+out.put("coefficients", c);
+out.put("rank", fit.int("rank"));
+out.put("residual_norm", fit.num("residual_norm"));
+out.check("status OK", fit.ok());
+out.close("coefficients", c, truth, 0.05);
+out.check("residual within noise", fit.num("residual_norm") <= 0.02 * sqrt(21.0));
+# independent check: A^T (A c - b) vanishes at the least-squares minimiser
+let g = a.t() * (a * c - b);
+out.check("normal equations", g.abs().max() <= 0.000000001);
+out.check("full rank", a.rank() == 3);
+out.put("cond", a.cond());
+end _dsl_
+
+v = lmnum.run(prog, "lstsq-fit");
+c = v.coefficients;
+println(sprintf("coefficients: c0=%.6f c1=%.6f c2=%.6f  rank=%d  residual_norm=%.6f  cond=%.1f", c[0], c[1], c[2], v.rank, v.residual_norm, v.cond));
+println("Polynomial least-squares fit passed.");
