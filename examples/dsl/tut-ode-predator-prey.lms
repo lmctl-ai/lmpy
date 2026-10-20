@@ -1,0 +1,98 @@
+// access: write (a temporary tut-ode-predator-prey.dslb, removed)
+// Topic: the Lotka-Volterra predator-prey system (after: the scipy-lectures ODE section and the classic scipy.integrate
+//   odeint tutorial example)
+// What it does: the _dsl_ version of ../tut-ode-predator-prey.lms. Integrates prey' = a prey - b prey pred, pred' = c prey pred - d pred
+//   with ode (DOP853 at rtol 1e-10, atol 1e-12, 241 output points on [0, 30], event a - b pred = 0 falling: the prey maxima), measures
+//   the period from the sampled prey peaks with find_peaks, and checks: every event is a real maximum of the sampled prey curve (not
+//   just the root of the event expression), predators are a/b there, the conserved quantity c prey - d ln prey + b pred - a ln pred
+//   (ln through special xlogy) stays constant along the orbit, the peak spacing equals the event spacing, and the peak height and
+//   period match the values pinned for this orbit.
+// Data: none (parameters a=1.1, b=0.4, c=0.1, d=0.4, start prey=10, pred=5; the textbook rabbit / fox values).
+// Known answers: the original's pins (prey maximum 13.67603 at t = 10.07736 and 20.86624, tolerance 1e-4) and, tighter, scipy 1.16.2
+//   solve_ivp DOP853 with the same settings (oracle venv): event times 10.077359037584952, 20.866236765596692, prey there
+//   13.676031809930846; sampled prey peaks at grid indices 81 and 167.
+// Tolerance: the original's (1e-4 pins, 1e-6 first-integral drift, 1e-5 for pred = a/b, one grid step for the period); scipy pins 1e-6.
+// How to run: lmscript examples/dsl/tut-ode-predator-prey.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let a = 1.1;
+let b = 0.4;
+let c = 0.1;
+let d = 0.4;
+let o = opts().set("method", "DOP853").set("rtol", 0.0000000001).set("atol", 0.000000000001).set("max_output_points", 241);
+o.set("$a", a).set("$b", b).set("$c", c).set("$d", d);
+o.set("events", strs("a - b*pred")).set("direction", vec(-1.0)).set("terminal", vec(0.0));
+let r = ode(strs("a*prey - b*prey*pred, c*prey*pred - d*pred"), strs("prey, pred"), vec(10.0, 5.0), 0.0, 30.0, o);
+out.check("status OK", r.ok());
+let t = r.vec("t");
+let y = r.mat("y");
+let prey = y.col(0);
+let pred = y.col(1);
+let et = r.vec("event_t");
+let ey = r.mat("event_y");
+let ne = int(r.vec("event_counts").at(0));
+out.check("241 output points", t.len() == 241);
+out.check("at least two prey maxima in 30 time units", ne >= 2);
+
+# Self-check 1: each event is a genuine maximum of the prey curve. The event a - b pred = 0 makes pred = a / b by construction (that
+# alone would be circular), so compare the event prey value with the sampled prey on the output grid: at least the largest grid value,
+# and the grid values on both sides of the event time lower (rising into and falling out of it).
+let genuine = true;
+let pred_ab = true;
+for (i in range(0, ne)) {
+  let te = et.at(i);
+  let pe = ey.at(i, 0);
+  if (pe < prey.max() - 0.000001) { genuine = false; }
+  let k = t.lt(te).count() - 1;
+  if (prey.at(k) >= pe || prey.at(k + 1) >= pe || prey.at(k) <= prey.at(k - 1) || prey.at(k + 1) <= prey.at(k + 2)) { genuine = false; }
+  if (abs(ey.at(i, 1) - a / b) > 0.00001) { pred_ab = false; }
+}
+out.check("events are true prey maxima of the sampled curve", genuine);
+out.check("predators at a prey maximum are a/b", pred_ab);
+# The original's pins: prey maximum 13.67603 at t = 10.07736 and 20.86624 (period 10.78888).
+out.close("pinned peak height", ey.at(0, 0), 13.67603, 0.0001);
+out.close("pinned first peak time", et.at(0), 10.07736, 0.0001);
+out.close("pinned second peak time", et.at(1), 20.86624, 0.0001);
+out.close("scipy DOP853 peak height", ey.at(0, 0), 13.676031809930846, 0.000001);
+out.close("scipy DOP853 event times", et.slice(0, 2), vec(10.077359037584952, 20.866236765596692), 0.000001);
+
+# Self-check 2: the first integral V = c prey - d ln prey + b pred - a ln pred is constant along the orbit.
+let lp = special("xlogy", 1.0, prey);
+let ld = special("xlogy", 1.0, pred);
+let vv = prey.mul(c).sub(lp.mul(d)).add(pred.mul(b)).sub(ld.mul(a));
+let v0 = vv.at(0);
+let worst = vv.sub(v0).abs().max();
+out.check("first integral conserved to 1e-6", worst <= 0.000001);
+
+# Self-check 3: the period from the sampled prey peaks agrees with the event times (the grid step is 0.125).
+let pk = find_peaks(prey, opts().set("prominence", 1.0));
+let pidx = pk.vec("indices");
+let dt = t.at(1) - t.at(0);
+let period_events = et.at(1) - et.at(0);
+let period_peaks = (pidx.at(1) - pidx.at(0)) * dt;
+out.check("as many sampled peaks as events", pk.int("n_peaks") == ne);
+out.close("peak spacing matches the event spacing", period_peaks, period_events, dt);
+out.close("scipy peak indices", pidx, vec(81.0, 167.0), 0.0);
+
+out.put("n_t", t.len());
+out.put("prey_min", prey.min());
+out.put("prey_max", prey.max());
+out.put("pred_min", pred.min());
+out.put("pred_max", pred.max());
+out.put("event_t", et);
+out.put("event_y", ey);
+out.put("v0", v0);
+out.put("worst", worst);
+out.put("dt", dt);
+out.put("period_events", period_events);
+out.put("period_peaks", period_peaks);
+out.put("linearised", 2.0 * pi() / sqrt(a * d));
+end _dsl_
+
+v = lmnum.run(prog, "tut-ode-predator-prey");
+println(sprintf("%d output points on [0, 30]; prey in [%.3f, %.3f], predators in [%.3f, %.3f]; %d prey maxima detected", v.n_t, v.prey_min, v.prey_max, v.pred_min, v.pred_max, len(v.event_t)));
+for (i = 0; i < len(v.event_t); i = i + 1) { println(sprintf("  prey maximum at t=%.5f: prey=%.5f pred=%.5f", v.event_t[i], v.event_y[i][0], v.event_y[i][1])); }
+println(sprintf("conserved quantity V = %.10f, largest drift along the orbit %s", v.v0, str(v.worst)));
+println(sprintf("period: %.5f from the events, %.5f from the sampled peaks (grid %.3f); linearised 2 pi / sqrt(a d) = %.5f", v.period_events, v.period_peaks, v.dt, v.linearised));
+println("Checks passed: events are true prey maxima (grid comparison), peak 13.67603 at t = 10.07736 / 20.86624 as pinned, first integral conserved to 1e-6, peak period matches the events.");
