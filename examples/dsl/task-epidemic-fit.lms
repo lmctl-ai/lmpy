@@ -1,0 +1,89 @@
+// access: write (temporary .dslb)
+// Task: estimate epidemic parameters from noisy case counts, in one native program.
+//   1. simulate the "true" SIR epidemic (beta 0.30, gamma 0.10, N 10000, 10 initial cases) and record daily prevalence for 60 days;
+//   2. add Poisson reporting noise with a seeded generator (numpy-identical PCG64 stream, seed 11);
+//   3. fit beta and gamma by minimising the Pearson chi-square between the observations and the SIR model: the search loop
+//      (coordinate-wise golden-section, 5 sweeps) is written in the DSL and calls the ODE solver for every candidate;
+//   4. derive R0 = beta / gamma, the predicted peak day (event on i' = 0) and peak size from the fitted model;
+//   5. check the fit against the truth and the goodness of fit (chi-square per observation near 1 for Poisson noise).
+// Why a DSL: an expression objective cannot call an ODE solver; here the optimisation loop itself is DSL code, so a few hundred
+//   ODE solves run inside lmnum without any process or file round trip.
+// Tolerance: beta and gamma within 5% of the truth, R0 within 5%, peak day within 2 days of the true peak; chi2/n in [0.5, 1.5].
+// How to run: lmscript examples/dsl/task-epidemic-fit.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+fn sir(beta: float, gamma: float, days: int) -> Res {
+  let o = opts().set("method", "DOP853").set("rtol", 0.00000001).set("atol", 0.000001).set("t_eval", arange(days));
+  o.set("$b", beta).set("$g", gamma).set("$n", 10000.0);
+  o.set("events", strs("b*s*i/n-g*i")).set("direction", vec(-1.0));
+  let r = ode(strs("-b*s*i/n, b*s*i/n-g*i, g*i"), strs("s, i, r"), vec(9990.0, 10.0, 0.0), 0.0, float(days - 1), o);
+  return r;
+}
+fn chi2(beta: float, gamma: float, obs: Vec) -> float {
+  let model = sir(beta, gamma, obs.len()).mat("y").col(1);
+  let e = obs - model;
+  return e.mul(e).div(model.clip(1.0, inf())).sum();
+}
+# steps 1-2
+let truth = sir(0.30, 0.10, 60);
+let clean = truth.mat("y").col(1);
+let gen = rng(11);
+let obs = vec();
+for (lam in clean) { obs.push(gen.poisson(1, lam).at(0)); }
+out.put("observed_max", obs.max());
+# step 3: coordinate-wise golden-section search on [0.05, 1.0] x [0.02, 0.5]
+let beta = 0.5;
+let gamma = 0.2;
+let phi = (sqrt(5.0) - 1.0) / 2.0;
+let solves = 0;
+for (sweep in range(0, 5)) {
+  for (which in range(0, 2)) {
+    let lo = 0.05;
+    let hi = 1.0;
+    if (which == 1) { lo = 0.02; hi = 0.5; }
+    let a = hi - phi * (hi - lo);
+    let b = lo + phi * (hi - lo);
+    let fa = 0.0;
+    let fb = 0.0;
+    if (which == 0) { fa = chi2(a, gamma, obs); fb = chi2(b, gamma, obs); } else { fa = chi2(beta, a, obs); fb = chi2(beta, b, obs); }
+    solves = solves + 2;
+    while (hi - lo > 0.00001) {
+      if (fa < fb) {
+        hi = b; b = a; fb = fa; a = hi - phi * (hi - lo);
+        if (which == 0) { fa = chi2(a, gamma, obs); } else { fa = chi2(beta, a, obs); }
+      } else {
+        lo = a; a = b; fa = fb; b = lo + phi * (hi - lo);
+        if (which == 0) { fb = chi2(b, gamma, obs); } else { fb = chi2(beta, b, obs); }
+      }
+      solves = solves + 1;
+    }
+    if (which == 0) { beta = (lo + hi) / 2.0; } else { gamma = (lo + hi) / 2.0; }
+  }
+}
+# step 4
+let fit = sir(beta, gamma, 60);
+let fit_chi2 = chi2(beta, gamma, obs);
+let peak = fit.vec("event_t").at(0);
+let peak_size = fit.mat("event_y").at(0, 1);
+let true_peak = truth.vec("event_t").at(0);
+out.put("beta", beta);
+out.put("gamma", gamma);
+out.put("r0", beta / gamma);
+out.put("peak_day", peak);
+out.put("true_peak_day", true_peak);
+out.put("peak_size", peak_size);
+out.put("chi2_per_obs", fit_chi2 / float(obs.len()));
+out.put("ode_solves", solves);
+# step 5
+out.close_rel("beta within 5%", beta, 0.30, 0.05);
+out.close_rel("gamma within 5%", gamma, 0.10, 0.05);
+out.close_rel("R0 within 5%", beta / gamma, 3.0, 0.05);
+out.close("peak day within 2 days", peak, true_peak, 2.0);
+out.check("chi2 per observation near 1", fit_chi2 / float(obs.len()) > 0.5 && fit_chi2 / float(obs.len()) < 1.5);
+end _dsl_
+
+v = lmnum.run(prog, "task-epidemic-fit");
+println(sprintf("fitted beta %.4f, gamma %.4f, R0 %.3f (truth 0.30, 0.10, 3.0) after %d ODE solves", v.beta, v.gamma, v.r0, v.ode_solves));
+println(sprintf("predicted peak day %.2f (true %.2f), %.0f infected at the peak; chi2/n %.3f", v.peak_day, v.true_peak_day, v.peak_size, v.chi2_per_obs));
+println("Epidemic fit task passed.");
