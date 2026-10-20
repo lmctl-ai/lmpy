@@ -1,0 +1,55 @@
+// access: write (orders/customers CSVs and the exported report, all removed; a temporary .dslb)
+// What it does: the _dsl_ version of ../csv-join-report.lms. Two CSV files (orders and customers) -> read_csv -> merge (left join on the
+//   customer, validated many_to_one) -> mutate (revenue and a volume discount with the expression grammar) -> groupby per region ->
+//   write_csv, then checks every total against sums computed by hand from the literal data. Customer 9 has no master record and stays in
+//   the report as a missing region. One DSL program does all of it in memory; pycli needed one process and one .npz artifact per step.
+// Tolerance: exact (all values are small decimals; sums compared within 1e-9).
+// How to run: lmscript examples/dsl/csv-join-report.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+write_file("orders-dsl.csv", "order_id,cust,qty,unit_price\n1,1,4,2.5\n2,2,12,1.0\n3,1,10,3.0\n4,3,1,40.0\n5,9,6,5.0\n6,2,2,10.0\n7,3,20,0.5\n");
+write_file("customers-dsl.csv", "cust,region,tier\n1,North,gold\n2,South,silver\n3,North,silver\n4,East,gold\n");
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let orders = read_csv("orders-dsl.csv");
+let customers = read_csv("customers-dsl.csv");
+let joined = orders.merge(customers, strs("cust"), "left", opts().set("validate", "many_to_one"));
+# match statistics from an outer join with the pandas-style indicator column
+let both = orders.merge(customers, strs("cust"), "outer", opts().set("indicator", true));
+out.put("n_rows", joined.nrows());
+out.put("n_pairs", both.where("_merge", "both").nrows());
+out.put("n_left_only", both.where("_merge", "left_only").nrows());
+out.put("n_right_only", both.where("_merge", "right_only").nrows());
+let revenue = joined.mutate("revenue", "qty * unit_price").mutate("net", "ifelse(qty >= 10, revenue * 0.9, revenue)");
+let regions = revenue.groupby(strs("region"), "net:sum|count");
+regions.write_csv("report-dsl.csv");
+out.put("report", regions);
+# hand totals: North = customers 1 and 3 (10 + 27 + 40 + 9), South = customer 2 (10.8 + 20), order 5 (customer 9) has no region (30)
+for (i in range(0, regions.nrows())) {
+  let total = regions.num("net__sum", i);
+  if (regions.is_missing("region", i)) {
+    out.close("no-region total", total, 30.0, 0.000000001);
+  } else {
+    switch (regions.cell("region", i)) {
+      case "North": { out.close("North total", total, 86.0, 0.000000001); }
+      case "South": { out.close("South total", total, 30.8, 0.000000001); }
+      default: { out.check("unexpected region " + regions.cell("region", i), false); }
+    }
+  }
+}
+out.check("three region groups", regions.nrows() == 3);
+out.check("join counts 6 / 1 / 1", both.where("_merge", "both").nrows() == 6 && both.where("_merge", "left_only").nrows() == 1 && both.where("_merge", "right_only").nrows() == 1);
+end _dsl_
+
+v = lmnum.run(prog, "csv-join-report");
+println(sprintf("joined: %d rows, %d matched pairs, %d orders without a customer record, %d customers without orders", v.n_rows, v.n_pairs, v.n_left_only, v.n_right_only));
+d = v.report.data;
+for (i = 0; i < len(d.region); i = i + 1) {
+  name = d.region[i];
+  if (name == null) { name = "(none)"; }
+  println(sprintf("  %-7s net %.2f over %d orders", name, d["net__sum"][i], d["net__count"][i]));
+}
+println("report exported to report-dsl.csv:");
+print(read_file("report-dsl.csv"));
+for (path in ["orders-dsl.csv", "customers-dsl.csv", "report-dsl.csv"]) { delete_file(path); }
+println("CSV join report passed.");

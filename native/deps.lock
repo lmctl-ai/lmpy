@@ -5,3 +5,4 @@ pocketfft|https://github.com/mreineck/pocketfft/archive/4d865cba24359b05b37da4e7
 nanoflann|https://github.com/jlblancoc/nanoflann/archive/refs/tags/v1.6.1.tar.gz|e258d6fd6ad18e1809fa9c081553e78036fd6e7b418d3762875c2c5a015dd431|nanoflann-1.6.1|BSD-2-Clause
 lbfgspp|https://github.com/yixuan/LBFGSpp/archive/refs/tags/v0.3.0.tar.gz|490720b9d5acce6459cb0336ca3ae0ffc48677225f0ebfb35c9bef6baefdfc6a|LBFGSpp-0.3.0|MIT
 highs|https://github.com/ERGO-Code/HiGHS/archive/refs/tags/v1.7.2.tar.gz|5ff96c14ae19592d3568e9ae107624cbaf3409d328fb1a586359f0adf9b34bf7|HiGHS-1.7.2|MIT
+spectra|https://github.com/yixuan/spectra/archive/refs/tags/v1.0.1.tar.gz|919e3fbc8c539a321fd5a0766966922b7637cc52eb50a969241a997c733789f3|spectra-1.0.1|MPL-2.0

@@ -1,0 +1,68 @@
+// access: write (temporary .dslb)
+// What it does: the _dsl_ version of ../sparse-poisson.lms. Assembles the 1-D Poisson matrix tridiagonal(-1, 2) from COO triplets in
+//   the DSL, solves -u'' = 2 on (0, 1) (the exact solution u(x) = x (1 - x) is reproduced exactly by the 3-point scheme) with a direct
+//   sparse LU, conjugate gradient and GMRES, and finds the smallest and largest three eigenvalues with seeded Lanczos (eigsh) against the
+//   analytic spectrum lambda_j = 4 sin^2(j pi / (2 (n + 1))). The DSL has sin, so the analytic values are computed in place.
+// Tolerance: solutions within 1e-9 of u(x_i); eigenvalues within 1e-9 relative of the analytic values; the seeded run is reproducible.
+// How to run: lmscript examples/dsl/sparse-poisson.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let n = 120;
+let h = 1.0 / float(n + 1);
+let a = sparse(n, n);
+let b = vec();
+let exact = vec();
+for (i in range(0, n)) {
+  a.add(i, i, 2.0);
+  if (i + 1 < n) { a.add(i, i + 1, -1.0); a.add(i + 1, i, -1.0); }
+  let x = float(i + 1) * h;
+  b.push(2.0 * h * h);
+  exact.push(x * (1.0 - x));
+}
+out.put("nnz", a.nnz());
+let direct = a.solve(b);
+let cg = a.cg(b, opts().set("rtol", 0.000000000001));
+let gm = a.gmres(b, opts().set("rtol", 0.000000000001).set("restart", 120).set("maxiter", 10));
+out.check("cg converged", cg.ok());
+out.check("gmres converged", gm.ok());
+out.close("spsolve = x(1-x)", direct, exact, 0.000000001);
+out.close("cg = x(1-x)", cg.vec("x"), exact, 0.000000001);
+out.close("gmres = x(1-x)", gm.vec("x"), exact, 0.000000001);
+out.put("errors", vec((direct - exact).abs().max(), (cg.vec("x") - exact).abs().max(), (gm.vec("x") - exact).abs().max()));
+out.put("relative_residuals", vec(cg.num("relative_residual"), gm.num("relative_residual")));
+
+let low = a.eigsh(3, opts().set("which", "SA").set("seed", 7));
+let high = a.eigsh(3, opts().set("which", "LA").set("seed", 7));
+out.check("eigsh converged", low.ok() && high.ok());
+let rel = 0.0;
+let analytic_low = vec();
+let analytic_high = vec();
+for (k in range(0, 3)) {
+  let sl = sin(float(k + 1) * pi() / (2.0 * float(n + 1)));
+  let sh = sin(float(n - 2 + k) * pi() / (2.0 * float(n + 1)));
+  analytic_low.push(4.0 * sl * sl);
+  analytic_high.push(4.0 * sh * sh);
+  rel = max(rel, abs(low.vec("w").at(k) - 4.0 * sl * sl) / (4.0 * sl * sl));
+  rel = max(rel, abs(high.vec("w").at(k) - 4.0 * sh * sh) / (4.0 * sh * sh));
+}
+out.close("eigenvalues vs analytic (relative)", rel, 0.0, 0.000000001);
+let again = a.eigsh(3, opts().set("which", "SA").set("seed", 7));
+out.check("seeded run reproducible", again.vec("w").sub(low.vec("w")).abs().max() == 0.0);
+out.put("low", low.vec("w"));
+out.put("high", high.vec("w"));
+out.put("analytic_low", analytic_low);
+out.put("analytic_high", analytic_high);
+out.put("max_relative_eig_error", rel);
+out.put("max_residual", low.num("max_residual"));
+end _dsl_
+
+v = lmnum.run(prog, "sparse-poisson");
+tasks = ["spsolve", "cg", "gmres"];
+for (k = 0; k < 3; k = k + 1) { println(sprintf("%-7s max |u - exact| = %.12f", tasks[k], v.errors[k])); }
+println("eigsh (seed 7): smallest and largest three eigenvalues against the analytic spectrum");
+for (k = 0; k < 3; k = k + 1) {
+  println(sprintf("  lambda_%d %.12f (analytic %.12f)   lambda_%d %.12f (analytic %.12f)", k + 1, v.low[k], v.analytic_low[k], 118 + k, v.high[k], v.analytic_high[k]));
+}
+println(sprintf("largest relative eigenvalue error %.12f; Lanczos residual %.12f", v.max_relative_eig_error, v.max_residual));
+println("Sparse Poisson solves and spectrum agree.");

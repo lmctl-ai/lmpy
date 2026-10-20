@@ -1,0 +1,48 @@
+// access: write (temporary .dslb)
+// What it does: the _dsl_ version of ../oracle-frame.lms. An outer join with duplicate keys on both sides and keys present on one side
+//   only, and 3-row trailing rolling windows (mean, sum, std, min, max, median). The original compared pycli with lmda row by row; here
+//   the join is checked against the hand join (which both tools reproduced) and the rolling windows against hand values and pandas
+//   (pandas 2.3.3 rolling(3) on the same series, pinned below).
+// Tolerance: 1e-12 absolute.
+// How to run: lmscript examples/dsl/oracle-frame.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let left = csv("id,a\n1,x\n2,y\n2,z\n3,w\n");
+let right = csv("id,b\n2,B\n3,C\n3,D\n4,E\n");
+let j = left.merge(right, strs("id"), "outer");
+out.put("join", j);
+# hand join (sorted by key; left rows in order, matches in right order): 1/x/-, 2/y/B, 2/z/B, 3/w/C, 3/w/D, 4/-/E
+out.close("join ids", j.col("id"), vec("1 2 2 3 3 4"), 0.0);
+out.check("join a", j.cell("a", 0) == "x" && j.cell("a", 1) == "y" && j.cell("a", 2) == "z" && j.cell("a", 3) == "w" && j.cell("a", 4) == "w" && j.is_missing("a", 5));
+out.check("join b", j.is_missing("b", 0) && j.cell("b", 1) == "B" && j.cell("b", 2) == "B" && j.cell("b", 3) == "C" && j.cell("b", 4) == "D" && j.cell("b", 5) == "E");
+let ind = left.merge(right, strs("id"), "outer", opts().set("indicator", true));
+out.put("n_pairs", ind.where("_merge", "both").nrows());
+out.put("n_left_only", ind.where("_merge", "left_only").nrows());
+out.put("n_right_only", ind.where("_merge", "right_only").nrows());
+
+let s = frame().with("v", vec("3.0 1.0 4.0 1.5 9.0 2.0 6.0 5.0 3.5"));
+let mean = s.rolling("v", 3, "mean");
+let sum = s.rolling("v", 3, "sum");
+let sd = s.rolling("v", 3, "std");
+let lo = s.rolling("v", 3, "min");
+let hi = s.rolling("v", 3, "max");
+let med = s.rolling("v", 3, "median");
+out.check("first two windows missing", is_nan(mean.at(0)) && is_nan(mean.at(1)) && is_nan(sd.at(1)));
+# hand check of row 4 (window 4.0 1.5 9.0)
+let m4 = 14.5 / 3.0;
+out.close("row 4 mean", mean.at(4), m4, 0.000000000001);
+out.close("row 4 sum", sum.at(4), 14.5, 0.000000000001);
+out.close("row 4 std", sd.at(4), sqrt(((4.0 - m4) * (4.0 - m4) + (1.5 - m4) * (1.5 - m4) + (9.0 - m4) * (9.0 - m4)) / 2.0), 0.000000000001);
+out.check("row 4 min/max/median", lo.at(4) == 1.5 && hi.at(4) == 9.0 && med.at(4) == 4.0);
+# pandas 2.3.3: pd.Series(v).rolling(3).agg(...) rows 2..8
+out.close("pandas mean", mean.slice(2, 9), vec("2.6666666666666665 2.1666666666666665 4.833333333333333 4.166666666666667 5.666666666666667 4.333333333333333 4.833333333333333"), 0.000000000001);
+out.close("pandas std", sd.slice(2, 9), vec("1.5275252316519468 1.607275126832159 3.8188130791298667 4.1932485418030412 3.5118845842842461 2.0816659994661326 1.2583057392117916"), 0.000000000001);
+out.close("pandas median", med.slice(2, 9), vec("3.0 1.5 4.0 2.0 6.0 5.0 5.0"), 0.0);
+out.put("rolling_mean", mean);
+end _dsl_
+
+v = lmnum.run(prog, "oracle-frame");
+println(sprintf("outer join: %d rows, %d matched pairs, %d left-only, %d right-only", len(v.join.data.id), v.n_pairs, v.n_left_only, v.n_right_only));
+println("rolling mean:", json_stringify(v.rolling_mean));
+println("Join and rolling windows agree.");

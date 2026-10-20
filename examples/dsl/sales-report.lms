@@ -1,0 +1,39 @@
+// access: write (the generated sales CSV and the weekly report, removed; a temporary .dslb)
+// What it does: the _dsl_ version of ../sales-report.lms. Generates 14 days of UTC sales, keeps the rows with sales >= 50 sorted by time,
+//   aggregates per region (sum, mean, count) and per week (pandas "1W": weeks ending on Sunday, labelled by that Sunday), exports the
+//   weekly table as CSV and checks the region sums against hand-computed totals.
+// Tolerance: exact.
+// How to run: lmscript examples/dsl/sales-report.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+text = "ts,region,sales\n";
+for (i = 1; i < 15; i = i + 1) {
+  region = "East";
+  if (i % 2 == 0) { region = "West"; }
+  text = text + sprintf("2026-03-%02dT12:00:00+00:00,%s,%d\n", i, region, 10 * i);
+}
+write_file("sales-dsl.csv", text);
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let sales = read_csv("sales-dsl.csv");
+let selected = sales.filter("sales >= 50").sort("ts", true);
+let regions = selected.groupby(strs("region"), "sales:sum|mean|count");
+let weekly = selected.resample("ts", "1W", "sales:sum|count");
+weekly.write_csv("sales-report-dsl.csv");
+out.put("regions", regions);
+out.put("weekly", weekly);
+# East keeps days 5 7 9 11 13 (450), West keeps 6 8 10 12 14 (500)
+out.check("region order", regions.cell("region", 0) == "East" && regions.cell("region", 1) == "West");
+out.close("East sum", regions.num("sales__sum", 0), 450.0, 0.0);
+out.close("West sum", regions.num("sales__sum", 1), 500.0, 0.0);
+# weeks ending Sunday 2026-03-08 (days 5-8: 260) and 2026-03-15 (days 9-14: 690)
+out.check("week labels", weekly.cell("ts", 0) == "2026-03-08 00:00:00+00:00" && weekly.cell("ts", 1) == "2026-03-15 00:00:00+00:00");
+out.close("week 1 sum", weekly.num("sales__sum", 0), 260.0, 0.0);
+out.close("week 2 sum", weekly.num("sales__sum", 1), 690.0, 0.0);
+end _dsl_
+
+v = lmnum.run(prog, "sales-report");
+println("Region totals:", json_stringify(v.regions.data));
+println("Weekly CSV:", read_file("sales-report-dsl.csv"));
+for (path in ["sales-dsl.csv", "sales-report-dsl.csv"]) { delete_file(path); }
+println("Sales report passed.");

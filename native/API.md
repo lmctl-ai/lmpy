@@ -314,6 +314,7 @@ Column table.
 | `filter(string) -> Frame` | rows where the expression is nonzero: `f.filter("x > 0 & y < 3")` |
 | `has(string) -> bool` | whether a column exists |
 | `head(int) -> Frame` | first n rows |
+| `is_missing(string, int) -> bool` | whether a cell is missing (NaN, or an absent text value after a join) |
 | `is_numeric(string) -> bool` | whether a column is numeric |
 | `json() -> string` | {columns, rows, data} JSON text |
 | `mutate(string, string) -> Frame` | new frame with column NAME = expression over numeric columns: `f.mutate("bmi", "w / (h/100)^2")` |
@@ -332,6 +333,66 @@ Column table.
 | `with(string, Vec) -> Frame` | new frame with a numeric column added or replaced |
 | `with(string, StrVec) -> Frame` | new frame with a text column added or replaced |
 | `write_csv(string) -> void` | write the frame as CSV (atomic replace) |
+
+## Table operations
+
+Grouping, joins, rolling windows, time resampling, reshaping and summaries (pycli `frame_groupby`, `frame_merge`, `frame_rolling`, `frame_resample`, `frame_inspect`). An aggregation spec is `"col:agg|agg, col:agg"`; result columns are named `col__agg` like pycli. Aggregations: sum, mean, count (non-missing), size (rows), min, max, std and var (ddof 1), median, first, last, nunique, prod.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `format_time(float) -> string` | seconds since 1970 UTC as `YYYY-MM-DD HH:MM:SS` |
+| `parse_time(string) -> float` | ISO-8601 text as seconds since 1970 UTC |
+
+### More methods of `Frame`
+
+| Method | Meaning |
+|---|---|
+| `concat(Frame) -> Frame` | rows of this frame then the other (same column names and kinds) |
+| `describe() -> Frame` | summary of the numeric columns: a `stat` column (count, mean, std, min, 25%, 50%, 75%, max) and one column each (pandas describe) |
+| `dropna() -> Frame` | rows with no missing value in any column |
+| `dropna(StrVec) -> Frame` | rows with no missing value in these columns |
+| `fillna(string, float) -> Frame` | replace NaN in a numeric column |
+| `groupby(StrVec, string) -> Frame` | group by key columns and aggregate: `f.groupby(strs("region"), "sales:sum|mean")`; groups sorted, a missing key is its own group (pandas dropna=False) |
+| `groupby(StrVec, string, bool) -> Frame` | groupby; the bool drops rows whose key is missing (pandas dropna=True) |
+| `merge(Frame, StrVec, string) -> Frame` | database join on key columns, how = inner, left, right or outer (pandas.merge: outer is sorted by key; clashing names get _x/_y) |
+| `merge(Frame, StrVec, string, Opts) -> Frame` | merge with options: `validate` (one_to_one, one_to_many, many_to_one, many_to_many), `indicator` (bool: adds `_merge` = left_only/right_only/both), `suffixes` (StrVec of two) |
+| `pivot(string, string, string, string) -> Frame` | pivot table (index column, columns column, values column, agg): one row per index value, one column per distinct `columns` value (sorted) |
+| `resample(string, string, string) -> Frame` | time bins over an ISO-8601 text (or epoch-seconds) column: rule `15min`, `1h`, `1D` (bins from midnight of the first day, labelled left), `W`/`W-DAY` (weeks ending on DAY, labelled right), `MS`/`ME`, `QS`/`QE`, `YS`/`YE`; empty bins are kept (pandas resample) |
+| `rolling(string, int, string) -> Vec` | trailing window aggregate of a numeric column (pandas rolling: the first window-1 values are NaN) |
+| `rolling(string, int, string, Opts) -> Vec` | rolling with `min_periods` (int) and `center` (bool) |
+| `shift(string, int) -> Vec` | a numeric column shifted by n rows (positive: later rows see earlier values; vacated cells NaN) |
+| `times(string) -> Vec` | an ISO-8601 text column as seconds since 1970-01-01 UTC (offsets applied) |
+| `unique(string) -> StrVec` | distinct values of a column as text, in first-seen order (missing omitted) |
+| `value_counts(string) -> Frame` | frame {value (text), count} sorted by count descending, then value |
+
+### More methods of `Vec`
+
+| Method | Meaning |
+|---|---|
+| `rolling(int, string) -> Vec` | trailing window aggregate (same rules as Frame.rolling) |
+
+## Array files
+
+NumPy `.npy` and `.safetensors` arrays (pycli's artifact formats). Reads accept the dtypes pycli accepts (<f8 <f4 <i8 <i4 |u1 |b1; F64 F32 I64 I32 U8 BOOL), rank 1 or 2; writes are float64 and atomic.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `mat_frame(Mat, StrVec) -> Frame` | a matrix as a frame with these column names (pycli array_to_frame) |
+| `read_npy(string) -> Mat` | a .npy file as a matrix (a rank-1 array becomes one column) |
+| `read_npy_vec(string) -> Vec` | a rank-1 (or single-column) .npy file as a vector |
+| `read_safetensors(string, string) -> Mat` | one tensor (file, key) as a matrix (rank 1 becomes one column) |
+| `read_safetensors_vec(string, string) -> Vec` | one rank-1 tensor (file, key) as a vector |
+| `read_text(string) -> string` | read a whole text file |
+| `remove_file(string) -> bool` | delete a file; false when it did not exist |
+| `write_npy(string, Vec) -> void` | write a vector as a rank-1 float64 .npy |
+| `write_npy(string, Mat) -> void` | write a matrix as a rank-2 float64 .npy |
+| `write_safetensors(string, string, Vec) -> void` | write a vector as one F64 tensor (file, key, data) |
+| `write_safetensors(string, string, Mat) -> void` | write a matrix as one F64 tensor (file, key, data) |
+| `write_text(string, string) -> void` | write a text file (atomic replace) |
 
 ## Linear algebra
 
@@ -365,4 +426,40 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `sqrtm() -> Mat` | principal matrix square root (real result required) |
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
+
+## Sparse matrices
+
+`Sparse` is a compressed sparse matrix (pycli `la_sparse`). Build it from COO triplets (duplicates add up, like scipy) or entry by entry, then solve directly (`solve`, SuperLU-style sparse LU), iteratively (`cg`, `gmres`, `bicgstab`; options `rtol`, `atol`, `maxiter`, `x0`, gmres `restart`) or find eigenvalues of a symmetric matrix (`eigsh`, implicitly restarted Lanczos as in ARPACK).
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `sparse(int, int) -> Sparse` | empty rows x cols sparse matrix (fill with `add`) |
+| `sparse(Vec, Vec, Vec, int, int) -> Sparse` | from COO triplets (row indexes, column indexes, values, rows, cols); duplicates are summed |
+| `sparse(Mat) -> Sparse` | from a dense matrix (zeros dropped) |
+| `speye(int) -> Sparse` | n x n sparse identity |
+| `tridiag(int, float, float, float) -> Sparse` | n x n tridiagonal matrix with constant (lower, diagonal, upper) bands |
+
+### Type `Sparse`
+
+Sparse float64 matrix. Operator `*` multiplies by a Vec.
+
+Operators: `*` → `mul`
+
+| Method | Meaning |
+|---|---|
+| `add(int, int, float) -> Sparse` | *in place*: A[i, j] += x; returns the matrix |
+| `bicgstab(Vec, Opts) -> Res` | BiCGSTAB for general A: `rtol`, `atol`, `maxiter`, `x0` |
+| `cg(Vec) -> Res` | conjugate gradient for symmetric positive definite A: x, status, iterations, residual_norm, relative_residual |
+| `cg(Vec, Opts) -> Res` | cg with `rtol` (default 1e-5), `atol`, `maxiter` (default 10 n), `x0` |
+| `cols() -> int` | column count |
+| `eigsh(int, Opts) -> Res` | k eigenvalues of a symmetric matrix (ARPACK-style Lanczos): `which` LA, SA, LM or SM (default LM), `seed` (start vector), `ncv`, `tol`, `maxiter`; fields w (ascending), vectors (Mat, columns), max_residual, nconv, status |
+| `gmres(Vec, Opts) -> Res` | restarted GMRES: `rtol`, `atol`, `restart` (default 20), `maxiter`, `x0` |
+| `mul(Vec) -> Vec` | matrix-vector product |
+| `nnz() -> int` | stored nonzeros (after summing duplicates) |
+| `rows() -> int` | row count |
+| `solve(Vec) -> Vec` | direct sparse LU solve (scipy spsolve); singular matrices are refused |
+| `t() -> Sparse` | transpose |
+| `to_dense() -> Mat` | dense copy |
 

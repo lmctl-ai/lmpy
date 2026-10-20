@@ -13,7 +13,7 @@
 namespace lmnum {
 
 std::string Column::cell_text(size_t i) const {
-  if (!numeric) return text[i];
+  if (!numeric) return is_missing(i) ? "" : text[i];
   double v = num[i];
   if (std::isnan(v)) return "";
   if (v == std::floor(v) && std::fabs(v) < 1e15) { char b[32]; std::snprintf(b, sizeof b, "%.0f", v); return b; }
@@ -205,7 +205,7 @@ std::string frame_to_csv(const Frame& f) {
   for (size_t j = 0; j < f.cols.size(); ++j) o += (j ? "," : "") + csv_quote(f.cols[j].name);
   o += "\n";
   for (size_t i = 0; i < f.nrows(); ++i) {
-    for (size_t j = 0; j < f.cols.size(); ++j) o += (j ? "," : "") + csv_quote(f.cols[j].numeric ? (std::isnan(f.cols[j].num[i]) ? "" : jnum(f.cols[j].num[i])) : f.cols[j].text[i]);
+    for (size_t j = 0; j < f.cols.size(); ++j) o += (j ? "," : "") + csv_quote(f.cols[j].is_missing(i) ? "" : f.cols[j].numeric ? jnum(f.cols[j].num[i]) : f.cols[j].text[i]);
     o += "\n";
   }
   return o;
@@ -214,7 +214,17 @@ std::string frame_to_json(const Frame& f) {
   std::string o = "{\"columns\": [";
   for (size_t j = 0; j < f.cols.size(); ++j) o += (j ? ", " : "") + jstr(f.cols[j].name);
   o += "], \"rows\": " + std::to_string(f.nrows()) + ", \"data\": {";
-  for (size_t j = 0; j < f.cols.size(); ++j) o += (j ? ", " : "") + jstr(f.cols[j].name) + ": " + (f.cols[j].numeric ? jvec(f.cols[j].num) : jstrs(f.cols[j].text));
+  for (size_t j = 0; j < f.cols.size(); ++j) {
+    const Column& c = f.cols[j];
+    std::string arr;
+    if (c.numeric) arr = jvec(c.num);
+    else {
+      arr = "[";
+      for (size_t i = 0; i < c.text.size(); ++i) arr += (i ? "," : "") + (c.is_missing(i) ? std::string("null") : jstr(c.text[i]));
+      arr += "]";
+    }
+    o += (j ? ", " : "") + jstr(c.name) + ": " + arr;
+  }
   return o + "}}";
 }
 Frame* frame_take(const Frame& f, const std::vector<size_t>& rows) {
@@ -227,6 +237,8 @@ Frame* frame_take(const Frame& f, const std::vector<size_t>& rows) {
       if (c.numeric) n.num.push_back(c.num[i]);
       else n.text.push_back(c.text[i]);
     }
+    if (!c.numeric && !c.missing.empty())
+      for (size_t i : rows) n.missing.push_back(c.missing[i]);
     r->cols.push_back(std::move(n));
   }
   return r;
@@ -257,6 +269,8 @@ void register_frame(Api& api) {
     const Column& c = ff(s).num_col(a[0].s); return F(c.num[index_arg(a[1].i, c.size(), "Frame.num")]); });
   api.method(Ft, "cell", {"string", "int"}, "string", "one cell as text (column, row)", [](void* s, Args& a) {
     const Column& c = ff(s).get(a[0].s); return S(c.cell_text(index_arg(a[1].i, c.size(), "Frame.cell"))); });
+  api.method(Ft, "is_missing", {"string", "int"}, "bool", "whether a cell is missing (NaN, or an absent text value after a join)", [](void* s, Args& a) {
+    const Column& c = ff(s).get(a[0].s); return B(c.is_missing(index_arg(a[1].i, c.size(), "Frame.is_missing"))); });
   api.method(Ft, "with", {"string", Vt}, Ft, "new frame with a numeric column added or replaced", [](void* s, Args& a) {
     auto* r = make<Frame>(ff(s)); Column c; c.name = a[0].s; c.num = obj<Vec>(a[1]).v; r->add(std::move(c)); return O(r); });
   api.method(Ft, "with", {"string", St}, Ft, "new frame with a text column added or replaced", [](void* s, Args& a) {

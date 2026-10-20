@@ -1,0 +1,50 @@
+// access: write (bridge CSV and two safetensors files, removed; a temporary .dslb)
+// What it does: the _dsl_ version of ../bridge-ml.lms, the table/array bridge end to end: read_csv -> mutate (intercept column) ->
+//   to_mat (design matrix and target) -> write_safetensors / read_safetensors (pycli's artifact format round trip) -> lstsq ->
+//   predictions joined back onto the table as `fitted` and `residual` columns. The fit recovers the generating coefficients
+//   (2, 3, -0.5) within the injected noise.
+// Tolerance: coefficients within 0.05 of the generating values; the table round trip is exact.
+// How to run: lmscript examples/dsl/bridge-ml.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+text = "x1,x2,y\n";
+for (i = 0; i < 40; i = i + 1) {
+  x1 = i / 4;
+  x2 = (i * 7) % 11 - 5;
+  noise = ((i * 37 + 11) % 17 - 8) / 400;
+  text = text + sprintf("%.6f,%.6f,%.9f\n", x1, x2, 2 + 3 * x1 - 0.5 * x2 + noise);
+}
+write_file("bridge-dsl.csv", text);
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let table = read_csv("bridge-dsl.csv").mutate("one", "1");
+write_safetensors("design-dsl.safetensors", "a", table.to_mat(strs("one, x1, x2")));
+write_safetensors("target-dsl.safetensors", "b", table.col("y"));
+let a = read_safetensors("design-dsl.safetensors", "a");
+let b = read_safetensors_vec("target-dsl.safetensors", "b");
+out.put("design_shape", vec(float(a.rows()), float(a.cols())));
+let fit = a.lstsq(b);
+let coef = fit.vec("x");
+out.put("coefficients", coef);
+out.check("lstsq status", fit.ok());
+out.close("generating coefficients", coef, vec(2.0, 3.0, -0.5), 0.05);
+let fitted = a * coef;
+let enriched = table.drop(strs("one")).with("fitted", fitted).with("residual", b - fitted);
+out.check("enriched shape 40 x 5", enriched.nrows() == 40 && enriched.ncols() == 5);
+let worst = 0.0;
+for (i in range(0, enriched.nrows())) {
+  worst = max(worst, abs(enriched.num("y", i) - enriched.num("fitted", i) - enriched.num("residual", i)));
+}
+out.close("y = fitted + residual on every row", worst, 0.0, 0.000000000001);
+out.check("safetensors round trip is exact", a.max_abs_diff(table.to_mat(strs("one, x1, x2"))) == 0.0);
+out.put("head", enriched.head(3));
+remove_file("design-dsl.safetensors");
+remove_file("target-dsl.safetensors");
+end _dsl_
+
+v = lmnum.run(prog, "bridge-ml");
+c = v.coefficients;
+println(sprintf("design %s, coefficients %.4f %.4f %.4f", json_stringify(v.design_shape), c[0], c[1], c[2]));
+println("enriched source: 40 rows, original features plus fitted and residual columns");
+delete_file("bridge-dsl.csv");
+println("Bridge pipeline passed.");

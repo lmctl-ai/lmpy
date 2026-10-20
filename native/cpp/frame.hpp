@@ -9,8 +9,10 @@ struct Column {
   bool numeric = true;
   std::vector<double> num;         // numeric == true (NaN marks a missing value)
   std::vector<std::string> text;   // numeric == false
+  std::vector<unsigned char> missing;  // text columns only: empty (nothing missing) or one flag per row (outer joins)
   size_t size() const { return numeric ? num.size() : text.size(); }
-  std::string cell_text(size_t i) const;  // numbers as shortest round-trip text, NaN as ""
+  bool is_missing(size_t i) const { return numeric ? std::isnan(num[i]) : (!missing.empty() && missing[i]); }
+  std::string cell_text(size_t i) const;  // numbers as shortest round-trip text; a missing value is ""
 };
 
 struct Frame : Obj {
