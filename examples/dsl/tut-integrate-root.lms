@@ -1,0 +1,78 @@
+// access: write (a temporary tut-integrate-root.dslb, removed)
+// Topic: numerical integration and root finding (after: the scipy-lectures "numerical integration" and "root finding" sections
+//   and the scipy.integrate / scipy.optimize tutorials)
+// What it does: the _dsl_ version of ../tut-integrate-root.lms. Integrates three textbook integrands with `quad` (QUADPACK; QAGI
+//   for the infinite limits) and compares them with closed forms, solves Kepler's equation E - 0.3 sin E = 1 with `root_scalar`
+//   (brentq) and the system x^2 + y^2 = 4, y = x^2 - 2 with `root` (hybr), and ties integration to the distribution functions:
+//   the integral of the normal density over [-1.96, 1.96] equals 1 - 2 Phi(-1.96) from `dist("norm")`.
+// Known answers: int_0^inf x^3/(e^x - 1) dx = pi^4/15 (zeta(4) Gamma(4)), int e^(-x^2) dx = sqrt(pi), int_0^1 4/(1+x^2) dx = pi;
+//   the Kepler residual is recomputed with a 25-term Taylor series for sin (DSL arithmetic, not the expression engine); the
+//   system's closed form is (sqrt 3, 1) (substitute x^2 = y + 2 into the circle: y^2 + y - 2 = 0).
+// Tolerance (as the original): each integral within 1e-9 + 10 * abserr of the closed form; Kepler residual 1e-9; system root
+//   1e-9; quadrature vs the normal cdf 1e-9.
+// Data: none.
+// How to run: lmscript examples/dsl/tut-integrate-root.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+fn integral(label: string, f: string, a: float, b: float, exact: float) -> float {
+  let r = quad(f, "x", a, b, opts().set("epsabs", 0.0).set("epsrel", 0.000000000001));
+  out.check(label + ": status OK", r.ok());
+  let err = abs(r.num("value") - exact);
+  out.check(label + ": within 1e-9 + 10 abserr of the closed form", err <= 0.000000001 + 10.0 * r.num("abserr"));
+  out.put(label, r);
+  out.put(label + " exact", exact);
+  return r.num("value");
+}
+let p = pi();
+integral("planck", "x^3/(exp(x)-1)", 0.0, inf(), pow(p, 4.0) / 15.0);
+integral("gauss", "exp(-x^2)", -inf(), inf(), sqrt(p));
+integral("arctan", "4/(1+x^2)", 0.0, 1.0, p);
+
+# Kepler's equation E - e sin(E) = M for e = 0.3, M = 1: bracketed root, then the residual with the Taylor series for sin
+let k = root_scalar("x - e*sin(x) - m", "x", 0.0, p, opts().set("method", "brentq").set("xtol", 0.000000000001)
+  .set("$e", 0.3).set("$m", 1.0));
+out.check("kepler: status OK", k.ok());
+let en = k.num("root");
+let term = en;
+let total = en;
+for (j in range(1, 25)) {
+  let jj = float(j);
+  term = -term * en * en / ((2.0 * jj) * (2.0 * jj + 1.0));
+  total = total + term;
+}
+let resid = en - 0.3 * total - 1.0;
+out.close("kepler residual recomputed", resid, 0.0, 0.000000001);
+out.put("kepler", k);
+out.put("kepler_resid", resid);
+
+# the circle x^2 + y^2 = 4 meets the parabola y = x^2 - 2 at (sqrt 3, 1) on the branch x > 0, y > 0
+let sys = root(strs("x^2 + y^2 - 4, y - x^2 + 2"), strs("x, y"), vec(1.5, 0.5));
+out.check("system: status OK", sys.ok());
+out.close("system x = sqrt(3)", sys.res("par").num("x"), sqrt(3.0), 0.000000001);
+out.close("system y = 1", sys.res("par").num("y"), 1.0, 0.000000001);
+out.put("system", sys);
+
+# integration meets probability: int_-z^z phi(x) dx = 1 - 2 Phi(-z) for z = 1.96
+let z = 1.96;
+let two_sided = 1.0 - 2.0 * dist("norm").cdf(-z);
+let area = integral("normal", "dnorm(x)", -z, z, two_sided);
+out.close("quadrature agrees with the normal cdf", area, two_sided, 0.000000001);
+out.put("two_sided", two_sided);
+out.put("area", area);
+end _dsl_
+
+v = lmnum.run(prog, "tut-integrate-root");
+function show(label, key) {
+  r = v[key];
+  println(sprintf("%-34s = %.12f  exact %.12f  |err| %.12f  (abserr %s, %d evaluations)", label, r.value, v[key + " exact"],
+    abs(r.value - v[key + " exact"]), str(r.abserr), r.neval));
+}
+show("int_0^inf x^3/(e^x-1) dx", "planck");
+show("int_-inf^inf e^(-x^2) dx", "gauss");
+show("int_0^1 4/(1+x^2) dx", "arctan");
+println(sprintf("Kepler E - 0.3 sin E = 1: E = %.12f (%d iterations), residual recomputed %s", v.kepler.root, v.kepler.iterations, str(v.kepler_resid)));
+println(sprintf("circle meets parabola at x=%.12f y=%.12f (residual max %s); closed form x=sqrt(3)=%.12f y=1", v.system.par.x, v.system.par.y, str(v.system.residual_max), sqrt(3)));
+show("int_-1.96^1.96 dnorm(x) dx", "normal");
+println(sprintf("P(|Z| < 1.96) by quadrature %.12f vs dist(norm).cdf %.12f", v.area, v.two_sided));
+println("Checks passed: three integrals to 1e-9, Kepler residual < 1e-9, system root = (sqrt 3, 1), quadrature agrees with the normal cdf.");

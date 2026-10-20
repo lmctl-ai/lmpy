@@ -1,0 +1,59 @@
+// access: write (a temporary tut-logistic-dose.dslb, removed)
+// Topic: logistic dose-response and the median lethal dose (after: the R ?glm budworm example in MASS)
+// What it does: the _dsl_ version of ../tut-logistic-dose.lms. Fits dead ~ ldose with a binomial GLM (logit link, `glm`) on one row
+//   per insect, evaluates the fitted curve at the tested doses through `special("expit", ...)`, locates the dose with 50% mortality
+//   (LD50) two ways (closed form -b0/b1 and `root_scalar` on the fitted logit) and checks the fit against the generating curve.
+// Data: ../data/tut-dose.csv, 240 rows: 40 insects at each dose 1,2,4,...,32; P(dead) = expit(-3 + 1.2 log2(dose)), seed 103.
+// Tolerance (as the original): the LD50 routes agree to 1e-6, the coefficients lie within 3 SE of the generating values, the LD50
+//   within half a doubling of the generating -b0/b1 = 2.5, and the fitted mortality increases with the dose.
+// Reference (an addition to the original): statsmodels 0.14.6 glm("dead ~ ldose", Binomial()) in the oracle venv gives
+//   b0 = -2.8196698141, b1 = 1.0926369971, SE 0.3779063511, 0.1315220897, deviance 212.9328296930 on 238 df (pinned at 1e-6).
+// How to run: lmscript examples/dsl/tut-logistic-dose.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let true_b0 = -3.0;
+let true_b1 = 1.2;
+let fit = glm(read_csv("../data/tut-dose.csv"), "dead", strs("ldose"), "binomial", opts().set("link", "logit"));
+out.check("glm: status OK", fit.ok());
+let c = fit.res("coefficients");
+let b0 = c.vec("estimate").at(0);
+let b1 = c.vec("estimate").at(1);
+let se0 = c.vec("std_err").at(0);
+let se1 = c.vec("std_err").at(1);
+out.close("statsmodels b0", b0, -2.819669814127427, 0.000001);
+out.close("statsmodels b1", b1, 1.0926369971334431, 0.000001);
+out.close("statsmodels se(b0)", se0, 0.37790635113989662, 0.000001);
+out.close("statsmodels se(b1)", se1, 0.13152208974542853, 0.000001);
+out.close("statsmodels deviance", fit.num("deviance"), 212.932829692951, 0.000001);
+
+# fitted mortality at the tested doses (log2 dose 0..5)
+let ldoses = arange(6);
+let pr = special("expit", ldoses.mul(b1).add(b0));
+out.check("fitted mortality is increasing", pr.diff().min() > 0.0);
+
+# LD50: closed form on the log2 scale, and the root of the fitted logit found numerically
+let ld50_closed = -b0 / b1;
+let ld = root_scalar("b0 + b1*x", "x", 0.0, 5.0, opts().set("$b0", b0).set("$b1", b1));
+out.check("root_scalar: status OK", ld.ok());
+out.close("LD50 routes agree", ld.num("root"), ld50_closed, 0.000001);
+out.check("coefficients within 3 SE of the generating values", abs(b0 - true_b0) <= 3.0 * se0 && abs(b1 - true_b1) <= 3.0 * se1);
+out.close("LD50 within half a doubling of the truth", ld50_closed, -true_b0 / true_b1, 0.5);
+
+out.put("b0", b0);
+out.put("b1", b1);
+out.put("se0", se0);
+out.put("se1", se1);
+out.put("deviance", fit.num("deviance"));
+out.put("df_resid", fit.num("df_resid"));
+out.put("mortality", pr);
+out.put("ld50_closed", ld50_closed);
+out.put("ld50_root", ld.num("root"));
+out.put("ld50_true", -true_b0 / true_b1);
+end _dsl_
+
+v = lmnum.run(prog, "tut-logistic-dose");
+println(sprintf("logit P(dead) = %.3f + %.3f * log2(dose)   (SE %.3f, %.3f; deviance %.2f on %d df)", v.b0, v.b1, v.se0, v.se1, v.deviance, v.df_resid));
+for (i = 0; i < len(v.mortality); i = i + 1) { println(sprintf("dose %2d: fitted mortality %.3f", pow(2, i), v.mortality[i])); }
+println(sprintf("LD50: log2 dose %.4f (closed form) vs %.4f (root_scalar); dose = %.3f; generating value log2 dose %.4f", v.ld50_closed, v.ld50_root, pow(2, v.ld50_closed), v.ld50_true));
+println("Checks passed: LD50 routes agree to 1e-6, coefficients within 3 SE, monotone dose-response.");
