@@ -1,0 +1,37 @@
+// access: write (a temporary ode-sir.dslb, removed)
+// What it does: the _dsl_ version of ../ode-sir.lms. Integrates the SIR epidemic s' = -b s i / N, i' = b s i / N - g i, r' = g i
+//   (b = 0.3, g = 0.1, N = 1000, start 999/1/0) on [0, 160] with DOP853 at rtol 1e-10, atol 1e-12 on 161 output points, with the
+//   event i' = 0 (direction -1) marking the infection peak. Checks: the population s + i + r stays 1000 on every row, exactly one
+//   peak, the peak lies in [30, 50], and at the peak S = g N / b = 1000/3 (the closed-form condition for i' = 0).
+//   Pinned: the peak day 38.35530767144 and peak infected 300.79607057 (scipy 1.16.2 solve_ivp DOP853 with the same settings,
+//   oracle venv; the same trajectory to 1e-12 relative).
+// Tolerance: population 1e-6 per row; S at the peak 1e-5; pinned peak day and height 1e-6.
+// How to run: lmscript examples/dsl/ode-sir.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+let o = opts().set("method", "DOP853").set("rtol", 0.0000000001).set("atol", 0.000000000001).set("max_output_points", 161);
+o.set("$b", 0.3).set("$g", 0.1).set("$population", 1000.0);
+o.set("events", strs("b*s*i/population-g*i")).set("direction", vec(-1.0));
+let r = ode(strs("-b*s*i/population, b*s*i/population-g*i, g*i"), strs("s, i, r"), vec(999.0, 1.0, 0.0), 0.0, 160.0, o);
+out.check("status OK", r.ok());
+let y = r.mat("y");
+out.check("161 output points", y.rows() == 161);
+out.check("population conserved", y.row_sums().sub(1000.0).abs().max() <= 0.000001);
+out.check("one infected peak", r.vec("event_counts").at(0) == 1.0);
+let peak = r.vec("event_t").at(0);
+let state = r.mat("event_y").row(0);
+out.check("peak within days 30..50", peak >= 30.0 && peak <= 50.0);
+out.close("S at the peak is g N / b", state.at(0), 1000.0 / 3.0, 0.00001);
+out.close("pinned peak day (scipy DOP853)", peak, 38.35530767144, 0.000001);
+out.close("pinned peak infected (scipy DOP853)", state.at(1), 300.79607057, 0.000001);
+let fin = r.vec("final_state");
+out.put("peak_day", peak);
+out.put("peak_infected", state.at(1));
+out.put("population", fin.sum());
+out.put("nfev", r.int("nfev"));
+end _dsl_
+
+v = lmnum.run(prog, "ode-sir");
+println(sprintf("peak_day=%.6f peak_infected=%.6f population=%.6f", v.peak_day, v.peak_infected, v.population));
+println("SIR trajectory passed.");

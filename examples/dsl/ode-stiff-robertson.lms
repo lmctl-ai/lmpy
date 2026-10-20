@@ -1,0 +1,79 @@
+// access: write (a temporary ode-stiff-robertson.dslb, removed)
+// What it does: Robertson's chemical kinetics, the classic stiff test problem (rate constants 0.04, 3e7, 1e4 spanning eleven
+//   orders of magnitude):  a' = -0.04 a + 1e4 b c,  b' = 0.04 a - 1e4 b c - 3e7 b^2,  c' = 3e7 b^2,  a(0) = 1, b(0) = c(0) = 0,
+//   on [0, 4e5] with output at t = 0.4, 4, ..., 4e5. It is solved with the implicit methods Radau (IIA, order 5) and BDF
+//   (variable-order NDF), and with LSODA (lmnum: RK45 switching to BDF when stiffness is detected), at rtol 1e-8 and
+//   atol (1e-10, 1e-14, 1e-10). The explicit RK45 is run too and exhausts a 2000-step budget (STEP_LIMIT) far from the end:
+//   that is what stiffness means in practice.
+// Checks: mass a + b + c = 1 is conserved on every output row (1e-9); every method agrees with a tight reference solution
+//   (scipy 1.16.2 Radau at rtol 1e-12, atol (1e-14, 1e-20, 1e-14); oracle venv) within 1e-6 relative per component; Radau and BDF
+//   reproduce scipy's own Radau and BDF output at the same settings (pinned rows at t = 40 and t = 4e5) within 1e-10 relative,
+//   since lmnum's solvers are ports of scipy's.
+// How to run: lmscript examples/dsl/ode-stiff-robertson.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+fn relerr(got: Vec, want: Vec) -> float {
+  return got.sub(want).abs().div(want.abs().add(0.000000000000000000001)).max();
+}
+fn solve(method: string, steps: int) -> Res {
+  let o = opts().set("method", method).set("rtol", 0.00000001).set("atol", vec("1e-10 1e-14 1e-10"));
+  o.set("t_eval", vec("0.4 4 40 400 4000 40000 400000")).set("max_steps", steps);
+  return ode(strs("-0.04*a + 10000*b*c, 0.04*a - 10000*b*c - 30000000*b^2, 30000000*b^2"), strs("a, b, c"), vec(1.0, 0.0, 0.0), 0.0, 400000.0, o);
+}
+# reference: scipy Radau at rtol 1e-12 (rows t = 0, 0.4, 4, ..., 4e5)
+let ref = mat("1 0 0; 9.851721138610e-01 3.386395378975e-05 1.479402218522e-02; 9.055186785843e-01 2.240475687560e-05 9.445891665887e-02; 7.158270687194e-01 9.185534764557e-06 2.841637457458e-01; 4.505186684711e-01 3.222901441674e-06 5.494781086275e-01; 1.832022577767e-01 8.942371252775e-07 8.167968479862e-01; 3.898337708548e-02 1.621768315910e-07 9.610164607377e-01; 4.938274520980e-03 1.984994087954e-08 9.950617056291e-01");
+let radau = solve("Radau", 10000);
+let bdf = solve("BDF", 10000);
+let lsoda = solve("LSODA", 10000);
+let rk45 = solve("RK45", 2000);
+out.check("Radau OK", radau.ok());
+out.check("BDF OK", bdf.ok());
+out.check("LSODA OK", lsoda.ok());
+out.check("RK45 runs out of steps (stiff)", rk45.status() == "STEP_LIMIT");
+let worst_mass = 0.0;
+let worst_ref = 0.0;
+let names = strs("Radau, BDF, LSODA");
+for (k in range(0, 3)) {
+  let r = radau;
+  if (k == 1) { r = bdf; }
+  if (k == 2) { r = lsoda; }
+  let y = r.mat("y");
+  out.check(names.at(k) + " has 8 output rows", y.rows() == 8);
+  let mass = y.row_sums().sub(1.0).abs().max();
+  worst_mass = max(worst_mass, mass);
+  out.check(names.at(k) + " conserves mass", mass <= 0.000000001);
+  let e = 0.0;
+  for (i in range(0, 8)) { e = max(e, relerr(y.row(i), ref.row(i))); }
+  worst_ref = max(worst_ref, e);
+  out.check(names.at(k) + " matches the reference within 1e-6", e <= 0.000001);
+  out.put(names.at(k) + "_ref_err", e);
+  out.put(names.at(k) + "_nfev", r.int("nfev"));
+  out.put(names.at(k) + "_njev", r.int("njev"));
+  out.put(names.at(k) + "_nlu", r.int("nlu"));
+  out.put(names.at(k) + "_steps", r.int("steps"));
+}
+# scipy's own output at the same settings (t = 40 and t = 4e5)
+let ry = radau.mat("y");
+let by = bdf.mat("y");
+let port = max(relerr(ry.row(3), vec("7.158270687453e-01 9.185534765986e-06 2.841637457199e-01")), relerr(ry.row(7), vec("4.938274521681e-03 1.984994088238e-08 9.950617056284e-01")));
+port = max(port, max(relerr(by.row(3), vec("7.158270746184e-01 9.185534994364e-06 2.841637398466e-01")), relerr(by.row(7), vec("4.938275813985e-03 1.984994610241e-08 9.950617043361e-01"))));
+out.check("Radau and BDF reproduce scipy within 1e-10", port <= 0.0000000001);
+out.put("port_err", port);
+out.put("worst_mass", worst_mass);
+out.put("worst_ref", worst_ref);
+out.put("a_end", ry.at(7, 0));
+out.put("b_end", ry.at(7, 1));
+out.put("c_end", ry.at(7, 2));
+out.put("rk45_t", rk45.num("final_time"));
+out.put("rk45_nfev", rk45.int("nfev"));
+end _dsl_
+
+v = lmnum.run(prog, "ode-stiff-robertson");
+println(sprintf("at t = 4e5: a = %s  b = %s  c = %s (Radau)", v.a_end, v.b_end, v.c_end));
+for (m in ["Radau", "BDF", "LSODA"]) {
+  println(sprintf("%s %d steps, nfev %d, njev %d, nlu %d; largest relative error vs the reference %s", m, v[m + "_steps"], v[m + "_nfev"], v[m + "_njev"], v[m + "_nlu"], v[m + "_ref_err"]));
+}
+println(sprintf("RK45 stopped with STEP_LIMIT after 2000 steps at t = %s (of 4e5), %d RHS evaluations", v.rk45_t, v.rk45_nfev));
+println(sprintf("mass conservation %s; Radau/BDF vs scipy's own output %s", v.worst_mass, v.port_err));
+println("Stiff Robertson kinetics passed.");

@@ -116,6 +116,20 @@
           {"params": ["string","string","Opts"], "returns": "Res"}]
       }
     },
+    "Interp": {
+      "methods": {
+        "coeffs": [{"params": [], "returns": "Mat"}],
+        "deriv": [{"params": ["float","int"], "returns": "float"},
+          {"params": ["Vec","int"], "returns": "Vec"}],
+        "eval": [{"params": ["float"], "returns": "float"},
+          {"params": ["Vec"], "returns": "Vec"},
+          {"params": ["Mat"], "returns": "Vec"}],
+        "info": [{"params": [], "returns": "Res"}],
+        "integrate": [{"params": ["float","float"], "returns": "float"}],
+        "knots": [{"params": [], "returns": "Vec"}],
+        "status": [{"params": [], "returns": "string"}]
+      }
+    },
     "Mat": {
       "methods": {
         "add": [{"params": ["Mat"], "returns": "Mat"}],
@@ -171,6 +185,15 @@
         "with_intercept": [{"params": [], "returns": "Mat"}]
       },
       "operators": {"*": "mul", "+": "add", "-": "sub", "neg": "neg", "r*": "mul"}
+    },
+    "OdeSol": {
+      "methods": {
+        "eval": [{"params": ["float"], "returns": "Vec"},
+          {"params": ["Vec"], "returns": "Mat"}],
+        "res": [{"params": [], "returns": "Res"}],
+        "t_max": [{"params": [], "returns": "float"}],
+        "t_min": [{"params": [], "returns": "float"}]
+      }
     },
     "Opts": {
       "methods": {
@@ -391,6 +414,10 @@
       {"params": ["string","int","float","Opts"], "returns": "Filter"},
       {"params": ["string","int","Vec","Opts"], "returns": "Filter"}],
     "inf": [{"params": [], "returns": "float"}],
+    "interp": [{"params": ["string","Vec","Vec"], "returns": "Interp"},
+      {"params": ["string","Vec","Vec","Opts"], "returns": "Interp"},
+      {"params": ["string","Mat","Vec"], "returns": "Interp"},
+      {"params": ["string","Mat","Vec","Opts"], "returns": "Interp"}],
     "irfft": [{"params": ["Vec","Vec","int"], "returns": "Vec"}],
     "is_finite": [{"params": ["float"], "returns": "bool"}],
     "is_nan": [{"params": ["float"], "returns": "bool"}],
@@ -429,6 +456,10 @@
       {"params": ["Vec","Vec","Opts"], "returns": "Res"},
       {"params": ["Vec","Opts"], "returns": "Res"}],
     "nan": [{"params": [], "returns": "float"}],
+    "ode": [{"params": ["StrVec","StrVec","Vec","float","float"], "returns": "Res"},
+      {"params": ["StrVec","StrVec","Vec","float","float","Opts"], "returns": "Res"}],
+    "ode_sol": [{"params": ["StrVec","StrVec","Vec","float","float"], "returns": "OdeSol"},
+      {"params": ["StrVec","StrVec","Vec","float","float","Opts"], "returns": "OdeSol"}],
     "ols": [{"params": ["Frame","string","StrVec"], "returns": "Res"},
       {"params": ["Frame","string","StrVec","Opts"], "returns": "Res"},
       {"params": ["Frame","string","string"], "returns": "Res"},
