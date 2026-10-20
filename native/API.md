@@ -391,3 +391,33 @@ Dense ODE solution (solve_ivp dense_output): the piecewise interpolant of every 
 | `t_max() -> float` | end of the integrated range (the terminal event time when one stopped the run) |
 | `t_min() -> float` | start of the integrated range |
 
+## Interpolation
+
+1-D interpolants and n-D radial basis functions (pycli `interp_eval`, `interp_eval_to`; scipy.interpolate). `interp(kind, x, y[, opts])` builds an `Interp` once; evaluate, differentiate and integrate it as often as needed. Kinds: linear (make_interp_spline k=1), nearest (interp1d nearest), cubic (CubicSpline, option `bc_type` not-a-knot (default) / natural / clamped / periodic), pchip (monotone Fritsch-Carlson, PchipInterpolator), akima, makima (Akima1DInterpolator), smoothing (make_smoothing_spline; `lam` >= 0, omitted = generalised cross-validation; lam / h^3 is capped at 1e11 as in pycli), rbf (RBFInterpolator; `kernel` thin_plate_spline (default), linear, cubic, quintic, multiquadric, inverse_multiquadric, inverse_quadratic, gaussian; `epsilon` (1), `smoothing` (0), `degree`). x must be finite and strictly increasing (rbf: one row per node). Option `extrapolate`: error (default: a point outside the nodes is a run-time error), nan, or extend (the end polynomial; rbf: the nodes' bounding box is the range). At a node a piecewise interpolant takes its right-hand piece. An rbf whose system is singular or that misses its own nodes by more than 1e-6 of the data scale has status SINGULAR / ILL_CONDITIONED and cannot be evaluated.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `interp(string, Vec, Vec) -> Interp` | build a 1-D interpolant of kind linear, nearest, cubic, pchip, akima, makima, smoothing or rbf (default options) |
+| `interp(string, Vec, Vec, Opts) -> Interp` | build a 1-D interpolant with options (bc_type, lam, kernel, epsilon, smoothing, degree, extrapolate) |
+| `interp(string, Mat, Vec) -> Interp` | build an n-D radial basis function interpolant (kind must be rbf; one row of x per node) |
+| `interp(string, Mat, Vec, Opts) -> Interp` | build an n-D radial basis function interpolant with options (kernel, epsilon, smoothing, degree, extrapolate) |
+
+### Type `Interp`
+
+Interpolant built by `interp`: piecewise polynomial (PPoly form) or radial basis function.
+
+| Method | Meaning |
+|---|---|
+| `coeffs() -> Mat` | PPoly coefficients: one row per power (highest first), one column per interval in the local variable x - knot (nearest/rbf: the rbf weights as one column, nearest: the node values) |
+| `deriv(float, int) -> float` | derivative of order nu at x (0 = value; above the degree it is 0; right-hand value at a node) |
+| `deriv(Vec, int) -> Vec` | derivative of order nu at each x |
+| `eval(float) -> float` | value at x |
+| `eval(Vec) -> Vec` | values at each x |
+| `eval(Mat) -> Vec` | rbf values at the points (one row per point) |
+| `info() -> Res` | fields: status, message, kind, n_nodes, extrapolate, bc_type (cubic), lam (smoothing: the given or GCV value), interpolation_error (rbf) |
+| `integrate(float, float) -> float` | definite integral from a to b (negative when b < a; bounds in the node range unless extrapolate is extend) |
+| `knots() -> Vec` | breakpoints of the piecewise polynomial (the nodes; rbf: empty) |
+| `status() -> string` | OK, or SINGULAR / ILL_CONDITIONED for an rbf that could not be built |
+

@@ -341,6 +341,7 @@ struct Run {
     r->integer("nfev", nfev).integer("njev", njev).integer("nlu", nlu).integer("steps", steps);
     r->integer("rhs_calls", rhs_calls).integer("event_calls", event_calls).integer("evals", evals).integer("nonfinite_evals", nonfinite);
     r->flag("success", scipy_status >= 0 && status == "OK").flag("partial_trajectory", partial);
+    if (P.method == "LSODA") r->num("stiff_switch_time", solver ? solver->switch_time() : NAN).integer("nonstiff_steps", solver ? solver->switch_steps() : 0);
     r->integer("effective_output_points", int64_t(P.grid.size())).vec("endpoints_added", P.endpoints_added);
     return r;
   }

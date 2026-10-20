@@ -45,6 +45,8 @@ class Solver {
   DensePtr dense_output();
   virtual const char* name() const = 0;
   virtual bool alt_segment() const { return false; }  // OdeSolution breakpoint side (BDF and LSODA: true)
+  virtual double switch_time() const { return NAN; }   // LSODA: time of the switch to BDF (NaN: none)
+  virtual long switch_steps() const { return 0; }     // LSODA: accepted RK45 steps before the switch
 
   double t, t_bound;
   double t_old = NAN;

@@ -31,6 +31,20 @@
         "write_csv": [{"params": ["string"], "returns": "void"}]
       }
     },
+    "Interp": {
+      "methods": {
+        "coeffs": [{"params": [], "returns": "Mat"}],
+        "deriv": [{"params": ["float","int"], "returns": "float"},
+          {"params": ["Vec","int"], "returns": "Vec"}],
+        "eval": [{"params": ["float"], "returns": "float"},
+          {"params": ["Vec"], "returns": "Vec"},
+          {"params": ["Mat"], "returns": "Vec"}],
+        "info": [{"params": [], "returns": "Res"}],
+        "integrate": [{"params": ["float","float"], "returns": "float"}],
+        "knots": [{"params": [], "returns": "Vec"}],
+        "status": [{"params": [], "returns": "string"}]
+      }
+    },
     "Mat": {
       "methods": {
         "add": [{"params": ["Mat"], "returns": "Mat"}],
@@ -256,6 +270,10 @@
     "full": [{"params": ["int","float"], "returns": "Vec"}],
     "hypot": [{"params": ["float","float"], "returns": "float"}],
     "inf": [{"params": [], "returns": "float"}],
+    "interp": [{"params": ["string","Vec","Vec"], "returns": "Interp"},
+      {"params": ["string","Vec","Vec","Opts"], "returns": "Interp"},
+      {"params": ["string","Mat","Vec"], "returns": "Interp"},
+      {"params": ["string","Mat","Vec","Opts"], "returns": "Interp"}],
     "is_finite": [{"params": ["float"], "returns": "bool"}],
     "is_nan": [{"params": ["float"], "returns": "bool"}],
     "linspace": [{"params": ["float","float","int"], "returns": "Vec"}],

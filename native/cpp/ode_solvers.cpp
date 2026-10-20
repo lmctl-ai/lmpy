@@ -128,7 +128,9 @@ class RungeKutta : public Solver {
   }
   const char* name() const override { return nm_; }
 
-  // LSODA stiffness detection (Hairer & Wanner, Solving ODEs II, section IV.2): RK45 only.
+  // LSODA stiffness detection after Hairer & Wanner, Solving ODEs II, section IV.2: rho = |h| |f(y_new) - f(y6)| / |y_new - y6|
+  // estimates |h lambda|; RK45 is stability-limited near 3.3, and step control keeps h lambda just below that, so a
+  // threshold of 2.5 on 15 accepted steps (reset after 6 consecutive non-stiff steps) marks the problem stiff. RK45 only.
   bool detect_stiffness = false;
   bool stiff = false;
 
@@ -205,7 +207,7 @@ class RungeKutta : public Solver {
       VectorXd y6 = y0 + combo(K, T.A[5], 5) * h;
       double den = (y_new - y6).norm();
       double hl = den > 0 ? std::fabs(h) * (K[6] - K[5]).norm() / den : 0.0;
-      if (hl > 3.25) { nonstiff_run = 0; if (++stiff_hits >= 15) stiff = true; }
+      if (hl > 2.5) { nonstiff_run = 0; if (++stiff_hits >= 15) stiff = true; }
       else if (++nonstiff_run >= 6) stiff_hits = 0;
     }
     h_previous = h;
@@ -674,7 +676,7 @@ class Bdf : public Solver {
 
 // ------------------------------------------------------------------------------------------------- LSODA substitute
 // Automatic method switching in the spirit of LSODA (Petzold 1983): integrate with the non-stiff Dormand-Prince pair until
-// Hairer's stiffness test fires 15 times, then continue with BDF from the current state. No switch back.
+// the stiffness test (RK45 above) fires on 15 steps, then continue with BDF from the current state. No switch back.
 class Switching : public Solver {
  public:
   Switching(Rhs f, double t0, const VectorXd& y0, double tb, const Settings& s) : Solver(f, t0, y0, tb), settings(s) {
@@ -687,7 +689,10 @@ class Switching : public Solver {
   const char* name() const override { return "LSODA"; }
   bool alt_segment() const override { return true; }
   bool switched = false;
-  double switch_time = NAN;
+  double switched_at = NAN;
+  long rk_steps = 0;
+  double switch_time() const override { return switched_at; }
+  long switch_steps() const override { return rk_steps; }
 
  private:
   Settings settings;
@@ -702,9 +707,10 @@ class Switching : public Solver {
       inner = std::make_unique<Bdf>(rhs_, t, y, t_bound, s);
       rkp = nullptr;
       switched = true;
-      switch_time = t;
+      switched_at = t;
     }
     message = inner->step();
+    if (rkp) ++rk_steps;
     sync();
     if (inner->status == "failed") return false;
     t = inner->t;
