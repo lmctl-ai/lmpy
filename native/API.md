@@ -366,3 +366,95 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
 
+## Statistics
+
+Probability distributions (pycli `stats_dist`, `stats_dist_to`), special functions (`special_fn`, `special_fn_to`), numpy-compatible random numbers and classical tests. Distributions follow scipy.stats 1.16 parameter names and formulas (each family is a port of its scipy class; special functions are scipy's own xsf/Cephes code or Boost.Math with scipy's policies). `dist(name, opts)` takes the scipy parameters plus `loc` (and `scale` for continuous families); pycli's names are accepted too: uniform `low`/`high`, gamma `shape`, lognorm `mu`/`sigma` (of the underlying normal), poisson `lam`. Families: norm, t, uniform, expon, gamma, beta, lognorm, chi2, genextreme, genpareto, skewnorm, johnsonsu, levy_stable (S1), nct, ncf, vonmises, truncnorm, weibull_min, cauchy, laplace, logistic, gumbel_r, pareto, rayleigh, f, poisson, binom, zipf, betabinom, nbinom, geom. Probabilities outside [0, 1] are errors; NaN inputs give NaN. Discrete ppf(0) and isf(1) are the first support point (pycli). Random variates reproduce numpy.random.Generator(PCG64(seed)) exactly for the numpy-sampled families (pycli's rvs; nct, skewnorm, betabinom and levy_stable use PCG64(seed) and its jumped() stream as pycli did); the quantile-sampled families (genextreme, genpareto, johnsonsu, truncnorm, weibull_min, cauchy, gumbel_r, pareto) use numpy's uniform stream through lmnum's quantile function. Deviations from scipy: Student t cdf/ppf use Boost (scipy: CDFLIB), Bessel/Airy outside [-10, 10] use Boost (scipy: AMOS), levy_stable integrates with Gauss-Kronrod (scipy: QUADPACK), Poisson ppf uses the generic discrete search.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `airy(float) -> Res` | Airy functions (scipy.special.airy): fields ai, aip, bi, bip |
+| `airy(Vec) -> Res` | Airy functions elementwise: Vec fields ai, aip, bi, bip |
+| `dist(string) -> Dist` | distribution with default parameters (families without shape parameters: norm, uniform, expon, cauchy, laplace, logistic, gumbel_r, rayleigh) |
+| `dist(string, Opts) -> Dist` | distribution with parameters (scipy names; unknown or missing ones are errors that list the valid ones) |
+| `dist_names() -> StrVec` | the 31 distribution families |
+| `logsumexp(Vec) -> float` | log(sum(exp(v))) without overflow (scipy.special.logsumexp) |
+| `pearsonr(Vec, Vec) -> Res` | Pearson correlation with the two-sided p-value of the exact beta null (scipy.stats.pearsonr): statistic, pvalue, df |
+| `rng(int) -> Rng` | generator seeded like numpy.random.default_rng(seed) (seed >= 0) |
+| `special(string, float) -> float` | scipy.special function by name (pycli special_fn): name/arity: erf/1, erfc/1, erfcx/1, erfinv/1, erfcinv/1, expit/1, logit/1, log_expit/1, ndtr/1, log_ndtr/1, ndtri/1, ndtri_exp/1, ellipk/1, ellipe/1, gamma/1, gammaln/1, digamma/1, psi/1, zeta/1, lambertw/1, i0e/1, cosm1/1, gammainc/2, gammaincc/2, gammaincinv/2, gammainccinv/2, zeta/2, polygamma/2, lambertw/2, jv/2, yv/2, iv/2, kv/2, spherical_jn/2, struve/2, owens_t/2, boxcox/2, inv_boxcox/2, boxcox1p/2, inv_boxcox1p/2, xlogy/2, xlog1py/2, beta/2, betaln/2, poch/2, betainc/3, betaincc/3, betaincinv/3, betainccinv/3, hyp2f1/4. NaN outside the domain (pycli DOMAIN_ERROR), +-inf at poles (NON_FINITE) |
+| `special(string, Vec) -> Vec` | scipy.special function by name (pycli special_fn): elementwise |
+| `special(string, float, float) -> float` | scipy.special function by name (pycli special_fn): two arguments |
+| `special(string, float, Vec) -> Vec` | scipy.special function by name (pycli special_fn): scalar first argument, vector second (e.g. jv(v, x)) |
+| `special(string, Vec, float) -> Vec` | scipy.special function by name (pycli special_fn): vector first argument, scalar second (e.g. boxcox(x, lmbda)) |
+| `special(string, Vec, Vec) -> Vec` | scipy.special function by name (pycli special_fn): two vectors of one length (length-1 vectors broadcast) |
+| `special(string, float, float, float) -> float` | scipy.special function by name (pycli special_fn): three arguments (betainc family) |
+| `special(string, float, float, Vec) -> Vec` | scipy.special function by name (pycli special_fn): three arguments, vector last |
+| `special(string, Vec, Vec, Vec) -> Vec` | scipy.special function by name (pycli special_fn): three vectors |
+| `special(string, float, float, float, float) -> float` | scipy.special function by name (pycli special_fn): four arguments (hyp2f1) |
+| `special(string, float, float, float, Vec) -> Vec` | scipy.special function by name (pycli special_fn): four arguments, vector last |
+| `special(string, Vec, Vec, Vec, Vec) -> Vec` | scipy.special function by name (pycli special_fn): four vectors |
+| `special_names() -> StrVec` | names accepted by special() |
+| `ttest_1samp(Vec, float) -> Res` | one-sample t test against popmean (scipy.stats.ttest_1samp, two-sided): statistic, pvalue, df |
+| `ttest_ind(Vec, Vec) -> Res` | two-sample t test with pooled variance (scipy.stats.ttest_ind, two-sided) |
+| `ttest_ind(Vec, Vec, Opts) -> Res` | two-sample t test; option equal_var (default true; false = Welch) |
+
+### Type `Dist`
+
+A frozen probability distribution (`dist("gamma", opts().set("a", 3.0).set("scale", 2.0))`).
+
+| Method | Meaning |
+|---|---|
+| `cdf(float) -> float` | cumulative distribution function |
+| `cdf(Vec) -> Vec` | cumulative distribution function (elementwise) |
+| `interval(float) -> Vec` | central interval [ppf((1-c)/2), ppf((1+c)/2)] with confidence c in [0, 1] |
+| `is_discrete() -> bool` | true for the discrete families |
+| `isf(float) -> float` | inverse survival function; p must be in [0, 1] |
+| `isf(Vec) -> Vec` | inverse survival function; p must be in [0, 1] (elementwise) |
+| `logcdf(float) -> float` | log cdf |
+| `logcdf(Vec) -> Vec` | log cdf (elementwise) |
+| `logpdf(float) -> float` | log density (log mass for a discrete family) |
+| `logpdf(Vec) -> Vec` | log density (log mass for a discrete family) (elementwise) |
+| `logpmf(float) -> float` | log probability mass (discrete families only) |
+| `logpmf(Vec) -> Vec` | log probability mass, elementwise (discrete families only) |
+| `logsf(float) -> float` | log survival function |
+| `logsf(Vec) -> Vec` | log survival function (elementwise) |
+| `mean() -> float` | mean (inf or NaN where undefined, as scipy) |
+| `median() -> float` | median ppf(0.5) |
+| `moments() -> Res` | pycli fn=moments: fields mean, var, skew, kurtosis (excess, as scipy), moments_undefined (names of the non-finite ones), status |
+| `name() -> string` | family name |
+| `params() -> Res` | the resolved parameters (scipy names, plus loc and scale) |
+| `pdf(float) -> float` | density (the mass function for a discrete family, as pycli fn=pdf) |
+| `pdf(Vec) -> Vec` | density (the mass function for a discrete family, as pycli fn=pdf) (elementwise) |
+| `pmf(float) -> float` | probability mass (discrete families only) |
+| `pmf(Vec) -> Vec` | probability mass, elementwise (discrete families only) |
+| `ppf(float) -> float` | quantile function (inverse cdf); p must be in [0, 1] |
+| `ppf(Vec) -> Vec` | quantile function (inverse cdf); p must be in [0, 1] (elementwise) |
+| `rvs(int, int) -> Vec` | n random variates from seed (pycli fn=rvs; numpy Generator(PCG64(seed)); a shorter n is a prefix of a longer one) |
+| `sf(float) -> float` | survival function 1 - cdf |
+| `sf(Vec) -> Vec` | survival function 1 - cdf (elementwise) |
+| `std() -> float` | standard deviation |
+| `support() -> Vec` | [lower, upper] end of the support |
+| `var() -> float` | variance |
+
+### Type `Rng`
+
+A numpy-compatible random generator: the stream of numpy.random.default_rng(seed) (PCG64 + SeedSequence). Methods advance it in place.
+
+| Method | Meaning |
+|---|---|
+| `beta(int, float, float) -> Vec` | n beta variates (Generator.beta) |
+| `binomial(int, int, float) -> Vec` | n binomial counts with `trials` and p (Generator.binomial) |
+| `choice(Vec, int, bool) -> Vec` | n elements of a vector, with or without replacement (Generator.choice, shuffle=True) |
+| `exponential(int, float) -> Vec` | n exponential variates with the given scale (Generator.exponential) |
+| `gamma(int, float, float) -> Vec` | n gamma variates (shape, scale) (Generator.gamma) |
+| `integers(int, int, int) -> Vec` | n integers in [lo, hi) (Generator.integers, int64, Lemire's method) |
+| `jumped() -> Rng` | an independent generator: this state advanced by (phi - 1) * 2^128 draws (PCG64.jumped) |
+| `normal(int, float, float) -> Vec` | n normal variates with mean mu and standard deviation sd (Generator.normal) |
+| `permutation(int) -> Vec` | a random permutation of 0..n-1 (Generator.permutation) |
+| `poisson(int, float) -> Vec` | n Poisson counts (Generator.poisson) |
+| `random(int) -> Vec` | n uniforms in [0, 1) (Generator.random) |
+| `shuffle(Vec) -> Vec` | a shuffled copy of a vector (Generator.permutation of an array) |
+| `standard_normal(int) -> Vec` | n standard normal variates (Generator.standard_normal) |
+| `uniform(int, float, float) -> Vec` | n uniforms in [lo, hi) (Generator.uniform) |
+

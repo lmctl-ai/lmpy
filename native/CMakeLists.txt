@@ -10,7 +10,7 @@ option(LMNUM_FULL_STATIC "Link the executable fully statically (no shared librar
 set(LMNUM_DEPS "${CMAKE_CURRENT_SOURCE_DIR}/.deps" CACHE PATH "Directory prepared by scripts/fetch-deps.sh")
 set(LMNUM_VERSION "0.1.0")
 
-foreach(dir eigen-3.4.0 boost_1_86_0 pocketfft-4d865cba24359b05b37da4e75aee24498c3b78e7 nanoflann-1.6.1 LBFGSpp-0.3.0)
+foreach(dir eigen-3.4.0 boost_1_86_0 pocketfft-4d865cba24359b05b37da4e75aee24498c3b78e7 nanoflann-1.6.1 LBFGSpp-0.3.0 xsf-4fff9b2cb2b5c31a0cf0b0f609d2699a5eeac53b)
   if(NOT EXISTS "${LMNUM_DEPS}/src/${dir}")
     message(FATAL_ERROR "${LMNUM_DEPS}/src/${dir} is missing: run scripts/fetch-deps.sh (or set -DLMNUM_DEPS=...)")
   endif()
@@ -34,6 +34,7 @@ target_include_directories(lmnum SYSTEM PRIVATE
   "${LMNUM_DEPS}/src/pocketfft-4d865cba24359b05b37da4e75aee24498c3b78e7"
   "${LMNUM_DEPS}/src/nanoflann-1.6.1/include"
   "${LMNUM_DEPS}/src/LBFGSpp-0.3.0/include"
+  "${LMNUM_DEPS}/src/xsf-4fff9b2cb2b5c31a0cf0b0f609d2699a5eeac53b/include"
   "${LMNUM_DEPS}/highs-prefix/include/highs")
 # EIGEN_MPL2_ONLY: refuse any Eigen code under a licence other than MPL-2.0. No fast-math: results must be IEEE.
 target_compile_definitions(lmnum PRIVATE EIGEN_MPL2_ONLY BOOST_MATH_NO_REAL_CONCEPT_TESTS BOOST_ALL_NO_LIB)

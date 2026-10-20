@@ -1,0 +1,58 @@
+// access: write (a temporary oracle-rvs.dslb, removed)
+// What it does: the _dsl_ version of ../oracle-rvs.lms. Draws 1000 seeded variates from five families (Dist.rvs, numpy PCG64 streams) and compares
+//   the empirical distribution with R's quantile function: the fraction of the sample below R's p-quantile must be within 4.5 binomial standard
+//   errors of p, at p = 0.1, 0.25, 0.5, 0.75, 0.9. The original asked R through rcli at run time; here R's quantiles are pinned known answers
+//   (R 4.3.3: qnorm, qgamma(shape 3, rate 0.5), qbeta(2, 5), qchisq(4), qt(8), printed with %.17g). Reproducibility (same seed, same stream; another
+//   seed, another stream) is checked first, and lmnum's streams are checked to be numpy's: the pinned first draws are those of
+//   numpy.random.Generator(PCG64(seed)) in numpy 2.3.3 (the oracle venv), so pycli and lmnum draw identical values.
+// Tolerance: |empirical - p| <= 4.5 * sqrt(p (1 - p) / 1000) (a ~7e-6 two-sided miss rate per check; the seeds are fixed so the result is
+//   deterministic); the numpy stream values are compared exactly.
+// How to run: lmscript examples/dsl/oracle-rvs.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
+import "lmnum.lms";
+
+prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+fn sample_vs_r(label: string, d: Dist, seed: int, r_quantiles: Vec, numpy_first: float) -> void {
+  let levels = vec("0.1 0.25 0.5 0.75 0.9");
+  let x = d.rvs(1000, seed);
+  out.check(label + ": first draw is numpy's", x.at(0) == numpy_first);
+  let zs = vec();
+  for (i in range(0, 5)) {
+    let p = levels.at(i);
+    let emp = float(x.le(r_quantiles.at(i)).count()) / 1000.0;
+    let z = abs(emp - p) / sqrt(p * (1.0 - p) / 1000.0);
+    zs.push(z);
+    out.check(label + ": sample consistent with R's quantile at p = " + str(p), z <= 4.5);
+  }
+  out.put(label, zs);
+}
+let n = dist("norm");
+let first = n.rvs(1000, 11);
+let second = n.rvs(1000, 11);
+let third = n.rvs(1000, 12);
+out.close("seed 11 reproduces the identical 1000 values", first, second, 0.0);
+out.check("seed 12 gives a different stream", first.sub(third).abs().max() > 0.0);
+out.close("seed 11 is numpy's stream", vec(first.at(0), first.at(1), first.at(999)), vec(0.03419276725318417, 1.3597475403099617, -0.2587801015756447), 0.0);
+sample_vs_r("norm(0,1)", dist("norm"), 101, vec("-1.2815515655446006 -0.67448975019608171 0 0.67448975019608171 1.2815515655446006"), -0.7901524999630146);
+sample_vs_r("gamma(shape 3, scale 2)", dist("gamma", opts().set("shape", 3.0).set("scale", 2.0)), 102,
+  vec("2.2041306564986423 3.4545988357210393 5.3481206274471216 7.8408041205851209 10.644640675668422"), 7.649095105387563);
+sample_vs_r("beta(2, 5)", dist("beta", opts().set("a", 2.0).set("b", 5.0)), 103,
+  vec("0.092595258913128753 0.16116291679032652 0.26444998329565994 0.38947948520072451 0.51031630655149163"), 0.36271966150301377);
+sample_vs_r("chi2(4)", dist("chi2", opts().set("df", 4.0)), 104,
+  vec("1.0636232167792241 1.9225575262295544 3.356693980033322 5.3852690577793911 7.7794403397348599"), 5.005553487386739);
+sample_vs_r("t(8)", dist("t", opts().set("df", 8.0)), 105, vec("-1.3968153097438649 -0.7063866126448386 0 0.7063866126448386 1.3968153097438649"), -0.04933698500379076);
+end _dsl_
+
+v = lmnum.run(prog, "oracle-rvs");
+println("leg 0: seed 11 reproduces the identical 1000 values (numpy's PCG64 stream); seed 12 gives a different stream");
+levels = [0.1, 0.25, 0.5, 0.75, 0.9];
+worst = 0;
+for (c in ["norm(0,1)", "gamma(shape 3, scale 2)", "beta(2, 5)", "chi2(4)", "t(8)"]) {
+  line = c + ":";
+  for (i = 0; i < 5; i = i + 1) {
+    line = line + sprintf(" p=%.2f (z %.2f)", levels[i], v[c][i]);
+    if (v[c][i] > worst) { worst = v[c][i]; }
+  }
+  println(line);
+}
+println(sprintf("leg 1: 5 families x 5 quantile levels agree with R; largest deviation %.2f standard errors", worst));
+println("Sampling agrees with R's distributions.");
