@@ -17,9 +17,9 @@ hashes are pinned in `deps.lock`.
 
 Runtime libraries:
 - libstdc++ and libgcc are linked statically under the GCC Runtime Library Exception.
-- The Linux build also links **glibc statically**. glibc is LGPL-2.1-or-later. Before a public binary release, either
-  build against musl (MIT), which is the plan in `../durable-memory/native-plan.md` §0, or ship the object files needed to
-  relink (as lmcad does). See the open items in `../durable-memory/native-dsl.md`.
+- glibc (LGPL-2.1-or-later) is linked **dynamically**, as the system C library: it is the executable's only shared
+  dependency (enforced by `test.sh`). `-DLMNUM_FULL_STATIC=ON` links it statically too; do not publish such a binary
+  without relinking materials.
 
 Ported algorithms and their sources (BSD-licensed scipy, statsmodels, scikit-learn and numpy code; public-domain QUADPACK,
 MINPACK and netlib routines) are credited in comments in the files that contain them.

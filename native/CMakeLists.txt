@@ -6,7 +6,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
-option(LMNUM_FULL_STATIC "Link the executable fully statically (no shared libraries at run time)" ON)
+option(LMNUM_FULL_STATIC "Also link glibc statically (default: glibc is the only shared dependency)" OFF)
 set(LMNUM_DEPS "${CMAKE_CURRENT_SOURCE_DIR}/.deps" CACHE PATH "Directory prepared by scripts/fetch-deps.sh")
 set(LMNUM_VERSION "0.1.0")
 

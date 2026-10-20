@@ -14,7 +14,9 @@ bad() { echo "FAIL $1"; failn=$((failn+1)); }
 cmake -S "$HERE" -B "$BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release ${LMNUM_DEPS:+-DLMNUM_DEPS="$LMNUM_DEPS"} >/dev/null
 cmake --build "$BUILD" -j"$(nproc)" >/dev/null
 BIN="$BUILD/lmnum"
-if { ldd "$BIN" 2>&1 || true; } | grep -q "not a dynamic executable"; then ok "lmnum is fully static ($(stat -c %s "$BIN") bytes)"; else bad "lmnum is not static"; fi
+# Only glibc may be a shared dependency (libstdc++, libgcc and every numerical library are linked in).
+deps="$({ ldd "$BIN" 2>&1 || true; } | awk '{print $1}' | grep -v -E '^(linux-vdso\.so|/lib/ld-linux|/lib64/ld-linux|ld-linux|libc\.so|libm\.so|libpthread\.so|libdl\.so|librt\.so|not)' || true)"
+if [ -z "$deps" ]; then ok "lmnum depends only on glibc ($(stat -c %s "$BIN") bytes)"; else bad "lmnum has non-glibc shared dependencies: $deps"; fi
 if "$BIN" --schema --json | cmp -s - "$HERE/schema/lmnum.dsl.json"; then ok "schema/lmnum.dsl.json equals lmnum --schema --json"; else bad "schema drift: run $BIN --schema --json > native/schema/lmnum.dsl.json"; fi
 if "$BIN" --api-md | cmp -s - "$HERE/API.md"; then ok "API.md equals lmnum --api-md"; else bad "API.md drift: run $BIN --api-md > native/API.md"; fi
 if diff <("$BIN" --dsl-signatures) <("$LMSCRIPT" --dsl-signatures "$HERE/schema/lmnum.dsl.json") >/dev/null; then ok "registry signatures equal lmscript --dsl-signatures"; else bad "signature parity"; fi

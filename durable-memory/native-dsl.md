@@ -1,4 +1,4 @@
-# lmnum: pycli as one static native executable driven by `_dsl_` bytecode
+# lmnum: pycli as one native executable driven by `_dsl_` bytecode
 
 Status (2026-10-20): foundation built on branch `native-dsl`. This document sets the direction and the conventions every
 op family follows. It supersedes the language choice in [native-plan.md](native-plan.md) (Rust, lmapi ops). That plan's
@@ -9,7 +9,7 @@ op mapping, clean-room rules (§4) and tolerance tiers (§3) still apply.
 Today's pycli is an lmapi CLI: lmscript calls `pycli.op({...})`, a C++ front end validates the call, and a Python child
 runs it inside Docker. lmnum replaces the whole chain with the `_dsl_` model used by lmcad and lmhtml:
 
-    examples/dsl/x.lms                          native/build/lmnum (static, no Python/R/Docker)
+    examples/dsl/x.lms                          native/build/lmnum (glibc only, no Python/R/Docker)
     prog = _dsl_ schema="lmnum.dsl.json";   ──▶  lmnum --dsl x.dslb
       let f = read_csv("data.csv");              loads the bytecode, binds it to the embedded schema (SHA-256),
       let fit = ols(f, "y", strs("x1,x2"));      runs it, then prints one JSON line:
@@ -30,10 +30,11 @@ runs it inside Docker. lmnum replaces the whole chain with the `_dsl_` model use
 
     native/scripts/fetch-deps.sh          # pinned sources from native/deps.lock (sha256), builds HiGHS static; network only here
     cmake -S native -B native/build -G Ninja && cmake --build native/build
-    native/test.sh                        # static check, schema/API drift, signature parity, every examples/dsl/*.lms
+    native/test.sh                        # glibc-only check, schema/API drift, signature parity, every examples/dsl/*.lms
     LMNUM=$PWD/native/build/lmnum lmscript examples/dsl/lstsq-fit.lms
 
-- The binary is fully static (glibc static, libstdc++ static) and is about 4 MB with the core families.
+- One executable to download: everything (libstdc++, libgcc, Eigen, Boost, HiGHS, ...) is linked in; glibc is the only
+  shared dependency (operator decision 2026-10-20: dynamic glibc avoids the LGPL static-linking duty). `test.sh` enforces it.
 - `lmnum --schema --json` prints the schema the bytecode binds to. It is generated from the registry.
   `native/schema/lmnum.dsl.json` is a committed copy, and `test.sh` fails when it drifts.
 - `lmnum --api-md` prints the API reference. `native/API.md` is a committed copy and is drift-checked too.
@@ -42,7 +43,7 @@ runs it inside Docker. lmnum replaces the whole chain with the `_dsl_` model use
   statsmodels 0.14.6, scikit-learn 1.7.2) for pinning expected values. `Rscript` is on the host too. Neither is used at
   run time or by the gate.
 
-## 3. Libraries (pure C/C++, permissive, statically linked)
+## 3. Libraries (pure C/C++, permissive, linked into the executable)
 
 | Library | Use | Licence |
 |---|---|---|

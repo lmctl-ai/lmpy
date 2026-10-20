@@ -1,7 +1,7 @@
 # lmnum
 
-`lmnum` is pycli's numerical toolbox as **one statically linked C++17 executable**. It needs no Python, R, Docker, GUI or
-shared library at run time. Programs are written as lmscript `_dsl_` blocks. lmscript type-checks a block against
+`lmnum` is pycli's numerical toolbox as **one C++17 executable**. Every library is linked in except the system C library
+(glibc), so it needs no Python, R, Docker, GUI or other shared library at run time. Programs are written as lmscript `_dsl_` blocks. lmscript type-checks a block against
 [`schema/lmnum.dsl.json`](schema/lmnum.dsl.json) and compiles it to bytecode; `lmnum --dsl FILE` runs the bytecode and
 prints one JSON result line.
 
@@ -21,12 +21,11 @@ v = lmnum.run(prog, "ols");               // {"r2": ...}; a failed out.close/out
 ```sh
 native/scripts/fetch-deps.sh                     # pinned sources (native/deps.lock, sha256-checked); builds HiGHS static
 cmake -S native -B native/build -G Ninja && cmake --build native/build
-native/test.sh                                   # static link, schema/API drift, signature parity, every examples/dsl/*.lms
+native/test.sh                                   # glibc-only check, schema/API drift, signature parity, every examples/dsl/*.lms
 ```
 
 You need a C++17 compiler (GCC 13 here), CMake ≥ 3.24, Ninja and network access for the fetch step. Running the examples
-needs `lmscript` from `@lmctl-ai/lmctl` ≥ 0.2.346. The result is `native/build/lmnum`. `ldd` prints "not a dynamic
-executable".
+needs `lmscript` from `@lmctl-ai/lmctl` ≥ 0.2.346. The result is `native/build/lmnum`. `ldd` lists only glibc.
 
 ## Command line
 
