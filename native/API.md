@@ -366,3 +366,28 @@ Dense solves, least squares, matrix properties, decompositions and matrix functi
 | `svd() -> Res` | thin SVD A = U diag(s) Vt: fields u (Mat), s (Vec, descending), vt (Mat), reconstruction_error |
 | `trace() -> float` | sum of the diagonal |
 
+## Ordinary differential equations
+
+Initial value problems dy/dt = f(t, y) with expression right-hand sides (pycli `ode_solve`, `ode_solve_to`; scipy.integrate.solve_ivp). `rhs[i]` is the expression for d(state[i])/dt in the state names, `t`, `y[i]` and `$`-bound constants (`opts().set("$beta", 0.3)`). Methods RK45 (default), RK23, DOP853, Radau, BDF are ports of scipy's solvers (same step control, dense output and finite-difference Jacobian); LSODA is an automatic switch from RK45 to BDF when Hairer's stiffness test fires, not ODEPACK. Options (pycli names and defaults): `method`, `rtol` (1e-6), `atol` (1e-9, float or one per state), `t_eval` (ordered times; t0/t1 are added when missing) or `max_output_points` (101 uniform samples), `max_step`, `first_step`, `events` (StrVec of expressions whose zeros are located by brentq on the dense output), `direction` (Vec of -1/0/1), `terminal` (Vec: 0 = record only, k = stop at the k-th occurrence), `max_events` (32: a non-terminal event stops the run with EVENT_LIMIT at that count), `max_evals` (200000 expression evaluations), `max_steps` (10000 accepted steps). Result statuses: OK, STEP_SIZE_TOO_SMALL, NO_CONVERGENCE, EVAL_LIMIT, STEP_LIMIT, EVENT_LIMIT, NON_FINITE (a NaN/inf RHS or event value stops the run); a non-OK run keeps the samples computed so far and ends at the last accepted state.
+
+### Functions
+
+| Signature | Meaning |
+|---|---|
+| `ode(StrVec, StrVec, Vec, float, float) -> Res` | solve an initial value problem ode(rhs, state, y0, t0, t1) with RK45 at rtol 1e-6, atol 1e-9 on 101 points; result: status, message, termination (end/event/failed), method, final_time, final_state, state_names, t (Vec), y (Mat: one row per time, one column per state), event_counts, event_t, event_y (Mat), event_index (grouped by event), nfev, njev, nlu, steps, rhs_calls, event_calls, evals, nonfinite_evals, success, partial_trajectory, effective_output_points, endpoints_added |
+| `ode(StrVec, StrVec, Vec, float, float, Opts) -> Res` | solve an initial value problem with options (method, rtol, atol, t_eval, events, ... and $ constants); same result fields |
+| `ode_sol(StrVec, StrVec, Vec, float, float) -> OdeSol` | like ode, keeping the dense output for evaluation at any time inside the integrated range |
+| `ode_sol(StrVec, StrVec, Vec, float, float, Opts) -> OdeSol` | like ode with options, keeping the dense output (DOP853 then spends 3 extra RHS calls per step, as in scipy) |
+
+### Type `OdeSol`
+
+Dense ODE solution (solve_ivp dense_output): the piecewise interpolant of every accepted step plus the run's result.
+
+| Method | Meaning |
+|---|---|
+| `eval(float) -> Vec` | state vector at time t (t must lie in the integrated range) |
+| `eval(Vec) -> Mat` | states at several times: one row per time, one column per state |
+| `res() -> Res` | the run's result (the fields of `ode`) |
+| `t_max() -> float` | end of the integrated range (the terminal event time when one stopped the run) |
+| `t_min() -> float` | start of the integrated range |
+

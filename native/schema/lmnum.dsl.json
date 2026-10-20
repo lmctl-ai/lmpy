@@ -87,6 +87,15 @@
       },
       "operators": {"*": "mul", "+": "add", "-": "sub", "neg": "neg", "r*": "mul"}
     },
+    "OdeSol": {
+      "methods": {
+        "eval": [{"params": ["float"], "returns": "Vec"},
+          {"params": ["Vec"], "returns": "Mat"}],
+        "res": [{"params": [], "returns": "Res"}],
+        "t_max": [{"params": [], "returns": "float"}],
+        "t_min": [{"params": [], "returns": "float"}]
+      }
+    },
     "Opts": {
       "methods": {
         "has": [{"params": ["string"], "returns": "bool"}],
@@ -256,6 +265,10 @@
       {"params": ["Vec","int","int"], "returns": "Mat"},
       {"params": ["string"], "returns": "Mat"}],
     "nan": [{"params": [], "returns": "float"}],
+    "ode": [{"params": ["StrVec","StrVec","Vec","float","float"], "returns": "Res"},
+      {"params": ["StrVec","StrVec","Vec","float","float","Opts"], "returns": "Res"}],
+    "ode_sol": [{"params": ["StrVec","StrVec","Vec","float","float"], "returns": "OdeSol"},
+      {"params": ["StrVec","StrVec","Vec","float","float","Opts"], "returns": "OdeSol"}],
     "ones": [{"params": ["int"], "returns": "Vec"}],
     "opts": [{"params": [], "returns": "Opts"}],
     "pad": [{"params": ["string","int"], "returns": "string"}],
