@@ -23,7 +23,7 @@ done < "$HERE/deps.lock"
 if [ ! -f "$DEPS/highs-prefix/lib/libhighs.a" ]; then
   echo "build HiGHS (static)"
   cmake -S "$DEPS/src/HiGHS-1.7.2" -B "$DEPS/highs-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
-    -DFAST_BUILD=ON -DBUILD_TESTING=OFF -DZLIB=OFF -DCMAKE_INSTALL_PREFIX="$DEPS/highs-prefix" >/dev/null
+    -DFAST_BUILD=ON -DBUILD_TESTING=OFF -DZLIB=OFF -DCMAKE_INSTALL_PREFIX="$DEPS/highs-prefix" -DCMAKE_INSTALL_LIBDIR=lib >/dev/null
   cmake --build "$DEPS/highs-build" -j"$(jobs)"
   cmake --install "$DEPS/highs-build" >/dev/null
 fi
