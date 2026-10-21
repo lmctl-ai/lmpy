@@ -7,10 +7,10 @@
 //   5. for every shipment in the plan, recover the actual route (Dijkstra path) and check its length against the table.
 // Known answers (networkx 3.x shortest paths + scipy 1.16.2 linprog/highs, recomputed by hand from the table): minimum cost 851
 //   unit-km; D1 ships C1 20, C2 15, C3 15; D2 ships C3 10, C4 18, C5 22; depot D2's supply is binding (dual -10).
-// How to run: lmscript examples/dsl/task-delivery-plan.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/task-delivery-plan.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 # step 1
 let g = graph(false);
 g.edge("D1", "J1", 4.0); g.edge("D1", "C1", 7.0); g.edge("J1", "C1", 2.0); g.edge("J1", "J2", 5.0);
@@ -66,7 +66,7 @@ for (i in range(0, nd)) {
 out.put("routes", routes);
 end _dsl_
 
-v = lmnum.run(prog, "task-delivery-plan");
+v = lmpy.run(prog, "task-delivery-plan");
 println(sprintf("depot x customer km: %s", json_stringify(v.distance_table)));
 println(sprintf("minimum transport cost %.0f unit-km over %d shipments:", v.cost, len(v.routes)));
 for (r in v.routes) { println("  " + r); }

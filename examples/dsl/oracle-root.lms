@@ -6,10 +6,10 @@
 //   rcli; that leg is now the pinned known value (R's uniroot with tol 1e-14 agrees with it to 1e-12).
 // Tolerance: 1e-12 for the bracketed scalar root; 1e-8 for the nonlinear systems; best residual of x^2 + 1 >= 0.99.
 // Reference: scipy 1.16.2 brentq on [2, 3] with xtol 1e-14 converges in 7 iterations to 2.094551481542327.
-// How to run: lmscript examples/dsl/oracle-root.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-root.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let known = 2.0945514815423265;
 let b = root(strs("x^3 - 2*x - 5"), strs("x"), vec(2.0), opts().set("bracket", vec(2.0, 3.0)).set("xtol", 0.00000000000001));
 let n = root_scalar("x^3 - 2*x - 5", "x", 2.0, 3.0, opts().set("xtol", 0.00000000000001));
@@ -35,7 +35,7 @@ out.check("x^2 + 1 best residual >= 0.99", none.num("residual_max") >= 0.99);
 out.put("none", none);
 end _dsl_
 
-v = lmnum.run(prog, "oracle-root");
+v = lmpy.run(prog, "oracle-root");
 println(sprintf("root of x^3 - 2x - 5: known %.16f | root (brentq bracket) %.16f | root_scalar %.16f", 2.0945514815423265, v.bracket_root, v.scalar_root));
 println(sprintf("scalar root: 2 solver(s) agree with the known value, largest error %.12f", v.worst));
 for (m in ["hybr", "lm"]) {

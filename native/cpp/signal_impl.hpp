@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace lmnum {
+namespace lmpy {
 namespace sig {
 
 using cd = std::complex<double>;
@@ -101,4 +101,4 @@ V savgol_coeffs(int window_length, int polyorder, int deriv, double delta);
 V savgol_filter(const V& x, int window_length, int polyorder, int deriv, double delta, const std::string& mode, double cval);
 
 }  // namespace sig
-}  // namespace lmnum
+}  // namespace lmpy

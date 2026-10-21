@@ -2,7 +2,7 @@
 #include "frame.hpp"
 #include <iostream>
 
-namespace lmnum {
+namespace lmpy {
 
 void Out::put(const std::string& key, std::string json) {
   for (auto& kv : values)
@@ -77,4 +77,4 @@ void register_out(Api& api) {
     throw dslvm::Error("APP_FAIL", a[0].s); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

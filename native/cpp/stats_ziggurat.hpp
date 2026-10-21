@@ -1,10 +1,10 @@
 // Ziggurat tables of numpy's random distributions (numpy 2.3.3, numpy/random/src/distributions/ziggurat_constants.h),
-// copied unmodified (double-precision tables only) so that lmnum draws the same normal and exponential variates as
+// copied unmodified (double-precision tables only) so that lmpy draws the same normal and exponential variates as
 // numpy.random.Generator(PCG64(seed)). numpy is BSD-3-Clause, Copyright (c) 2005-2025, NumPy Developers
 // (https://github.com/numpy/numpy/blob/main/LICENSE.txt).
 #pragma once
 #include <cstdint>
-namespace lmnum { namespace nprand {
+namespace lmpy { namespace nprand {
 static const uint64_t ki_double[] = {
     0x000EF33D8025EF6AULL, 0x0000000000000000ULL, 0x000C08BE98FBC6A8ULL,
     0x000DA354FABD8142ULL, 0x000E51F67EC1EEEAULL, 0x000EB255E9D3F77EULL,
@@ -706,4 +706,4 @@ static const double ziggurat_nor_inv_r =
     0.27366123732975827203338247596; // 1.0 / ziggurat_nor_r;
 static const double ziggurat_exp_r = 7.6971174701310497140446280481;
 
-}}  // namespace lmnum::nprand
+}}  // namespace lmpy::nprand

@@ -7,12 +7,12 @@
 //   4. derive R0 = beta / gamma, the predicted peak day (event on i' = 0) and peak size from the fitted model;
 //   5. check the fit against the truth and the goodness of fit (chi-square per observation near 1 for Poisson noise).
 // Why a DSL: an expression objective cannot call an ODE solver; here the optimisation loop itself is DSL code, so a few hundred
-//   ODE solves run inside lmnum without any process or file round trip.
+//   ODE solves run inside lmpy without any process or file round trip.
 // Tolerance: beta and gamma within 5% of the truth, R0 within 5%, peak day within 2 days of the true peak; chi2/n in [0.5, 1.5].
-// How to run: lmscript examples/dsl/task-epidemic-fit.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/task-epidemic-fit.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn sir(beta: float, gamma: float, days: int) -> Res {
   let o = opts().set("method", "DOP853").set("rtol", 0.00000001).set("atol", 0.000001).set("t_eval", arange(days));
   o.set("$b", beta).set("$g", gamma).set("$n", 10000.0);
@@ -83,7 +83,7 @@ out.close("peak day within 2 days", peak, true_peak, 2.0);
 out.check("chi2 per observation near 1", fit_chi2 / float(obs.len()) > 0.5 && fit_chi2 / float(obs.len()) < 1.5);
 end _dsl_
 
-v = lmnum.run(prog, "task-epidemic-fit");
+v = lmpy.run(prog, "task-epidemic-fit");
 println(sprintf("fitted beta %.4f, gamma %.4f, R0 %.3f (truth 0.30, 0.10, 3.0) after %d ODE solves", v.beta, v.gamma, v.r0, v.ode_solves));
 println(sprintf("predicted peak day %.2f (true %.2f), %.0f infected at the peak; chi2/n %.3f", v.peak_day, v.true_peak_day, v.peak_size, v.chi2_per_obs));
 println("Epidemic fit task passed.");

@@ -3,8 +3,8 @@
 //   aggregates per region (sum, mean, count) and per week (pandas "1W": weeks ending on Sunday, labelled by that Sunday), exports the
 //   weekly table as CSV and checks the region sums against hand-computed totals.
 // Tolerance: exact.
-// How to run: lmscript examples/dsl/sales-report.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/sales-report.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
 text = "ts,region,sales\n";
 for (i = 1; i < 15; i = i + 1) {
@@ -14,7 +14,7 @@ for (i = 1; i < 15; i = i + 1) {
 }
 write_file("sales-dsl.csv", text);
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let sales = read_csv("sales-dsl.csv");
 let selected = sales.filter("sales >= 50").sort("ts", true);
 let regions = selected.groupby(strs("region"), "sales:sum|mean|count");
@@ -32,7 +32,7 @@ out.close("week 1 sum", weekly.num("sales__sum", 0), 260.0, 0.0);
 out.close("week 2 sum", weekly.num("sales__sum", 1), 690.0, 0.0);
 end _dsl_
 
-v = lmnum.run(prog, "sales-report");
+v = lmpy.run(prog, "sales-report");
 println("Region totals:", json_stringify(v.regions.data));
 println("Weekly CSV:", read_file("sales-report-dsl.csv"));
 for (path in ["sales-dsl.csv", "sales-report-dsl.csv"]) { delete_file(path); }

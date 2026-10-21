@@ -12,10 +12,10 @@
 //   solve_ivp DOP853 with the same settings (oracle venv): event times 10.077359037584952, 20.866236765596692, prey there
 //   13.676031809930846; sampled prey peaks at grid indices 81 and 167.
 // Tolerance: the original's (1e-4 pins, 1e-6 first-integral drift, 1e-5 for pred = a/b, one grid step for the period); scipy pins 1e-6.
-// How to run: lmscript examples/dsl/tut-ode-predator-prey.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-ode-predator-prey.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let a = 1.1;
 let b = 0.4;
 let c = 0.1;
@@ -90,7 +90,7 @@ out.put("period_peaks", period_peaks);
 out.put("linearised", 2.0 * pi() / sqrt(a * d));
 end _dsl_
 
-v = lmnum.run(prog, "tut-ode-predator-prey");
+v = lmpy.run(prog, "tut-ode-predator-prey");
 println(sprintf("%d output points on [0, 30]; prey in [%.3f, %.3f], predators in [%.3f, %.3f]; %d prey maxima detected", v.n_t, v.prey_min, v.prey_max, v.pred_min, v.pred_max, len(v.event_t)));
 for (i = 0; i < len(v.event_t); i = i + 1) { println(sprintf("  prey maximum at t=%.5f: prey=%.5f pred=%.5f", v.event_t[i], v.event_y[i][0], v.event_y[i][1])); }
 println(sprintf("conserved quantity V = %.10f, largest drift along the orbit %s", v.v0, str(v.worst)));

@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace lmnum::opt {
+namespace lmpy::opt {
 namespace {
 
 using F1 = std::function<double(double)>;
@@ -370,4 +370,4 @@ SystemRoot root_lm(const VectorFn& f, const VectorXd& x0, double xtol, int64_t m
   return r;
 }
 
-}  // namespace lmnum::opt
+}  // namespace lmpy::opt

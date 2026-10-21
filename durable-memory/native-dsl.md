@@ -1,4 +1,4 @@
-# lmnum: pycli as one native executable driven by `_dsl_` bytecode
+# lmpy: pycli as one native executable driven by `_dsl_` bytecode
 
 Status (2026-10-20): all op families implemented on branch `native-dsl`; all 52 pycli recipes ported to `examples/dsl/`
 plus 9 new examples (8 multi-step `task-*`); `native/test.sh` 66/66. See §6 for what differs from pycli and what is open.
@@ -8,19 +8,19 @@ op mapping, clean-room rules (§4) and tolerance tiers (§3) still apply.
 ## 1. What changes
 
 Today's pycli is an lmapi CLI: lmscript calls `pycli.op({...})`, a C++ front end validates the call, and a Python child
-runs it inside Docker. lmnum replaces the whole chain with the `_dsl_` model used by lmcad and lmhtml:
+runs it inside Docker. lmpy replaces the whole chain with the `_dsl_` model used by lmcad and lmhtml:
 
-    examples/dsl/x.lms                          native/build/lmnum (glibc only, no Python/R/Docker)
-    prog = _dsl_ schema="lmnum.dsl.json";   ──▶  lmnum --dsl x.dslb
+    examples/dsl/x.lms                          native/build/lmpy (glibc only, no Python/R/Docker)
+    prog = _dsl_ schema="lmpy.dsl.json";   ──▶  lmpy --dsl x.dslb
       let f = read_csv("data.csv");              loads the bytecode, binds it to the embedded schema (SHA-256),
       let fit = ols(f, "y", strs("x1,x2"));      runs it, then prints one JSON line:
       out.put("r2", fit.num("r2"));              {"ok": true, "result": {"values": {...}, "checks": {...}}}
     end _dsl_
-    v = lmnum.run(prog, "x");   # savedsl + system([lmnum, "--dsl", file]) + json_parse
+    v = lmpy.run(prog, "x");   # savedsl + system([lmpy, "--dsl", file]) + json_parse
 
 - **One program, many steps.** A DSL chunk chains operations in native memory: read → transform → fit → check → report.
   There is no process, JSON or file round trip per step. pycli needed `_to` twins and safetensors artifacts to pass arrays
-  between calls; in lmnum, arrays are values (`Vec`, `Mat`, `Frame`).
+  between calls; in lmpy, arrays are values (`Vec`, `Mat`, `Frame`).
 - **Typed at compile time.** lmscript checks every call against the schema before anything runs (wrong argument type,
   unknown method, misspelt function = located compile error, exit 2).
 - **No isolation boundary to maintain.** The DSL accepts no caller code beyond what the host offers (R33: the bytecode is
@@ -32,14 +32,14 @@ runs it inside Docker. lmnum replaces the whole chain with the `_dsl_` model use
     native/scripts/fetch-deps.sh          # pinned sources from native/deps.lock (sha256), builds HiGHS static; network only here
     cmake -S native -B native/build -G Ninja && cmake --build native/build
     native/test.sh                        # glibc-only check, schema/API drift, signature parity, every examples/dsl/*.lms
-    LMNUM=$PWD/native/build/lmnum lmscript examples/dsl/lstsq-fit.lms
+    LMPY=$PWD/native/build/lmpy lmscript examples/dsl/lstsq-fit.lms
 
 - One executable to download: everything (libstdc++, libgcc, Eigen, Boost, HiGHS, ...) is linked in; glibc is the only
   shared dependency (operator decision 2026-10-20: dynamic glibc avoids the LGPL static-linking duty). `test.sh` enforces it.
-- `lmnum --schema --json` prints the schema the bytecode binds to. It is generated from the registry.
-  `native/schema/lmnum.dsl.json` is a committed copy, and `test.sh` fails when it drifts.
-- `lmnum --api-md` prints the API reference. `native/API.md` is a committed copy and is drift-checked too.
-- `lmnum --dsl-signatures` must equal `lmscript --dsl-signatures native/schema/lmnum.dsl.json`.
+- `lmpy --schema --json` prints the schema the bytecode binds to. It is generated from the registry.
+  `native/schema/lmpy.dsl.json` is a committed copy, and `test.sh` fails when it drifts.
+- `lmpy --api-md` prints the API reference. `native/API.md` is a committed copy and is drift-checked too.
+- `lmpy --dsl-signatures` must equal `lmscript --dsl-signatures native/schema/lmpy.dsl.json`.
 - Development-only oracle: `native/.deps/oracle-venv` has pycli's exact pins (numpy 2.3.3, scipy 1.16.2, pandas 2.3.3,
   statsmodels 0.14.6, scikit-learn 1.7.2) for pinning expected values. `Rscript` is on the host too. Neither is used at
   run time or by the gate.
@@ -110,11 +110,11 @@ Rules for a family file:
   - The lmscript part keeps the human-readable output of the original and ends with the same "passed" line.
 - `examples/dsl/task-*.lms` are new multi-step workflows. Each chains several families in one DSL program; that is the
   point of the model.
-- `examples/dsl/lmnum.lms` is the shared runner (`lmnum.run(prog, name)`). It prints `SKIPPED` and exits 0 when lmnum
+- `examples/dsl/lmpy.lms` is the shared runner (`lmpy.run(prog, name)`). It prints `SKIPPED` and exits 0 when lmpy
   is not installed.
 - The `oracle-*` and `cross-*` originals compare pycli with sibling tools (rcli, statsrust, lmda) at run time. Their DSL
   versions instead assert the pinned known answers those comparisons established (from the oracle venv or R),
-  because the point here is lmnum's own correctness.
+  because the point here is lmpy's own correctness.
 
 ## 6. State and open items (2026-10-20)
 
@@ -124,7 +124,7 @@ Rules for a family file:
   - statistical models (OLS/GLM/SARIMAX/tsa), machine learning.
   
   Each family's merge commit message on `native-dsl` lists its accuracy against the oracle and its deviations.
-- **Binary:** `lmnum` is about 12 MB (aarch64, Release). glibc is its only shared dependency (decision 2026-10-20). A full
+- **Binary:** `lmpy` is about 12 MB (aarch64, Release). glibc is its only shared dependency (decision 2026-10-20). A full
   task example (compile, run, report) takes about 0.2 s, against 0.4–1.4 s per op with the Docker pycli.
 - **Deliberate differences from pycli** (details in API.md and the merge messages):
   - Not implemented: random forests and gradient boosting (clear error), `trust-constr`, analog filter design, hulls above 3-D.
@@ -132,7 +132,7 @@ Rules for a family file:
   - Bad input is a located run-time error instead of a status code. Numerical outcomes keep pycli's `status` strings.
   - LSODA is RK45 switching to BDF, not ODEPACK. L-BFGS-B is LBFGSpp (same optimum, different counts).
 - **Open:**
-  1. `lmnum` serves only the `_dsl_` interface. The old lmapi call form (`pycli.op({...})` through `cli.schema.dev.json`)
+  1. `lmpy` serves only the `_dsl_` interface. The old lmapi call form (`pycli.op({...})` through `cli.schema.dev.json`)
      is not served; a thin adapter could map ops onto the same C++ functions if still needed.
   2. Builds are verified on aarch64/glibc only. Untested: x86-64, macOS, Windows, and a release build on an old glibc
      for portability.

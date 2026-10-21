@@ -1,6 +1,6 @@
 #include "host.hpp"
 
-namespace lmnum {
+namespace lmpy {
 
 void register_families(Api& api) {
   register_sparse(api);
@@ -15,4 +15,4 @@ void register_families(Api& api) {
   register_ml(api);
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

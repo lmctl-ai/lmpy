@@ -8,10 +8,10 @@
 //   find_peaks): 100 bins summing to 197.87164716666666; 2 sections, max pole radius 0.9089561776827397; peaks at minutes 19, 50, 80
 //   with heights 3.082172668213415, 3.9931713559519317, 3.5094399219507935.
 // Tolerance: peak minutes within 1 of the true burst centres (minute 20, 50 and 80), as the original; pinned values within 1e-9.
-// How to run: lmscript examples/dsl/sensor-pipeline.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/sensor-pipeline.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let centres = vec(20.0, 50.0, 80.0);
 let heights = vec(4.0, 6.0, 5.0);
 let t0 = parse_time("2026-02-01T00:00:00Z");
@@ -54,7 +54,7 @@ out.put("indices", idx);
 out.put("heights", p.vec("peak_heights"));
 end _dsl_
 
-v = lmnum.run(prog, "sensor-pipeline");
+v = lmpy.run(prog, "sensor-pipeline");
 println(sprintf("resampled to %d one-minute means (first bin %s)", v.bins, v.first_bin));
 println(sprintf("filter: %d sections, stable %s", v.n_sections, json_stringify(v.stable)));
 println(sprintf("%d peaks at minutes %s with heights %s", len(v.indices), json_stringify(v.indices), json_stringify(v.heights)));

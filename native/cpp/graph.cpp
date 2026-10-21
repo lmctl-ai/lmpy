@@ -19,7 +19,7 @@
 #include <set>
 #include <unordered_map>
 
-namespace lmnum {
+namespace lmpy {
 
 struct Graph : Obj {
   static constexpr const char* TYPE = "Graph";
@@ -860,4 +860,4 @@ void register_graph(Api& api) {
                return O(min_cost_flow(g, sup)); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

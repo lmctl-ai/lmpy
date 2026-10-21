@@ -1,5 +1,5 @@
 // access: write (a temporary cross-tests.dslb, removed)
-// Cross-language agreement: a pooled two-sample t-test and a chi-square test of independence in lmnum and R.
+// Cross-language agreement: a pooled two-sample t-test and a chi-square test of independence in lmpy and R.
 // What it does: the _dsl_ version of ../cross-tests.lms. On examples/data/tut-groups.csv, (1) the pooled t-test ctrl vs trt2 is the
 //   t statistic of the group dummy in a two-group regression (`ols`; `ttest_ind` is checked to give the same answer), (2) the
 //   chi-square test of the 3 x 2 group x flowered table uses the statistic computed in the DSL from a `groupby` count table and the
@@ -8,12 +8,12 @@
 //     chisq.test(table(group, flowered), correct = FALSE)
 //   (the original called R through rcli test_htest at run time).
 // Tolerance: as the original: statistics 1e-10 absolute (pure arithmetic), degrees of freedom exact, p-values 1e-12 relative
-//   (t and chi-square distribution functions: lmnum vs R's pt / pchisq).
+//   (t and chi-square distribution functions: lmpy vs R's pt / pchisq).
 // Data: examples/data/tut-groups.csv (seed 104).
-// How to run: lmscript examples/dsl/cross-tests.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/cross-tests.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-groups.csv");
 let ctrl = f.where("group", "ctrl");
 let trt2 = f.where("group", "trt2");
@@ -67,10 +67,10 @@ out.put("x2", vec(x2, r_x2));
 out.put("pchi", vec(pchi, r_pchi));
 end _dsl_
 
-v = lmnum.run(prog, "cross-tests");
-println(sprintf("%-28s %20s %20s  %s", "quantity", "lmnum", "r", "abs diff"));
+v = lmpy.run(prog, "cross-tests");
+println(sprintf("%-28s %20s %20s  %s", "quantity", "lmpy", "r", "abs diff"));
 for (q in [["t statistic |t|", v.t], ["t df", v.df], ["t p-value", v.p], ["mean difference", v.diff], ["chi-square statistic", v.x2], ["chi-square p-value", v.pchi]]) {
   println(sprintf("%-28s %20.12f %20.12f  %s", q[0], q[1][0], q[1][1], str(abs(q[1][0] - q[1][1]))));
 }
 println(sprintf("ttest_ind: t = %.12f, p = %.12f", v.ti[0], v.ti[1]));
-println(sprintf("Agreement: pooled t-test (t = %.4f, p = %.5f) and chi-square test (X2 = %.4f, p = %.5f) agree between lmnum and R.", v.t[0], v.p[0], v.x2[0], v.pchi[0]));
+println(sprintf("Agreement: pooled t-test (t = %.4f, p = %.5f) and chi-square test (X2 = %.4f, p = %.5f) agree between lmpy and R.", v.t[0], v.p[0], v.x2[0], v.pchi[0]));

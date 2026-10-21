@@ -14,10 +14,10 @@
 //   needs expected counts of at least 5 (Cochran's rule), which the recipe prints and checks.
 // Tolerance: as the original: p-values against t.sf / F.sf 1e-9; coefficients vs group-mean differences 1e-9; group differences
 //   within 2.5 SE of the generating -0.4 / +0.8; effects significant at 5% (t-test also after Bonferroni); expected counts >= 5.
-// How to run: lmscript examples/dsl/tut-group-tests.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-group-tests.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-groups.csv");
 # 1. Two-sample t-test (pooled variance) = t statistic of the group dummy in weight ~ group on the two groups (group != trt1).
 let pair = f.where("group", "ctrl").concat(f.where("group", "trt2"));
@@ -88,7 +88,7 @@ out.put("table", table);
 out.put("chi2", vec(chi2, pchi, min_expected));
 end _dsl_
 
-v = lmnum.run(prog, "tut-group-tests");
+v = lmpy.run(prog, "tut-group-tests");
 println(sprintf("t-test ctrl vs trt2: difference %.3f (SE %.3f), t = %.3f on %d df, p = %.4f", v.t[0], v.t[1], v.t[2], v.t_df, v.t[3]));
 println(sprintf("ANOVA: F(%d, %d) = %.3f, p = %.4f, r2 = %.3f", v.anova[0], v.anova[1], v.anova[2], v.anova[3], v.anova_r2));
 md = v.means.data;

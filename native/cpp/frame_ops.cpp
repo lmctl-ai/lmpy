@@ -11,7 +11,7 @@
 #include <numeric>
 #include <set>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 const std::string Ft = "Frame", Vt = "Vec", St = "StrVec", Mt = "Mat", Rt = "Res";
@@ -666,4 +666,4 @@ void register_frame_ops(Api& api) {
     return O(f); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

@@ -1,6 +1,6 @@
-# lmnum third-party notices
+# lmpy third-party notices
 
-lmnum is MIT (see `licenses/lmnum-LICENSE`, the pycli licence). The release executable statically links the components below.
+lmpy is MIT (see `licenses/lmpy-LICENSE`, the pycli licence). The release executable statically links the components below.
 Every one is permissively licensed. Their full licence texts are in `licenses/`. The exact versions and source archive
 hashes are pinned in `deps.lock`.
 
@@ -19,7 +19,7 @@ hashes are pinned in `deps.lock`.
 Runtime libraries:
 - libstdc++ and libgcc are linked statically under the GCC Runtime Library Exception.
 - glibc (LGPL-2.1-or-later) is linked **dynamically**, as the system C library: it is the executable's only shared
-  dependency (enforced by `test.sh`). `-DLMNUM_FULL_STATIC=ON` links it statically too; do not publish such a binary
+  dependency (enforced by `test.sh`). `-DLMPY_FULL_STATIC=ON` links it statically too; do not publish such a binary
   without relinking materials.
 
 Ported algorithms (credited in the file headers that contain them):

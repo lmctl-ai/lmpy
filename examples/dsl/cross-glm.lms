@@ -1,5 +1,5 @@
 // access: write (a temporary cross-glm.dslb, removed)
-// Cross-language agreement: logistic and Poisson generalized linear models in lmnum (`glm`, IRLS after statsmodels) and R (glm).
+// Cross-language agreement: logistic and Poisson generalized linear models in lmpy (`glm`, IRLS after statsmodels) and R (glm).
 // What it does: the _dsl_ version of ../cross-glm.lms. Fits dead ~ ldose (binomial, logit) on examples/data/tut-dose.csv and
 //   count ~ C(group, A) with hours as the exposure (Poisson, log) on examples/data/tut-poisson.csv in one DSL program and compares
 //   estimates, standard errors, deviance and null deviance with R 4.3.3 values pinned here, computed with Rscript:
@@ -10,10 +10,10 @@
 //   standard errors 1e-5 (R's summary.glm uses the working weights of the penultimate IRLS iterate, statsmodels the converged ones:
 //   a difference of the order of the last IRLS step, 6e-7 on the Poisson fit), deviances 1e-8 relative.
 // Data: examples/data/tut-dose.csv (seed 103), examples/data/tut-poisson.csv (seed 102).
-// How to run: lmscript examples/dsl/cross-glm.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/cross-glm.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let tol = 0.000001;
 let setol = 0.00001;
 let rtol = 0.00000001;
@@ -54,9 +54,9 @@ out.put("dev2", vec(pois.num("deviance"), pois.num("null_deviance")));
 out.put("it2", pois.int("n_iter"));
 end _dsl_
 
-v = lmnum.run(prog, "cross-glm");
+v = lmpy.run(prog, "cross-glm");
 function row(label, a, b) { println(sprintf("%-28s %20.12f %20.12f  %s", label, a, b, str(abs(a - b)))); }
-println(sprintf("%-28s %20s %20s  %s", "quantity", "lmnum", "r", "abs diff"));
+println(sprintf("%-28s %20s %20s  %s", "quantity", "lmpy", "r", "abs diff"));
 fits = [["logistic", v.n1, v.e1, v.s1, v.r1_est, v.r1_se, v.dev1, [212.93282969295095, 332.56063103986628], v.it1, 5],
         ["poisson", v.n2, v.e2, v.s2, v.r2_est, v.r2_se, v.dev2, [94.255851067070893, 165.90780727114452], v.it2, 4]];
 for (f in fits) {
@@ -66,6 +66,6 @@ for (f in fits) {
   }
   row(f[0] + " deviance", f[6][0], f[7][0]);
   row(f[0] + " null deviance", f[6][1], f[7][1]);
-  println(sprintf("  %s: IRLS iterations lmnum %d, r %d", f[0], f[8], f[9]));
+  println(sprintf("  %s: IRLS iterations lmpy %d, r %d", f[0], f[8], f[9]));
 }
 println("Agreement: logistic and Poisson GLM estimates (1e-6), standard errors (1e-5) and deviances (1e-8 relative) agree.");

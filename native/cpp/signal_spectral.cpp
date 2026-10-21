@@ -8,7 +8,7 @@
 #include <boost/math/special_functions/bessel.hpp>
 #include <algorithm>
 
-namespace lmnum {
+namespace lmpy {
 namespace sig {
 
 // numpy loops_utils.h.src pairwise_sum (8 accumulators, blocks of 128).
@@ -432,4 +432,4 @@ V savgol_filter(const V& x, int window_length, int polyorder, int deriv, double 
 }
 
 }  // namespace sig
-}  // namespace lmnum
+}  // namespace lmpy

@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <set>
 
-namespace lmnum {
+namespace lmpy {
 namespace ml {
 namespace {
 
@@ -78,7 +78,7 @@ std::vector<Split> make_splits(const std::string& cv, int64_t k, bool shuffle, i
   } else if (cv == "group") {
     if (!groups) fail("ml_cv: cv=group needs the option groups (a Vec with one group id per row)");
     if (Eigen::Index(groups->size()) != n) fail("ml_cv: groups has " + std::to_string(groups->size()) + " values; x has " + std::to_string(n) + " rows");
-    if (shuffle) fail("ml_cv: cv=group does not support shuffle in lmnum");
+    if (shuffle) fail("ml_cv: cv=group does not support shuffle in lmpy");
     std::vector<double> ug(groups->begin(), groups->end()); std::sort(ug.begin(), ug.end()); ug.erase(std::unique(ug.begin(), ug.end()), ug.end());
     if (int64_t(ug.size()) < k) fail("ml_cv: group CV needs at least n_splits distinct groups (found " + std::to_string(ug.size()) + ")");
     std::vector<int> gi(n); std::vector<int64_t> cnt(ug.size(), 0);
@@ -260,7 +260,7 @@ std::string hyper_json(const Hyper& h) {
 }  // namespace
 
 std::string save_json(const Estimator& e) {
-  std::string o = "{\"lmnum_model\":1,\"kind\":" + jstr(e.kind) + ",\"status\":" + jstr(e.status) + ",\"n_features\":" + std::to_string(e.n_features) +
+  std::string o = "{\"lmpy_model\":1,\"kind\":" + jstr(e.kind) + ",\"status\":" + jstr(e.status) + ",\"n_features\":" + std::to_string(e.n_features) +
                   ",\"n_train\":" + std::to_string(e.n_train) + ",\"n_iter\":" + std::to_string(e.n_iter) + ",\"rank\":" + std::to_string(e.rank) +
                   ",\"hyper\":" + hyper_json(e.hp) + ",\"nums\":{";
   bool first = true;
@@ -279,7 +279,7 @@ Estimator* load_json(const std::string& text, const std::string& path) {
   JParser p{text, 0, path};
   J root = p.value();
   auto bad = [&](const std::string& m) -> void { fail("load_model: " + path + ": invalid model file: " + m); };
-  if (root.t != J::OBJ || !root.get("lmnum_model") || root.get("lmnum_model")->num != 1) bad("not an lmnum model (version 1)");
+  if (root.t != J::OBJ || !root.get("lmpy_model") || root.get("lmpy_model")->num != 1) bad("not an lmpy model (version 1)");
   auto num = [&](const J* j, const char* what) { if (!j || (j->t != J::NUM && j->t != J::NUL)) bad(std::string("missing number ") + what); return j->t == J::NUL ? NAN : j->num; };
   auto str = [&](const J* j, const char* what) { if (!j || j->t != J::STR) bad(std::string("missing string ") + what); return j->s; };
   auto flag = [&](const J* j, const char* what) { if (!j || j->t != J::BOOL) bad(std::string("missing bool ") + what); return j->b; };
@@ -351,7 +351,7 @@ void register_ml(Api& api) {
     Hyper h = read_hyper("kmeans", o, "kmeans"); o.finish("kmeans"); h.n_clusters = a[1].i;
     if (h.n_clusters < 1) fail("kmeans: k must be >= 1");
     return O(fit("kmeans", em(a[0]), nullptr, h)); });
-  api.fn("load_model", {"string"}, Et, "read a model written by Estimator.save (JSON, format lmnum_model 1)", [](Args& a) {
+  api.fn("load_model", {"string"}, Et, "read a model written by Estimator.save (JSON, format lmpy_model 1)", [](Args& a) {
     return O(load_json(read_file_text(a[0].s), a[0].s)); });
 
   api.method(Et, "kind", {}, "string", "the family (linear, logistic, kmeans, ...)", [](void* s, Args&) { return S(est(s).kind); });
@@ -426,4 +426,4 @@ void register_ml(Api& api) {
     auto* r = make<Res>(); r->vec("codes", codes).strs("classes", cl); return O(r); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

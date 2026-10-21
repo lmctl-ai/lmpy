@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace lmnum::opt {
+namespace lmpy::opt {
 namespace {
 
 using LD = long double;
@@ -268,4 +268,4 @@ Res* linprog_run(const std::vector<double>& cin, const Opts& o) {
   return res;
 }
 
-}  // namespace lmnum::opt
+}  // namespace lmpy::opt

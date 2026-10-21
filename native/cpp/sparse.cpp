@@ -8,7 +8,7 @@
 #include <Spectra/SymEigsSolver.h>
 #include <unsupported/Eigen/IterativeSolvers>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using SpMat = Eigen::SparseMatrix<double>;
@@ -168,4 +168,4 @@ void register_sparse(Api& api) {
     return O(r); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

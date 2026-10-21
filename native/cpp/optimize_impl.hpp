@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace lmnum::opt {
+namespace lmpy::opt {
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -118,4 +118,4 @@ std::string quad_message(int ier, int limit);
 // ---- linear programming (HiGHS) -----------------------------------------------------------------------------------
 Res* linprog_run(const std::vector<double>& c, const Opts& o);
 
-}  // namespace lmnum::opt
+}  // namespace lmpy::opt

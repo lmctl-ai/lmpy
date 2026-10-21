@@ -5,10 +5,10 @@
 //   p-values in closed form) and (2) against statsmodels 0.14.6 values pinned from the oracle venv (adfuller, kpss, ywadjusted pacf; the
 //   original compared those with statsrust).
 // Tolerance: correlations and statistics 1e-9 (relative for Ljung-Box); p-values 1e-8 (ADF: MacKinnon surface, same table).
-// How to run: lmscript examples/dsl/oracle-tsa-tools.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-tsa-tools.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let x = vec();
 let seed = 99;
 let prev = 0.0;
@@ -72,7 +72,7 @@ out.put("kpss_lags", kp.int("lags"));
 out.put("worst", worst);
 end _dsl_
 
-v = lmnum.run(prog, "oracle-tsa-tools");
+v = lmpy.run(prog, "oracle-tsa-tools");
 println("acf lags 0-4: " + json_stringify(v.acf));
 println(sprintf("ljung_box Q(2) %.12f Q(4) %.12f  p %.15f %.15f (closed forms %.12f %.12f)", v.lb_q[0], v.lb_q[1], v.lb_p[0], v.lb_p[1], v.q[0], v.q[1]));
 println(sprintf("adfuller: statistic %.9f p %.9f used lag %d; kpss: statistic %.9f p %.3f lags %d", v.adf[0], v.adf[1], v.adf_lag, v.kpss, v.kpss_p, v.kpss_lags));

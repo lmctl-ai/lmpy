@@ -1,6 +1,6 @@
 // numpy.random.Generator samplers, ported from numpy 2.3.3 (numpy/random/src/distributions/distributions.c) with the
-// function bodies unchanged, so that lmnum reproduces the exact streams of numpy.random.Generator(PCG64(seed)).
-// Only the double-precision samplers lmnum needs are kept; the bit generator interface is lmnum's Bitgen (stats_rng.hpp).
+// function bodies unchanged, so that lmpy reproduces the exact streams of numpy.random.Generator(PCG64(seed)).
+// Only the double-precision samplers lmpy needs are kept; the bit generator interface is lmpy's Bitgen (stats_rng.hpp).
 // numpy is BSD-3-Clause, Copyright (c) 2005-2025, NumPy Developers (https://github.com/numpy/numpy/blob/main/LICENSE.txt).
 // Parts of distributions.c are themselves derived from: Hoermann (PTRS Poisson, 1993), Kachitvichyanukul & Schmeiser
 // (BTPE binomial, 1988), Marsaglia & Tsang (gamma, 2000; ziggurat, 2000), Lemire (bounded integers, 2019).
@@ -13,7 +13,7 @@
 // numpy keeps unused buffer arguments for templating symmetry; keep the bodies unmodified.
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-namespace lmnum { namespace nprand {
+namespace lmpy { namespace nprand {
 
 #define RAND_INT_TYPE int64_t
 #define RAND_INT_MAX INT64_MAX
@@ -1159,4 +1159,4 @@ void Bitgen::jump(uint64_t jumps) {
 #undef npy_log1p
 #undef npy_isnan
 #undef NPY_NAN
-}}  // namespace lmnum::nprand
+}}  // namespace lmpy::nprand

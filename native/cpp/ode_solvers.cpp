@@ -8,7 +8,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace lmnum::ode {
+namespace lmpy::ode {
 namespace {
 
 constexpr double EPS = std::numeric_limits<double>::epsilon();
@@ -819,4 +819,4 @@ double brentq(const std::function<double(double)>& f, double xa, double xb, doub
   return xcur;
 }
 
-}  // namespace lmnum::ode
+}  // namespace lmpy::ode

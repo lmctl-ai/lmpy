@@ -7,10 +7,10 @@
 // Known answers: the hull has 12 of the 40 depots on its boundary, area 0.660687856 and perimeter 3.083394704
 //   (scipy.spatial.ConvexHull 1.16.2 on the same points, oracle venv).
 // Tolerance: 1e-12 for distances, area and perimeter; 1e-9 for the pinned scipy area and perimeter.
-// How to run: lmscript examples/dsl/spatial-neighbours.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/spatial-neighbours.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let depots = mat(40, 2);
 let seed = 2024;
 for (i in range(0, 40)) {
@@ -79,7 +79,7 @@ for (a in range(0, 6)) {
 out.check("distance matrix matches the hand formula (1e-12)", dworst <= 0.000000000001);
 end _dsl_
 
-v = lmnum.run(prog, "spatial-neighbours");
+v = lmpy.run(prog, "spatial-neighbours");
 for (q = 0; q < 5; q = q + 1) {
   println(sprintf("customer %d nearest depots %d, %d, %d at distances %.4f %.4f %.4f", q, v.indices[q][0], v.indices[q][1], v.indices[q][2],
     v.distances[q][0], v.distances[q][1], v.distances[q][2]));

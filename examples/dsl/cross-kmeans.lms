@@ -2,8 +2,8 @@
 // What it does: the _dsl_ version of ../cross-kmeans.lms. Clusters the two petal measurements of the flowers table into three
 //   groups with ml_fit("kmeans", ...) (k-means++, n_init 10, seed 7) and checks agreement with R's stats::kmeans (Hartigan-Wong,
 //   nstart 10, set.seed(7)), whose result is pinned here: the R partition is rebuilt by assigning every row to the nearest pinned R
-//   centre, then compared with lmnum's labels by the adjusted Rand index; the within-cluster sum of squares is recomputed from
-//   lmnum's labels and the data and compared with R's tot.withinss.
+//   centre, then compared with lmpy's labels by the adjusted Rand index; the within-cluster sum of squares is recomputed from
+//   lmpy's labels and the data and compared with R's tot.withinss.
 // Legitimate differences: algorithms (Lloyd vs Hartigan-Wong), random streams and label order differ, so labels are never
 //   compared directly; the invariants are the partition (ARI) and the within-cluster SS.
 // Known answers: R 4.x kmeans: tot.withinss 16.564069607631957, sizes 49 50 51, centres (1.5508429, 0.25693178),
@@ -12,9 +12,9 @@
 // Tolerance: ARI = 1 (the original accepts >= 0.95); within SS 1e-9 relative (identical partitions); centres 1e-9.
 // Data: examples/data/tut-flowers.csv (seed 113).
 // How to run: lmscript examples/dsl/cross-kmeans.lms
-import "lmnum.lms";
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-flowers.csv");
 let x = f.to_mat(strs("petal_length, petal_width"));
 let n = x.rows();
@@ -35,7 +35,7 @@ for (i in range(0, n)) {
   b.set(i, float(best));
 }
 let ari = adjusted_rand_score(a, b);
-# within-cluster SS recomputed from lmnum's labels: sum of squared distances to each cluster's mean
+# within-cluster SS recomputed from lmpy's labels: sum of squared distances to each cluster's mean
 let c = km.centers();
 let wss = 0.0;
 let sizes = zeros(3);
@@ -58,7 +58,7 @@ out.put("inertia", km.inertia());
 out.put("sizes", sizes.sort());
 out.close("adjusted Rand index vs R", ari, 1.0, 0.0);
 out.close_rel("total within SS vs R tot.withinss", wss, wss_r, 0.000000001);
-out.close_rel("lmnum inertia vs recomputed within SS", km.inertia(), wss, 0.000000001);
+out.close_rel("lmpy inertia vs recomputed within SS", km.inertia(), wss, 0.000000001);
 out.close("cluster sizes sorted (R: 49 50 51)", sizes.sort(), vec(49.0, 50.0, 51.0), 0.0);
 # centres agree with R's up to label order
 let worst = 0.0;
@@ -71,8 +71,8 @@ out.close("centres vs R (matched)", worst, 0.0, 0.000000001);
 out.check("status OK", km.ok());
 end _dsl_
 
-v = lmnum.run(prog, "cross-kmeans");
-println(sprintf("%-28s %20s %20s", "quantity", "lmnum", "r"));
+v = lmpy.run(prog, "cross-kmeans");
+println(sprintf("%-28s %20s %20s", "quantity", "lmpy", "r"));
 println(sprintf("%-28s %20.12f %20.12f", "adjusted Rand index", v.ari, 1));
 println(sprintf("%-28s %20.12f %20.12f", "total within SS", v.wss, v.wss_r));
 println("cluster sizes sorted:", json_stringify(v.sizes));

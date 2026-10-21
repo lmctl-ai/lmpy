@@ -8,10 +8,10 @@
 //   6. save the model, reload it and check that the reloaded model predicts identically; write the predictions as CSV.
 // Data: examples/data/tut-flowers.csv (150 rows; species means from Fisher's iris, fresh draws; see ../README.md).
 // Tolerance: PCA keeps >= 85% of the variance in 2 components; ARI >= 0.7; best CV accuracy >= 0.9; reload is exact.
-// How to run: lmscript examples/dsl/task-flower-classifier.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/task-flower-classifier.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 # step 1
 let raw = read_csv("../data/tut-flowers.csv");
 let enc = label_encode(raw.text("species"));
@@ -65,7 +65,7 @@ raw.with("predicted", labels).write_csv("flower-predictions-dsl.csv");
 remove_file("flower-model-dsl.json");
 end _dsl_
 
-v = lmnum.run(prog, "task-flower-classifier");
+v = lmpy.run(prog, "task-flower-classifier");
 println(sprintf("%d flowers, classes %s; 2 principal components keep %.1f%% of the variance; k-means ARI %.3f", v.rows, json_stringify(v.classes), 100 * v.pca_variance_kept, v.kmeans_ari));
 for (i = 0; i < len(v.cv_kinds); i = i + 1) { println(sprintf("  5-fold CV %-15s accuracy %.3f", v.cv_kinds[i], v.cv_accuracy[i])); }
 println(sprintf("best: %s; training accuracy %.3f, macro F1 %.3f; confusion %s", v.best, v.train_accuracy, v.f1_macro, json_stringify(v.confusion)));

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace lmnum {
+namespace lmpy {
 namespace sig {
 
 void local_maxima_1d(const V& x, std::vector<long>& mid, std::vector<long>& left, std::vector<long>& right) {
@@ -97,4 +97,4 @@ void peak_widths(const V& x, const std::vector<long>& peaks, double rel_height, 
 }
 
 }  // namespace sig
-}  // namespace lmnum
+}  // namespace lmpy

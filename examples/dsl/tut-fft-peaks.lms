@@ -8,10 +8,10 @@
 // Data: examples/data/tut-signal.csv, 400 samples at 100 Hz: sin(2 pi 5 t) + 0.5 sin(2 pi 12 t) + N(0, 0.3^2), seed 110.
 // Known answers pinned from scipy 1.16.2 (oracle venv): peak powers 0.4949340703519228 (5 Hz) and 0.1360777784207671 (12 Hz).
 // Tolerance: frequencies within 0.001 Hz; ratio in [3, 5.5]; 5 Hz power within 0.1 of A^2/2 = 0.5; pinned powers within 1e-9.
-// How to run: lmscript examples/dsl/tut-fft-peaks.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-fft-peaks.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let fs = 100.0;
 let x = read_csv("../data/tut-signal.csv").col("signal");
 let s = periodogram(x, fs, opts().set("scaling", "spectrum"));
@@ -50,7 +50,7 @@ out.close("Welch peak at 5 Hz", w.num("peak_freq"), 5.0, 0.001);
 out.close("peak powers match scipy", h.take(order).slice(0, 2), vec(0.4949340703519228, 0.1360777784207671), 0.000000001);
 end _dsl_
 
-v = lmnum.run(prog, "tut-fft-peaks");
+v = lmpy.run(prog, "tut-fft-peaks");
 println(sprintf("periodogram: %d bins, df=%.3f Hz, peak at %.2f Hz, total power %.4f", v.n_bins, v.df, v.peak_freq, v.total_power));
 println(sprintf("%d spectral peaks with prominence >= 0.02:", v.n_peaks));
 for (k = 0; k < v.n_peaks; k = k + 1) {

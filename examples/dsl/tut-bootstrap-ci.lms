@@ -12,10 +12,10 @@
 //   t.ppf): bootstrap mean 11.121018445975002, SE 1.380186198928135, percentile interval [8.44875735, 13.685547324999998],
 //   t(39) quantile 2.0226909200367604; fewest draws of any row 929.
 // Tolerance: the original's bounds; pinned values within 1e-9.
-// How to run: lmscript examples/dsl/tut-bootstrap-ci.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-bootstrap-ci.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let B = 1000;
 let x = read_csv("../data/tut-bootstrap.csv").col("value");
 let n = x.len();
@@ -89,7 +89,7 @@ out.put("moments", m);
 out.put("ratio", ratio);
 end _dsl_
 
-v = lmnum.run(prog, "tut-bootstrap-ci");
+v = lmpy.run(prog, "tut-bootstrap-ci");
 println(sprintf("sample: n=%d mean=%.4f sd=%.4f se=%.4f", v.n, v.mean, v.sd, v.se));
 println(sprintf("bootstrap (B=%d, seeds 1..%d): mean of means=%.4f SE=%.4f percentile 95%% CI=[%.4f, %.4f]", v.B, v.last_seed, v.bmean, v.bse, v.lo, v.hi));
 println(sprintf("t interval: [%.4f, %.4f] (t=%.4f on %d df)", v.mean - v.tq * v.se, v.mean + v.tq * v.se, v.tq, v.n - 1));

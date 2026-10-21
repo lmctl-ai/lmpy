@@ -8,10 +8,10 @@
 // Data: line means 10.000 / 10.020 / 9.990 mm, night shift +0.010 mm, sd 0.020 mm (rng seed 2026, numpy-identical stream).
 // Checks: the line effect is significant (p < 1e-6); B differs from A and from C after Bonferroni; the fitted shift effect is within
 //   3 SE of 0.010; every coefficient's 95% interval reproduces estimate +- t * SE; Cpk recomputed by hand; spec counts consistent.
-// How to run: lmscript examples/dsl/task-quality-control.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/task-quality-control.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 # step 1
 let gen = rng(2026);
 let lines = strs("A, B, C");
@@ -83,7 +83,7 @@ out.put("out_of_spec", bad.nrows());
 out.check("spec count consistent", bad.nrows() == diam.lt(lsl).count() + diam.gt(usl).count());
 end _dsl_
 
-v = lmnum.run(prog, "task-quality-control");
+v = lmpy.run(prog, "task-quality-control");
 s = v.summary.data;
 for (i = 0; i < len(s.line); i = i + 1) { println(sprintf("  line %s %-5s mean %.4f sd %.4f n %d", s.line[i], s["shift"][i], s["diameter__mean"][i], s["diameter__std"][i], s["diameter__count"][i])); }
 println(sprintf("line effect F = %.1f, p = %s; night shift +%.4f mm", v.line_F, str(v.line_p), v.shift_effect));

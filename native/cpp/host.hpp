@@ -1,5 +1,5 @@
-// lmnum host infrastructure: one definition per DSL member feeds the dslvm registry, the published schema
-// (`lmnum --schema --json`) and the API reference (`lmnum --api-md`), so the three cannot drift.
+// lmpy host infrastructure: one definition per DSL member feeds the dslvm registry, the published schema
+// (`lmpy --schema --json`) and the API reference (`lmpy --api-md`), so the three cannot drift.
 #pragma once
 #include "dslvm.hpp"
 #include <Eigen/Dense>
@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-namespace lmnum {
+namespace lmpy {
 using dslvm::Args;
 using dslvm::Value;
 
@@ -155,4 +155,4 @@ void register_spatial(Api&);    // spatial.cpp: k-nearest neighbours, distances,
 void register_graph(Api&);      // graph.cpp: shortest paths and flows
 void register_models(Api&);     // models.cpp: OLS, GLM, ARIMA, time-series tests
 void register_ml(Api&);         // ml.cpp: supervised and unsupervised models, cross-validation, metrics
-}  // namespace lmnum
+}  // namespace lmpy

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Download the pinned third-party sources in deps.lock (sha256-verified), extract them, and build the one compiled
-# dependency (HiGHS, static). Network is needed only here; the lmnum build itself is offline.
-# Usage: scripts/fetch-deps.sh [DEPS_DIR]   (default native/.deps; pass the same dir to CMake as -DLMNUM_DEPS=DIR)
+# dependency (HiGHS, static). Network is needed only here; the lmpy build itself is offline.
+# Usage: scripts/fetch-deps.sh [DEPS_DIR]   (default native/.deps; pass the same dir to CMake as -DLMPY_DEPS=DIR)
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEPS="${1:-$HERE/.deps}"

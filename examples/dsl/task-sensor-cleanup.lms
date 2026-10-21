@@ -8,10 +8,10 @@
 //   6. export the cleaned series.
 // Checks: all three spikes found and nothing else; hum attenuation > 40 dB; 3 Hz power kept within 10%; frequency within 0.5% of 3 Hz;
 //   amplitude within 5% of 1.0; 30 cycles detected.
-// How to run: lmscript examples/dsl/task-sensor-cleanup.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/task-sensor-cleanup.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let fs = 200.0;
 # step 1
 let t = arange(2000).div(fs);
@@ -68,7 +68,7 @@ out.put("rms_error_vs_clean", (z - clean).pow(2.0).mean());
 frame().with("t", t).with("value", z).write_csv("sensor-clean-dsl.csv");
 end _dsl_
 
-v = lmnum.run(prog, "task-sensor-cleanup");
+v = lmpy.run(prog, "task-sensor-cleanup");
 println(sprintf("spikes removed at samples %s; hum attenuated %.1f dB; 3 Hz power kept %.3f", json_stringify(v.spikes), v.hum_attenuation_db, v.power_kept_3hz));
 println(sprintf("%d cycles, frequency %.4f Hz, amplitude %.3f; mean squared error to the clean signal %.5f", v.cycles, v.frequency, v.amplitude, v.rms_error_vs_clean));
 for (path in ["sensor-raw-dsl.csv", "sensor-clean-dsl.csv"]) { delete_file(path); }

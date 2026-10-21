@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace lmnum {
+namespace lmpy {
 
 struct ExprProgram {
   enum Code : unsigned char { NUM, VAR, IDX, VREDUCE, NEG, ADD, SUB, MUL, DIV, POW, LT, LE, GT, GE, EQ, NE, AND, OR, IFELSE, CALL1, CALL2 };
@@ -35,9 +35,9 @@ double expr_eval(const ExprProgram& p, const double* vars, const VecRef* vecs = 
 // Names used by an expression (scalars and vectors), in first-use order; used to infer parameters.
 std::vector<std::string> expr_names(const std::string& text);
 
-}  // namespace lmnum
+}  // namespace lmpy
 
-namespace lmnum {
+namespace lmpy {
 struct Opts;
 // Named constants and data for expressions, taken from an operation's Opts: every key starting with `$` binds the name
 // after the `$` (`opts().set("$beta", 0.3).set("$x", xs)`): float/int values are scalars, Vec values are vectors.
@@ -50,4 +50,4 @@ struct ExprBindings {
   std::vector<VecRef> refs() const;  // VecRef views of vector_values, in vector_names order
 };
 ExprBindings expr_bindings(const Opts& o);
-}  // namespace lmnum
+}  // namespace lmpy

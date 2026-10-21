@@ -18,7 +18,7 @@
 #include <limits>
 #include <numeric>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using Eigen::MatrixXd;
@@ -540,4 +540,4 @@ void register_spatial(Api& api) {
          [M](Args& a) { return O(hull(M(a[0]))); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

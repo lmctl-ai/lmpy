@@ -8,10 +8,10 @@
 //   reported rss matches a recomputation at the fitted parameters.
 // Tolerance: within 4 SE of (2.0, 0.3, 4.5, 0.8); optimisers agree to 1e-3; objective values to 1e-6; recomputed rss 1e-9.
 // Data: examples/data/tut-peak.csv, 101 points on x = 0..10: y = 0.3 + 2.0 exp(-(x - 4.5)^2 / (2 0.8^2)) + N(0, 0.05^2), seed 106.
-// How to run: lmscript examples/dsl/tut-curve-fit-peak.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-curve-fit-peak.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-peak.csv");
 let x = f.col("x");
 let y = f.col("y");
@@ -43,7 +43,7 @@ out.put("mn", mn);
 out.put("rss", rss);
 end _dsl_
 
-v = lmnum.run(prog, "tut-curve-fit-peak");
+v = lmpy.run(prog, "tut-curve-fit-peak");
 p = v.fit.par; se = v.fit.std_err; q = v.mn.par;
 println(sprintf("least squares: a=%.4f (SE %.4f) b=%.4f (SE %.4f) m=%.4f (SE %.4f) s=%.4f (SE %.4f) rss=%.5f cov=%s", p.a, se.a, p.b, se.b, p.m, se.m, p.s, se.s, v.fit.rss, v.fit.cov_status));
 println(sprintf("minimize (BFGS on the same sum of squares): a=%.4f b=%.4f m=%.4f s=%.4f fun=%.5f", q.a, q.b, q.m, q.s, v.mn.fun));

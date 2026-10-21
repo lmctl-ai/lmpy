@@ -11,10 +11,10 @@
 // Tolerance (as the original): parameters 1e-6 * max(1, |value|) (nls stops within about tol x SE of the optimum);
 //   standard errors 1e-6 relative; sigma = sqrt(rss / (n - p)) 1e-9 relative; residual df exact.
 // Data: examples/data/tut-peak.csv (seed 106).
-// How to run: lmscript examples/dsl/cross-nls.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/cross-nls.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-peak.csv");
 let x = f.col("x");
 let y = f.col("y");
@@ -46,13 +46,13 @@ out.put("r_sigma", r_sigma);
 out.put("nfev", fit.int("nfev"));
 end _dsl_
 
-v = lmnum.run(prog, "cross-nls");
+v = lmpy.run(prog, "cross-nls");
 println("start from the data:", json_stringify(v.start));
-println(sprintf("%-28s %20s %20s  %-24s", "quantity", "lmnum", "r (pinned)", "abs diff"));
+println(sprintf("%-28s %20s %20s  %-24s", "quantity", "lmpy", "r (pinned)", "abs diff"));
 names = ["a", "b", "m", "s"];
 for (i = 0; i < 4; i = i + 1) {
   println(sprintf("%-28s %20.12f %20.12f  %s", "par " + names[i], v.par[i], v.r_par[i], str(abs(v.par[i] - v.r_par[i]))));
   println(sprintf("%-28s %20.12f %20.12f  %s", "se " + names[i], v.se[i], v.r_se[i], str(abs(v.se[i] - v.r_se[i]))));
 }
 println(sprintf("%-28s %20.12f %20.12f  %s", "sigma", v.sigma, v.r_sigma, str(abs(v.sigma - v.r_sigma))));
-println(sprintf("Agreement: Gaussian peak parameters, standard errors and sigma agree with R's nls (lmnum %d evaluations).", v.nfev));
+println(sprintf("Agreement: Gaussian peak parameters, standard errors and sigma agree with R's nls (lmpy %d evaluations).", v.nfev));

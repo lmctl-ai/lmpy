@@ -6,7 +6,7 @@
 #include <cmath>
 #include <set>
 
-namespace lmnum {
+namespace lmpy {
 namespace ml {
 
 std::vector<double> sorted_unique(const VectorXd& v) {
@@ -153,7 +153,7 @@ Res* metrics(const VectorXd& yt, const VectorXd* yp_arg, const Opts& o) {
     bool zero_undef = zd == "undefined"; double zval = zd == "1" ? 1.0 : 0.0;
     if (!has_average && !wanted_opt) {
       bool zero_one = true; for (double l : labels) zero_one &= l == 0 || l == 1;
-      if (!has_pos && !zero_one) average = "macro";  // lmnum default for multi-class data (pycli: binary needs pos_label)
+      if (!has_pos && !zero_one) average = "macro";  // lmpy default for multi-class data (pycli: binary needs pos_label)
     }
     if (want("accuracy")) vals.push_back({"accuracy", tp.sum() / double(n)});
     if (want("balanced_accuracy")) {
@@ -255,4 +255,4 @@ Res* metrics(const VectorXd& yt, const VectorXd* yp_arg, const Opts& o) {
 }
 
 }  // namespace ml
-}  // namespace lmnum
+}  // namespace lmpy

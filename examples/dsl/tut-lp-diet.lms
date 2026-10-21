@@ -12,10 +12,10 @@
 // Tolerance: as the original (objectives and servings 1e-4, feasibility 1e-6, c.x and strong duality 1e-9, shadow price
 //   1e-6, SLSQP 1e-5).
 // Data: examples/data/tut-diet.csv, 8 foods with cost per serving and calories / protein (g) / calcium (mg) per serving.
-// How to run: lmscript examples/dsl/tut-lp-diet.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-lp-diet.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-diet.csv");
 let foods = f.text("food");
 let cost = f.col("cost");
@@ -90,7 +90,7 @@ out.put("milp_objective", ip.num("objective"));
 out.put("slsqp", mn);
 end _dsl_
 
-v = lmnum.run(prog, "tut-lp-diet");
+v = lmpy.run(prog, "tut-lp-diet");
 println(sprintf("cheapest diet: %.4f per day", v.objective));
 for (i = 0; i < len(v.foods); i = i + 1) { if (v.x[i] > 0.000001) { println(sprintf("  %-8s %.3f servings", v.foods[i], v.x[i])); } }
 println(sprintf("  calories %.1f  protein %.1f g  calcium %.1f mg", v.calories, v.protein, v.calcium));

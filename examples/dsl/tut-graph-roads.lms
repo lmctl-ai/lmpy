@@ -10,10 +10,10 @@
 //   H 28, I 25, J 32. The three shortest simple routes are A-B-G-I-J 32, A-B-G-I-H-J 32 and A-B-C-E-G-I-J 35 km
 //   (networkx 3.x shortest_simple_paths, oracle venv; the two 32 km routes come in networkx's order).
 // Tolerance: 1e-9 km (integer road lengths).
-// How to run: lmscript examples/dsl/tut-graph-roads.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-graph-roads.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn road_length(from: StrVec, to: StrVec, km: Vec, u: string, v: string) -> float {
   let found = -1.0;
   for (i in range(0, from.len())) {
@@ -84,7 +84,7 @@ out.put("distance", allv.vec("distance"));
 out.put("n_reachable", allv.int("n_reachable"));
 end _dsl_
 
-v = lmnum.run(prog, "tut-graph-roads");
+v = lmpy.run(prog, "tut-graph-roads");
 println(sprintf("Dijkstra A -> J: %s, %.0f km", v.route, v.length));
 println("three shortest simple routes:");
 for (r in v.k_routes) { println("  " + r); }

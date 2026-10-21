@@ -11,10 +11,10 @@
 // Tolerance (as the original): each integral within 1e-9 + 10 * abserr of the closed form; Kepler residual 1e-9; system root
 //   1e-9; quadrature vs the normal cdf 1e-9.
 // Data: none.
-// How to run: lmscript examples/dsl/tut-integrate-root.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-integrate-root.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn integral(label: string, f: string, a: float, b: float, exact: float) -> float {
   let r = quad(f, "x", a, b, opts().set("epsabs", 0.0).set("epsrel", 0.000000000001));
   out.check(label + ": status OK", r.ok());
@@ -62,7 +62,7 @@ out.put("two_sided", two_sided);
 out.put("area", area);
 end _dsl_
 
-v = lmnum.run(prog, "tut-integrate-root");
+v = lmpy.run(prog, "tut-integrate-root");
 function show(label, key) {
   r = v[key];
   println(sprintf("%-34s = %.12f  exact %.12f  |err| %.12f  (abserr %s, %d evaluations)", label, r.value, v[key + " exact"],

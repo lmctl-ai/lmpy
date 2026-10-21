@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <algorithm>
 
-namespace lmnum {
+namespace lmpy {
 namespace models {
 namespace {
 
@@ -537,4 +537,4 @@ void register_tsa(Api& api) {
 }
 
 }  // namespace models
-}  // namespace lmnum
+}  // namespace lmpy

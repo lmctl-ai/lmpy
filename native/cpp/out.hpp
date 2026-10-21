@@ -2,7 +2,7 @@
 #pragma once
 #include "host.hpp"
 
-namespace lmnum {
+namespace lmpy {
 
 struct Out {
   static constexpr const char* TYPE = "Out";
@@ -18,4 +18,4 @@ Out& the_out();
 void register_out(Api& api);
 std::string fmt_fixed(double x, int64_t digits);
 
-}  // namespace lmnum
+}  // namespace lmpy

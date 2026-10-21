@@ -13,7 +13,7 @@
 #include <Eigen/Eigenvalues>
 #include <complex>
 
-namespace lmnum {
+namespace lmpy {
 namespace models {
 namespace {
 
@@ -699,4 +699,4 @@ void register_arima(Api& api) {
 }
 
 }  // namespace models
-}  // namespace lmnum
+}  // namespace lmpy

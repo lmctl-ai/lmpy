@@ -4,13 +4,13 @@
 //   model on all rows, saves it, reloads it and reports the class probabilities at x = -2, 0, 2.
 // Known answers (scikit-learn 1.7.2: StratifiedKFold(4, shuffle=True, random_state=42), StandardScaler + LogisticRegression(tol=1e-8)):
 //   fold accuracies 1, 1, 1, 0.9 (mean 0.975); mean log loss 0.20075185634341353; P(y=1 | x = -2, 0, 2) = 0.08541919955327777,
-//   0.4706034083858738, 0.8943013481682253. lmnum reproduces sklearn's fold assignment exactly (numpy RandomState stream).
+//   0.4706034083858738, 0.8943013481682253. lmpy reproduces sklearn's fold assignment exactly (numpy RandomState stream).
 // Tolerance: fold accuracies exact; mean accuracy >= 0.8 (the original's check); log loss and probabilities 1e-6 (lbfgs stops at
-//   tol 1e-8, lmnum's Newton solve goes further: same optimum, T3); reloaded model: bit-identical probabilities.
+//   tol 1e-8, lmpy's Newton solve goes further: same optimum, T3); reloaded model: bit-identical probabilities.
 // How to run: lmscript examples/dsl/ml-classify-cv.lms
-import "lmnum.lms";
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let x = arange(40).sub(20.0).div(5.0);
 let y = x.gt(0.0);
 let cv = ml_cv("logistic", cols(x), y, 4, opts().set("cv", "stratified").set("shuffle", true).set("seed", 42).set("scale", true).set("metrics", strs("accuracy, log_loss")));
@@ -34,9 +34,9 @@ out.put("probabilities", p);
 out.put("classes", back.classes());
 end _dsl_
 
-v = lmnum.run(prog, "ml-classify-cv");
+v = lmpy.run(prog, "ml-classify-cv");
 remove_file("ml-classify-cv-model.json");
 println("4-fold mean scores:", json_stringify({accuracy: v.mean_accuracy, log_loss: v.mean_log_loss}));
 println("Reloaded probabilities (rows x = -2, 0, 2; columns classes", json_stringify(v.classes), "):", json_stringify(v.probabilities));
-println("Model: ml-classify-cv-model.json (lmnum JSON model, removed)");
+println("Model: ml-classify-cv-model.json (lmpy JSON model, removed)");
 println("Classification CV passed.");

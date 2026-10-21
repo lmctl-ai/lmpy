@@ -11,10 +11,10 @@
 // Reference: numpy 2.3.3 Generator(PCG64(2025)).lognormal(0, 0.05, 13) and scipy 1.16.2 solve_ivp(DOP853) + least_squares (trf,
 //   tol 1e-10) in the oracle venv give the same 13 noise factors (pinned at 1e-15), the noise-free fit r = 0.197569912,
 //   a = 1.010089636 and the noisy fit r = 0.203942778, a = 0.962875576 (pinned here at 1e-6; additions to the original).
-// How to run: lmscript examples/dsl/ode-fit.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/ode-fit.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let o = opts().set("method", "DOP853").set("rtol", 0.0000000001).set("atol", 0.000000000001).set("t_eval", arange(13));
 o.set("$b", 0.3).set("$g", 0.1).set("$population", 1000.0);
 let traj = ode(strs("-b*s*i/population, b*s*i/population-g*i, g*i"), strs("s, i, r"), vec(999.0, 1.0, 0.0), 0.0, 12.0, o);
@@ -48,7 +48,7 @@ out.put("fit", fit);
 out.put("noise", noise);
 end _dsl_
 
-v = lmnum.run(prog, "ode-fit");
+v = lmpy.run(prog, "ode-fit");
 println(sprintf("noise-free growth rate %.5f (amplitude %.4f); noisy fit %.5f (amplitude %.4f), standard error of the rate %.5f",
   v.reference.par.r, v.reference.par.a, v.fit.par.r, v.fit.par.a, v.fit.std_err.r));
 println("ODE fit with seeded noise passed.");

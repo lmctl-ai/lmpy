@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace lmnum::ode {
+namespace lmpy::ode {
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -85,4 +85,4 @@ struct Solution {
 // scipy.optimize.brentq (scipy/optimize/Zeros/brentq.c, BSD-3-Clause). Returns the root; `converged` false after maxiter.
 double brentq(const std::function<double(double)>& f, double xa, double xb, double xtol, double rtol, int maxiter, bool& converged);
 
-}  // namespace lmnum::ode
+}  // namespace lmpy::ode

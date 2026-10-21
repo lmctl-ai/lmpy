@@ -4,7 +4,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <Eigen/Eigenvalues>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using Eigen::MatrixXd;
@@ -186,4 +186,4 @@ void register_linalg(Api& api) {
     return matv(MatrixXd(m.sqrt())); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

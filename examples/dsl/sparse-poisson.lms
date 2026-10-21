@@ -4,10 +4,10 @@
 //   sparse LU, conjugate gradient and GMRES, and finds the smallest and largest three eigenvalues with seeded Lanczos (eigsh) against the
 //   analytic spectrum lambda_j = 4 sin^2(j pi / (2 (n + 1))). The DSL has sin, so the analytic values are computed in place.
 // Tolerance: solutions within 1e-9 of u(x_i); eigenvalues within 1e-9 relative of the analytic values; the seeded run is reproducible.
-// How to run: lmscript examples/dsl/sparse-poisson.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/sparse-poisson.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let n = 120;
 let h = 1.0 / float(n + 1);
 let a = sparse(n, n);
@@ -57,7 +57,7 @@ out.put("max_relative_eig_error", rel);
 out.put("max_residual", low.num("max_residual"));
 end _dsl_
 
-v = lmnum.run(prog, "sparse-poisson");
+v = lmpy.run(prog, "sparse-poisson");
 tasks = ["spsolve", "cg", "gmres"];
 for (k = 0; k < 3; k = k + 1) { println(sprintf("%-7s max |u - exact| = %.12f", tasks[k], v.errors[k])); }
 println("eigsh (seed 7): smallest and largest three eigenvalues against the analytic spectrum");

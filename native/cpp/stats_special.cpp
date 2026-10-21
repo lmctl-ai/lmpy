@@ -44,7 +44,7 @@
 #include <cmath>
 #include <limits>
 
-namespace lmnum { namespace st {
+namespace lmpy { namespace st {
 
 namespace bp = boost::math::policies;
 // scipy's SpecialPolicy (no promotion of double, 400 root iterations); errors are reported as IEEE values instead of
@@ -456,4 +456,4 @@ double logsumexp(const std::vector<double>& v) {
   return std::log1p(s) + std::log(cnt) + m;
 }
 
-}}  // namespace lmnum::st
+}}  // namespace lmpy::st

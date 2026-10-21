@@ -15,7 +15,7 @@
 #include <numeric>
 #include <set>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using Eigen::MatrixXd;
@@ -875,4 +875,4 @@ void register_models(Api& api) {
   models::register_arima(api);
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

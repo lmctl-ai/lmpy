@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace lmnum { namespace st {
+namespace lmpy { namespace st {
 
 // ---- special functions (stats_special.cpp): scipy.special semantics, NaN outside the domain, +-inf at poles ----------
 double ndtr(double x);
@@ -90,4 +90,4 @@ double d_support_lo(const DistImpl&);
 double d_support_hi(const DistImpl&);
 std::vector<double> d_rvs(const DistImpl&, int64_t n, uint64_t seed);
 
-}}  // namespace lmnum::st
+}}  // namespace lmpy::st

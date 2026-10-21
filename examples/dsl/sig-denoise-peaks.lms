@@ -7,10 +7,10 @@
 //   48 raw maxima above 0.5; |H(1, 6, 20 Hz)| = 0.9999997287249233, 0.7071067811865475, 0.00475228009444154; filtered peaks at 60, 150, 240,
 //   330 with heights 2.6604456542241035, 2.0102210931764453, 4.134897792022717, 2.432603377653339.
 // Tolerance: positions within 2 samples, heights within 15 % of the truth; |H(6 Hz)| = 1/sqrt 2 within 1e-9; pinned scipy values within 1e-9.
-// How to run: lmscript examples/dsl/sig-denoise-peaks.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/sig-denoise-peaks.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let centres = vec("60 150 240 330");
 let heights = vec("3.0 2.0 4.0 2.5");
 let x = vec();
@@ -51,7 +51,7 @@ out.check("heights within 15 %", h.sub(heights).abs().div(heights).max() <= 0.15
 out.close("heights match scipy", h, vec(2.6604456542241035, 2.0102210931764453, 4.134897792022717, 2.432603377653339), 0.000000001);
 end _dsl_
 
-v = lmnum.run(prog, "sig-denoise-peaks");
+v = lmpy.run(prog, "sig-denoise-peaks");
 println(sprintf("raw record: %d local maxima above 0.5 (mostly noise)", v.raw_peaks));
 println(sprintf("filter: %d sections, stable %s, |H| at 1, 6, 20 Hz = %.6f %.6f %.6f (one pass; filtfilt squares it)", v.n_sections, json_stringify(v.stable), v.magnitude[0], v.magnitude[1], v.magnitude[2]));
 println(sprintf("filtered record: %d peaks", v.n_peaks));

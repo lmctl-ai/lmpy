@@ -1,19 +1,19 @@
-# `_dsl_` examples for lmnum
+# `_dsl_` examples for lmpy
 
 Every file here is an lmscript program with one `_dsl_` block. Running one compiles the block against
-[`../../native/schema/lmnum.dsl.json`](../../native/schema/lmnum.dsl.json), saves the bytecode, runs the native host
-`lmnum --dsl`, and reads back the JSON values and checks. No Python, R or Docker is involved: `lmnum` is one executable
+[`../../native/schema/lmpy.dsl.json`](../../native/schema/lmpy.dsl.json), saves the bytecode, runs the native host
+`lmpy --dsl`, and reads back the JSON values and checks. No Python, R or Docker is involved: `lmpy` is one executable
 whose only shared dependency is glibc.
 
 ```sh
 cmake -S native -B native/build -G Ninja && cmake --build native/build      # see native/README.md for the dependency fetch
-export LMNUM=$PWD/native/build/lmnum                                           # or put lmnum on PATH
+export LMPY=$PWD/native/build/lmpy                                           # or put lmpy on PATH
 cd examples/dsl && lmscript task-delivery-plan.lms
 ```
 
 `native/test.sh` runs every example and fails when any one fails. The checks inside an example are `out.check` /
-`out.close`. A failed check exits 4 and lmscript prints the host's message, which names the check. A missing `lmnum`
-prints `SKIPPED` and exits 0. [`lmnum.lms`](lmnum.lms) is the shared runner: `savedsl`, then `system`, then `json_parse`.
+`out.close`. A failed check exits 4 and lmscript prints the host's message, which names the check. A missing `lmpy`
+prints `SKIPPED` and exits 0. [`lmpy.lms`](lmpy.lms) is the shared runner: `savedsl`, then `system`, then `json_parse`.
 
 ## Multi-step tasks
 

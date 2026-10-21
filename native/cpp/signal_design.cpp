@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace lmnum {
+namespace lmpy {
 namespace sig {
 namespace {
 
@@ -750,4 +750,4 @@ CV sosfreqz(const Eigen::MatrixXd& sos, const V& w) {
 }
 
 }  // namespace sig
-}  // namespace lmnum
+}  // namespace lmpy

@@ -2,7 +2,7 @@
 #pragma once
 #include "host.hpp"
 
-namespace lmnum {
+namespace lmpy {
 
 struct Column {
   std::string name;
@@ -39,4 +39,4 @@ Frame* frame_take(const Frame& f, const std::vector<size_t>& rows);
 void write_file_atomic(const std::string& path, const std::string& bytes);
 std::string read_file_text(const std::string& path);
 
-}  // namespace lmnum
+}  // namespace lmpy

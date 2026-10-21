@@ -1,15 +1,15 @@
 // access: write (a temporary oracle-interp.dslb, removed)
-// What it does: the _dsl_ version of ../oracle-interp.lms. Interpolates the same nodes with lmnum `interp` and compares the methods
+// What it does: the _dsl_ version of ../oracle-interp.lms. Interpolates the same nodes with lmpy `interp` and compares the methods
 //   that are the same mathematical object as R's: linear <-> approx(linear), cubic natural <-> splinefun(natural), cubic periodic
 //   <-> splinefun(periodic). The original called rcli at run time; here R's answers are pinned (R 4.3.3, approx / splinefun at the
 //   same 14 points, printed with %.17g). The R methods that are NOT the same object (fmm vs not-a-knot, monoH.FC vs pchip) are
 //   printed as information, not asserted (docs/oracle-findings.md). A closed-form check (the not-a-knot spline reproduces the
 //   cubic 2t^3 - 3t^2 + t - 5 exactly) needs no other tool.
 // Tolerance: 1e-9 absolute for the identical methods; 1e-10 for the polynomial identity.
-// How to run: lmscript examples/dsl/oracle-interp.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-interp.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let x = vec("0.0 0.5 1.5 2.0 3.5 4.0 6.0 6.5 8.0");
 let y = vec("1.2 0.7 2.9 3.1 1.4 0.2 2.2 3.3 1.9");
 let yp = vec("1.2 0.7 2.9 3.1 1.4 0.2 2.2 3.3 1.2");
@@ -42,14 +42,14 @@ out.put("info_fmm", interp("cubic", x, y).eval(xout).sub(r_fmm).abs().max());
 out.put("info_mono", interp("pchip", x, y).eval(xout).sub(r_mono).abs().max());
 end _dsl_
 
-v = lmnum.run(prog, "oracle-interp");
+v = lmpy.run(prog, "oracle-interp");
 println("leg 0: not-a-knot cubic vs the cubic polynomial it samples");
 println(sprintf("  cubic polynomial: 14 points, largest |difference| %.12f", v.leg0));
 println(sprintf("leg 1: linear vs R approx(method = linear): largest |difference| %.12f", v.leg1));
 println(sprintf("leg 2: cubic natural vs R splinefun(method = natural): largest |difference| %.12f", v.leg2));
 println(sprintf("leg 3: cubic periodic vs R splinefun(method = periodic): largest |difference| %.12f", v.leg3));
 println("information (not asserted): different mathematical objects");
-println(sprintf("  R fmm vs lmnum not-a-knot: largest |difference| %.12f", v.info_fmm));
-println(sprintf("  R monoH.FC vs lmnum pchip: largest |difference| %.12f", v.info_mono));
+println(sprintf("  R fmm vs lmpy not-a-knot: largest |difference| %.12f", v.info_fmm));
+println(sprintf("  R monoH.FC vs lmpy pchip: largest |difference| %.12f", v.info_mono));
 println(sprintf("3 R leg(s) compared (pinned R 4.3.3 values); largest absolute difference over the asserted legs %.12f", v.worst));
 println("Interpolation agrees within 1e-9.");

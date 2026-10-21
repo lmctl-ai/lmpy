@@ -2,17 +2,17 @@
 // What it does: Robertson's chemical kinetics, the classic stiff test problem (rate constants 0.04, 3e7, 1e4 spanning eleven
 //   orders of magnitude):  a' = -0.04 a + 1e4 b c,  b' = 0.04 a - 1e4 b c - 3e7 b^2,  c' = 3e7 b^2,  a(0) = 1, b(0) = c(0) = 0,
 //   on [0, 4e5] with output at t = 0.4, 4, ..., 4e5. It is solved with the implicit methods Radau (IIA, order 5) and BDF
-//   (variable-order NDF), and with LSODA (lmnum: RK45 switching to BDF when stiffness is detected), at rtol 1e-8 and
+//   (variable-order NDF), and with LSODA (lmpy: RK45 switching to BDF when stiffness is detected), at rtol 1e-8 and
 //   atol (1e-10, 1e-14, 1e-10). The explicit RK45 is run too and exhausts a 2000-step budget (STEP_LIMIT) far from the end:
 //   that is what stiffness means in practice.
 // Checks: mass a + b + c = 1 is conserved on every output row (1e-9); every method agrees with a tight reference solution
 //   (scipy 1.16.2 Radau at rtol 1e-12, atol (1e-14, 1e-20, 1e-14); oracle venv) within 1e-6 relative per component; Radau and BDF
 //   reproduce scipy's own Radau and BDF output at the same settings (pinned rows at t = 40 and t = 4e5) within 1e-10 relative,
-//   since lmnum's solvers are ports of scipy's.
-// How to run: lmscript examples/dsl/ode-stiff-robertson.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+//   since lmpy's solvers are ports of scipy's.
+// How to run: lmscript examples/dsl/ode-stiff-robertson.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn relerr(got: Vec, want: Vec) -> float {
   return got.sub(want).abs().div(want.abs().add(0.000000000000000000001)).max();
 }
@@ -69,7 +69,7 @@ out.put("rk45_t", rk45.num("final_time"));
 out.put("rk45_nfev", rk45.int("nfev"));
 end _dsl_
 
-v = lmnum.run(prog, "ode-stiff-robertson");
+v = lmpy.run(prog, "ode-stiff-robertson");
 println(sprintf("at t = 4e5: a = %s  b = %s  c = %s (Radau)", v.a_end, v.b_end, v.c_end));
 for (m in ["Radau", "BDF", "LSODA"]) {
   println(sprintf("%s %d steps, nfev %d, njev %d, nlu %d; largest relative error vs the reference %s", m, v[m + "_steps"], v[m + "_nfev"], v[m + "_njev"], v[m + "_nlu"], v[m + "_ref_err"]));

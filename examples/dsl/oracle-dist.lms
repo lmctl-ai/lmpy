@@ -7,10 +7,10 @@
 //   mean/sd for norm; the mapping is written in each case's label (the pycli names gamma shape and poisson lam are used, as in the original).
 // Tolerance: relative 1e-12 for pdf, log pdf, cdf and sf. Continuous quantiles are root-finders in both libraries and are compared at 1e-10; discrete
 //   quantiles are integers and use the 1e-12 bound, i.e. they must match.
-// How to run: lmscript examples/dsl/oracle-dist.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-dist.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn worst_rel(got: Vec, want: Vec) -> float {
   let w = 0.0;
   for (i in range(0, want.len())) {
@@ -46,7 +46,7 @@ check_family("binom(20, 0.3)", dist("binom", opts().set("n", 20.0).set("p", 0.3)
 check_family("poisson(4.5) = pois(4.5)", dist("poisson", opts().set("lam", 4.5)), vec("0.0 1.0 4.0 7.0 12.0 25.0"), vec("0.011108996538242306 0.049990484422090392 0.18980762054012446 0.082362949627232576 0.0015991456927801633 1.5322936329372001e-11"), vec("-4.5 -2.9959226032237258 -1.6617442432428493 -2.4966195836314959 -6.4382857343465973 -24.90167030357367"), vec("0.011108996538242306 0.061099480960332707 0.53210357637471561 0.91341352835264389 0.99919486211967867 0.99999999999682199"), vec("0.98889100346175773 0.93890051903966731 0.46789642362528439 0.086586471647356056 0.00080513788032133421 3.178046909356229e-12"), vec("0 1 3 4 6 8 12"), true);
 end _dsl_
 
-v = lmnum.run(prog, "oracle-dist");
+v = lmpy.run(prog, "oracle-dist");
 worst = 0;
 for (k in keys(v)) { if (v[k] > worst) { worst = v[k]; } }
 labels = ["norm(1.5, 2)", "t(5)", "chi2(4) = chisq(4)", "gamma(shape 3, scale 2) = gamma(shape 3, rate 0.5)", "beta(2, 5)", "binom(20, 0.3)", "poisson(4.5) = pois(4.5)"];

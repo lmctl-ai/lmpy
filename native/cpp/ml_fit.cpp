@@ -12,7 +12,7 @@
 #include <numeric>
 #include <set>
 
-namespace lmnum {
+namespace lmpy {
 namespace ml {
 
 // ------------------------------------------------------------------------------------------------ RandomState
@@ -78,7 +78,7 @@ const std::vector<std::pair<std::string, std::string>>& families() {
 std::string task_of(const std::string& kind) {
   for (auto& f : families()) if (f.first == kind) return f.second;
   if (kind.rfind("random_forest_", 0) == 0 || kind.rfind("hist_gradient_boosting_", 0) == 0)
-    fail("ml: kind '" + kind + "' (tree ensembles) is not supported by lmnum: its result is defined only by scikit-learn's random streams and tree builder");
+    fail("ml: kind '" + kind + "' (tree ensembles) is not supported by lmpy: its result is defined only by scikit-learn's random streams and tree builder");
   std::string known;
   for (auto& f : families()) known += (known.empty() ? "" : ", ") + f.first;
   fail("ml: unknown kind '" + kind + "' (known: " + known + ")");
@@ -855,4 +855,4 @@ Res* params(const Estimator& e) {
 }
 
 }  // namespace ml
-}  // namespace lmnum
+}  // namespace lmpy

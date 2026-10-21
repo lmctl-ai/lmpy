@@ -9,10 +9,10 @@
 // Known answers pinned from scipy 1.16.2 (oracle venv: iirfilter/sosfreqz/sosfiltfilt): |H(5, 8, 12, 25 Hz)| = 0.9896786643632661,
 //   0.707106781186548, 0.17415343689792068, 0.00434591013482678; RMS to the clean tone raw 0.48188759247096985, filtered 0.12244635324725554.
 // Tolerance: |H(8)| within 1e-4 of 1/sqrt 2; the original's bounds; pinned scipy values within 1e-9.
-// How to run: lmscript examples/dsl/tut-butterworth.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-butterworth.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let fs = 100.0;
 let cutoff = 8.0;
 let tbl = read_csv("../data/tut-signal.csv");
@@ -42,7 +42,7 @@ out.close("raw RMS matches scipy", before, 0.48188759247096985, 0.000000001);
 out.close("filtered RMS matches scipy", after, 0.12244635324725554, 0.000000001);
 end _dsl_
 
-v = lmnum.run(prog, "tut-butterworth");
+v = lmpy.run(prog, "tut-butterworth");
 println(sprintf("butter order 4 lowpass 8 Hz at fs 100: %d sections, max pole radius %.4f, stable=%s", v.n_sections, v.max_pole_radius, str(v.stable)));
 labels = ["5 Hz (kept tone)", "8 Hz (cutoff)", "12 Hz (rejected tone)", "25 Hz"];
 for (i = 0; i < 4; i = i + 1) { println(sprintf("  |H| at %-22s %.4f  (forward-backward: %.4f)", labels[i], v.magnitude[i], v.magnitude[i] * v.magnitude[i])); }

@@ -9,10 +9,10 @@
 // Data: examples/data/tut-ar1.csv, 200 values of x_t = 2 + 0.7 x_{t-1} + N(0, 1) after a 100-step burn-in, seed 1122.
 // Tolerance: as the original: lag-1 ACF within 0.12 of phi, lag-2 within 0.15 of phi^2 (2-3 SE); pinned parameters 1e-3; interval
 //   widths 1e-6; Ljung-Box p < 0.001.
-// How to run: lmscript examples/dsl/tut-arima-acf.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-arima-acf.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let x = read_csv("../data/tut-ar1.csv").col("x");
 let phi = 0.7;
 let mu = 2.0 / (1.0 - phi);
@@ -88,7 +88,7 @@ out.put("outside", outside);
 out.put("mean_tol", mean_tol);
 end _dsl_
 
-v = lmnum.run(prog, "tut-arima-acf");
+v = lmpy.run(prog, "tut-arima-acf");
 println("lag  acf     phi^k   pacf    pacf 95% band");
 for (k = 0; k <= 6; k = k + 1) { println(sprintf("%3d  %6.3f  %6.3f  %6.3f  [%.3f, %.3f]", k, v.acf[k], pow(0.7, k), v.pacf[k], v.pacf_lo[k], v.pacf_hi[k])); }
 println(sprintf("ARIMA(1,0,0)+c: intercept %.4f (SE %.4f), ar.L1 %.4f (SE %.4f), sigma2 %.4f, llf %.3f, AIC %.2f, implied mean %.4f (true %.4f)", v.c_hat, v.se_c, v.phi_hat, v.se_phi, v.sigma2, v.llf, v.aic, v.mean_hat, v.mu));

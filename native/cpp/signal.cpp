@@ -5,7 +5,7 @@
 #include "signal_impl.hpp"
 #include <algorithm>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using namespace sig;
@@ -657,4 +657,4 @@ void register_signal(Api& api) {
     return vecv(savgol_coeffs(int(a[0].i), int(a[1].i), 0, 1.0)); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

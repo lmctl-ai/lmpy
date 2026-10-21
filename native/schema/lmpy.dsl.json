@@ -1,6 +1,6 @@
 {
   "dsl.schema": 2,
-  "name": "lmnum",
+  "name": "lmpy",
   "types": {
     "Dist": {
       "methods": {

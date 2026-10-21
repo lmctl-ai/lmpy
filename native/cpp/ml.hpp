@@ -3,7 +3,7 @@
 #include "host.hpp"
 #include <map>
 
-namespace lmnum {
+namespace lmpy {
 namespace ml {
 
 using Eigen::MatrixXd;
@@ -81,4 +81,4 @@ Res* metrics(const VectorXd& yt, const VectorXd* yp, const Opts& o);
 std::vector<double> sorted_unique(const VectorXd& v);
 
 }  // namespace ml
-}  // namespace lmnum
+}  // namespace lmpy

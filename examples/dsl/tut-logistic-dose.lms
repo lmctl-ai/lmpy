@@ -8,10 +8,10 @@
 //   within half a doubling of the generating -b0/b1 = 2.5, and the fitted mortality increases with the dose.
 // Reference (an addition to the original): statsmodels 0.14.6 glm("dead ~ ldose", Binomial()) in the oracle venv gives
 //   b0 = -2.8196698141, b1 = 1.0926369971, SE 0.3779063511, 0.1315220897, deviance 212.9328296930 on 238 df (pinned at 1e-6).
-// How to run: lmscript examples/dsl/tut-logistic-dose.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-logistic-dose.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let true_b0 = -3.0;
 let true_b1 = 1.2;
 let fit = glm(read_csv("../data/tut-dose.csv"), "dead", strs("ldose"), "binomial", opts().set("link", "logit"));
@@ -52,7 +52,7 @@ out.put("ld50_root", ld.num("root"));
 out.put("ld50_true", -true_b0 / true_b1);
 end _dsl_
 
-v = lmnum.run(prog, "tut-logistic-dose");
+v = lmpy.run(prog, "tut-logistic-dose");
 println(sprintf("logit P(dead) = %.3f + %.3f * log2(dose)   (SE %.3f, %.3f; deviance %.2f on %d df)", v.b0, v.b1, v.se0, v.se1, v.deviance, v.df_resid));
 for (i = 0; i < len(v.mortality); i = i + 1) { println(sprintf("dose %2d: fitted mortality %.3f", pow(2, i), v.mortality[i])); }
 println(sprintf("LD50: log2 dose %.4f (closed form) vs %.4f (root_scalar); dose = %.3f; generating value log2 dose %.4f", v.ld50_closed, v.ld50_root, pow(2, v.ld50_closed), v.ld50_true));

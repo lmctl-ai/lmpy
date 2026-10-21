@@ -10,7 +10,7 @@
 #include <cmath>
 #include <set>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using namespace opt;
@@ -122,7 +122,7 @@ Res* minimize_op(const std::string& objective, const std::vector<std::string>& n
   o.finish(op);
   bool has_b = lb.size() > 0, has_c = !eqs.empty() || !ineqs.empty();
   if (method.empty()) method = has_c ? "SLSQP" : has_b ? "L-BFGS-B" : "BFGS";
-  if (method == "trust-constr") fail("minimize: method trust-constr is not available in lmnum; use SLSQP for constrained problems");
+  if (method == "trust-constr") fail("minimize: method trust-constr is not available in lmpy; use SLSQP for constrained problems");
   static const std::set<std::string> methods = {"Nelder-Mead", "Powell", "BFGS", "L-BFGS-B", "SLSQP"};
   if (!methods.count(method)) fail("minimize: method must be Nelder-Mead, Powell, BFGS, L-BFGS-B or SLSQP; got '" + method + "'");
   if (has_b && method == "BFGS") fail("minimize: BFGS does not take bounds; use L-BFGS-B, SLSQP, Powell or Nelder-Mead");
@@ -824,4 +824,4 @@ void register_optimize(Api& api) {
          [](Args& a) { return O(linprog_run(obj<Vec>(a[0]).v, obj<Opts>(a[1]))); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

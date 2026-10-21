@@ -6,10 +6,10 @@
 //   Pinned: the peak day 38.35530767144 and peak infected 300.79607057 (scipy 1.16.2 solve_ivp DOP853 with the same settings,
 //   oracle venv; the same trajectory to 1e-12 relative).
 // Tolerance: population 1e-6 per row; S at the peak 1e-5; pinned peak day and height 1e-6.
-// How to run: lmscript examples/dsl/ode-sir.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/ode-sir.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let o = opts().set("method", "DOP853").set("rtol", 0.0000000001).set("atol", 0.000000000001).set("max_output_points", 161);
 o.set("$b", 0.3).set("$g", 0.1).set("$population", 1000.0);
 o.set("events", strs("b*s*i/population-g*i")).set("direction", vec(-1.0));
@@ -32,6 +32,6 @@ out.put("population", fin.sum());
 out.put("nfev", r.int("nfev"));
 end _dsl_
 
-v = lmnum.run(prog, "ode-sir");
+v = lmpy.run(prog, "ode-sir");
 println(sprintf("peak_day=%.6f peak_infected=%.6f population=%.6f", v.peak_day, v.peak_infected, v.population));
 println("SIR trajectory passed.");

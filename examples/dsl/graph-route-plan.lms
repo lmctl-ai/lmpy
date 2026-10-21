@@ -5,10 +5,10 @@
 //   checked against values worked out by hand from the literal edges: Dijkstra's example from CLRS (figure 24.6) and the CLRS
 //   flow network of figure 26.1 (maximum flow 23, minimum cut 23).
 // Tolerance: exact (integer weights and capacities; no rounding is involved).
-// How to run: lmscript examples/dsl/graph-route-plan.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/graph-route-plan.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let roads = csv("from,to,minutes\ns,t,10\ns,y,5\nt,y,2\nt,x,1\ny,t,3\ny,x,9\ny,z,2\nx,z,4\nz,x,6\nz,s,7\n");
 let pipes = csv("from,to,cap,cost\ns,v1,16,1\ns,v2,13,1\nv2,v1,4,1\nv1,v3,12,1\nv3,v2,9,1\nv2,v4,14,1\nv4,v3,7,1\nv3,t,20,1\nv4,t,4,1\n");
 let net = graph(roads, "from", "to", "minutes", true);
@@ -66,7 +66,7 @@ let over = pipe.min_cost_flow("s", "t", 100.0);
 out.check("100 units are INFEASIBLE (max flow 23)", over.status() == "INFEASIBLE");
 end _dsl_
 
-v = lmnum.run(prog, "graph-route-plan");
+v = lmpy.run(prog, "graph-route-plan");
 println(sprintf("fastest route s -> x: %s in %d minutes (%d legs)", v.route, v.length, v.hops));
 println("three best route lengths:", json_stringify(v.lengths));
 println("bellman_ford distances from s agree with the hand tree (s 0, y 5, z 7, t 8, x 9)");

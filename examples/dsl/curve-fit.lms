@@ -7,10 +7,10 @@
 //   (30 * 0.02^2); standard errors positive with se(a) <= 0.2; recomputed rss within 1e-9.
 // Reference: scipy 1.16.2 curve_fit on the same data gives a = 2.50061136, b = 0.70214783, c = 0.10159852 with standard
 //   errors 0.0087055, 0.0062139, 0.0055016 (checked here to 1e-6).
-// How to run: lmscript examples/dsl/curve-fit.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/curve-fit.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let t = arange(30).mul(0.2);
 # deterministic zig-zag noise in [-0.02, 0.02]: ((i*37 + 11) mod 17 - 8) / 400
 let noise = arange(30).apply("((x * 37 + 11) - 17 * floor((x * 37 + 11) / 17) - 8) / 400");
@@ -35,7 +35,7 @@ out.close("curve_fit se(c)", se.num("c"), 0.00550160763524679, 0.000001);
 out.put("fit", fit);
 end _dsl_
 
-v = lmnum.run(prog, "curve-fit");
+v = lmpy.run(prog, "curve-fit");
 p = v.fit.par;
 println(sprintf("a=%.4f b=%.4f c=%.4f  rss=%.8f  m=%d  cov=%s", p.a, p.b, p.c, v.fit.rss, v.fit.n_residuals, v.fit.cov_status));
 println("Curve-fit oracle passed.");

@@ -6,7 +6,7 @@
 #pragma once
 #include <cstdint>
 
-namespace lmnum { namespace nprand {
+namespace lmpy { namespace nprand {
 
 // numpy's cached BTPE set-up (values only speed up repeated draws; they never change the outcome).
 struct binomial_t {
@@ -78,4 +78,4 @@ int64_t random_zipf(Bitgen*, double a);
 uint64_t random_interval(Bitgen*, uint64_t max);
 uint64_t random_bounded_uint64(Bitgen*, uint64_t off, uint64_t rng, uint64_t mask, bool use_masked);
 
-}}  // namespace lmnum::nprand
+}}  // namespace lmpy::nprand

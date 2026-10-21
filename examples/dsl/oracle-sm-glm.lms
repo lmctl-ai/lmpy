@@ -3,10 +3,10 @@
 //   checks the coefficients, standard errors, deviance and AIC against R 4.3.3 glm() (the golden constants of the original). The
 //   original's rcli and statsrust legs fitted the same model and are covered by these constants.
 // Tolerance: 1e-6 absolute (IRLS stopping rules differ between R's deviance criterion and statsmodels'; both converge to ~1e-8).
-// How to run: lmscript examples/dsl/oracle-sm-glm.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-sm-glm.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = frame()
   .with("x1", vec("0.0, 9.02439, 8.04878, 7.073171, 6.097561, 5.121951, 4.146341, 3.170732, 2.195122, 1.219512, 0.243902, 9.268293, 8.292683, 7.317073, 6.341463, 5.365854, 4.390244, 3.414634, 2.439024, 1.463415, 0.487805, 9.512195, 8.536585, 7.560976, 6.585366, 5.609756, 4.634146, 3.658537, 2.682927, 1.707317, 0.731707, 9.756098, 8.780488, 7.804878, 6.829268, 5.853659, 4.878049, 3.902439, 2.926829, 1.95122"))
   .with("x2", vec("-2.0, -1.361702, -0.723404, -0.085106, 0.553191, 1.191489, 1.829787, 2.468085, -1.893617, -1.255319, -0.617021, 0.021277, 0.659574, 1.297872, 1.93617, 2.574468, -1.787234, -1.148936, -0.510638, 0.12766, 0.765957, 1.404255, 2.042553, 2.680851, -1.680851, -1.042553, -0.404255, 0.234043, 0.87234, 1.510638, 2.148936, 2.787234, -1.574468, -0.93617, -0.297872, 0.340426, 0.978723, 1.617021, 2.255319, 2.893617"))
@@ -33,8 +33,8 @@ out.put("n_iter", fit.int("n_iter"));
 out.put("worst", max(est.sub(r_est).abs().max(), se.sub(r_se).abs().max()));
 end _dsl_
 
-v = lmnum.run(prog, "oracle-sm-glm");
-println(sprintf("lmnum: converged in %d IRLS steps, deviance=%.10f aic=%.8f", v.n_iter, v.deviance, v.aic));
+v = lmpy.run(prog, "oracle-sm-glm");
+println(sprintf("lmpy: converged in %d IRLS steps, deviance=%.10f aic=%.8f", v.n_iter, v.deviance, v.aic));
 for (i = 0; i < len(v.names); i = i + 1) {
   println(sprintf("  %-6s estimate %.12f  std_err %.12f", v.names[i], v.estimate[i], v.std_err[i]));
 }

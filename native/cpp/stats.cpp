@@ -7,7 +7,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using V = std::vector<double>;
@@ -154,7 +154,7 @@ void register_stats(Api& api) {
               "ppf(0) and isf(1) are the first support point (pycli). Random variates reproduce numpy.random.Generator(PCG64(seed)) "
               "exactly for the numpy-sampled families (pycli's rvs; nct, skewnorm, betabinom and levy_stable use PCG64(seed) and its "
               "jumped() stream as pycli did); the quantile-sampled families (genextreme, genpareto, johnsonsu, truncnorm, weibull_min, "
-              "cauchy, gumbel_r, pareto) use numpy's uniform stream through lmnum's quantile function. Deviations from scipy: Student t "
+              "cauchy, gumbel_r, pareto) use numpy's uniform stream through lmpy's quantile function. Deviations from scipy: Student t "
               "cdf/ppf use Boost (scipy: CDFLIB), Bessel/Airy outside [-10, 10] use Boost (scipy: AMOS), levy_stable integrates with "
               "Gauss-Kronrod (scipy: QUADPACK), Poisson ppf uses the generic discrete search.");
   api.type(Dt, "A frozen probability distribution (`dist(\"gamma\", opts().set(\"a\", 3.0).set(\"scale\", 2.0))`).");
@@ -356,4 +356,4 @@ void register_stats(Api& api) {
     auto* res = make<Res>(); res->num("statistic", r).num("pvalue", p).num("df", n - 2); return O(res); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

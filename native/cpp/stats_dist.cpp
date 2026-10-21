@@ -4,7 +4,7 @@
 // log cdf switching at the median, generic brentq quantiles with xtol 1e-14, discrete bisection search, moments from
 // _munp). The special functions underneath are scipy's own (xsf/Cephes) or Boost.Math with scipy's policies, as scipy
 // calls them (stats_special.cpp). Deviations are listed in native/API.md (section Statistics):
-//   - Student t cdf/ppf use Boost students_t (scipy: CDFLIB, an ACM TOMS 708 derivative that lmnum does not use);
+//   - Student t cdf/ppf use Boost students_t (scipy: CDFLIB, an ACM TOMS 708 derivative that lmpy does not use);
 //   - Poisson ppf uses the generic discrete search (scipy: CDFLIB pdtrik + correction; same definition);
 //   - levy_stable integrates Nolan's representation with Boost Gauss-Kronrod instead of QUADPACK.
 // Random variates use the numpy Generator(PCG64(seed)) streams pycli used (stats_rng_numpy.cpp).
@@ -28,7 +28,7 @@
 #include <functional>
 #include <map>
 
-namespace lmnum { namespace st {
+namespace lmpy { namespace st {
 
 namespace bp = boost::math::policies;
 // scipy's StatsPolicy (boost_special_functions.h), with errors reported as IEEE values.
@@ -1415,4 +1415,4 @@ std::vector<double> d_rvs(const DistImpl& d, int64_t n, uint64_t seed) {
   return x;
 }
 
-}}  // namespace lmnum::st
+}}  // namespace lmpy::st

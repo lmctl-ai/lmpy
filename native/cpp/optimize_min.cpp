@@ -15,7 +15,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace lmnum::opt {
+namespace lmpy::opt {
 
 void Budget::tick() {
   if (count >= max_evals) throw Stop{"EVAL_LIMIT", "expression evaluation cap of " + std::to_string(max_evals) + " reached"};
@@ -1192,4 +1192,4 @@ MinResult slsqp(const MinProblem& p, const VectorXd& x0in) {
   return res;
 }
 
-}  // namespace lmnum::opt
+}  // namespace lmpy::opt

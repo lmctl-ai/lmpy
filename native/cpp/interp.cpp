@@ -5,14 +5,14 @@
 //   linear     make_interp_spline(k=1)                cubic    CubicSpline (bc_type not-a-knot/natural/clamped/periodic)
 //   pchip      PchipInterpolator (Fritsch-Carlson)    akima    Akima1DInterpolator(method="akima"/"makima")
 //   smoothing  make_smoothing_spline (lam or GCV)     rbf      RBFInterpolator (n-D; LU solve like dgesv)
-//   nearest    interp1d(kind="nearest") (an lmnum extra: ties at a midpoint take the lower node, as numpy searchsorted left)
+//   nearest    interp1d(kind="nearest") (an lmpy extra: ties at a midpoint take the lower node, as numpy searchsorted left)
 #include "host.hpp"
 #include <Eigen/Sparse>
 #include <Eigen/SparseLU>
 #include <algorithm>
 #include <limits>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using Eigen::MatrixXd;
@@ -864,4 +864,4 @@ void register_interp(Api& api) {
     return O(r); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

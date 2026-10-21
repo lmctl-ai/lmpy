@@ -6,12 +6,12 @@
 // Tolerance: parameters within 1e-3 of 1 and value below 1e-6 (finite differences); within 1e-6 of 1 (analytic gradient);
 //   the recomputed objective within 1e-9 of the reported value.
 // Reference: scipy 1.16.2 minimize(method="BFGS", tol=1e-6) reports nit 33 with nfev 120 (finite differences) and 40
-//   (gradient); lmnum's BFGS is a port of scipy's and reproduces both on this host (recorded, not asserted, because the
+//   (gradient); lmpy's BFGS is a port of scipy's and reproduces both on this host (recorded, not asserted, because the
 //   finite-difference trajectory is sensitive to the last bit of the BLAS products).
-// How to run: lmscript examples/dsl/minimize-rosenbrock.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/minimize-rosenbrock.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let objective = "100*(y-x^2)^2 + (1-x)^2";
 let names = strs("x, y");
 let x0 = vec(-1.2, 1.0);
@@ -36,7 +36,7 @@ out.put("fd", fd);
 out.put("exact", exact);
 end _dsl_
 
-v = lmnum.run(prog, "minimize-rosenbrock");
+v = lmpy.run(prog, "minimize-rosenbrock");
 println(sprintf("finite differences: x=%.6f y=%.6f value=%.10f nfev=%d", v.fd.par.x, v.fd.par.y, v.fd.fun, v.fd.nfev));
 println(sprintf("analytic gradient:  x=%.6f y=%.6f value=%.10f nfev=%d", v.exact.par.x, v.exact.par.y, v.exact.fun, v.exact.nfev));
 println("Rosenbrock oracle passed.");

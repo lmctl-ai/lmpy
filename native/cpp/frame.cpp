@@ -10,7 +10,7 @@
 #include <sstream>
 #include <unistd.h>
 
-namespace lmnum {
+namespace lmpy {
 
 std::string Column::cell_text(size_t i) const {
   if (!numeric) return is_missing(i) ? "" : text[i];
@@ -313,4 +313,4 @@ void register_frame(Api& api) {
   register_frame_ops(api);
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

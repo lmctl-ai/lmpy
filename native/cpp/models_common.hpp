@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace lmnum {
+namespace lmpy {
 namespace models {
 
 using namespace boost::math::policies;
@@ -132,4 +132,4 @@ void register_tsa(Api& api);
 void register_arima(Api& api);
 
 }  // namespace models
-}  // namespace lmnum
+}  // namespace lmpy

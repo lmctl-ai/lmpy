@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <limits>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 struct FnDef { const char* name; int arity; bool reducer; };
@@ -387,9 +387,9 @@ std::vector<std::string> expr_names(const std::string& text) {
   return out;
 }
 
-}  // namespace lmnum
+}  // namespace lmpy
 
-namespace lmnum {
+namespace lmpy {
 std::vector<VecRef> ExprBindings::refs() const {
   std::vector<VecRef> r;
   for (auto& v : vector_values) r.push_back(VecRef{v.data(), v.size()});
@@ -408,4 +408,4 @@ ExprBindings expr_bindings(const Opts& o) {
   }
   return b;
 }
-}  // namespace lmnum
+}  // namespace lmpy

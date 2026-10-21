@@ -6,10 +6,10 @@
 //   bin at run time; here the bins are pinned known answers from scipy 1.16.2 (oracle venv: signal.periodogram on the same samples):
 //   pxx[0, 1, 63, 64, 65, 100, 160, 256] = 128, 1.278e-33, 3.345e-33, 2304, 4.294e-33, 2.573e-33, 256, 3.155e-30.
 // Tolerance: 1e-9 relative for the closed forms and relative to the largest bin for the pinned bins; Welch 1e-6.
-// How to run: lmscript examples/dsl/oracle-spectrum.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-spectrum.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let n = 512;
 # tones at bins 64 and 160 of 512: rotate unit vectors by the exact angles pi/4 and 5*pi/8
 let c1 = sqrt(0.5);
@@ -65,8 +65,8 @@ out.close("Welch peak at 32 Hz", w.num("peak_freq"), 32.0, 0.000001);
 out.close("Welch tone power A^2/2 = 4.5", w.vec("pxx").at(w.int("peak_index")), 4.5, 0.000001);
 end _dsl_
 
-v = lmnum.run(prog, "oracle-spectrum");
-println(sprintf("lmnum periodogram: %d bins, df %.9f, peak at bin %d (f = %.9f), total power %.12f", v.n_bins, v.df, v.peak_index, v.peak_freq, v.total_power));
+v = lmpy.run(prog, "oracle-spectrum");
+println(sprintf("lmpy periodogram: %d bins, df %.9f, peak at bin %d (f = %.9f), total power %.12f", v.n_bins, v.df, v.peak_index, v.peak_freq, v.total_power));
 println("leg 1: closed forms");
 println(sprintf("  Parseval: integral %.12f vs mean square %.12f", v.total_power, v.mean_square));
 println(sprintf("  tone 1 (A = 3) bin 64: %.9f expected 2304", v.pxx64));

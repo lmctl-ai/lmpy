@@ -5,12 +5,12 @@
 //   3. march 200 time steps in a DSL loop, u <- A^{-1} (B u), each step a sparse LU solve;
 //   4. compare with the analytic solution u(x, t) = sin(pi x) exp(-alpha pi^2 t) and check the decay rate;
 //   5. check energy decay and the maximum principle along the way, export the final profile as CSV.
-// Why a DSL: the 200-step loop runs inside lmnum; with a one-op-per-process CLI it would be 200 process starts and 200 artifacts.
+// Why a DSL: the 200-step loop runs inside lmpy; with a one-op-per-process CLI it would be 200 process starts and 200 artifacts.
 // Tolerance: Crank-Nicolson is second order: max error below 2e-5 at t = 0.1; the decay rate within 1e-3 of alpha pi^2.
-// How to run: lmscript examples/dsl/task-heat-equation.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/task-heat-equation.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let n = 199;
 let h = 1.0 / float(n + 1);
 let alpha = 1.0;
@@ -50,7 +50,7 @@ out.check("maximum principle 0 <= u <= 1", bounded);
 frame().with("x", x).with("u", u).with("exact", exact).write_csv("heat-profile-dsl.csv");
 end _dsl_
 
-v = lmnum.run(prog, "task-heat-equation");
+v = lmpy.run(prog, "task-heat-equation");
 println(sprintf("t = %.3f: peak %.6f, max |u - exact| = %.8f, decay rate %.5f (alpha pi^2 = %.5f)", v.time, v.peak, v.max_error, v.decay_rate, 9.869604401089358));
 rows = len(split(trim(read_file("heat-profile-dsl.csv")), "\n")) - 1;
 println(f"profile exported: {rows} grid points");

@@ -6,16 +6,16 @@
 //   standardised 5-nearest-neighbours classifier on all four measurements, fits a standardised logistic classifier and scores
 //   its training predictions with ml_metrics (confusion matrix, accuracy, macro F1).
 // Checks (the original's): purity >= 0.9 with one cluster per species, CV accuracy >= 0.9, training accuracy >= 0.95, and the
-//   confusion-matrix diagonal reproduces the accuracy. Pinned known answers (scikit-learn 1.7.2 with the same seeds; lmnum
+//   confusion-matrix diagonal reproduces the accuracy. Pinned known answers (scikit-learn 1.7.2 with the same seeds; lmpy
 //   reproduces its fold assignment and k-means stream): k-means inertia 16.564069607631957 with cluster sizes 49 50 51, kNN fold
 //   accuracies 1, 0.9667, 1, 1, 1 (mean 0.9933333333333334, sd 0.01333333333333333), macro F1 0.9933166248955722, logistic
 //   training accuracy 1.
 // Tolerance: fold scores 1e-12; inertia 1e-9 relative.
 // Data: examples/data/tut-flowers.csv, 150 rows: three species, 50 each, four normal measurements around species means (seed 113).
 // How to run: lmscript examples/dsl/tut-kmeans-cv.lms
-import "lmnum.lms";
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-flowers.csv");
 let enc = label_encode(f.text("species"));
 let species = enc.strs("classes");
@@ -73,7 +73,7 @@ out.close("training accuracy (sklearn)", mt.num("accuracy"), 1.0, 0.0);
 out.put("species", species);
 end _dsl_
 
-v = lmnum.run(prog, "tut-kmeans-cv");
+v = lmpy.run(prog, "tut-kmeans-cv");
 println("k-means centres (petal_length, petal_width):", json_stringify(v.centers));
 println("species x cluster:", json_stringify(v.table));
 println(sprintf("cluster purity (majority cluster per species): %.3f; species -> cluster %s", v.purity, json_stringify(v.used)));

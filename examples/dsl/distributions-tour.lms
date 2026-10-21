@@ -5,10 +5,10 @@
 //   skew-normal, that t(1) has no mean, and that seeded variates are reproducible. Scipy's parameterisation: genextreme c = -xi of the usual GEV
 //   shape xi.
 // Tolerance: 1e-12 relative for the Gumbel closed form, 1e-9 for the round trips and the skew-normal moments, exact for the reproducibility check.
-// How to run: lmscript examples/dsl/distributions-tour.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/distributions-tour.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn round_trip(label: string, d: Dist, levels: Vec, discrete: bool) -> void {
   let q = d.ppf(levels);
   let back = d.cdf(q);
@@ -55,7 +55,7 @@ out.close("seed 42 reproduces the stream", a, b, 0.0);
 out.check("a shorter n is a prefix", ge.rvs(3, 42).at(2) == a.at(2));
 end _dsl_
 
-v = lmnum.run(prog, "distributions-tour");
+v = lmpy.run(prog, "distributions-tour");
 println("genextreme with c = 0 equals exp(-exp(-x)):", json_stringify(v.gumbel));
 for (name in ["genextreme", "skewnorm", "johnsonsu", "zipf"]) {
   println(name + ": quantiles " + json_stringify(v[name + "_quantiles"]) + " cdf at the quantiles " + json_stringify(v[name + "_cdf"]));

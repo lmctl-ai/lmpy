@@ -8,14 +8,14 @@
 //   integrate(exp(-x^2), -40, 40, rel.tol = 1e-12, abs.tol = 1e-12), uniroot(x - 0.3 sin x - 1, c(0, pi), tol = 1e-12), and
 //   qnorm, dt, qt, pchisq, qgamma/dgamma (shape 2, rate 0.2), dbeta, pbeta, dbinom, qbinom, dpois, ppois at the original's points.
 // Tolerances (as the original): the two BFGS runs stop at different points, so each minimiser is compared with the exact minimum
-//   (1, 1): lmnum at 1e-4, R's optim (finite differences with ndeps = 1e-3) at 1e-3, both objective values below 1e-6 and within
+//   (1, 1): lmpy at 1e-4, R's optim (finite differences with ndeps = 1e-3) at 1e-3, both objective values below 1e-6 and within
 //   1e-6 of each other; the integral at 1e-10 absolute (against R and against sqrt(pi)); the roots at 1e-10; densities and
 //   probabilities at 1e-13 relative; continuous quantiles at 1e-10 relative; the discrete quantile exactly.
 // Data: none.
-// How to run: lmscript examples/dsl/cross-numerics.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/cross-numerics.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn agree(label: string, got: float, want: float, rtol: float) -> bool {
   out.put(label, vec(got, want));
   return out.close_rel(label, got, want, rtol);
@@ -35,11 +35,11 @@ out.check("quad: status OK", qd.ok());
 out.check("root_scalar: status OK", rt.ok());
 let a = mn.res("par").num("a");
 let b = mn.res("par").num("b");
-out.close("rosenbrock a - 1 (lmnum)", a, 1.0, 0.0001);
+out.close("rosenbrock a - 1 (lmpy)", a, 1.0, 0.0001);
 out.close("rosenbrock a - 1 (r)", r_a, 1.0, 0.001);
-out.close("rosenbrock b - 1 (lmnum)", b, 1.0, 0.0001);
+out.close("rosenbrock b - 1 (lmpy)", b, 1.0, 0.0001);
 out.close("rosenbrock b - 1 (r)", r_b, 1.0, 0.001);
-out.close("rosenbrock f (lmnum vs r)", mn.num("fun"), r_value, 0.000001);
+out.close("rosenbrock f (lmpy vs r)", mn.num("fun"), r_value, 0.000001);
 out.check("both minimisers below 1e-6", mn.num("fun") <= 0.000001 && r_value <= 0.000001);
 out.close("integral exp(-x^2) vs r", qd.num("value"), r_integral, 0.0000000001);
 out.close("integral vs sqrt(pi)", qd.num("value"), sqrt(pi()), 0.0000000001);
@@ -50,7 +50,7 @@ out.put("rosenbrock f", vec(mn.num("fun"), r_value));
 out.put("integral exp(-x^2)", vec(qd.num("value"), r_integral));
 out.put("kepler root", vec(rt.num("root"), r_root));
 
-# distribution values: lmnum vs R; q = 1e-10 relative, d = 1e-13 relative
+# distribution values: lmpy vs R; q = 1e-10 relative, d = 1e-13 relative
 let q = 0.0000000001;
 let d = 0.0000000000001;
 let t7 = dist("t", opts().set("df", 7.0));
@@ -72,12 +72,12 @@ agree("pois(2.5) pmf 3", po.pmf(3.0), 0.21376301724973648, d);
 agree("pois(2.5) cdf 4", po.cdf(4.0), 0.89117801891415127, d);
 end _dsl_
 
-v = lmnum.run(prog, "cross-numerics");
-println(sprintf("%-32s %20s %20s  %s", "quantity", "lmnum", "r (pinned)", "abs diff"));
+v = lmpy.run(prog, "cross-numerics");
+println(sprintf("%-32s %20s %20s  %s", "quantity", "lmpy", "r (pinned)", "abs diff"));
 for (k in ["rosenbrock a", "rosenbrock b", "rosenbrock f", "integral exp(-x^2)", "kepler root", "norm ppf 0.975", "t(7) pdf 2",
            "t(7) ppf 0.9", "chi2(4) cdf 3", "gamma(2, scale 5) ppf 0.1", "gamma(2, scale 5) pdf 7", "beta(2,3) pdf 0.3",
            "beta(2,3) cdf 0.3", "binom(10, 0.3) pmf 4", "binom(10, 0.3) ppf 0.6", "pois(2.5) pmf 3", "pois(2.5) cdf 4"]) {
   pair = v[k];
   println(sprintf("%-32s %20.14f %20.14f  %s", k, pair[0], pair[1], str(abs(pair[0] - pair[1]))));
 }
-println("Agreement: Rosenbrock minimum, Gaussian integral, Kepler root and twelve distribution values agree between lmnum and R.");
+println("Agreement: Rosenbrock minimum, Gaussian integral, Kepler root and twelve distribution values agree between lmpy and R.");

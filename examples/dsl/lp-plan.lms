@@ -5,10 +5,10 @@
 //   0 <= y <= premium_capacity  and solves it with `linprog` (HiGHS).
 // Known answer: x + y = 3 and x + 3y = 5 give regular = 2, premium = 1, total cost = 4 (by hand).
 // Tolerance: 1e-8 on x and on the objective.
-// How to run: lmscript examples/dsl/lp-plan.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/lp-plan.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let d = csv("total_units,quality_min,regular_capacity,premium_capacity,regular_cost,premium_cost\n3,5,4,3,1,2\n");
 let c = vec(d.num("regular_cost", 0), d.num("premium_cost", 0));
 # >= rows written as <= rows with negated coefficients
@@ -24,6 +24,6 @@ out.put("x", x);
 out.put("objective", plan.num("objective"));
 end _dsl_
 
-v = lmnum.run(prog, "lp-plan");
+v = lmpy.run(prog, "lp-plan");
 println(sprintf("regular=%.6f premium=%.6f total_cost=%.6f", v.x[0], v.x[1], v.objective));
 println("Production plan passed.");

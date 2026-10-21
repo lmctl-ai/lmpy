@@ -8,8 +8,8 @@
 //   6. forecast the next 14 days, append them to the daily table and write weekly totals (actual and forecast) to CSV.
 // Data: generated below: total = 400 + 1.5 t + 60 sin(2 pi t/7) + 24 cos(2 pi t/7) + a deterministic zig-zag in [-8, 8], split 60/40.
 // Tolerance: coefficients within 0.5 (intercept), 0.02 (slope), 1.0 (seasonal terms) of the truth; residual sd below 8.
-// How to run: lmscript examples/dsl/task-sales-trend.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/task-sales-trend.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
 text = "date,store,sales\n";
 for (t = 0; t < 120; t = t + 1) {
@@ -29,7 +29,7 @@ function parse_day(t) {
   return sprintf("2026-%02d-%02d", m + 1, d + 1);
 }
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 # steps 1-3
 let stores = read_csv("store-sales-dsl.csv");
 let daily = stores.groupby(strs("date"), "sales:sum|count");
@@ -66,7 +66,7 @@ out.put("weeks", weekly.nrows());
 out.check("forecast keeps the trend", forecast.mean() > y.slice(-14, 120).mean());
 end _dsl_
 
-v = lmnum.run(prog, "task-sales-trend");
+v = lmpy.run(prog, "task-sales-trend");
 c = v.coefficients;
 println(sprintf("fit: %.2f + %.4f t + %.2f sin + %.2f cos   (residual sd %.2f)", c[0], c[1], c[2], c[3], v.residual_sd));
 println(sprintf("next 14 days: %.1f ... %.1f; weekly report has %d weeks", v.forecast[0], v.forecast[13], v.weeks));

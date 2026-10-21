@@ -4,10 +4,10 @@
 //   the join is checked against the hand join (which both tools reproduced) and the rolling windows against hand values and pandas
 //   (pandas 2.3.3 rolling(3) on the same series, pinned below).
 // Tolerance: 1e-12 absolute.
-// How to run: lmscript examples/dsl/oracle-frame.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-frame.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let left = csv("id,a\n1,x\n2,y\n2,z\n3,w\n");
 let right = csv("id,b\n2,B\n3,C\n3,D\n4,E\n");
 let j = left.merge(right, strs("id"), "outer");
@@ -42,7 +42,7 @@ out.close("pandas median", med.slice(2, 9), vec("3.0 1.5 4.0 2.0 6.0 5.0 5.0"), 
 out.put("rolling_mean", mean);
 end _dsl_
 
-v = lmnum.run(prog, "oracle-frame");
+v = lmpy.run(prog, "oracle-frame");
 println(sprintf("outer join: %d rows, %d matched pairs, %d left-only, %d right-only", len(v.join.data.id), v.n_pairs, v.n_left_only, v.n_right_only));
 println("rolling mean:", json_stringify(v.rolling_mean));
 println("Join and rolling windows agree.");

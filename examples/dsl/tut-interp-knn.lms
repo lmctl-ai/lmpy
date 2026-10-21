@@ -15,10 +15,10 @@
 // Reference (an addition to the original): scipy 1.16.2 in the oracle venv gives max errors 0.0923770 (make_interp_spline k=1),
 //   0.0789277 (PchipInterpolator), 0.0242377 (CubicSpline), spline integral 0.441784275 and quad 0.436816051 (pinned at 1e-9),
 //   and cKDTree query distances (pinned at 1e-12).
-// How to run: lmscript examples/dsl/tut-interp-knn.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-interp-knn.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let nodes = read_csv("../data/tut-interp-nodes.csv");
 let grid = read_csv("../data/tut-interp-grid.csv");
 let x = nodes.col("x");
@@ -94,7 +94,7 @@ for (q in range(0, 3)) {
 out.put("winners", winners);
 end _dsl_
 
-v = lmnum.run(prog, "tut-interp-knn");
+v = lmpy.run(prog, "tut-interp-knn");
 println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", "linear", v.n_grid, v.linear));
 println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", "pchip", v.n_grid, v.pchip));
 println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", "cubic", v.n_grid, v.cubic));

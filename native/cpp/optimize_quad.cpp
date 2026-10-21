@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace lmnum::opt {
+namespace lmpy::opt {
 namespace {
 
 const double epmach = EPS;
@@ -575,4 +575,4 @@ std::string quad_message(int ier, int limit) {
   return "Unknown error.";
 }
 
-}  // namespace lmnum::opt
+}  // namespace lmpy::opt

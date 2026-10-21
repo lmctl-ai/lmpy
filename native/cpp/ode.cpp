@@ -10,7 +10,7 @@
 #include <cctype>
 #include <set>
 
-namespace lmnum {
+namespace lmpy {
 namespace {
 
 using Eigen::MatrixXd;
@@ -430,4 +430,4 @@ void register_ode(Api& api) {
   api.method(OSt, "t_max", {}, "float", "end of the integrated range (the terminal event time when one stopped the run)", [](void* s, Args&) { return F(static_cast<OdeSol*>(s)->t_max); });
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

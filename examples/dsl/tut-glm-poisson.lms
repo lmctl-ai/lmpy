@@ -6,10 +6,10 @@
 // Data: examples/data/tut-poisson.csv, 90 rows (30 per group A/B/C): count ~ Poisson(2 * exp(0.5 [B] - 0.4 [C]) * hours), seed 102.
 // Tolerance: as the original: each estimate within 2 SE of the generating value (log scale; the fixture sits at 0.3, 0.5 and 1.4 SE)
 //   and within 1e-4 of its pinned fixture value; likelihood-ratio p < 0.01; deviance / df_resid in [0.5, 1.6].
-// How to run: lmscript examples/dsl/tut-glm-poisson.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/tut-glm-poisson.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 let fit = glm(read_csv("../data/tut-poisson.csv"), "count", "C(group, A)", "poisson", opts().set("link", "log").set("exposure", "hours"));
 out.check("status OK", fit.ok());
 out.check("converged", fit.flag("converged"));
@@ -49,7 +49,7 @@ out.put("drop", drop);
 out.put("p", p);
 end _dsl_
 
-v = lmnum.run(prog, "tut-glm-poisson");
+v = lmpy.run(prog, "tut-glm-poisson");
 println(sprintf("poisson/log, n=%d, converged in %d IRLS steps; deviance=%.3f on %d df (null %.3f), AIC=%.2f", v.n, v.n_iter, v.deviance, v.df_resid, v.null_deviance, v.aic));
 println("term          coef     se      rate ratio  [95% CI]");
 for (i = 0; i < len(v.names); i = i + 1) {

@@ -8,7 +8,7 @@
 #include <numeric>
 #include <sstream>
 
-namespace lmnum {
+namespace lmpy {
 
 Out& the_out() { static Out o; return o; }
 
@@ -473,4 +473,4 @@ void register_core(Api& api) {
   register_out(api);
 }
 
-}  // namespace lmnum
+}  // namespace lmpy

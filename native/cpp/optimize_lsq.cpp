@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace lmnum::opt {
+namespace lmpy::opt {
 namespace {
 
 using Eigen::VectorXi;
@@ -571,4 +571,4 @@ LsqResult least_squares_solve(const LsqProblem& p, const VectorXd& x0in) {
   return r;
 }
 
-}  // namespace lmnum::opt
+}  // namespace lmpy::opt

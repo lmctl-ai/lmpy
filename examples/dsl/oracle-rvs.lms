@@ -3,14 +3,14 @@
 //   the empirical distribution with R's quantile function: the fraction of the sample below R's p-quantile must be within 4.5 binomial standard
 //   errors of p, at p = 0.1, 0.25, 0.5, 0.75, 0.9. The original asked R through rcli at run time; here R's quantiles are pinned known answers
 //   (R 4.3.3: qnorm, qgamma(shape 3, rate 0.5), qbeta(2, 5), qchisq(4), qt(8), printed with %.17g). Reproducibility (same seed, same stream; another
-//   seed, another stream) is checked first, and lmnum's streams are checked to be numpy's: the pinned first draws are those of
-//   numpy.random.Generator(PCG64(seed)) in numpy 2.3.3 (the oracle venv), so pycli and lmnum draw identical values.
+//   seed, another stream) is checked first, and lmpy's streams are checked to be numpy's: the pinned first draws are those of
+//   numpy.random.Generator(PCG64(seed)) in numpy 2.3.3 (the oracle venv), so pycli and lmpy draw identical values.
 // Tolerance: |empirical - p| <= 4.5 * sqrt(p (1 - p) / 1000) (a ~7e-6 two-sided miss rate per check; the seeds are fixed so the result is
 //   deterministic); the numpy stream values are compared exactly.
-// How to run: lmscript examples/dsl/oracle-rvs.lms   (lmnum on PATH, or LMNUM=/path/to/lmnum)
-import "lmnum.lms";
+// How to run: lmscript examples/dsl/oracle-rvs.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmnum.dsl.json";
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
 fn sample_vs_r(label: string, d: Dist, seed: int, r_quantiles: Vec, numpy_first: float) -> void {
   let levels = vec("0.1 0.25 0.5 0.75 0.9");
   let x = d.rvs(1000, seed);
@@ -42,7 +42,7 @@ sample_vs_r("chi2(4)", dist("chi2", opts().set("df", 4.0)), 104,
 sample_vs_r("t(8)", dist("t", opts().set("df", 8.0)), 105, vec("-1.3968153097438649 -0.7063866126448386 0 0.7063866126448386 1.3968153097438649"), -0.04933698500379076);
 end _dsl_
 
-v = lmnum.run(prog, "oracle-rvs");
+v = lmpy.run(prog, "oracle-rvs");
 println("leg 0: seed 11 reproduces the identical 1000 values (numpy's PCG64 stream); seed 12 gives a different stream");
 levels = [0.1, 0.25, 0.5, 0.75, 0.9];
 worst = 0;
