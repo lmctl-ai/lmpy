@@ -16,7 +16,11 @@ end _dsl_
 v = lmpy.run(prog, "ols");
 ```
 
-- **Download.** Every [release](../../releases) has archives for Linux x64/arm64 (glibc >= 2.28), macOS arm64/x64 and
+- **No-setup use from lmscript.** Write `p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@v0.1.0";` and run it with
+  `system ${dsl_cli(p)} --dsl FILE;`. lmscript (≥ 0.2.359) compiles against the schema the binary prints
+  (`lmpy --dsl-schema --json`). When `lmpy` is not on PATH, lmscript downloads that release's `lmpy-OS-ARCH` once,
+  verified against GitHub's SHA-256 digest. See [examples/dsl/install-and-run.lms](examples/dsl/install-and-run.lms).
+- **Download.** Every [release](../../releases) has the bare executables `lmpy-OS-ARCH[.exe]` and archives for Linux x64/arm64 (glibc >= 2.28), macOS arm64/x64 and
   Windows x64. Each archive holds the executable, the schema, the API reference and the licence notices. Only the
   operating system's own libraries are shared dependencies.
 - **What it covers.** Arrays, matrices and tables (CSV, groupby, merge, rolling, resample); dense and sparse linear algebra;

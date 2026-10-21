@@ -143,3 +143,9 @@ Rules for a family file:
      - a DSL local cannot reuse a schema function name (`dist`, `full`, `root`, ...).
   4. Run-time objects live in an arena for the whole run. Very long loops that create objects grow memory.
   5. The repository moved to the public `lmctl-ai/lmpy` (2026-10-21); the binary is `lmpy` (was lmnum).
+  6. Release v0.1.0 (2026-10-21): bare `lmpy-{linux,macos}-{x64,arm64}` and `lmpy-windows-x64.exe` (lmscript R43
+     `install=` assets), per-platform archives, `lmpy.dsl.json`, `SHA256SUMS`. Verified on this host:
+     - `cli="lmpy" install="github:lmctl-ai/lmpy@v0.1.0"` with no lmpy on PATH downloads the linux-arm64 asset into the
+       tool cache (sha256 = the asset digest);
+     - the schema the binary prints equals the committed one, and the second run uses the cache.
+     To release: bump `LMPY_VERSION` in native/CMakeLists.txt, tag `vX.Y.Z`, and update `install=` pins in the examples.
