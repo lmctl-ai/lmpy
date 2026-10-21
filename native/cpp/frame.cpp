@@ -8,7 +8,13 @@
 #include <fstream>
 #include <numeric>
 #include <sstream>
+#ifdef _WIN32
+#include <process.h>
+#include <windows.h>
+#define getpid _getpid
+#else
 #include <unistd.h>
+#endif
 
 namespace lmpy {
 
@@ -57,14 +63,20 @@ std::string read_file_text(const std::string& path) {
 }
 
 void write_file_atomic(const std::string& path, const std::string& bytes) {
-  std::string tmp = path + ".tmp-" + std::to_string(::getpid());
+  std::string tmp = path + ".tmp-" + std::to_string(getpid());
   {
     std::ofstream o(tmp, std::ios::binary | std::ios::trunc);
     if (!o) fail("cannot write '" + path + "' (directory missing or not writable)");
     o.write(bytes.data(), std::streamsize(bytes.size()));
     if (!o) { std::remove(tmp.c_str()); fail("write to '" + path + "' failed"); }
   }
-  if (std::rename(tmp.c_str(), path.c_str()) != 0) { std::remove(tmp.c_str()); fail("cannot move the new file into '" + path + "'"); }
+#ifdef _WIN32
+  // rename() does not replace an existing file on Windows
+  bool moved = MoveFileExA(tmp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+  bool moved = std::rename(tmp.c_str(), path.c_str()) == 0;
+#endif
+  if (!moved) { std::remove(tmp.c_str()); fail("cannot move the new file into '" + path + "'"); }
 }
 
 namespace {

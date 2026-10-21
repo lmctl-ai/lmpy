@@ -1,3 +1,8 @@
 # Preserve upstream license/source-notice bytes (verified against manifest hashes).
 licenses/** -whitespace
 THIRD_PARTY_NOTICES.md -whitespace
+# lmscript binds bytecode to the SHA-256 of the exact schema bytes: never convert line endings
+native/schema/*.json -text
+native/API.md -text
+native/cpp/dslvm.hpp -text
+*.sh text eol=lf

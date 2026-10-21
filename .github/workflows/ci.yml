@@ -1,131 +1,153 @@
-name: CI
+name: lmpy
 
-# Builds the runtime and test images from the hash-locked wheels, runs the full test image (CTest), the schema / notices / docs / secrets
-# gates and every recipe through the host shim, on arm64 and on amd64. The amd64 job IS the amd64 verification: this repository is
-# developed on aarch64 and claims no amd64 result until this job is green (README "What pycli is not"). Nothing here publishes an image
-# or a package; images stay on the runner.
+# Builds the lmpy executable on five platforms, runs native/test.sh (system-libraries-only check, schema/API drift, signature
+# parity with the lmscript compiler, every examples/dsl program), and on a v* tag attaches the archives to the GitHub release.
+# Linux builds run in manylinux_2_28 containers so the binary needs only glibc >= 2.28 (RHEL 8, Debian 10, Ubuntu 18.10 and
+# later); everything else (libstdc++, Eigen, Boost, HiGHS, ...) is linked in. No Python is installed or used.
 
 on:
   push:
     branches: [main]
+    tags: ["v*"]
+    paths-ignore: ["durable-memory/**", "**.md"]
   pull_request:
-    branches: [main]
+    paths-ignore: ["durable-memory/**", "**.md"]
   workflow_dispatch:
+    inputs:
+      only:
+        description: "Run a single platform (or 'all')"
+        required: true
+        default: "all"
+        type: choice
+        options: [all, linux-x64, linux-arm64, macos-arm64, macos-x64, windows-x64]
 
 permissions:
   contents: read
 
+concurrency:
+  group: lmpy-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 env:
-  LMCPP_REF: f6c6f51797912a369d6b27cf9e96f148a9a0e4d1
-  LMTS_REF: 31012f638613b74114b66bce01c99b8415248263
-  LMCTL_VERSION: 0.2.207   # the lmscript used for the recipe acceptance on the development host
+  LMCTL_VERSION: 0.2.347   # lmscript with _dsl_ bytecode v5
 
 jobs:
-  build-and-test:
-    name: images, tests, recipes (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 120
+  build:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-24.04-arm
-            arch: arm64
-          - runner: ubuntu-24.04
-            arch: amd64
+          - { os: ubuntu-24.04,     name: linux-x64,   container: "quay.io/pypa/manylinux_2_28_x86_64" }
+          - { os: ubuntu-24.04-arm, name: linux-arm64, container: "quay.io/pypa/manylinux_2_28_aarch64" }
+          - { os: macos-15,         name: macos-arm64, container: "" }
+          - { os: macos-15-intel,   name: macos-x64,   container: "" }
+          - { os: windows-2022,     name: windows-x64, container: "" }
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    name: ${{ matrix.name }}
+    env:
+      ONLY_OK: ${{ github.event_name != 'workflow_dispatch' || inputs.only == 'all' || matrix.name == inputs.only }}
+    defaults:
+      run:
+        shell: bash
     steps:
-      - name: Checkout pycli
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        if: env.ONLY_OK == 'true'
         with:
-          path: pycli
-      - name: Checkout pinned lmcpp
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+          persist-credentials: false
+
+      - name: toolchain (linux, manylinux_2_28)
+        if: runner.os == 'Linux' && env.ONLY_OK == 'true'
+        run: |
+          pipx install ninja >/dev/null 2>&1 || python3 -m pip install ninja
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          gcc --version | head -1; cmake --version | head -1; ldd --version | head -1
+
+      - name: toolchain (macos)
+        if: runner.os == 'macOS' && env.ONLY_OK == 'true'
+        run: brew install ninja
+
+      - name: toolchain (windows, MinGW-w64)
+        if: runner.os == 'Windows' && env.ONLY_OK == 'true'
+        run: |
+          if ! command -v g++ >/dev/null 2>&1 || ! command -v ninja >/dev/null 2>&1; then
+            for i in 1 2 3; do choco install -y mingw ninja && break; echo "choco attempt $i failed"; sleep 20; done
+          fi
+          g++ --version | head -1
+
+      - name: cache third-party sources and the HiGHS build
+        if: env.ONLY_OK == 'true'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          repository: lmctl-ai/lmcpp
-          ref: ${{ env.LMCPP_REF }}
-          path: lmcpp
-      - name: Checkout pinned lmts
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+          path: native/.deps
+          key: deps-${{ matrix.name }}-${{ hashFiles('native/deps.lock', 'native/scripts/fetch-deps.sh') }}
+
+      - name: fetch pinned dependencies (sha256-checked) and build HiGHS
+        if: env.ONLY_OK == 'true'
+        run: native/scripts/fetch-deps.sh
+
+      - name: lmscript compiler (npm @lmctl-ai/lmctl)
+        if: env.ONLY_OK == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          repository: lmctl-ai/lmts
-          ref: ${{ env.LMTS_REF }}
-          path: lmts
-      - name: Host facts
+          node-version: 24
+
+      - name: install lmscript
+        if: env.ONLY_OK == 'true'
         run: |
-          uname -m; docker version --format '{{.Server.Version}} {{.Server.Arch}}'; python3 --version; df -h / | tail -1
-      - name: No secrets in tracked files
-        working-directory: pycli
-        run: python3 scripts/no-secrets.py
-      - name: Documentation gate (host python only)
-        working-directory: pycli
-        run: python3 tests/docs_gate.py
-      # Every gate after the test-image build runs even when an earlier gate failed (if: !cancelled() plus the outcome of the step it
-      # needs), so one run shows all results per architecture; a failed step still fails the job.
-      - name: Build the test image from the ${{ matrix.arch }} lock
-        id: build_test
-        working-directory: pycli
-        run: LMCPP_DIR="$GITHUB_WORKSPACE/lmcpp" ./scripts/build.sh test
-      - name: Run the full test image (CTest)
-        id: ctest
-        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
-        run: docker run --rm --pull=never --network=none pycli:test
-      - name: Notices gate (regenerates THIRD_PARTY_NOTICES.md from the installed wheels)
-        id: notices
-        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
-        working-directory: pycli
-        run: docker run --rm --pull=never --network=none -v "$PWD:/src/pycli" -w /src/pycli pycli:test python3 tests/notices_inventory.py
-      - name: Build the runtime image
-        id: build_runtime
-        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
-        working-directory: pycli
-        run: LMCPP_DIR="$GITHUB_WORKSPACE/lmcpp" ./scripts/build.sh runtime
-      - name: Schema gate (runtime binary against the checked-in schema)
-        id: schema
-        if: ${{ !cancelled() && steps.build_runtime.outcome == 'success' }}
-        working-directory: pycli
+          npm i -g "@lmctl-ai/lmctl@${LMCTL_VERSION}"
+          lmscript --version
+
+      - name: build and test (native/test.sh)
+        if: env.ONLY_OK == 'true'
+        run: native/test.sh
+
+      - name: package
+        if: env.ONLY_OK == 'true'
         run: |
-          docker run --rm --pull=never --network=none pycli:runtime --schema > published.json
-          python3 -c 'import json,sys; a=json.load(open("published.json")); b=json.load(open("cli.schema.dev.json")); sys.exit(0 if a==b else "cli.schema.dev.json is stale")'
-          docker run --rm --pull=never --network=none pycli:runtime py_info | python3 -c 'import json,sys; i=json.load(sys.stdin); p=i["provenance"]; print(json.dumps({k:p[k] for k in ("version","git_sha","lmcpp_ref","lock_sha256_aarch64","lock_sha256_amd64")}, indent=1)); assert p["lmcpp_ref"]=="${{ env.LMCPP_REF }}"'
-      - name: Set up Bun
-        if: ${{ !cancelled() }}
-        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76
+          ext=""; [ "$RUNNER_OS" = "Windows" ] && ext=".exe"
+          pkg="lmpy-${{ matrix.name }}"
+          mkdir -p "dist/$pkg"
+          cp "native/build/lmpy$ext" "dist/$pkg/"
+          cp native/schema/lmpy.dsl.json native/API.md native/README.md native/THIRD_PARTY_NOTICES.md LICENSE "dist/$pkg/"
+          cp -r native/licenses "dist/$pkg/licenses"
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then 7z a -tzip "$pkg.zip" "$pkg" >/dev/null; else tar -czf "$pkg.tar.gz" "$pkg"; fi
+          rm -rf "$pkg"
+          ls -l
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: env.ONLY_OK == 'true'
         with:
-          bun-version: 1.4.2
-      - name: Parse the published schema with lmts
-        if: ${{ !cancelled() }}
-        working-directory: lmts
+          name: lmpy-${{ matrix.name }}
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: lmpy-*
+          path: dist
+          merge-multiple: true
+      - name: checksums and the schema as separate assets
         run: |
-          bun -e 'import { readFileSync } from "node:fs"; import { parsePublishedSchema } from "./src/publish.ts"; const result = parsePublishedSchema(JSON.parse(readFileSync("../pycli/cli.schema.dev.json", "utf8"))); if (!result.ok) { console.error(result); process.exit(1); } console.log("lmts parsed pycli schema");'
-      - name: Install lmscript (pinned @lmctl-ai/lmctl)
-        id: lmscript
-        if: ${{ !cancelled() && steps.build_runtime.outcome == 'success' }}
+          cp native/schema/lmpy.dsl.json dist/
+          cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - name: attach to the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm install -g "@lmctl-ai/lmctl@${LMCTL_VERSION}"
-          lmscript --version || true
-      - name: Tutorial datasets are reproducible from their seeds
-        id: tutdata
-        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
-        working-directory: pycli
-        run: docker run --rm --pull=never --network=none --user "$(id -u):$(id -g)" --entrypoint python3 -v "$PWD:/repo:ro" pycli:test /repo/scripts/generate-tutorial-data.py --check
-      - name: Run every recipe through the host shim (real, --check, --dry-run; the R legs of cross-* / oracle-* are local-only, rcli is private)
-        id: recipes
-        if: ${{ !cancelled() && steps.lmscript.outcome == 'success' }}
-        working-directory: pycli
-        run: scripts/run-recipes.sh
-      - name: Image size report
-        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
-        working-directory: pycli
-        run: |
-          images=pycli:test; docker image inspect pycli:runtime > /dev/null 2>&1 && images="pycli:runtime pycli:test"
-          { echo "## Image sizes (${{ matrix.arch }})"; python3 scripts/image-size-report.py $images; } | tee -a "$GITHUB_STEP_SUMMARY"
-      - name: Gate summary
-        if: ${{ !cancelled() }}
-        run: |
-          { echo "## Gates (${{ matrix.arch }})"; echo "| gate | outcome |"; echo "|---|---|";
-            echo "| test image build | ${{ steps.build_test.outcome }} |"; echo "| CTest | ${{ steps.ctest.outcome }} |"; echo "| notices | ${{ steps.notices.outcome }} |";
-            echo "| runtime build | ${{ steps.build_runtime.outcome }} |"; echo "| schema + provenance | ${{ steps.schema.outcome }} |"; echo "| tutorial data | ${{ steps.tutdata.outcome }} |"; echo "| recipes | ${{ steps.recipes.outcome }} |"; } | tee -a "$GITHUB_STEP_SUMMARY"
-      - name: Clean builder layers
-        if: always()
-        working-directory: pycli
-        run: ./scripts/clean-builder.sh || true
+          if gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --clobber dist/*
+          else
+            gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --title "lmpy $GITHUB_REF_NAME" --generate-notes dist/*
+          fi

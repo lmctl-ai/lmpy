@@ -1,0 +1,128 @@
+name: pycli (legacy Docker build)
+
+# Builds the runtime and test images from the hash-locked wheels, runs the full test image (CTest), the schema / notices / docs / secrets
+# gates and every recipe through the host shim, on arm64 and on amd64. The amd64 job IS the amd64 verification: this repository is
+# developed on aarch64 and claims no amd64 result until this job is green (README "What pycli is not"). Nothing here publishes an image
+# or a package; images stay on the runner.
+
+# Legacy: the Python/Docker pycli. lmpy (native/, .github/workflows/ci.yml) replaces it; this workflow runs only on demand.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LMCPP_REF: f6c6f51797912a369d6b27cf9e96f148a9a0e4d1
+  LMTS_REF: 31012f638613b74114b66bce01c99b8415248263
+  LMCTL_VERSION: 0.2.207   # the lmscript used for the recipe acceptance on the development host
+
+jobs:
+  build-and-test:
+    name: images, tests, recipes (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+          - runner: ubuntu-24.04
+            arch: amd64
+    steps:
+      - name: Checkout pycli
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: pycli
+      - name: Checkout pinned lmcpp
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: lmctl-ai/lmcpp
+          ref: ${{ env.LMCPP_REF }}
+          path: lmcpp
+      - name: Checkout pinned lmts
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: lmctl-ai/lmts
+          ref: ${{ env.LMTS_REF }}
+          path: lmts
+      - name: Host facts
+        run: |
+          uname -m; docker version --format '{{.Server.Version}} {{.Server.Arch}}'; python3 --version; df -h / | tail -1
+      - name: No secrets in tracked files
+        working-directory: pycli
+        run: python3 scripts/no-secrets.py
+      - name: Documentation gate (host python only)
+        working-directory: pycli
+        run: python3 tests/docs_gate.py
+      # Every gate after the test-image build runs even when an earlier gate failed (if: !cancelled() plus the outcome of the step it
+      # needs), so one run shows all results per architecture; a failed step still fails the job.
+      - name: Build the test image from the ${{ matrix.arch }} lock
+        id: build_test
+        working-directory: pycli
+        run: LMCPP_DIR="$GITHUB_WORKSPACE/lmcpp" ./scripts/build.sh test
+      - name: Run the full test image (CTest)
+        id: ctest
+        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
+        run: docker run --rm --pull=never --network=none pycli:test
+      - name: Notices gate (regenerates THIRD_PARTY_NOTICES.md from the installed wheels)
+        id: notices
+        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
+        working-directory: pycli
+        run: docker run --rm --pull=never --network=none -v "$PWD:/src/pycli" -w /src/pycli pycli:test python3 tests/notices_inventory.py
+      - name: Build the runtime image
+        id: build_runtime
+        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
+        working-directory: pycli
+        run: LMCPP_DIR="$GITHUB_WORKSPACE/lmcpp" ./scripts/build.sh runtime
+      - name: Schema gate (runtime binary against the checked-in schema)
+        id: schema
+        if: ${{ !cancelled() && steps.build_runtime.outcome == 'success' }}
+        working-directory: pycli
+        run: |
+          docker run --rm --pull=never --network=none pycli:runtime --schema > published.json
+          python3 -c 'import json,sys; a=json.load(open("published.json")); b=json.load(open("cli.schema.dev.json")); sys.exit(0 if a==b else "cli.schema.dev.json is stale")'
+          docker run --rm --pull=never --network=none pycli:runtime py_info | python3 -c 'import json,sys; i=json.load(sys.stdin); p=i["provenance"]; print(json.dumps({k:p[k] for k in ("version","git_sha","lmcpp_ref","lock_sha256_aarch64","lock_sha256_amd64")}, indent=1)); assert p["lmcpp_ref"]=="${{ env.LMCPP_REF }}"'
+      - name: Set up Bun
+        if: ${{ !cancelled() }}
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76
+        with:
+          bun-version: 1.4.2
+      - name: Parse the published schema with lmts
+        if: ${{ !cancelled() }}
+        working-directory: lmts
+        run: |
+          bun -e 'import { readFileSync } from "node:fs"; import { parsePublishedSchema } from "./src/publish.ts"; const result = parsePublishedSchema(JSON.parse(readFileSync("../pycli/cli.schema.dev.json", "utf8"))); if (!result.ok) { console.error(result); process.exit(1); } console.log("lmts parsed pycli schema");'
+      - name: Install lmscript (pinned @lmctl-ai/lmctl)
+        id: lmscript
+        if: ${{ !cancelled() && steps.build_runtime.outcome == 'success' }}
+        run: |
+          npm install -g "@lmctl-ai/lmctl@${LMCTL_VERSION}"
+          lmscript --version || true
+      - name: Tutorial datasets are reproducible from their seeds
+        id: tutdata
+        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
+        working-directory: pycli
+        run: docker run --rm --pull=never --network=none --user "$(id -u):$(id -g)" --entrypoint python3 -v "$PWD:/repo:ro" pycli:test /repo/scripts/generate-tutorial-data.py --check
+      - name: Run every recipe through the host shim (real, --check, --dry-run; the R legs of cross-* / oracle-* are local-only, rcli is private)
+        id: recipes
+        if: ${{ !cancelled() && steps.lmscript.outcome == 'success' }}
+        working-directory: pycli
+        run: scripts/run-recipes.sh
+      - name: Image size report
+        if: ${{ !cancelled() && steps.build_test.outcome == 'success' }}
+        working-directory: pycli
+        run: |
+          images=pycli:test; docker image inspect pycli:runtime > /dev/null 2>&1 && images="pycli:runtime pycli:test"
+          { echo "## Image sizes (${{ matrix.arch }})"; python3 scripts/image-size-report.py $images; } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Gate summary
+        if: ${{ !cancelled() }}
+        run: |
+          { echo "## Gates (${{ matrix.arch }})"; echo "| gate | outcome |"; echo "|---|---|";
+            echo "| test image build | ${{ steps.build_test.outcome }} |"; echo "| CTest | ${{ steps.ctest.outcome }} |"; echo "| notices | ${{ steps.notices.outcome }} |";
+            echo "| runtime build | ${{ steps.build_runtime.outcome }} |"; echo "| schema + provenance | ${{ steps.schema.outcome }} |"; echo "| tutorial data | ${{ steps.tutdata.outcome }} |"; echo "| recipes | ${{ steps.recipes.outcome }} |"; } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Clean builder layers
+        if: always()
+        working-directory: pycli
+        run: ./scripts/clean-builder.sh || true

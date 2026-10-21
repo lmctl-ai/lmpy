@@ -5,7 +5,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SDK="${CPP_DSL_SDK:-$HERE/../cpp-dsl-sdk}"
 LOCK="$HERE/sdk.lock"
 HEADER="$HERE/cpp/dslvm.hpp"
-hash() { sha256sum "$1" | cut -c1-64; }
+hash() { if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -c1-64; else shasum -a 256 "$1" | cut -c1-64; fi; }
 if [ "${1:-}" = "--verify" ]; then
   [ -f "$LOCK" ] || { echo "sdk.lock missing" >&2; exit 1; }
   want="$(sed -n 's/^sha256=//p' "$LOCK")"

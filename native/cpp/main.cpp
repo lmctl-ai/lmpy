@@ -5,6 +5,10 @@
 #include "version.hpp"
 #include <cstring>
 #include <iostream>
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 
 using namespace lmpy;
 
@@ -19,6 +23,11 @@ static int usage(int code) {
 }
 
 int main(int argc, char** argv) {
+#ifdef _WIN32
+  // text mode would turn \n into \r\n and break the byte-exact schema and the one-line JSON result
+  _setmode(_fileno(stdout), _O_BINARY);
+  _setmode(_fileno(stderr), _O_BINARY);
+#endif
   Api api;
   try {
     register_core(api);

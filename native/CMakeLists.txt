@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
+# std::to_chars(double) needs macOS 13.3 libc++
+set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3" CACHE STRING "Minimum macOS version")
 project(lmpy LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -40,8 +42,17 @@ target_include_directories(lmpy SYSTEM PRIVATE
 # EIGEN_MPL2_ONLY: refuse any Eigen code under a licence other than MPL-2.0. No fast-math: results must be IEEE.
 target_compile_definitions(lmpy PRIVATE EIGEN_MPL2_ONLY BOOST_MATH_NO_REAL_CONCEPT_TESTS BOOST_ALL_NO_LIB)
 target_compile_options(lmpy PRIVATE -Wall -Wextra -Wno-psabi -ffp-contract=off)
-target_link_libraries(lmpy PRIVATE "${LMPY_DEPS}/highs-prefix/lib/libhighs.a" pthread m)
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND NOT APPLE)
+if(WIN32)
+  # MinGW: <cmath> constants, a fully static .exe (no libstdc++/winpthread DLLs), and an 8 MiB stack like Linux
+  target_compile_definitions(lmpy PRIVATE _USE_MATH_DEFINES)
+  target_link_libraries(lmpy PRIVATE "${LMPY_DEPS}/highs-prefix/lib/libhighs.a")
+  target_link_options(lmpy PRIVATE -static -Wl,--stack,8388608)
+elseif(APPLE)
+  target_link_libraries(lmpy PRIVATE "${LMPY_DEPS}/highs-prefix/lib/libhighs.a")
+else()
+  target_link_libraries(lmpy PRIVATE "${LMPY_DEPS}/highs-prefix/lib/libhighs.a" pthread m)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND NOT APPLE AND NOT WIN32)
   target_link_options(lmpy PRIVATE -static-libstdc++ -static-libgcc)
   if(LMPY_FULL_STATIC)
     target_link_options(lmpy PRIVATE -static)

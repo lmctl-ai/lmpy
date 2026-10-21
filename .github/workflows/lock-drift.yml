@@ -4,9 +4,8 @@ name: Weekly lock drift
 # Any difference (a re-uploaded wheel, a yanked file, a changed filename) fails the job and is listed in the summary. Nothing is
 # updated or published automatically: a human regenerates the lock (RELEASE.md) after reading the report.
 
+# Legacy (Docker pycli wheel locks): on demand only since lmpy replaced the Python runtime.
 on:
-  schedule:
-    - cron: '17 6 * * 1'
   workflow_dispatch:
 
 permissions:

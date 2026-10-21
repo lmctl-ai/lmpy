@@ -1,4 +1,41 @@
-# pycli
+# lmpy
+
+**lmpy** is a self-contained numerical toolbox in the spirit of numpy, scipy, pandas, statsmodels and scikit-learn, as
+**one native executable**. Python, R and Docker are not needed. You write programs as lmscript `_dsl_` blocks: lmscript
+type-checks them against [`native/schema/lmpy.dsl.json`](native/schema/lmpy.dsl.json) and compiles them to bytecode,
+and `lmpy --dsl FILE` runs the bytecode and prints one JSON result line.
+
+```lmscript
+import "lmpy.lms";                                   // examples/dsl/lmpy.lms: savedsl + run lmpy + json_parse
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let f = read_csv("../data/tut-ols.csv");
+let fit = ols(f, "y", strs("x1, x2"));
+out.put("r2", fit.num("r2"));
+out.close("x1 slope", fit.res("coefficients").vec("estimate").at(1), 0.82797, 0.0001);
+end _dsl_
+v = lmpy.run(prog, "ols");
+```
+
+- **Download.** Every [release](../../releases) has archives for Linux x64/arm64 (glibc >= 2.28), macOS arm64/x64 and
+  Windows x64. Each archive holds the executable, the schema, the API reference and the licence notices. Only the
+  operating system's own libraries are shared dependencies.
+- **What it covers.** Arrays, matrices and tables (CSV, groupby, merge, rolling, resample); dense and sparse linear algebra;
+  31 distributions, special functions and a numpy-identical PCG64 random generator; optimisation, roots, quadrature and LP
+  (HiGHS); ODEs (solve_ivp methods with events); interpolation; signal processing; spatial and graph algorithms;
+  OLS/GLM/ARIMA and time-series tests; machine learning (linear models, logistic, SVC, naive Bayes, LDA, kNN, PCA,
+  k-means, cross-validation, metrics). See [native/API.md](native/API.md).
+- **Examples.** [examples/dsl/](examples/dsl/) has a `_dsl_` version of every pycli recipe and multi-step `task-*`
+  workflows.
+- **Build.** See [native/README.md](native/README.md). In short: `native/scripts/fetch-deps.sh`, then CMake + Ninja.
+  `native/test.sh` is the gate.
+- **Design.** [durable-memory/native-dsl.md](durable-memory/native-dsl.md).
+
+The rest of this README documents **pycli**, the earlier Python/Docker implementation of the same operations. It is kept
+for reference (and as the numerical oracle lmpy was checked against). Its workflow `pycli-docker.yml` runs only on demand.
+
+---
+
+# pycli (legacy)
 
 An MIT C++17/lmcpp frontend for pinned NumPy 2.3.3 / SciPy 1.16.2 / pandas 2.3.3 / statsmodels 0.14.6 / scikit-learn 1.7.2 (S0–S7).
 Each call starts a fresh Python child. The fixed dispatch and validated inputs
