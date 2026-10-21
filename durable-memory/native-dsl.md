@@ -134,11 +134,12 @@ Rules for a family file:
 - **Open:**
   1. `lmpy` serves only the `_dsl_` interface. The old lmapi call form (`pycli.op({...})` through `cli.schema.dev.json`)
      is not served; a thin adapter could map ops onto the same C++ functions if still needed.
-  2. Builds are verified on aarch64/glibc only. Untested: x86-64, macOS, Windows, and a release build on an old glibc
-     for portability.
+  2. Platforms (2026-10-21): `.github/workflows/ci.yml` builds and runs the full gate on linux-x64 and linux-arm64
+     (manylinux_2_28 containers, glibc symbols <= 2.25), macos-arm64, macos-x64 and windows-x64 (MinGW, static .exe); all
+     green on run 39525639743. A `v*` tag attaches one archive per platform plus SHA256SUMS to the GitHub release.
   3. lmscript limitations met while porting:
      - `sprintf` has no `%g`/`%e`;
      - an apostrophe in a `//` comment inside `_dsl_` is a compile error (use `#` lines);
      - a DSL local cannot reuse a schema function name (`dist`, `full`, `root`, ...).
   4. Run-time objects live in an arena for the whole run. Very long loops that create objects grow memory.
-  5. CI for `native/test.sh` is not wired yet. It needs the deps fetch (about 5 min to build HiGHS) and `lmscript` from npm.
+  5. The repository moved to the public `lmctl-ai/lmpy` (2026-10-21); the binary is `lmpy` (was lmnum).
