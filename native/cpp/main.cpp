@@ -15,7 +15,8 @@ using namespace lmpy;
 static int usage(int code) {
   (code ? std::cerr : std::cout)
       << "usage: lmpy --dsl FILE [FILE ...]   run bytecode compiled by lmscript (`_dsl_ schema=\"lmpy.dsl.json\"`)\n"
-         "       lmpy --schema [--json]          print the API summary, or the exact schema bytes the bytecode binds to\n"
+         "       lmpy --dsl-schema [--json]      print the API summary, or the exact schema bytes the bytecode binds to\n"
+         "                                       (lmscript: _dsl_ cli=\"lmpy\" reads it; --schema is an older alias)\n"
          "       lmpy --dsl-signatures           canonical signatures (diff with `lmscript --dsl-signatures SCHEMA`)\n"
          "       lmpy --api-md                   the API reference as Markdown\n"
          "       lmpy --version\n";
@@ -42,7 +43,7 @@ int main(int argc, char** argv) {
   std::string cmd = argv[1];
   if (cmd == "--help" || cmd == "-h") return usage(0);
   if (cmd == "--version") { std::cout << "lmpy " << LMPY_VERSION << " (dsl bytecode v" << dslvm::VERSION << ")\n"; return 0; }
-  if (cmd == "--schema") {
+  if (cmd == "--dsl-schema" || cmd == "--schema") {
     if (argc == 2) { std::cout << api.summary(); return 0; }
     if (argc == 3 && std::string(argv[2]) == "--json") { std::cout << api.schema_json(); return 0; }
     return usage(2);

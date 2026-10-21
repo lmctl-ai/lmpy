@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  LMCPP_REF: f6c6f51797912a369d6b27cf9e96f148a9a0e4d1
+  LMCPP_REF: 93a1847c081894ab1e9ed02ad5ea6350b5d5bd06
   LMTS_REF: 31012f638613b74114b66bce01c99b8415248263
   LMCTL_VERSION: 0.2.207   # the lmscript used for the recipe acceptance on the development host
 

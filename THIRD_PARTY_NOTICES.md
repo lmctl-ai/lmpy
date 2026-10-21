@@ -4,7 +4,7 @@ pycli is MIT, Copyright (c) 2026 Lattice Systems LLC.
 The full pycli/lmcpp MIT notices and nlohmann JSON 3.11.2 MIT notice appear below.
 The safetensors reader/writer and expression parser are adapted from torchcli
 and rcli (MIT, Lattice Systems LLC). lmcpp is pinned to
-f6c6f51797912a369d6b27cf9e96f148a9a0e4d1. CPython 3.12.15 is PSF-licensed.
+93a1847c081894ab1e9ed02ad5ea6350b5d5bd06. CPython 3.12.15 is PSF-licensed.
 The pinned Debian base retains Debian copyright files for unmodified components.
 
 Scientific wheels: NumPy 2.3.3 and SciPy 1.16.2. Their licenses below retain

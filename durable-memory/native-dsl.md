@@ -36,7 +36,7 @@ runs it inside Docker. lmpy replaces the whole chain with the `_dsl_` model used
 
 - One executable to download: everything (libstdc++, libgcc, Eigen, Boost, HiGHS, ...) is linked in; glibc is the only
   shared dependency (operator decision 2026-10-20: dynamic glibc avoids the LGPL static-linking duty). `test.sh` enforces it.
-- `lmpy --schema --json` prints the schema the bytecode binds to. It is generated from the registry.
+- `lmpy --dsl-schema --json` prints the schema the bytecode binds to. It is generated from the registry.
   `native/schema/lmpy.dsl.json` is a committed copy, and `test.sh` fails when it drifts.
 - `lmpy --api-md` prints the API reference. `native/API.md` is a committed copy and is drift-checked too.
 - `lmpy --dsl-signatures` must equal `lmscript --dsl-signatures native/schema/lmpy.dsl.json`.

@@ -1,5 +1,5 @@
 // lmpy host infrastructure: one definition per DSL member feeds the dslvm registry, the published schema
-// (`lmpy --schema --json`) and the API reference (`lmpy --api-md`), so the three cannot drift.
+// (`lmpy --dsl-schema --json`) and the API reference (`lmpy --api-md`), so the three cannot drift.
 #pragma once
 #include "dslvm.hpp"
 #include <Eigen/Dense>

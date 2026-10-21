@@ -32,7 +32,7 @@ needs `lmscript` from `@lmctl-ai/lmctl` ≥ 0.2.346. The result is `native/build
 | Command | Output |
 |---|---|
 | `lmpy --dsl FILE [FILE ...]` | runs the bytecode files in order; one JSON line per file: `{"ok": true, "result": {"values": {...}, "checks": {...}}}` or `{"ok": false, "phase": "load\|run\|app", "code": ..., "message": "dsl line N:C: ...", "line": N}` |
-| `lmpy --schema [--json]` | API summary, or the exact schema bytes the bytecode binds to |
+| `lmpy --dsl-schema [--json]` | API summary, or the exact schema bytes the bytecode binds to |
 | `lmpy --dsl-signatures` | canonical signatures; must equal `lmscript --dsl-signatures schema/lmpy.dsl.json` |
 | `lmpy --api-md` | the generated API reference ([API.md](API.md)) |
 | `lmpy --version` | version and bytecode version |
