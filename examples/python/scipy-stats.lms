@@ -1,0 +1,103 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-stats.py, the SciPy reference examples for scipy.stats distributions (norm; t df=2.74; gamma
+//   a=1.99; binom n=5, p=0.4: moments, ppf/cdf round trip, pdf/pmf), ttest_ind (pooled and Welch, two N(5, 10^2) samples of
+//   500 from default_rng(11)), ttest_1samp (50 uniforms from default_rng(12) against 0.5), pearsonr and linregress
+//   (default_rng(13)). lmpy uses dist, ttest_ind, ttest_1samp and pearsonr; it has no linregress, so slope, intercept,
+//   rvalue, pvalue and both standard errors are computed with scipy's formulas (np.cov with bias=1, two-sided t p-value).
+//   The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-stats (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let probs = vec(0.001, 0.5, 0.999);
+fn mvsk(d: Dist) -> Vec {
+  let m = d.moments();
+  return vec(m.num("mean"), m.num("var"), m.num("skew"), m.num("kurtosis"));
+}
+# moments: mean, var, skew, then the kurtosis (or, for t(2.74), the flag that it is infinite: JSON has no inf)
+fn put_moments(name: string, d: Dist) -> bool {
+  let m = mvsk(d);
+  out.put(name + "_mvs", m.slice(0, 3));
+  if (is_finite(m.at(3))) { out.put(name + "_kurtosis", m.at(3)); } else { out.put(name + "_kurtosis_is_inf", m.at(3) > 0.0); }
+  return true;
+}
+let dn = dist("norm");
+let dt = dist("t", opts().set("df", 2.74));
+let dg = dist("gamma", opts().set("a", 1.99));
+let db = dist("binom", opts().set("n", 5.0).set("p", 0.4));
+put_moments("norm", dn);
+out.put("norm_ppf", dn.ppf(probs));
+out.put("norm_cdf_of_ppf", dn.cdf(dn.ppf(probs)));
+out.put("norm_pdf", dn.pdf(linspace(dn.ppf(0.01), dn.ppf(0.99), 7)));
+put_moments("t", dt);
+out.put("t_ppf", dt.ppf(probs));
+out.put("t_cdf_of_ppf", dt.cdf(dt.ppf(probs)));
+out.put("t_pdf", dt.pdf(linspace(dt.ppf(0.01), dt.ppf(0.99), 7)));
+put_moments("gamma", dg);
+out.put("gamma_ppf", dg.ppf(probs));
+out.put("gamma_cdf_of_ppf", dg.cdf(dg.ppf(probs)));
+out.put("gamma_pdf", dg.pdf(linspace(dg.ppf(0.01), dg.ppf(0.99), 7)));
+put_moments("binom", db);
+out.put("binom_ppf", db.ppf(probs));
+out.put("binom_cdf_of_ppf", db.cdf(db.ppf(probs)));
+out.put("binom_pmf", db.pmf(arange(6)));
+out.close("norm.ppf(0.999) (scipy 1.16.2)", dn.ppf(0.999), 3.090232306167813, 0.000000000001);
+out.close("t(2.74).ppf(0.999) (scipy 1.16.2)", dt.ppf(0.999), 11.767731145697164, 0.000000001);
+out.close("gamma(1.99) skew, kurtosis (scipy 1.16.2)", vec(mvsk(dg).at(2), mvsk(dg).at(3)), vec(1.4177624100166717, 3.0150753768844223), 0.000000000001);
+out.close("binom(5, 0.4) pmf (scipy 1.16.2)", db.pmf(arange(6)), vec(0.07775999999999993, 0.2592000000000001, 0.3455999999999997, 0.23039999999999994, 0.0768, 0.010240000000000003), 0.000000000001);
+
+# ttest_ind: two samples of norm.rvs(loc=5, scale=10, size=500) from one generator
+let g = rng(11);
+let rvs1 = g.standard_normal(500).mul(10.0).add(5.0);
+let rvs2 = g.standard_normal(500).mul(10.0).add(5.0);
+let pooled = ttest_ind(rvs1, rvs2);
+let unequal = ttest_ind(rvs1, rvs2, opts().set("equal_var", false));
+out.put("ttest_ind", vec(pooled.num("statistic"), pooled.num("pvalue")));
+out.put("ttest_welch", vec(unequal.num("statistic"), unequal.num("pvalue"), unequal.num("df")));
+out.close("ttest_ind (scipy 1.16.2)", vec(pooled.num("statistic"), pooled.num("pvalue")), vec(0.46907254895953393, 0.6391202307332955), 0.000000000001);
+out.close("Welch df (scipy 1.16.2)", unequal.num("df"), 994.1777312360351, 0.000000001);
+
+# ttest_1samp: uniform.rvs(size=50) against popmean 0.5
+let u = rng(12).uniform(50, 0.0, 1.0);
+let one = ttest_1samp(u, 0.5);
+out.put("ttest_1samp", vec(one.num("statistic"), one.num("pvalue")));
+out.close("ttest_1samp (scipy 1.16.2)", vec(one.num("statistic"), one.num("pvalue")), vec(0.303478590407917, 0.762810026897009), 0.000000000001);
+
+# pearsonr docs example
+let pr = pearsonr(vec(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0), vec(10.0, 9.0, 2.5, 6.0, 4.0, 3.0, 2.0));
+out.put("pearsonr", vec(pr.num("statistic"), pr.num("pvalue")));
+out.close("pearsonr (scipy docs)", vec(pr.num("statistic"), pr.num("pvalue")), vec(-0.828503883588428, 0.021280260007523276), 0.000000000001);
+
+# linregress with scipy's formulas
+let g3 = rng(13);
+let x = g3.random(10);
+let y = x.mul(1.6).add(g3.random(10));
+let n = 10;
+let xm = x.mean();
+let ym = y.mean();
+let ssxm = x.sub(xm).square().mean();
+let ssym = y.sub(ym).square().mean();
+let ssxym = x.sub(xm).mul(y.sub(ym)).mean();
+let r = ssxym / sqrt(ssxm * ssym);
+let df = float(n - 2);
+let slope = ssxym / ssxm;
+let intercept = ym - slope * xm;
+let tstat = r * sqrt(df / ((1.0 - r) * (1.0 + r)));
+let td = dist("t", opts().set("df", df));
+let pvalue = 2.0 * td.sf(abs(tstat));
+let slope_se = sqrt((1.0 - r * r) * ssym / ssxm / df);
+let intercept_se = slope_se * sqrt(ssxm + xm * xm);
+let ts = abs(td.ppf(0.05 / 2.0));
+out.put("linregress", vec(slope, intercept, r, pvalue, slope_se, intercept_se));
+out.put("linregress_r_squared", r * r);
+out.put("linregress_ci_halfwidths", vec(ts * slope_se, ts * intercept_se));
+out.close("slope, intercept (scipy 1.16.2)", vec(slope, intercept), vec(1.671154574323312, 0.4343489576045727), 0.000000000001);
+out.close("rvalue, pvalue (scipy 1.16.2)", vec(r, pvalue), vec(0.9180014904279857, 0.0001789839692722917), 0.000000000001);
+out.close("standard errors (scipy 1.16.2)", vec(slope_se, intercept_se), vec(0.25524408801118764, 0.18551722433378148), 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-stats");
+println(sprintf("ttest_ind: t = %.6f, p = %.6f; Welch df = %.4f", v.ttest_ind[0], v.ttest_ind[1], v.ttest_welch[2]));
+println(sprintf("pearsonr: r = %.6f, p = %.6f", v.pearsonr[0], v.pearsonr[1]));
+println(sprintf("linregress: slope %.6f, intercept %.6f, R^2 %.6f", v.linregress[0], v.linregress[1], v.linregress_r_squared));
+println("scipy stats answers reproduced.");
