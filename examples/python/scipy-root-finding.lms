@@ -1,0 +1,39 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-root-finding.py, the SciPy reference examples for root_scalar (x^3 - 1 on [0, 3] by brentq, with
+//   its iteration and call counts) and fsolve (x0 cos(x1) = 4, x1 x0 - x1 = 5 from [1, 1], MINPACK hybrd), and the
+//   optimization tutorial's root finding (x + 2 cos(x) = 0 from 0.3 by root/hybr, the same system by root(method='lm')).
+//   lmpy's root runs MINPACK hybr / lm; xtol is set to scipy's default 1.49012e-8 so both stop at the same iterate.
+//   The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-root-finding (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let cubic = root_scalar("x^3 - 1", "x", 0.0, 3.0, opts().set("method", "brentq"));
+out.check("brentq OK", cubic.ok());
+out.put("cubic_root", cubic.num("root"));
+out.put("cubic_iterations", cubic.int("iterations"));
+out.put("cubic_function_calls", cubic.int("function_calls"));
+out.close("cubic root 1", cubic.num("root"), 1.0, 0.000000000001);
+out.check("brentq counts (10, 11) as scipy", cubic.int("iterations") == 10 && cubic.int("function_calls") == 11);
+
+let eqs = strs("x0*cos(x1) - 4, x1*x0 - x1 - 5");
+let xy = strs("x0, x1");
+let fs = root(eqs, xy, vec(1.0, 1.0), opts().set("method", "hybr").set("xtol", 0.0000000149012));
+out.check("fsolve OK", fs.ok());
+out.put("fsolve_x", fs.vec("x"));
+out.close("fsolve x (scipy docs)", fs.vec("x"), vec(6.504097106706195, 0.908414205469625), 0.000000001);
+
+let one = root(strs("x + 2*cos(x)"), strs("x"), vec(0.3), opts().set("xtol", 0.0000000149012));
+out.check("root OK", one.ok());
+out.put("root_x", one.vec("x"));
+out.close("root x (tutorial)", one.vec("x").at(0), -1.029866529322259, 0.000000001);
+
+let lm = root(eqs, xy, vec(1.0, 1.0), opts().set("method", "lm").set("xtol", 0.0000000149012));
+out.check("lm OK", lm.ok());
+out.put("lm_x", lm.vec("x"));
+out.close("lm x (tutorial)", lm.vec("x"), vec(6.504097106693332, 0.9084142054688102), 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-root-finding");
+println(sprintf("cubic root %.12f in %d iterations; fsolve %s; root %s; lm %s", v.cubic_root, v.cubic_iterations, json_stringify(v.fsolve_x), json_stringify(v.root_x), json_stringify(v.lm_x)));
+println("scipy root finding answers reproduced.");
