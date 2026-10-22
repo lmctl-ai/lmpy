@@ -31,7 +31,7 @@ if diff <("$BIN" --dsl-signatures) <("$LMSCRIPT" --dsl-signatures "$HERE/schema/
 export PATH="$(cd "$(dirname "$BIN")" && pwd):$PATH"
 # examples/dsl (ports and tasks) and examples/python (Python recipes with their answers pinned); LMPY_EXAMPLES="a b" picks
 # names from either directory
-for dir in "$ROOT/examples/dsl" "$ROOT/examples/python"; do
+for dir in "$ROOT/examples/dsl" "$ROOT/examples/python" "$ROOT/examples/book"; do
   [ -d "$dir" ] || continue
   cd "$dir"
   for ex in $(ls *.lms 2>/dev/null | grep -v '^lmpy.lms$' | sed 's/\.lms$//'); do

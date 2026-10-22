@@ -104,6 +104,13 @@ jobs:
         if: env.ONLY_OK == 'true'
         run: native/test.sh
 
+      - name: enforce release tag version
+        if: startsWith(github.ref, 'refs/tags/v') && env.ONLY_OK == 'true'
+        run: |
+          expected="lmpy ${GITHUB_REF_NAME#v}"
+          actual="$(native/build/lmpy --version)"
+          test "$actual" = "$expected" || { echo "tag $GITHUB_REF_NAME requires '$expected', binary reports '$actual'" >&2; exit 1; }
+
       - name: package
         if: env.ONLY_OK == 'true'
         run: |

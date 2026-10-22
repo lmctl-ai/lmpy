@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
   if (argc < 2) return usage(2);
   std::string cmd = argv[1];
   if (cmd == "--help" || cmd == "-h") return usage(0);
-  if (cmd == "--version") { std::cout << "lmpy " << LMPY_VERSION << " (dsl bytecode v" << dslvm::VERSION << ")\n"; return 0; }
+  if (cmd == "--version") { std::cout << "lmpy " << LMPY_VERSION << "\n"; return 0; }
   if (cmd == "--dsl-schema" || cmd == "--schema") {
     if (argc == 2) { std::cout << api.summary(); return 0; }
     if (argc == 3 && std::string(argv[2]) == "--json") { std::cout << api.schema_json(); return 0; }

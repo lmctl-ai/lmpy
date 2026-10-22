@@ -1,5 +1,13 @@
 # Recipes
 
+## lmpy quickstart examples
+
+The small, standalone examples in `book/` use `cli="lmpy" install="github:lmctl-ai/lmpy@latest"` and check their answers inside the native program. The native test script runs each one; `renders/` contains compact previews of their checked output.
+
+- `book/normal-quantile.lms` calculates a standard-normal quantile and checks its known value.
+- `book/least-squares-line.lms` fits a straight line and checks the intercept and slope.
+- `book/matrix-solve.lms` solves a small linear system and checks the known solution.
+
 Every `.lms` file here runs through the host shim from a directory that contains `cli.schema.dev.json` and this `examples/` tree
 (`export PATH=/path/to/pycli/bin:$PATH; lmscript examples/<name>.lms`; `lmscript --check` parses without running). `scripts/run-recipes.sh`
 runs all of them in real, `--check` and `--dry-run` modes and is a CI gate on both architectures. Recipes that write files create them in

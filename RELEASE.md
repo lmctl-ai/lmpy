@@ -1,4 +1,11 @@
-# Releasing pycli (human checklist; nothing is automatic)
+# Releasing lmpy
+
+The lmpy executable version is set in native/CMakeLists.txt and embedded in every platform build. Before tagging, update the
+version and CHANGELOG.md, then push the source commit to main and require the complete five-platform CI matrix to pass. The CI
+release job compares each binary's complete --version output with the vX.Y.Z tag before packaging; only after every platform
+passes does it publish the checksummed release assets. Use a new tag for every release and do not move an existing tag.
+
+# Releasing legacy pycli (historical checklist)
 
 pycli publishes no image and no package. A release is a git tag on a green tree plus the artefacts a human chooses to hand out.
 Every step below is done by a person; CI only verifies.

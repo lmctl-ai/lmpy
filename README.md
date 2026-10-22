@@ -16,7 +16,7 @@ end _dsl_
 v = lmpy.run(prog, "ols");
 ```
 
-- **No-setup use from lmscript.** Write `p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@v0.1.0";` and run it with
+- **No-setup use from lmscript.** Write `p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";` and run it with
   `system ${dsl_cli(p)} --dsl FILE;`. lmscript (≥ 0.2.359) compiles against the schema the binary prints
   (`lmpy --dsl-schema --json`). When `lmpy` is not on PATH, lmscript downloads that release's `lmpy-OS-ARCH` once,
   verified against GitHub's SHA-256 digest. See [examples/dsl/install-and-run.lms](examples/dsl/install-and-run.lms).

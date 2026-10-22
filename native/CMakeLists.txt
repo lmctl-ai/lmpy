@@ -10,7 +10,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 option(LMPY_FULL_STATIC "Also link glibc statically (default: glibc is the only shared dependency)" OFF)
 set(LMPY_DEPS "${CMAKE_CURRENT_SOURCE_DIR}/.deps" CACHE PATH "Directory prepared by scripts/fetch-deps.sh")
-set(LMPY_VERSION "0.1.0")
+set(LMPY_VERSION "0.1.1")
 
 foreach(dir eigen-3.4.0 boost_1_86_0 pocketfft-4d865cba24359b05b37da4e75aee24498c3b78e7 nanoflann-1.6.1 LBFGSpp-0.3.0 spectra-1.0.1 xsf-4fff9b2cb2b5c31a0cf0b0f609d2699a5eeac53b)
   if(NOT EXISTS "${LMPY_DEPS}/src/${dir}")

@@ -1,9 +1,13 @@
 # Changelog
 
-All notable changes to pycli are documented here. Versions follow the schema `version` published by `pycli --schema`
-(the same string sits in CMakeLists.txt and in `py_info.provenance.version`; `tests/docs_gate.py` gates them).
+All notable changes to lmpy and the legacy pycli implementation are documented here.
 
-## [0.1.0] - Unreleased
+## [0.1.1] - 2026-10-21
+
+- Require release tags to match the binary's exact `lmpy X.Y.Z` version output on every platform.
+- Make `lmpy --version` print the stable `lmpy X.Y.Z` release identity.
+
+## [0.1.0] - 2026-10-21
 
 First releasable tree: 68 operations, 38 CTest groups, 52 lmscript recipes, aarch64 measured, amd64 built from a hash lock and
 verified by the CI job (GitHub Actions run 38913844742, 2026-10-16, both architectures green; the first amd64 run had exposed two
