@@ -1,0 +1,75 @@
+// access: write (a temporary .dslb, removed)
+// Python original: networkx-paths-flows.py, three networkx documentation examples: the "Weighted Graph" gallery graph
+//   (a-b 0.6, a-c 0.2, c-d 0.1, c-e 0.7, c-f 0.9, a-d 0.3) queried with dijkstra_path, shortest_path_length (weighted and
+//   unweighted) and single_source_dijkstra_path_length; the maximum_flow / minimum_cut docstring graph (x -> y, value 3.0);
+//   the min_cost_flow docstring network (5 units a -> d, cost 24). The lmpy version builds the same graphs with
+//   graph()/edge() and uses shortest_path (dijkstra, bfs), distances, max_flow, min_cut and min_cost_flow; the pinned
+//   answers are what the .py prints with networkx 3.x in the oracle venv.
+// Check: examples/python/check-parity.sh networkx-paths-flows (runs both and compares every recorded value).
+// parity-rtol: 1e-12
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn edge_names(r: Res) -> StrVec {
+  let names = strs();
+  let a = r.strs("flow_from");
+  let b = r.strs("flow_to");
+  for (i in range(0, a.len())) { names.push(a.at(i) + "->" + b.at(i)); }
+  return names;
+}
+# weighted graph gallery example (undirected)
+let g = graph(false);
+g.edge("a", "b", 0.6).edge("a", "c", 0.2).edge("c", "d", 0.1).edge("c", "e", 0.7).edge("c", "f", 0.9).edge("a", "d", 0.3);
+let af = g.shortest_path("a", "f");
+let bd = g.shortest_path("b", "d");
+let bf = g.shortest_path("b", "f", opts().set("method", "bfs"));
+let da = g.distances("a");
+out.put("path_a_f", af.strs("path"));
+out.put("length_a_f", af.num("length"));
+out.put("path_b_d", bd.strs("path"));
+out.put("length_b_d", bd.num("length"));
+out.put("hops_b_f", int(bf.num("length")));
+out.put("dist_from_a", da.vec("distance"));
+out.check("dijkstra a -> f is a-c-f (networkx)", af.strs("path").join("-") == "a-c-f");
+out.close("a -> f length 1.1", af.num("length"), 1.1, 0.000000000001);
+out.check("dijkstra b -> d is b-a-d (networkx)", bd.strs("path").join("-") == "b-a-d");
+out.close("b -> d length 0.9", bd.num("length"), 0.8999999999999999, 0.000000000001);
+out.check("b -> f takes 3 edges", bf.num("length") == 3.0);
+out.check("nodes a..f", da.strs("nodes").join("") == "abcdef");
+out.close("distances from a (networkx)", da.vec("distance"), vec(0.0, 0.6, 0.2, 0.3, 0.8999999999999999, 1.1), 0.000000000001);
+
+# maximum_flow / minimum_cut docstring example (directed, capacities)
+let f = graph(true);
+f.edge("x", "a", 1.0, 3.0).edge("x", "b", 1.0, 1.0).edge("a", "c", 1.0, 3.0).edge("b", "c", 1.0, 5.0);
+f.edge("b", "d", 1.0, 4.0).edge("d", "e", 1.0, 2.0).edge("c", "y", 1.0, 2.0).edge("e", "y", 1.0, 3.0);
+let mf = f.max_flow("x", "y");
+let mc = f.min_cut("x", "y");
+out.put("flow_value", mf.num("value"));
+out.put("cut_value", mc.num("value"));
+out.put("source_side", mc.strs("source_side"));
+out.put("max_flow_edges", edge_names(mf));
+out.put("max_flow_amounts", mf.vec("flow"));
+out.close("flow value 3.0 (networkx docs)", mf.num("value"), 3.0, 0.000000000001);
+out.close("cut value 3.0 (networkx docs)", mc.num("value"), 3.0, 0.000000000001);
+out.check("source side {a, c, x}", mc.strs("source_side").join(",") == "a,c,x");
+out.check("flow edges", edge_names(mf).join(" ") == "a->c b->d c->y d->e e->y x->a x->b");
+out.close("flow amounts", mf.vec("flow"), vec(2.0, 1.0, 2.0, 1.0, 1.0, 2.0, 1.0), 0.000000000001);
+
+# min_cost_flow docstring example: edge weight = unit cost, capacity
+let m = graph(true);
+m.edge("a", "b", 3.0, 4.0).edge("a", "c", 6.0, 10.0).edge("b", "d", 1.0, 9.0).edge("c", "d", 2.0, 5.0);
+let mcf = m.min_cost_flow(strs("a, d"), vec(5.0, -5.0));
+out.put("min_cost_flow_cost", int(mcf.num("cost")));
+out.put("min_cost_flow_edges", edge_names(mcf));
+out.put("min_cost_flow_amounts", mcf.vec("flow"));
+out.check("min cost flow OK", mcf.ok());
+out.close("cost 24 (networkx docs)", mcf.num("cost"), 24.0, 0.0);
+out.check("min cost flow edges", edge_names(mcf).join(" ") == "a->b a->c b->d c->d");
+out.close("min cost flow amounts", mcf.vec("flow"), vec(4.0, 1.0, 4.0, 1.0), 0.0);
+end _dsl_
+
+v = lmpy.run(prog, "networkx-paths-flows");
+println(sprintf("a -> f: %s (%.2f); b -> d: %s (%.2f); b -> f: %d edges", json_stringify(v.path_a_f), v.length_a_f, json_stringify(v.path_b_d), v.length_b_d, v.hops_b_f));
+println(sprintf("max flow x -> y = %.1f, min cut = %.1f, source side %s", v.flow_value, v.cut_value, json_stringify(v.source_side)));
+println(sprintf("min cost flow: cost %d over %s", v.min_cost_flow_cost, json_stringify(v.min_cost_flow_edges)));
+println("networkx path and flow answers reproduced.");

@@ -1,0 +1,80 @@
+// access: write (a temporary .dslb, removed)
+// Python original: statsmodels-ols-categorical.py, the statsmodels formula docs pattern (smf.ols with a categorical C()
+//   regressor, anova_lm of nested models, anova_lm typ=2, t_test of a linear hypothesis) on statsmodels' bundled Grunfeld
+//   panel: invest ~ value + capital + C(firm), 11 firms (treatment coding, reference = first sorted firm, as patsy).
+//   Data: data/grunfeld.csv (public domain; exported by data/export-statsmodels-datasets.py).
+// The lmpy version: ols() with C(firm); the nested-model F tests (anova_lm) from the residual sums of squares of the
+//   restricted fits and the F distribution; t_test("value = capital") by the equivalent reparameterisation
+//   value * (b_v - b_c) + (value + capital) * b_c, whose value coefficient is b_v - b_c with its exact standard error.
+//   Coefficient names are mapped to patsy's spelling (Intercept, C(firm)[T.level]) for the comparison.
+// Check: examples/python/check-parity.sh statsmodels-ols-categorical (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn ftest(ss: float, df: float, ssr: float, df_resid: float) -> float {
+  return (ss / df) / (ssr / df_resid);
+}
+let df = read_csv("data/grunfeld.csv");
+let mod = ols(df, "invest", "C(firm) + value + capital");
+let c = mod.res("coefficients");
+out.check("full model OK", mod.ok());
+let names = strs();
+let raw = c.strs("names");
+for (i in range(0, raw.len())) {
+  let nm = raw.at(i);
+  if (nm == "const") { nm = "Intercept"; } else if (nm != "value" && nm != "capital") { nm = "C(firm)[" + split(nm, "firm[").at(1); }
+  names.push(nm);
+}
+out.put("param_names", names);
+out.put("params", c.vec("estimate"));
+out.put("bse", c.vec("std_err"));
+out.put("tvalues", c.vec("statistic"));
+out.put("pvalues", c.vec("p_value"));
+out.put("rsquared", mod.num("r2"));
+out.put("rsquared_adj", mod.num("r2_adj"));
+out.put("fvalue", mod.num("f_statistic"));
+out.put("f_pvalue", mod.num("f_p_value"));
+out.put("ssr", mod.num("ssr"));
+out.put("llf", mod.num("llf"));
+out.put("aic", mod.num("aic"));
+out.put("bic", mod.num("bic"));
+out.put("df_resid", mod.num("df_resid"));
+let ssr = mod.num("ssr");
+let dfr = mod.num("df_resid");
+
+# anova_lm(restricted, mod): the firm effects as one block of 10 restrictions
+let restricted = ols(df, "invest", "value + capital");
+let ss_firm = restricted.num("ssr") - ssr;
+let f_firm = ftest(ss_firm, 10.0, ssr, dfr);
+let fd = dist("f", opts().set("dfn", 10.0).set("dfd", dfr));
+out.put("restricted_ssr", restricted.num("ssr"));
+out.put("anova_ss_diff", ss_firm);
+out.put("anova_df_diff", restricted.num("df_resid") - dfr);
+out.put("anova_F", f_firm);
+out.put("anova_p", fd.sf(f_firm));
+# anova_lm(mod, typ=2): each term dropped from the full model (main effects only, so type II = drop-one)
+let ss_value = ols(df, "invest", "C(firm) + capital").num("ssr") - ssr;
+let ss_capital = ols(df, "invest", "C(firm) + value").num("ssr") - ssr;
+let f1 = dist("f", opts().set("dfn", 1.0).set("dfd", dfr));
+out.put("typ2_sum_sq", vec(ss_firm, ss_value, ss_capital, ssr));
+out.put("typ2_F", vec(f_firm, ftest(ss_value, 1.0, ssr, dfr), ftest(ss_capital, 1.0, ssr, dfr)));
+out.put("typ2_p", vec(fd.sf(f_firm), f1.sf(ftest(ss_value, 1.0, ssr, dfr)), f1.sf(ftest(ss_capital, 1.0, ssr, dfr))));
+# t_test("value = capital")
+let rep = ols(df.mutate("vc", "value + capital"), "invest", "C(firm) + value + vc");
+let rc = rep.res("coefficients");
+let iv = rc.strs("names").index("value");
+out.put("ttest_value_eq_capital", rc.vec("statistic").at(iv));
+out.put("ttest_p", rc.vec("p_value").at(iv));
+
+# statsmodels 0.14.6 (the .py)
+out.close_rel("value coefficient", c.vec("estimate").at(11), 0.11012911902578063, 0.000000001);
+out.close_rel("capital coefficient", c.vec("estimate").at(12), 0.31003344187501314, 0.000000001);
+out.close_rel("ssr", ssr, 523718.6621769457, 0.000000001);
+out.close_rel("anova F for the firm effects", f_firm, 49.20708094854456, 0.000000001);
+out.close_rel("t value = capital", rc.vec("statistic").at(iv), -8.586975501285943, 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "statsmodels-ols-categorical");
+for (i = 0; i < len(v.param_names); i = i + 1) { println(sprintf("  %-30s %12.6f  (se %.6f)", v.param_names[i], v.params[i], v.bse[i])); }
+println(sprintf("R2 %.6f; firm effects F(%d, %d) = %.4f; t(value = capital) = %.4f", v.rsquared, v.anova_df_diff, v.df_resid, v.anova_F, v.ttest_value_eq_capital));
+println("statsmodels categorical OLS and ANOVA answers reproduced.");

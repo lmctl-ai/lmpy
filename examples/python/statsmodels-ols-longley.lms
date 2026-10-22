@@ -1,0 +1,59 @@
+// access: write (a temporary .dslb, removed)
+// Python original: statsmodels-ols-longley.py, the statsmodels OLS documentation example (sm.OLS(longley.endog,
+//   sm.add_constant(longley.exog)).fit()): TOTEMP on GNPDEFL, GNP, UNEMP, ARMED, POP, YEAR with an intercept. The lmpy
+//   version reads the same 16 rows (data/longley.csv, exported from statsmodels' bundled copy by
+//   data/export-statsmodels-datasets.py; public domain) and fits them with ols(). Checks: the NIST StRD certified values
+//   for Longley (https://www.itl.nist.gov/div898/strd/lls/data/Longley.shtml: 15 significant digits) and the statsmodels
+//   0.14.6 answers the .py prints.
+// Check: examples/python/check-parity.sh statsmodels-ols-longley (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let f = read_csv("data/longley.csv");
+let fit = ols(f, "TOTEMP", "GNPDEFL + GNP + UNEMP + ARMED + POP + YEAR");
+let c = fit.res("coefficients");
+let b = c.vec("estimate");
+let se = c.vec("std_err");
+out.check("status OK, 16 rows", fit.ok() && fit.int("n_obs") == 16);
+out.check("coefficient order", c.strs("names").join(",") == "const,GNPDEFL,GNP,UNEMP,ARMED,POP,YEAR");
+out.put("params", b);
+out.put("bse", se);
+out.put("tvalues", c.vec("statistic"));
+out.put("pvalues", c.vec("p_value"));
+out.put("conf_int", cols(c.vec("ci_lower"), c.vec("ci_upper")));
+out.put("rsquared", fit.num("r2"));
+out.put("rsquared_adj", fit.num("r2_adj"));
+out.put("fvalue", fit.num("f_statistic"));
+out.put("f_pvalue", fit.num("f_p_value"));
+out.put("llf", fit.num("llf"));
+out.put("aic", fit.num("aic"));
+out.put("bic", fit.num("bic"));
+out.put("ssr", fit.num("ssr"));
+out.put("scale_sqrt", fit.num("sigma"));
+out.put("df_model", fit.num("df_model"));
+out.put("df_resid", fit.num("df_resid"));
+out.put("condition_number", fit.num("condition_number"));
+out.put("durbin_watson", fit.num("durbin_watson"));
+# NIST StRD certified values (Longley): parameters, standard deviations, residual SD, R-squared, residual SS
+let nist_b = vec("-3482258.63459582 15.0618722713733 -0.358191792925910E-01 -2.02022980381683 -1.03322686717359 -0.511041056535807E-01 1829.15146461355");
+let nist_se = vec("890420.383607373 84.9149257747669 0.334910077722432E-01 0.488399681651699 0.214274163161675 0.226073200069370 455.478499142212");
+for (i in range(0, 7)) {
+  out.close_rel("NIST b" + str(i), b.at(i), nist_b.at(i), 0.0000000001);
+  out.close_rel("NIST se b" + str(i), se.at(i), nist_se.at(i), 0.0000000001);
+}
+out.close_rel("NIST residual SD", fit.num("sigma"), 304.854073561965, 0.0000000001);
+out.close_rel("NIST R-squared", fit.num("r2"), 0.995479004577296, 0.0000000001);
+out.close_rel("NIST residual SS", fit.num("ssr"), 836424.055505915, 0.0000000001);
+# statsmodels 0.14.6 (the .py)
+out.close_rel("statsmodels F", fit.num("f_statistic"), 330.285339234672, 0.000000001);
+out.close_rel("statsmodels llf", fit.num("llf"), -109.61743480847855, 0.000000001);
+out.close_rel("statsmodels aic", fit.num("aic"), 233.2348696169571, 0.000000001);
+out.close_rel("statsmodels condition number", fit.num("condition_number"), 4859257015.4548645, 0.000000001);
+out.close_rel("statsmodels Durbin-Watson", fit.num("durbin_watson"), 2.5594876892810072, 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "statsmodels-ols-longley");
+names = ["const", "GNPDEFL", "GNP", "UNEMP", "ARMED", "POP", "YEAR"];
+for (i = 0; i < 7; i = i + 1) { println(sprintf("  %-8s %18.8f  (se %.8f, t %.3f)", names[i], v.params[i], v.bse[i], v.tvalues[i])); }
+println(sprintf("R2 = %.12f, F = %.6f, llf = %.6f, DW = %.6f", v.rsquared, v.fvalue, v.llf, v.durbin_watson));
+println("Longley OLS matches the NIST certified values and statsmodels.");

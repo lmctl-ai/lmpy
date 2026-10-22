@@ -1,0 +1,52 @@
+// access: write (a temporary .dslb, removed)
+// Python original: statsmodels-glm.py, three GLMs on public-domain statsmodels datasets: RAND HIE doctor visits
+//   (Poisson, the count example of statsmodels' discrete choice overview, fitted as the identical GLM; constant last),
+//   the ANES 1996 binary vote (binomial/logit on logpopul, selfLR, age, educ, income; constant last) and Engel food
+//   expenditure (gamma with a log link on income; constant first). Data: data/randhie.csv, data/anes96.csv,
+//   data/engel.csv, exported from statsmodels' bundled copies by data/export-statsmodels-datasets.py.
+// Option: statsmodels GLM reports normal (z) p-values by default; lmpy glm defaults to use_t = true for families with an
+//   estimated scale (gamma), so the gamma fit passes use_t false to match.
+// Check: examples/python/check-parity.sh statsmodels-glm (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn record(name: string, r: Res) -> void {
+  let c = r.res("coefficients");
+  out.put(name + "_params", c.vec("estimate"));
+  out.put(name + "_bse", c.vec("std_err"));
+  out.put(name + "_pvalues", c.vec("p_value"));
+  out.put(name + "_deviance", r.num("deviance"));
+  out.put(name + "_null_deviance", r.num("null_deviance"));
+  out.put(name + "_pearson_chi2", r.num("pearson_chi2"));
+  out.put(name + "_scale", r.num("scale"));
+  out.put(name + "_llf", r.num("llf"));
+  out.put(name + "_aic", r.num("aic"));
+  out.put(name + "_df_resid", r.num("df_resid"));
+  out.check(name + " converged", r.ok() && r.flag("converged"));
+}
+let rand = read_csv("data/randhie.csv");
+out.check("randhie: 20190 rows", rand.nrows() == 20190);
+let pois = glm(rand, "mdvis", "lncoins + idp + lpi + fmde + physlm + disea + hlthg + hlthf + hlthp + 1", "poisson");
+record("randhie", pois);
+out.check("randhie: constant last", pois.res("coefficients").strs("names").at(9) == "const");
+out.close_rel("randhie lncoins (statsmodels)", pois.res("coefficients").vec("estimate").at(0), -0.052535115354462564, 0.000000001);
+out.close_rel("randhie deviance (statsmodels)", pois.num("deviance"), 83934.23786046742, 0.000000001);
+
+let anes = read_csv("data/anes96.csv");
+let logit = glm(anes, "vote", "logpopul + selfLR + age + educ + income + 1", "binomial");
+record("anes96", logit);
+out.close_rel("anes96 selfLR (statsmodels)", logit.res("coefficients").vec("estimate").at(1), 1.2258459453129038, 0.000000001);
+out.close_rel("anes96 llf (statsmodels)", logit.num("llf"), -419.08851326012643, 0.000000001);
+
+let engel = read_csv("data/engel.csv");
+let gam = glm(engel, "foodexp", "income", "gamma", opts().set("link", "log").set("use_t", false));
+record("engel", gam);
+out.close_rel("engel income (statsmodels)", gam.res("coefficients").vec("estimate").at(1), 0.0007178985670804408, 0.000000001);
+out.close_rel("engel scale (statsmodels)", gam.num("scale"), 0.03178736574741798, 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "statsmodels-glm");
+println(sprintf("RAND HIE Poisson: deviance %.6f, llf %.6f, lncoins %.8f", v.randhie_deviance, v.randhie_llf, v.randhie_params[0]));
+println(sprintf("ANES 1996 logit: deviance %.6f, llf %.6f, selfLR %.8f", v.anes96_deviance, v.anes96_llf, v.anes96_params[1]));
+println(sprintf("Engel gamma (log link): income %.10f, scale %.8f, llf %.6f", v.engel_params[1], v.engel_scale, v.engel_llf));
+println("statsmodels GLM answers reproduced.");

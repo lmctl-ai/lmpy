@@ -1,0 +1,70 @@
+// access: write (a temporary .dslb, removed)
+// Python original: pandas-timeseries.py, the pandas time-series user guide's resampling examples (100 one-second integer
+//   readings: resample("5Min").sum(), 1-minute ohlc and max; a 120-day random walk: resample("W").mean(),
+//   resample("MS").sum() / .last(); 6-hourly readings: resample("D") mean/min/max/count) and the windowing guide's
+//   rolling(7).mean() / .std() with shift(1), diff() and pct_change(). The draws come from rng(7), the same stream as
+//   numpy.random.default_rng(7) in the .py (integers, standard_normal, normal, in the same order).
+// The lmpy version builds the timestamp columns as text (format_time), then uses Frame.resample (first/max/min/last
+//   give ohlc), Frame.rolling, Frame.shift and vector arithmetic for diff and pct_change.
+// Check: examples/python/check-parity.sh pandas-timeseries (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn stamps(start: string, n: int, step: float) -> StrVec {
+  let t0 = parse_time(start);
+  let r = strs();
+  for (i in range(0, n)) { r.push(format_time(t0 + step * float(i))); }
+  return r;
+}
+fn dates(labels: StrVec) -> StrVec {
+  let r = strs();
+  for (l in labels) { r.push(split(l, " ").at(0)); }
+  return r;
+}
+let r = rng(7);
+# one-second integers
+let sec = frame().with("t", stamps("2012-01-01T00:00:00", 100, 1.0)).with("v", r.integers(100, 0, 500));
+let r5 = sec.resample("t", "5min", "v:sum");
+out.put("sec_5min_sum", r5.col("v__sum"));
+let r1 = sec.resample("t", "1min", "v:first|max|min|last");
+out.put("sec_1min_open", r1.col("v__first"));
+out.put("sec_1min_high", r1.col("v__max"));
+out.put("sec_1min_low", r1.col("v__min"));
+out.put("sec_1min_close", r1.col("v__last"));
+out.put("sec_1min_max", r1.col("v__max"));
+out.close("5-minute sum (pandas)", r5.col("v__sum"), vec(26692.0), 0.0);
+
+# daily random walk
+let w = r.standard_normal(120).cumsum().add(100.0);
+let walk = frame().with("day", stamps("2024-01-01T00:00:00", 120, 86400.0)).with("x", w);
+let weekly = walk.resample("day", "W", "x:mean");
+out.put("weekly_labels", dates(weekly.text("day")));
+out.put("weekly_mean", weekly.col("x__mean"));
+let monthly = walk.resample("day", "MS", "x:sum|last");
+out.put("monthly_labels", dates(monthly.text("day")));
+out.put("monthly_sum", monthly.col("x__sum"));
+out.put("monthly_last", monthly.col("x__last"));
+out.put("rolling7_mean", walk.rolling("x", 7, "mean"));
+out.put("rolling7_std", walk.rolling("x", 7, "std"));
+let lag = walk.shift("x", 1);
+out.put("shift1", lag);
+out.put("diff", w - lag);
+out.put("pct_change", w.div(lag).sub(1.0));
+out.check("weekly bins end on Sundays from 2024-01-07", dates(weekly.text("day")).at(0) == "2024-01-07" && weekly.nrows() == 18);
+out.close("monthly sums (pandas)", monthly.col("x__sum"), vec(3172.884112372848, 2933.034671381927, 2984.661705600701, 2628.2017524776775), 0.000000001);
+
+# 6-hourly readings to days
+let six = frame().with("t", stamps("2024-03-01T00:00:00", 40, 21600.0)).with("x", r.normal(40, 20.0, 3.0));
+let daily = six.resample("t", "D", "x:mean|min|max|count");
+out.put("daily_mean", daily.col("x__mean"));
+out.put("daily_min", daily.col("x__min"));
+out.put("daily_max", daily.col("x__max"));
+out.put("daily_count", daily.col("x__count"));
+out.check("10 days of 4 readings", daily.nrows() == 10 && daily.col("x__count").min() == 4.0);
+end _dsl_
+
+v = lmpy.run(prog, "pandas-timeseries");
+println("1-minute ohlc: open " + json_stringify(v.sec_1min_open) + " close " + json_stringify(v.sec_1min_close));
+println("monthly sums " + json_stringify(v.monthly_labels) + ": " + json_stringify(v.monthly_sum));
+println("daily means: " + json_stringify(v.daily_mean));
+println("pandas resample / rolling / shift answers reproduced.");

@@ -1,0 +1,119 @@
+// access: write (a temporary .dslb, removed)
+// Python original: statsmodels-arima-sunspots.py, the statsmodels sunspots examples: the "ARMA: Sunspots data" notebook
+//   (ARIMA(2,0,0) and ARIMA(3,0,0) with a constant: params, aic/bic/hqic, Durbin-Watson and Ljung-Box Q of the AR(3)
+//   residuals, acf/pacf to lag 40, forecasts), the "Stationarity and detrending (ADF/KPSS)" notebook (adfuller with
+//   autolag AIC, kpss level with automatic lags) and the acorr_ljungbox docstring (ARIMA(1,0,1) residuals, lag 10).
+//   The lmpy version reads data/sunspots.csv (statsmodels' bundled yearly Wolf numbers 1700-2008, public domain;
+//   exported by data/export-statsmodels-datasets.py) and uses arima, acf, pacf, adfuller, kpss and ljung_box.
+// Check: examples/python/check-parity.sh statsmodels-arima-sunspots (runs both and compares every recorded value).
+// Parameterisation: statsmodels' ARIMA reports `const` as the process MEAN; lmpy's arima trend "c" is the SARIMAX
+//   regression intercept, so the .lms converts it: mean = intercept / (1 - sum of the AR coefficients).
+// Tolerances: closed-form statistics (acf, pacf, adfuller, kpss) agree to 1e-9 (the file default). The ARIMA fits are
+//   numerical maximum likelihood (statsmodels: L-BFGS on its state-space likelihood; lmpy: its own port), and the mean of
+//   these strongly autocorrelated series is poorly identified (flat likelihood):
+//   - AR(2): lmpy reaches llf -1307.31817, 3.8e-4 ABOVE statsmodels' -1307.31855, so statsmodels stopped short; the mean
+//     differs by 1.7e-3 relative (49.659 vs 49.746), the AR coefficients and sigma2 by about 1e-4; aic/bic/hqic/llf 3e-7.
+//   - AR(3): llf agrees to 2e-10; parameters within 3e-5, forecasts within 4e-5.
+//   - residual-based values follow the parameters; the lag-1 residual autocorrelation is tiny (0.009), so it and Q(1)
+//     move by about 1e-3 relative.
+// parity-rtol ar2_params: 3e-3
+// parity-rtol ar2_aic: 1e-6
+// parity-rtol ar2_bic: 1e-6
+// parity-rtol ar2_hqic: 1e-6
+// parity-rtol ar2_llf: 1e-6
+// parity-rtol ar3_params: 1e-4
+// parity-rtol ar3_aic: 1e-8
+// parity-rtol ar3_bic: 1e-8
+// parity-rtol ar3_hqic: 1e-8
+// parity-rtol ar3_llf: 1e-8
+// parity-rtol ar3_durbin_watson: 1e-5
+// parity-rtol ar3_forecast: 1e-4
+// parity-rtol ar3_resid_acf: 5e-3
+// parity-rtol ar3_resid_q: 3e-3
+// parity-rtol ar3_resid_q_p: 1e-3
+// parity-rtol lb_stat: 1e-5
+// parity-rtol lb_pvalue: 1e-4
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+# statsmodels ARIMA order: [mean, ar.L1..ar.Lp, sigma2] from lmpy's [intercept, ar.L1..ar.Lp, sigma2]
+fn with_mean(p: Vec) -> Vec {
+  let ar = p.slice(1, p.len() - 1);
+  let q = p.copy();
+  q.set(0, p.at(0) / (1.0 - ar.sum()));
+  return q;
+}
+let x = read_csv("data/sunspots.csv").col("SUNACTIVITY");
+out.check("309 years", x.len() == 309);
+
+let ar2 = arima(x, 2, 0, 0, opts().set("trend", "c"));
+out.check("AR(2) OK", ar2.ok());
+out.put("ar2_names", ar2.strs("param_names"));
+out.put("ar2_params", with_mean(ar2.vec("params")));
+out.put("ar2_aic", ar2.num("aic"));
+out.put("ar2_bic", ar2.num("bic"));
+out.put("ar2_hqic", ar2.num("hqic"));
+out.put("ar2_llf", ar2.num("llf"));
+let ar3 = arima(x, 3, 0, 0, opts().set("trend", "c").set("forecast_steps", 5));
+out.check("AR(3) OK", ar3.ok());
+out.put("ar3_params", with_mean(ar3.vec("params")));
+out.put("ar3_aic", ar3.num("aic"));
+out.put("ar3_bic", ar3.num("bic"));
+out.put("ar3_hqic", ar3.num("hqic"));
+out.put("ar3_llf", ar3.num("llf"));
+let e = ar3.vec("residuals");
+let dw = e.diff().square().sum() / e.square().sum();
+out.put("ar3_durbin_watson", dw);
+out.put("ar3_forecast", ar3.res("forecast").vec("mean"));
+let ra = acf(e, 10, opts().set("qstat", true));
+out.put("ar3_resid_acf", ra.vec("values"));
+out.put("ar3_resid_q", ra.vec("qstat"));
+out.put("ar3_resid_q_p", ra.vec("pvalues"));
+# statsmodels 0.14.6 (the .py): AR(2) and AR(3) estimates (const = the mean), information criteria, forecasts
+out.close("AR(2) mean, ar.L1, ar.L2", with_mean(ar2.vec("params")).slice(0, 3), vec(49.74619796964299, 1.3906328562180734, -0.6885729007306319), 0.1);
+out.close_rel("AR(2) llf (lmpy at or above statsmodels)", ar2.num("llf"), -1307.3185466505847, 0.000001);
+out.close_rel("AR(2) aic", ar2.num("aic"), 2622.6370933011694, 0.000001);
+out.close("AR(3) params", with_mean(ar3.vec("params")), vec(49.75191147478128, 1.3008178675087025, -0.5081024847654225, -0.1296440208704318, 270.10113968064644), 0.01);
+out.close_rel("AR(3) aic", ar3.num("aic"), 2619.4036292456544, 0.00000001);
+out.close_rel("AR(3) Durbin-Watson", dw, 1.9564953612044689, 0.00001);
+out.close("AR(3) forecast 2009-2013", ar3.res("forecast").vec("mean"), vec(14.753857840224676, 33.50909830832032, 52.47963809197117, 66.09048912138324, 71.72524414435162), 0.01);
+
+let a40 = acf(x, 40);
+let p40 = pacf(x, 40, opts().set("method", "ywm"));
+out.put("acf40", a40.vec("values"));
+out.put("pacf40", p40.vec("values"));
+out.close("acf lag 1, 10", vec(a40.vec("values").at(1), a40.vec("values").at(10)), vec(0.8202012944200223, 0.6589800155363378), 0.000000000001);
+out.close("pacf lag 2, 40", vec(p40.vec("values").at(2), p40.vec("values").at(40)), vec(-0.6766944171757744, 0.030022207424170555), 0.000000000001);
+
+let adf = adfuller(x, opts().set("autolag", "AIC"));
+let cv = adf.res("critical_values");
+out.put("adf_stat", adf.num("statistic"));
+out.put("adf_pvalue", adf.num("p_value"));
+out.put("adf_usedlag", adf.int("used_lag"));
+out.put("adf_nobs", adf.int("nobs"));
+out.put("adf_crit", vec(cv.num("1%"), cv.num("5%"), cv.num("10%")));
+out.put("adf_icbest", adf.num("icbest"));
+out.close_rel("adf statistic", adf.num("statistic"), -2.837780724938199, 0.000000001);
+out.close_rel("adf p-value", adf.num("p_value"), 0.05307642172812007, 0.000000001);
+out.check("adf used lag 8, 300 obs", adf.int("used_lag") == 8 && adf.int("nobs") == 300);
+
+let kp = kpss(x, opts().set("regression", "c").set("nlags", "auto"));
+out.put("kpss_stat", kp.num("statistic"));
+out.put("kpss_pvalue", kp.num("p_value"));
+out.put("kpss_lags", kp.int("lags"));
+out.close_rel("kpss statistic", kp.num("statistic"), 0.6698662984667937, 0.000000001);
+out.close_rel("kpss p-value", kp.num("p_value"), 0.01628488195756421, 0.000000001);
+out.check("kpss 7 lags", kp.int("lags") == 7);
+
+let arma11 = arima(x, 1, 0, 1, opts().set("trend", "c"));
+let lb = ljung_box(arma11.vec("residuals"), vec(10.0));
+out.put("lb_stat", lb.vec("statistic").at(0));
+out.put("lb_pvalue", lb.vec("p_value").at(0));
+out.close_rel("Ljung-Box Q(10) of the ARMA(1,1) residuals", lb.vec("statistic").at(0), 214.1086925022273, 0.00001);
+end _dsl_
+
+v = lmpy.run(prog, "statsmodels-arima-sunspots");
+println(sprintf("AR(2) [mean, ar.L1, ar.L2, sigma2] = %s, aic %.4f (lmpy names %s)", json_stringify(v.ar2_params), v.ar2_aic, json_stringify(v.ar2_names)));
+println(sprintf("AR(3) aic %.4f, DW %.4f, forecast %s", v.ar3_aic, v.ar3_durbin_watson, json_stringify(v.ar3_forecast)));
+println(sprintf("ADF %.4f (p %.4f, lag %d); KPSS %.4f (p %.4f); Ljung-Box Q(10) %.3f", v.adf_stat, v.adf_pvalue, v.adf_usedlag, v.kpss_stat, v.kpss_pvalue, v.lb_stat));
+println("statsmodels sunspots answers reproduced.");

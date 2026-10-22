@@ -1,0 +1,92 @@
+// access: write (a temporary .dslb, removed)
+// Python original: pandas-groupby-merge.py, the "10 minutes to pandas" Grouping, Merge, pivot_table and describe
+//   examples plus the merging user guide's two-key left join and outer join with indicator. The random columns come from
+//   rng(2024), the same stream as numpy.random.default_rng(2024) in the .py (drawn in the same order).
+// The lmpy version: Frame.groupby (sum, mean, std, min, max, count, median), Frame.merge (inner, left on two keys,
+//   outer with indicator), Frame.pivot (pivot_table's two-level index A, B is one combined key column "A|B", which
+//   sorts like pandas' MultiIndex here because no A value is a prefix of another) and Frame.describe.
+//   Missing text cells after a join are "" on both sides.
+// Check: examples/python/check-parity.sh pandas-groupby-merge (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn joined(a: StrVec, b: StrVec) -> StrVec {
+  let r = strs();
+  for (i in range(0, a.len())) { r.push(a.at(i) + "|" + b.at(i)); }
+  return r;
+}
+let r = rng(2024);
+# Grouping
+let df = frame().with("A", strs("foo, bar, foo, bar, foo, bar, foo, foo")).with("B", strs("one, one, two, three, two, two, one, three"));
+df = df.with("C", r.standard_normal(8)).with("D", r.standard_normal(8));
+let g1 = df.groupby(strs("A"), "C:sum, D:sum");
+out.put("group_a_keys", g1.text("A"));
+out.put("group_a_C_sum", g1.col("C__sum"));
+out.put("group_a_D_sum", g1.col("D__sum"));
+let g2 = df.groupby(strs("A, B"), "C:sum, D:sum");
+out.put("group_ab_keys", joined(g2.text("A"), g2.text("B")));
+out.put("group_ab_C_sum", g2.col("C__sum"));
+out.put("group_ab_D_sum", g2.col("D__sum"));
+let g3 = df.groupby(strs("A"), "C:mean|std|min|max, D:count|median");
+out.put("group_a_C_mean", g3.col("C__mean"));
+out.put("group_a_C_std", g3.col("C__std"));
+out.put("group_a_C_min", g3.col("C__min"));
+out.put("group_a_C_max", g3.col("C__max"));
+out.put("group_a_D_count", g3.col("D__count"));
+out.put("group_a_D_median", g3.col("D__median"));
+out.close("groupby A sum C (pandas)", g1.col("C__sum"), vec(0.7359368802676819, 2.153314023957761), 0.000000000001);
+
+# Merge (10 minutes)
+let m1 = csv("key,lval\nfoo,1\nfoo,2\n").merge(csv("key,rval\nfoo,4\nfoo,5\n"), strs("key"), "inner");
+out.put("merge_same_key_rows", m1.nrows());
+out.put("merge_same_key_lval", m1.col("lval"));
+out.put("merge_same_key_rval", m1.col("rval"));
+let m2 = csv("key,lval\nfoo,1\nbar,2\n").merge(csv("key,rval\nfoo,4\nbar,5\n"), strs("key"), "inner");
+out.put("merge_key", m2.text("key"));
+out.put("merge_lval", m2.col("lval"));
+out.put("merge_rval", m2.col("rval"));
+out.check("4 rows for a duplicated key", m1.nrows() == 4);
+
+# Merge (user guide)
+let left = csv("key1,key2,A,B\nK0,K0,A0,B0\nK0,K1,A1,B1\nK1,K0,A2,B2\nK2,K1,A3,B3\n");
+let right = csv("key1,key2,C,D\nK0,K0,C0,D0\nK1,K0,C1,D1\nK1,K0,C2,D2\nK2,K0,C3,D3\n");
+let lj = left.merge(right, strs("key1, key2"), "left");
+out.put("left_join_key1", lj.text("key1"));
+out.put("left_join_key2", lj.text("key2"));
+out.put("left_join_A", lj.text("A"));
+out.put("left_join_C", lj.text("C"));
+out.put("left_join_D", lj.text("D"));
+out.check("left join keeps every left row, K1/K0 twice", lj.nrows() == 5 && lj.text("C").join(",") == "C0,,C1,C2,");
+let oj = csv("col1,col_left\n0,a\n1,b\n").merge(csv("col1,col_right\n1,2\n2,2\n2,2\n"), strs("col1"), "outer", opts().set("indicator", true));
+out.put("outer_col1", oj.col("col1"));
+out.put("outer_col_left", oj.text("col_left"));
+out.put("outer_col_right", oj.col("col_right"));
+out.put("outer_merge", oj.text("_merge"));
+out.check("indicator", oj.text("_merge").join(",") == "left_only,both,right_only,right_only");
+
+# Reshaping: pivot_table(values="D", index=["A", "B"], columns=["C"]) (mean)
+let pdf = frame().with("A", strs("one, one, two, three, one, one, two, three, one, one, two, three"));
+pdf = pdf.with("B", strs("A, B, C, A, B, C, A, B, C, A, B, C")).with("C", strs("foo, foo, foo, bar, bar, bar, foo, foo, foo, bar, bar, bar"));
+pdf = pdf.with("D", r.standard_normal(12)).with("E", r.standard_normal(12));
+pdf = pdf.with("AB", joined(pdf.text("A"), pdf.text("B")));
+let pt = pdf.pivot("AB", "C", "D", "mean");
+out.put("pivot_index", pt.text("AB"));
+out.put("pivot_columns", pt.drop(strs("AB")).names());
+out.put("pivot_bar", pt.col("bar"));
+out.put("pivot_foo", pt.col("foo"));
+
+# describe of a 6 x 4 standard normal frame (row-major draws, as numpy)
+let z = mat(r.standard_normal(24), 6, 4);
+let ddf = mat_frame(z, strs("A, B, C, D"));
+let desc = ddf.describe();
+out.put("describe_stats", desc.text("stat"));
+out.put("describe", concat(concat(desc.col("A"), desc.col("B")), concat(desc.col("C"), desc.col("D"))));
+out.close("describe A mean, std (pandas)", desc.col("A").slice(1, 3), vec(-0.6897452778989281, 0.45737401791128846), 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "pandas-groupby-merge");
+println("groupby A sum C: " + json_stringify(v.group_a_C_sum));
+println("groupby A,B keys: " + json_stringify(v.group_ab_keys));
+println("outer join indicator: " + json_stringify(v.outer_merge));
+println("pivot rows: " + json_stringify(v.pivot_index));
+println("pandas groupby / merge / pivot_table / describe answers reproduced.");
