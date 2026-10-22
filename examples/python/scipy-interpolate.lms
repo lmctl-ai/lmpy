@@ -1,0 +1,93 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-interpolate.py, the SciPy reference examples for scipy.interpolate.CubicSpline (sin on 0..9 with
+//   S, S', S'', S''' on arange(-0.5, 9.6, 0.1), extrapolated; the periodic unit circle), Akima1DInterpolator (akima versus
+//   makima on [-1, -1, -1, 0, 1, 1, 1]) with PchipInterpolator as in the 1-D tutorial, make_smoothing_spline
+//   (x^3 + x^2 sin 4x plus N(0, 1.5^2) noise from default_rng(1234), GCV and lam = 0.01) and RBFInterpolator (thin-plate
+//   spline through 100 points of default_rng(42) in [-1, 1]^2, evaluated on a 20 x 20 grid). lmpy builds each with interp;
+//   the pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-interpolate (runs both and compares every recorded value).
+// The GCV lambda is the minimum of a flat function located by bounded Brent (minimize_scalar, xatol 1e-5): scipy stops at
+//   0.0142005, lmpy at 0.0141965 (both within xatol), so the GCV fit agrees to about 1e-5 relative, not 1e-9 (pointwise
+//   it differs by up to 3e-5 absolute, which is large relative near the curve's zero crossings). The GCV fit is therefore
+//   compared through its residual sum of squares and grid norm; the fixed-lam curve is compared pointwise at 1e-9.
+// parity-rtol smoothing_gcv_rss: 1e-4
+// parity-rtol smoothing_gcv_norm: 1e-4
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+# CubicSpline(x, sin x), not-a-knot, extrapolated beyond [0, 9] as the example plots it
+let x = arange(10);
+let cs = interp("cubic", x, x.sin(), opts().set("extrapolate", "extend"));
+# numpy.arange fills start + i * delta with delta = (start + step) - start = 0.09999999999999998, so xs[25] is
+# 1.9999999999999996 and S''' there takes the left piece; lmpy arange(-0.5, 9.6, 0.1) multiplies by step itself
+let xs = arange(101).mul((-0.5 + 0.1) - -0.5).add(-0.5);
+out.put("cs_s", cs.eval(xs));
+out.put("cs_s1", cs.deriv(xs, 1));
+out.put("cs_s2", cs.deriv(xs, 2));
+out.put("cs_s3", cs.deriv(xs, 3));
+out.check("101 evaluation points", xs.len() == 101);
+out.close("S(-0.5) (scipy 1.16.2)", cs.eval(-0.5), -0.6323833041692906, 0.000000000001);
+
+# periodic unit circle: one spline per coordinate
+let theta = linspace(0.0, 1.0, 5).mul(2.0 * pi());
+let cx = interp("cubic", theta, theta.cos(), opts().set("bc_type", "periodic"));
+let cy = interp("cubic", theta, theta.sin(), opts().set("bc_type", "periodic"));
+let xt = linspace(0.0, 1.0, 100).mul(2.0 * pi());
+out.put("circle_slope_at_0", vec(cx.deriv(0.0, 1), cy.deriv(0.0, 1)));
+out.put("circle_x", cx.eval(xt));
+out.put("circle_y", cy.eval(xt));
+out.close("ds/dx = 0.0, ds/dy = 0.95 (scipy docs print 1.0 at one decimal)", vec(cx.deriv(0.0, 1), cy.deriv(0.0, 1)), vec(0.0, 0.954929658551372), 0.000000001);
+
+# Akima, makima and pchip on the step data
+let xa = linspace(1.0, 7.0, 7);
+let ya = vec("-1 -1 -1 0 1 1 1");
+let xsa = linspace(1.0, 7.0, 100);
+let y_akima = interp("akima", xa, ya).eval(xsa);
+let y_makima = interp("makima", xa, ya).eval(xsa);
+let y_pchip = interp("pchip", xa, ya).eval(xsa);
+out.put("akima", y_akima);
+out.put("makima", y_makima);
+out.put("pchip", y_pchip);
+out.close("akima, makima, pchip at xs[50] (scipy 1.16.2)", vec(y_akima.at(50), y_makima.at(50), y_pchip.at(50)), vec(0.03074825388874973, 0.03119347747446918, 0.03119347747446918), 0.000000000001);
+out.check("makima and pchip stay within [-1, 1]; akima overshoots", y_makima.abs().max() <= 1.0 && y_pchip.abs().max() <= 1.0 && y_akima.max() > 1.0);
+
+# make_smoothing_spline on noisy x^3 + x^2 sin 4x
+let g = rng(1234);
+let n = 200;
+let xn = g.random(n).mul(4.0).sub(2.0).sort();
+let fx = xn.pow(3.0).add(xn.square().mul(xn.mul(4.0).sin()));
+let yn = fx.add(g.normal(n, 0.0, 1.5));
+let grid = linspace(xn.at(0), xn.at(-1), 400);
+let spl = interp("smoothing", xn, yn);
+let spl_fixed = interp("smoothing", xn, yn, opts().set("lam", 0.01));
+out.put("smoothing_gcv_rss", spl.eval(xn).sub(yn).square().sum());
+out.put("smoothing_gcv_norm", spl.eval(grid).norm());
+out.put("smoothing_lam_0_01", spl_fixed.eval(grid));
+out.put("smoothing_gcv_lam", spl.info().num("lam"));
+out.close("GCV lambda near scipy 0.0142005 (bounded Brent, xatol 1e-5)", spl.info().num("lam"), 0.014200516932326811, 0.00001);
+out.close("GCV fit residual sum of squares (scipy 1.16.2)", spl.eval(xn).sub(yn).square().sum(), 409.55699538983333, 0.01);
+out.close("lam = 0.01 curve ends (scipy 1.16.2)", vec(spl_fixed.eval(grid).at(0), spl_fixed.eval(grid).at(399)), vec(-11.796170684659643, 11.826826214634625), 0.000000001);
+
+# RBFInterpolator: thin-plate spline through 100 scattered points, 20 x 20 grid
+let xobs = mat(rng(42).random(200), 100, 2).mul(2.0).sub(mat(full(200, 1.0), 100, 2));
+let x1 = xobs.col(0);
+let x2 = xobs.col(1);
+let yobs = x1.add(x2).mul(x1.square().add(x2.square()).mul(-6.0).exp());
+# scipy evaluates an RBF anywhere; lmpy refuses points outside the nodes bounding box unless extrapolate is extend
+let rbf = interp("rbf", xobs, yobs, opts().set("extrapolate", "extend"));
+let lin = linspace(-1.0, 1.0, 20);
+let gx = vec();
+let gy = vec();
+for (i in range(0, 20)) {
+  for (j in range(0, 20)) { gx.push(lin.at(i)); gy.push(lin.at(j)); }
+}
+let yflat = rbf.eval(cols(gx, gy));
+out.put("rbf_grid", yflat);
+out.check("rbf status OK", rbf.status() == "OK");
+out.close("rbf at grid corner and centre-ish (scipy 1.16.2)", vec(yflat.at(0), yflat.at(210)), vec(0.001930061686183926, 0.08113447813499265), 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-interpolate");
+println(sprintf("CubicSpline sin: S(-0.5) = %.6f; circle slope at 0 = %s", v.cs_s[0], json_stringify(v.circle_slope_at_0)));
+println(sprintf("smoothing spline: GCV lambda = %.9f", v.smoothing_gcv_lam));
+println("scipy interpolate answers reproduced.");
