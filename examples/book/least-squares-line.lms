@@ -9,10 +9,9 @@ out.close("intercept and slope", coefficients, vec(3.0, 2.0), 0.000000000001);
 out.put("coefficients", coefficients);
 end _dsl_
 
-file = "build/least-squares-line.dslb";
-savedsl(p, file);
-r = system ${dsl_cli(p)} --dsl ${file};
-delete_file(file);
+out = ARGV.len() > 0 ? ARGV[0] : "build/least-squares-line.dslb";
+savedsl(p, out);
+r = system ${dsl_cli(p)} --dsl ${out};
 if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
 result = json_parse(r.stdout).result.values;
 println("Fitted coefficients [intercept, slope]: " + str(result.coefficients));

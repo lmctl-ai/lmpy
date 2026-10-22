@@ -6,10 +6,9 @@ out.close("known linear-system solution", solution, vec(1.0, 2.0, 3.0), 0.000000
 out.put("solution", solution);
 end _dsl_
 
-file = "build/matrix-solve.dslb";
-savedsl(p, file);
-r = system ${dsl_cli(p)} --dsl ${file};
-delete_file(file);
+out = ARGV.len() > 0 ? ARGV[0] : "build/matrix-solve.dslb";
+savedsl(p, out);
+r = system ${dsl_cli(p)} --dsl ${out};
 if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
 result = json_parse(r.stdout).result.values;
 println("Solution: " + str(result.solution));
