@@ -1,0 +1,62 @@
+// access: write (a temporary .dslb, removed)
+// Python original: sklearn-pca-iris.py, the scikit-learn gallery "Comparison of LDA and PCA 2D projection of Iris
+//   dataset" (PCA(n_components=2) and LinearDiscriminantAnalysis(n_components=2) on iris: explained variance ratios and
+//   the projected rows) and the PCA reference example on six 2-D points. The lmpy version fits ml_fit("pca", ...) and
+//   ml_fit("lda", ...) and projects with transform. PCA components follow sklearn's svd_flip convention on both sides;
+//   the LDA axes are compared with each axis signed so its scalings column's largest |entry| is positive (lmpy's
+//   convention; the .py applies it because sklearn leaves the LAPACK sign). Data: data/iris.csv (see
+//   data/export-sklearn.py). The pinned answers are what the .py prints with scikit-learn 1.7.2.
+// Check: examples/python/check-parity.sh sklearn-pca-iris
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let doc = ml_fit("pca", mat("-1 -1; -2 -1; -3 -2; 1 1; 2 1; 3 2"), opts().set("n_components", 2));
+out.put("doc_explained_variance_ratio", doc.params().vec("explained_variance_ratio"));
+out.put("doc_singular_values", doc.params().vec("singular_values"));
+out.close("PCA reference example: explained_variance_ratio_", doc.params().vec("explained_variance_ratio"), vec("0.9924428900898052 0.007557109910194766"), 0.000000000001);
+out.close("PCA reference example: singular_values_", doc.params().vec("singular_values"), vec("6.300612319734663 0.5498039617971033"), 0.000000000001);
+
+let iris = read_csv("data/iris.csv");
+let x = iris.to_mat(iris.drop(strs("target")).names());
+let y = iris.col("target");
+let pca = ml_fit("pca", x, opts().set("n_components", 2));
+let xr = pca.transform(x);
+let lda = ml_fit("lda", x, y, opts().set("n_components", 2));
+let xr2 = lda.transform(x);
+let p = pca.params();
+out.put("pca_explained_variance_ratio", p.vec("explained_variance_ratio"));
+out.put("pca_explained_variance", p.vec("explained_variance"));
+out.put("pca_singular_values", p.vec("singular_values"));
+out.put("pca_components", p.mat("components"));
+out.put("pca_mean", p.vec("mean"));
+let rows = vec("0 50 100");
+out.put("pca_rows_0_50_100", xr.take_rows(rows));
+fn class_means(z: Mat, y: Vec) -> Mat {
+  let m = mat(3, z.cols());
+  for (k in range(0, 3)) {
+    let c = z.take_rows(y.eq(float(k)).find()).col_means();
+    for (j in range(0, z.cols())) { m.set(k, j, c.at(j)); }
+  }
+  return m;
+}
+out.put("pca_class_means", class_means(xr, y));
+out.put("lda_explained_variance_ratio", lda.params().vec("explained_variance_ratio"));
+out.put("lda_rows_0_50_100", xr2.take_rows(rows));
+out.put("lda_class_means", class_means(xr2, y));
+out.put("lda_coef", lda.coef());
+out.put("lda_intercept", lda.intercept());
+out.put("lda_training_accuracy", lda.score(x, y));
+
+# pinned answers (scikit-learn 1.7.2)
+out.close("PCA explained variance ratio [0.92461872 0.05306648]", p.vec("explained_variance_ratio"), vec("0.924618723201734 0.05306648311706391"), 0.000000000001);
+out.close("PCA components (svd_flip)", p.mat("components").flatten(), vec("0.36138659178536503 -0.08452251406457334 0.8566706059498359 0.3582891971515515 0.6565887712868284 0.7301614347850431 -0.17337266279585248 -0.07548101991744222"), 0.000000000001);
+out.close("PCA rows 0, 50, 100", xr.take_rows(rows).flatten(), vec("-2.6841256259695387 0.31939724658508606 1.284825688858347 0.685160470467304 2.531192727803628 -0.009849109498767383"), 0.000000000001);
+out.close("LDA explained variance ratio", lda.params().vec("explained_variance_ratio"), vec("0.9912126049653672 0.00878739503463276"), 0.000000000001);
+out.close("LDA rows 0, 50, 100 (signed axes)", xr2.take_rows(rows).flatten(), vec("-8.061799783002678 0.30042062137877795 1.459275450967492 0.02854376432982057 7.839473985741417 2.1397334488246083"), 0.0000000001);
+out.close("LDA training accuracy 0.98", lda.score(x, y), 0.98, 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "sklearn-pca-iris");
+println("explained variance ratio (first two components):", json_stringify(v.pca_explained_variance_ratio));
+println("LDA explained variance ratio:", json_stringify(v.lda_explained_variance_ratio));
+println("scikit-learn PCA / LDA projections reproduced.");
