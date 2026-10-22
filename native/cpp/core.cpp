@@ -153,8 +153,11 @@ void register_core(Api& api) {
     if (step == 0 || !std::isfinite(step)) fail("arange: step must be finite and nonzero");
     double count = std::ceil((stop - start) / step);
     if (count > 1e8) fail("arange: more than 1e8 values");
+    // numpy's fill: element i is start + i * d with d = (start + step) - start (the rounded second element minus the
+    // first), so arange(-0.5, 9.6, 0.1)[25] is 1.9999999999999996 exactly as in numpy, not 2.0
+    double d = (start + step) - start;
     V r;
-    for (int64_t i = 0; i < int64_t(count); ++i) r.push_back(start + double(i) * step);
+    for (int64_t i = 0; i < int64_t(count); ++i) r.push_back(start + double(i) * d);
     return vecv(std::move(r));
   });
   api.fn("arange", {"int"}, Vt, "0, 1, ..., n-1 as floats", [](Args& a) {
