@@ -36,7 +36,7 @@ The diagram is rendered with [lmdraw](https://github.com/lmctl-ai/lmdraw) from [
 ## Quick start
 
 ```sh
-npm install -g @lmctl-ai/lmctl
+npm i -g @lmctl-ai/lmctl
 lmctl init
 lmctl autorun lmpy_solo
 ```
