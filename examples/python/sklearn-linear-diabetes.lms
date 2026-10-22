@@ -1,0 +1,76 @@
+// access: write (a temporary .dslb, removed)
+// Python original: sklearn-linear-diabetes.py, the scikit-learn user guide 1.1 snippets (LinearRegression on three
+//   collinear points, Ridge(alpha=.5), Lasso(alpha=0.1)) and the gallery "Linear Regression Example" (diabetes bmi, last 20
+//   rows held out), extended to all ten diabetes features with the same estimators. The lmpy version fits ml_fit linear /
+//   ridge / lasso; Lasso gets sklearn's defaults tol 1e-4 and max_iter 1000 (lmpy's own default tol is 1e-8), so the
+//   coordinate descent stops at the same sweep. Data: data/diabetes.csv (sklearn load_diabetes, see data/export-sklearn.py).
+//   The pinned answers are what the .py prints with scikit-learn 1.7.2.
+// Check: examples/python/check-parity.sh sklearn-linear-diabetes
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn pin(name: string, got: Vec, want: Vec, tol: float) -> void {
+  out.put(name, got);
+  out.close(name + " (scikit-learn 1.7.2)", got, want, tol);
+}
+fn pin1(name: string, got: float, want: float, rtol: float) -> void {
+  out.put(name, got);
+  out.close_rel(name + " (scikit-learn 1.7.2)", got, want, rtol);
+}
+# user guide 1.1.1-1.1.3
+let ols0 = ml_fit("linear", mat("0 0; 1 1; 2 2"), vec("0 1 2"));
+pin("ug_ols_coef", ols0.coef().row(0), vec("0.5 0.4999999999999999"), 0.000000000001);
+let ridge0 = ml_fit("ridge", mat("0 0; 0 0; 1 1"), vec("0 0.1 1"), opts().set("alpha", 0.5));
+pin("ug_ridge_coef", ridge0.coef().row(0), vec("0.34545454545454546 0.3454545454545455"), 0.000000000001);
+pin1("ug_ridge_intercept", ridge0.intercept().at(0), 0.13636363636363638, 0.000000000001);
+let lasso0 = ml_fit("lasso", mat("0 0; 1 1"), vec("0 1"), opts().set("alpha", 0.1).set("tol", 0.0001));
+pin("ug_lasso_predict", lasso0.predict(mat("1 1")), vec("0.8"), 0.000000000001);
+
+# plot_ols: diabetes, bmi only, train_test_split(test_size=20, shuffle=False) = the first 422 rows / the last 20
+let f = read_csv("data/diabetes.csv");
+let y = f.col("target");
+let x = f.to_mat(f.drop(strs("target")).names());
+let n = x.rows();
+let ntr = n - 20;
+let ytr = y.slice(0, ntr);
+let yte = y.slice(ntr, n);
+let bmi = cols(f.col("bmi"));
+let m1 = ml_fit("linear", bmi.block(0, 0, ntr, 1), ytr);
+let pred1 = m1.predict(bmi.block(ntr, 0, 20, 1));
+let met1 = ml_metrics(yte, pred1, opts().set("kind", "regression"));
+pin("ols_bmi_coef", m1.coef().row(0), vec("938.237861251353"), 0.0000001);
+pin1("ols_bmi_intercept", m1.intercept().at(0), 152.91886182616113, 0.000000001);
+pin1("ols_bmi_mse", met1.num("mse"), 2548.072398725968, 0.000000001);
+pin1("ols_bmi_r2", met1.num("r2"), 0.4725754479822718, 0.000000001);
+
+# all ten features, the same split
+let xtr = x.block(0, 0, ntr, x.cols());
+let xte = x.block(ntr, 0, 20, x.cols());
+let mols = ml_fit("linear", xtr, ytr);
+let ridge = ml_fit("ridge", xtr, ytr, opts().set("alpha", 0.5));
+let lasso = ml_fit("lasso", xtr, ytr, opts().set("alpha", 0.1).set("tol", 0.0001).set("max_iter", 1000));
+out.check("lasso converged", lasso.ok());
+fn report(name: string, m: Estimator, xtr: Mat, ytr: Vec, xte: Mat, yte: Vec) -> void {
+  let met = ml_metrics(yte, m.predict(xte), opts().set("kind", "regression"));
+  out.put(name + "_coef", m.coef().row(0));
+  out.put(name + "_intercept", m.intercept().at(0));
+  out.put(name + "_mse", met.num("mse"));
+  out.put(name + "_r2", met.num("r2"));
+  out.put(name + "_train_r2", m.score(xtr, ytr));
+}
+report("ols", mols, xtr, ytr, xte, yte);
+report("ridge", ridge, xtr, ytr, xte, yte);
+report("lasso", lasso, xtr, ytr, xte, yte);
+out.close("ols coef (scikit-learn 1.7.2)", mols.coef().row(0), vec("0.306094247541858 -237.63557011300614 510.53804765114114 327.72987799098917 -814.1119263534537 492.79959450340795 102.8412399679311 184.60349609037095 743.5093875957105 76.09664636971954"), 0.0000001);
+out.close_rel("ols r2", mols.score(xte, yte), 0.5850854274471948, 0.000000001);
+out.close("ridge coef (scikit-learn 1.7.2)", ridge.coef().row(0), vec("27.09702363575922 -127.42219640189822 373.4300661593546 243.70985593109722 -16.33897712109018 -54.59120479601269 -174.91303381655663 125.21983989382429 317.913036601624 117.0661374903642"), 0.0000001);
+out.close_rel("ridge r2", ridge.score(xte, yte), 0.5066156749609367, 0.000000001);
+out.close("lasso coef (scikit-learn 1.7.2)", lasso.coef().row(0), vec("0.0 -153.88359545413965 508.680134374895 281.35032467290085 -51.009898703078726 0.0 -219.74010214170093 0.0 469.11252115749943 46.039081452664625"), 0.0000001);
+out.close_rel("lasso r2", lasso.score(xte, yte), 0.582851927323225, 0.000000001);
+out.close_rel("lasso intercept", lasso.intercept().at(0), 152.81670291213908, 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "sklearn-linear-diabetes");
+println(sprintf("bmi only: coef %.4f, mse %.2f, R^2 %.4f", v.ols_bmi_coef[0], v.ols_bmi_mse, v.ols_bmi_r2));
+println(sprintf("ten features, test R^2: OLS %.4f, Ridge(0.5) %.4f, Lasso(0.1) %.4f", v.ols_r2, v.ridge_r2, v.lasso_r2));
+println("scikit-learn linear model answers reproduced.");
