@@ -1,0 +1,72 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-linprog-milp.py, the SciPy reference examples for linprog (a free x0, x1 >= -3; its slacks and
+//   marginals; the right-hand side moved by eps = 0.05 and by -39) and milp (the Wikipedia integer programme and its LP
+//   relaxation), and the optimization tutorial's linprog (four variables, infeasible with x1 <= 5, optimal with x1 <= 6)
+//   and milp knapsack. lmpy's linprog calls HiGHS like scipy's method='highs'; milp's two-sided constraints with
+//   lb = -inf (or a redundant lb = 0 for the knapsack, whose variables are already >= 0) are A_ub rows.
+//   The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-linprog-milp (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+# linprog reference example
+let c = vec(-1.0, 4.0);
+let a = mat("-3 1; 1 2");
+let free = vec(-inf(), -3.0);
+let lp = linprog(c, opts().set("A_ub", a).set("b_ub", vec(6.0, 4.0)).set("lower", free));
+out.check("lp OK", lp.ok());
+out.put("lp_x", lp.vec("x"));
+out.put("lp_fun", lp.num("fun"));
+out.put("lp_ineqlin_residual", lp.vec("slack"));
+out.put("lp_ineqlin_marginals", lp.vec("ineqlin_marginals"));
+out.close("lp fun -22 (scipy docs)", lp.num("fun"), -22.0, 0.000000001);
+out.close("lp x (10, -3)", lp.vec("x"), vec(10.0, -3.0), 0.000000001);
+out.close("marginals (0, -1)", lp.vec("ineqlin_marginals"), vec(0.0, -1.0), 0.000000001);
+let lp_eps = linprog(c, opts().set("A_ub", a).set("b_ub", vec(6.0, 4.05)).set("lower", free));
+out.put("lp_fun_eps", lp_eps.num("fun"));
+out.close("fun -22.05 after eps", lp_eps.num("fun"), -22.05, 0.000000001);
+let lp_39 = linprog(c, opts().set("A_ub", a).set("b_ub", vec(6.0 - 39.0, 4.0)).set("lower", free));
+out.put("lp_fun_minus39", lp_39.num("fun"));
+
+# linprog tutorial
+let c4 = vec(-29.0, -45.0, 0.0, 0.0);
+let a_ub = mat("1 -1 -3 0; -2 3 7 -3");
+let a_eq = mat("2 8 1 0; 4 4 0 1");
+let o = opts().set("A_ub", a_ub).set("b_ub", vec(5.0, -10.0)).set("A_eq", a_eq).set("b_eq", vec(60.0, 60.0))
+  .set("lower", vec(0.0, 0.0, -inf(), -3.0));
+let infeasible = linprog(c4, o.set("upper", vec(inf(), 5.0, 0.5, inf())));
+out.put("tutorial_infeasible", infeasible.status() == "INFEASIBLE");
+out.check("x1 <= 5 is infeasible", infeasible.status() == "INFEASIBLE");
+let tut = linprog(c4, o.set("upper", vec(inf(), 6.0, 0.5, inf())));
+out.check("tutorial OK", tut.ok());
+out.put("tutorial_x", tut.vec("x"));
+out.put("tutorial_fun", tut.num("fun"));
+out.close("tutorial fun (scipy 1.16.2)", tut.num("fun"), -505.974358974359, 0.000000001);
+
+# milp reference example and its relaxation
+let cm = vec(0.0, -1.0);
+let om = opts().set("A_ub", mat("-1 1; 3 2; 2 3")).set("b_ub", vec(1.0, 12.0, 12.0));
+let relaxed = linprog(cm, om);
+let mi = linprog(cm, om.set("integrality", vec(1.0, 1.0)));
+out.check("milp OK", mi.ok() && relaxed.ok());
+out.put("milp_x", mi.vec("x"));
+out.put("milp_fun", mi.num("fun"));
+out.put("relaxed_x", relaxed.vec("x"));
+out.put("relaxed_fun", relaxed.num("fun"));
+out.close("milp x (2, 2)", mi.vec("x"), vec(2.0, 2.0), 0.000000001);
+out.close("relaxed x (1.8, 2.8)", relaxed.vec("x"), vec(1.8, 2.8), 0.000000001);
+
+# milp tutorial: 0/1 knapsack
+let sizes = vec("21 11 15 9 34 25 41 52");
+let values = vec("22 12 16 10 35 26 42 53");
+let knap = linprog(values.neg(), opts().set("A_ub", mat(sizes, 1, 8)).set("b_ub", vec(100.0))
+  .set("lower", zeros(8)).set("upper", ones(8)).set("integrality", ones(8)));
+out.check("knapsack OK", knap.ok());
+out.put("knapsack_x", knap.vec("x"));
+out.put("knapsack_value", -knap.num("fun"));
+out.close("knapsack x (tutorial)", knap.vec("x"), vec("1 1 0 1 1 1 0 0"), 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-linprog-milp");
+println(sprintf("lp fun %.2f at %s; tutorial fun %.6f; milp %s; knapsack value %.0f", v.lp_fun, json_stringify(v.lp_x), v.tutorial_fun, json_stringify(v.milp_x), v.knapsack_value));
+println("scipy linprog/milp answers reproduced.");
