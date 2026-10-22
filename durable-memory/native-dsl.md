@@ -149,3 +149,6 @@ Rules for a family file:
        tool cache (sha256 = the asset digest);
      - the schema the binary prints equals the committed one, and the second run uses the cache.
      To release: bump `LMPY_VERSION` in native/CMakeLists.txt, tag `vX.Y.Z`, and update `install=` pins in the examples.
+  7. Python parity (2026-10-22): `examples/python/` holds 29 published recipes (`NAME.py`) with lmpy versions (`NAME.lms`)
+     pinning the Python answers; `examples/python/check-parity.sh` compares every recorded value (29/29 match; looser
+     tolerances are declared and justified per key). API gaps found there are listed in `examples/python/README.md`.
