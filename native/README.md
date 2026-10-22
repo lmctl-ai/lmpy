@@ -35,7 +35,7 @@ needs `lmscript` from `@lmctl-ai/lmctl` ≥ 0.2.346. The result is `native/build
 | `lmpy --dsl-schema [--json]` | API summary, or the exact schema bytes the bytecode binds to |
 | `lmpy --dsl-signatures` | canonical signatures; must equal `lmscript --dsl-signatures schema/lmpy.dsl.json` |
 | `lmpy --api-md` | the generated API reference ([API.md](API.md)) |
-| `lmpy --version` | version and bytecode version |
+| `lmpy --version` | exact release identity, `lmpy X.Y.Z` |
 
 Exit codes: 0 ok, 2 usage (lmscript compile errors are also 2), 3 load or run-time error, 4 application failure (`out.fail` or
 a failed check).

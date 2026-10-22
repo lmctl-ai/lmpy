@@ -6,6 +6,7 @@ All notable changes to lmpy and the legacy pycli implementation are documented h
 
 - Require release tags to match the binary's exact `lmpy X.Y.Z` version output on every platform.
 - Make `lmpy --version` print the stable `lmpy X.Y.Z` release identity.
+- Use an LMScript compiler version in CI that supports release installation from @latest.
 
 ## [0.1.0] - 2026-10-21
 

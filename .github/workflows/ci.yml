@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 env:
-  LMCTL_VERSION: 0.2.359   # lmscript with _dsl_ bytecode v5, cli= (R42) and install= (R43)
+  LMCTL_VERSION: 0.2.369   # lmscript cli=install support, including @latest
 
 jobs:
   build:
