@@ -1,0 +1,43 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-minimize-rosenbrock.py, the SciPy optimization tutorial: Rosenbrock's function of five variables
+//   from x0 = (1.3, 0.7, 0.8, 1.9, 1.2) by Nelder-Mead (xatol 1e-8) and by BFGS with the analytic gradient rosen_der, and
+//   the SLSQP example (two variables, 2 x0 + x1 = 1, three inequalities, bounds [0, 1] x [-0.5, 2], ftol 1e-9, analytic
+//   gradient). lmpy's minimize ports scipy's Nelder-Mead, BFGS and SLSQP drivers; the objective and the gradient are
+//   expression strings. The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-minimize-rosenbrock (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let rosen = "100*(b-a^2)^2 + (1-a)^2 + 100*(c-b^2)^2 + (1-b)^2 + 100*(d-c^2)^2 + (1-c)^2 + 100*(e-d^2)^2 + (1-d)^2";
+let names = strs("a, b, c, d, e");
+let x0 = vec(1.3, 0.7, 0.8, 1.9, 1.2);
+# rosen_der: interior components 200 (x_i - x_{i-1}^2) - 400 (x_{i+1} - x_i^2) x_i - 2 (1 - x_i)
+let rosen_der = strs("-400*a*(b-a^2) - 2*(1-a), 200*(b-a^2) - 400*(c-b^2)*b - 2*(1-b), 200*(c-b^2) - 400*(d-c^2)*c - 2*(1-c), 200*(d-c^2) - 400*(e-d^2)*d - 2*(1-d), 200*(e-d^2)");
+# Nelder-Mead: lmpy's tol sets xatol = fatol (scipy's tol= convention); the tutorial sets xatol = 1e-8 and keeps fatol = 1e-4
+let nm = minimize(rosen, names, x0, opts().set("method", "Nelder-Mead").set("tol", 0.00000001));
+out.check("Nelder-Mead OK", nm.ok());
+out.put("nelder_mead_x", nm.vec("x"));
+out.put("nelder_mead_fun", nm.num("fun"));
+out.close("Nelder-Mead x = 1", nm.vec("x"), ones(5), 0.0000001);
+let bfgs = minimize(rosen, names, x0, opts().set("method", "BFGS").set("gradient", rosen_der));
+out.check("BFGS OK", bfgs.ok());
+out.put("bfgs_x", bfgs.vec("x"));
+out.put("bfgs_fun", bfgs.num("fun"));
+out.close("BFGS x = 1", bfgs.vec("x"), ones(5), 0.00001);
+# SLSQP with one equality, three inequalities (expr >= 0) and bounds
+let so = opts().set("method", "SLSQP").set("tol", 0.000000001)
+  .set("gradient", strs("-400*a*(b-a^2) - 2*(1-a), 200*(b-a^2)"))
+  .set("eq", strs("2*a + b - 1"))
+  .set("ineq", strs("1 - a - 2*b, 1 - a^2 - b, 1 - a^2 + b"))
+  .set("lower", vec(0.0, -0.5)).set("upper", vec(1.0, 2.0));
+let sl = minimize("100*(b-a^2)^2 + (1-a)^2", strs("a, b"), vec(0.5, 0.0), so);
+out.check("SLSQP OK", sl.ok());
+out.put("slsqp_x", sl.vec("x"));
+out.put("slsqp_fun", sl.num("fun"));
+out.close("SLSQP x (scipy 1.16.2)", sl.vec("x"), vec(0.4149447491702523, 0.17011050165949543), 0.000000001);
+out.close("SLSQP fun (scipy 1.16.2)", sl.num("fun"), 0.3427175749941983, 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-minimize-rosenbrock");
+println(sprintf("Nelder-Mead f = %s; BFGS f = %s; SLSQP x = %s, f = %.12f", str(v.nelder_mead_fun), str(v.bfgs_fun), json_stringify(v.slsqp_x), v.slsqp_fun));
+println("scipy minimize tutorial answers reproduced.");
