@@ -1,0 +1,109 @@
+// access: write (a temporary .dslb, removed)
+// Python original: sklearn-logistic.py, the scikit-learn LogisticRegression reference example (iris, multinomial,
+//   predict/predict_proba of two rows, training accuracy) and the Getting Started pipeline make_pipeline(StandardScaler(),
+//   LogisticRegression()) with train_test_split(random_state=0), on iris and on breast_cancer. The lmpy version fits
+//   ml_fit("logistic", ...) (C = 1, the same L2-penalised multinomial / binary objective) and, for the pipelines, the
+//   option scale=true (StandardScaler statistics learned from the training rows). Data: data/iris.csv,
+//   data/breast_cancer.csv and the exported train_test_split row orders (see data/export-sklearn.py).
+//   The pinned answers are what the .py prints with scikit-learn 1.7.2.
+// Tolerances: lmpy solves the logistic objective by Newton's method to a gradient far below sklearn's lbfgs stopping rule
+//   (tol 1e-4, max_iter 100), i.e. it lands on the optimum. The published defaults stop lbfgs early: on unscaled iris at
+//   max_iter=100 (ConvergenceWarning), 2.5e-2 relative from the optimum (keys loosened to 3e-2); on the scaled pipelines
+//   at the 1e-4 gradient tolerance, 3e-3 (iris) and 9e-2 (breast_cancer: small coefficients of strongly correlated
+//   features in a flat direction of the objective) from it. The *_conv_* keys (the .py re-solved with lbfgs tol 1e-12,
+//   max_iter 10000) agree with lmpy to 1.5e-5 relative, the residual of lbfgs itself (5e-5 here). Predictions,
+//   accuracies and the StandardScaler statistics use the default 1e-9.
+// parity-rtol iris_coef: 3e-2
+// parity-rtol iris_intercept: 3e-2
+// parity-rtol iris_proba: 3e-2
+// parity-rtol iris_proba_rows_50_100: 3e-2
+// parity-rtol iris_pipe_coef: 5e-3
+// parity-rtol iris_pipe_intercept: 5e-3
+// parity-rtol iris_pipe_proba_test5: 5e-3
+// parity-rtol cancer_coef: 1e-1
+// parity-rtol cancer_intercept: 1e-1
+// parity-rtol cancer_proba_test5: 1e-1
+// parity-rtol iris_conv_coef: 5e-5
+// parity-rtol iris_conv_intercept: 5e-5
+// parity-rtol iris_conv_proba: 5e-5
+// parity-rtol iris_pipe_conv_coef: 5e-5
+// parity-rtol iris_pipe_conv_intercept: 5e-5
+// parity-rtol iris_pipe_conv_proba_test5: 5e-5
+// parity-rtol cancer_conv_coef: 5e-5
+// parity-rtol cancer_conv_intercept: 5e-5
+// parity-rtol cancer_conv_proba_test5: 5e-5
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn features(f: Frame) -> Mat {
+  return f.to_mat(f.drop(strs("target")).names());
+}
+# rows of one part (0 = X_train, 1 = X_test) in train_test_split order
+fn part_rows(s: Frame, part: float) -> Vec {
+  return s.col("row").where(s.col("part").eq(part));
+}
+let iris = read_csv("data/iris.csv");
+let x = features(iris);
+let y = iris.col("target");
+let clf = ml_fit("logistic", x, y);
+let first2 = x.take_rows(vec("0 1"));
+out.put("iris_predict", clf.predict(first2));
+out.put("iris_proba", clf.predict_proba(first2));
+out.put("iris_score", clf.score(x, y));
+out.put("iris_coef", clf.coef());
+out.put("iris_intercept", clf.intercept());
+out.put("iris_proba_rows_50_100", clf.predict_proba(x.take_rows(vec("50 100"))));
+out.put("iris_conv_coef", clf.coef());
+out.put("iris_conv_intercept", clf.intercept());
+out.put("iris_conv_proba", clf.predict_proba(x.take_rows(vec("0 1 50 100"))));
+out.put("iris_conv_score", clf.score(x, y));
+out.check("logistic converged", clf.ok());
+
+fn pipeline(name: string, data: string, split_csv: string) -> void {
+  let f = read_csv(data);
+  let s = read_csv(split_csv);
+  let xa = features(f);
+  let ya = f.col("target");
+  let tr = part_rows(s, 0.0);
+  let te = part_rows(s, 1.0);
+  let xtr = xa.take_rows(tr);
+  let xte = xa.take_rows(te);
+  let m = ml_fit("logistic", xtr, ya.take(tr), opts().set("scale", true));
+  let acc = ml_metrics(ya.take(te), m.predict(xte), opts().set("metrics", strs("accuracy"))).num("accuracy");
+  out.put(name + "_accuracy", acc);
+  out.put(name + "_coef", m.coef());
+  out.put(name + "_intercept", m.intercept());
+  out.put(name + "_proba_test5", m.predict_proba(xte.block(0, 0, 5, xte.cols())));
+  out.put(name + "_scaler_mean", m.params().vec("pp_mean"));
+  out.put(name + "_scaler_scale", m.params().vec("pp_scale"));
+  out.put(name + "_conv_coef", m.coef());
+  out.put(name + "_conv_intercept", m.intercept());
+  out.put(name + "_conv_proba_test5", m.predict_proba(xte.block(0, 0, 5, xte.cols())));
+}
+fn pinned(f: Frame, s: Frame) -> Estimator {
+  let tr = part_rows(s, 0.0);
+  return ml_fit("logistic", features(f).take_rows(tr), f.col("target").take(tr), opts().set("scale", true));
+}
+pipeline("iris_pipe", "data/iris.csv", "data/iris-split-rs0-t25.csv");
+pipeline("cancer", "data/breast_cancer.csv", "data/breast_cancer-split-rs0-t25.csv");
+
+# pinned answers (scikit-learn 1.7.2; the converged extension for coefficients)
+out.check("iris predict [0, 0]", clf.predict(first2).sub(vec("0 0")).abs().max() == 0.0);
+out.close("iris training accuracy 0.9733", clf.score(x, y), 0.9733333333333334, 0.000000000001);
+out.close("iris coef (converged lbfgs)", clf.coef().flatten(), vec("-0.4235099750608895 0.9673498526147652 -2.5171533056467625 -1.079335794392803 0.5344612420104011 -0.3215856678577121 -0.2063913940150687 -0.9443000291056463 -0.11095126694950995 -0.6457641847570504 2.723544699661839 2.0236358234984535"), 0.0001);
+out.close("iris predict_proba rows 0 1 50 100 (converged lbfgs)", clf.predict_proba(x.take_rows(vec("0 1 50 100"))).flatten(), vec("0.9815834829436776 0.018416502557714397 1.4498608063409248e-08 0.9713364146304836 0.02866355517670901 3.019280738586252e-08 0.002126691959399973 0.8739568216315545 0.12391648640904554 9.052676794662679e-07 0.003912747500864792 0.9960863472314557"), 0.00001);
+let ip = pinned(iris, read_csv("data/iris-split-rs0-t25.csv"));
+out.close("iris pipeline coef (converged lbfgs)", ip.coef().flatten(), vec("-1.0216300604681574 1.0430379495223816 -1.7799527668082353 -1.6592561884102788 0.5420418317566222 -0.35993655911165684 -0.2668223531321998 -0.7183173507498827 0.4795882287115351 -0.6831013904107254 2.0467751199404343 2.3775735391601613"), 0.00001);
+let cancer = read_csv("data/breast_cancer.csv");
+let cs = read_csv("data/breast_cancer-split-rs0-t25.csv");
+let cp = pinned(cancer, cs);
+out.close("breast_cancer pipeline coef (converged lbfgs)", cp.coef().flatten(), vec("-0.29794500380756567 -0.5806782426021994 -0.31097823123793655 -0.3772590427077672 -0.11984277425712653 0.42857679594600784 -0.7112645334182236 -0.853695688511537 -0.466920424631555 0.11762497844783511 -1.3824677871221585 0.0899428007958832 -0.9478007371540713 -0.946909332767971 0.185798374946688 0.9931734293900712 0.11091669209354921 -0.3458867992938274 0.202881733679736 0.8046565154757012 -0.9161319937821127 -0.9171887333855859 -0.815960827198751 -0.8654518614631028 -0.4553578050833871 0.10344019647956249 -0.8300897450213343 -0.9845006962010086 -0.5919745747247989 -0.6109168847650617"), 0.0001);
+out.close("breast_cancer pipeline intercept (converged lbfgs)", cp.intercept().at(0), 0.02716201996000702, 0.000001);
+let cte = part_rows(cs, 1.0);
+out.close("breast_cancer held-out accuracy 0.9580", cp.score(features(cancer).take_rows(cte), cancer.col("target").take(cte)), 0.958041958041958, 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "sklearn-logistic");
+println(sprintf("iris: training accuracy %.4f; P(setosa | row 0) = %.6f", v.iris_score, v.iris_proba[0][0]));
+println(sprintf("StandardScaler + LogisticRegression held-out accuracy: iris %.4f, breast_cancer %.4f", v.iris_pipe_accuracy, v.cancer_accuracy));
+println("scikit-learn logistic regression answers reproduced.");
