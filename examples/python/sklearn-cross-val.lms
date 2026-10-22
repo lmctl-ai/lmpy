@@ -1,0 +1,51 @@
+// access: write (a temporary .dslb, removed)
+// Python original: sklearn-cross-val.py, the scikit-learn user guide 3.1 cross_val_score(clf, X, y, cv=5) on iris (integer
+//   cv on a classifier = StratifiedKFold without shuffling), StratifiedKFold(5, shuffle=True, random_state=0),
+//   KFold(5, shuffle=True, random_state=42), and the cross_val_score reference example (Lasso() on the first 150 diabetes
+//   rows, cv=3). The user guide's SVC is not in lmpy; the recipe scores LogisticRegression, KNeighborsClassifier, LinearSVC,
+//   LinearDiscriminantAnalysis and GaussianNB. The lmpy version calls ml_cv, whose fold assignment follows sklearn's
+//   splitters (shuffles from numpy RandomState(seed)); Lasso gets sklearn's tol 1e-4. Data: data/iris.csv,
+//   data/diabetes.csv (see data/export-sklearn.py). The pinned answers are what the .py prints with scikit-learn 1.7.2.
+// Check: examples/python/check-parity.sh sklearn-cross-val
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let iris = read_csv("data/iris.csv");
+let x = iris.to_mat(iris.drop(strs("target")).names());
+let y = iris.col("target");
+let kinds = strs("logistic, knn_classifier, linear_svc, lda, gaussian_nb");
+let names = strs("logistic, knn, linear_svc, lda, gnb");
+for (i in range(0, 5)) {
+  let r = ml_cv(kinds.at(i), x, y, 5);
+  out.check(names.at(i) + " cv completed", r.status() == "OK");
+  out.put("cv5_" + names.at(i), r.vec("scores"));
+  out.put("cv5_" + names.at(i) + "_mean", r.num("mean"));
+  out.put("cv5_" + names.at(i) + "_std", r.vec("scores").std(0));
+  let s = ml_cv(kinds.at(i), x, y, 5, opts().set("cv", "stratified").set("shuffle", true).set("seed", 0));
+  out.put("skf_shuffle_" + names.at(i), s.vec("scores"));
+  if (i == 0) {
+    out.put("skf_shuffle_test_fold", s.vec("test_fold"));
+  }
+}
+let kf = ml_cv("knn_classifier", x, y, 5, opts().set("cv", "kfold").set("shuffle", true).set("seed", 42));
+out.put("kfold_shuffle_knn", kf.vec("scores"));
+
+let d = read_csv("data/diabetes.csv").head(150);
+let xd = d.to_mat(d.drop(strs("target")).names());
+let lasso = ml_cv("lasso", xd, d.col("target"), 3, opts().set("alpha", 1.0).set("tol", 0.0001));
+out.put("diabetes_lasso_cv3", lasso.vec("scores"));
+
+# pinned answers (scikit-learn 1.7.2)
+out.close("cross_val_score reference example: Lasso() cv=3", lasso.vec("scores"), vec("0.3315056992326689 0.08022102830923838 0.03531815775576885"), 0.000000001);
+out.close("LDA cv=5", ml_cv("lda", x, y, 5).vec("scores"), vec("1.0 1.0 0.9666666666666667 0.9333333333333333 1.0"), 0.000000000001);
+out.close("GaussianNB cv=5", ml_cv("gaussian_nb", x, y, 5).vec("scores"), vec("0.9333333333333333 0.9666666666666667 0.9333333333333333 0.9333333333333333 1.0"), 0.000000000001);
+out.close("LinearSVC cv=5", ml_cv("linear_svc", x, y, 5).vec("scores"), vec("1.0 1.0 0.9333333333333333 0.9 1.0"), 0.000000000001);
+out.close("kNN cv=5 mean", ml_cv("knn_classifier", x, y, 5).num("mean"), 0.9733333333333334, 0.000000000001);
+out.close("StratifiedKFold(shuffle, 0) test folds of rows 0-9", ml_cv("logistic", x, y, 5, opts().set("cv", "stratified").set("shuffle", true).set("seed", 0)).vec("test_fold").slice(0, 10), vec("2 1 1 4 0 2 3 3 2 0"), 0.0);
+out.close("KFold(shuffle, 42) kNN", kf.vec("scores"), vec("1.0 1.0 0.9666666666666667 0.9333333333333333 0.9666666666666667"), 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "sklearn-cross-val");
+println(sprintf("iris cv=5 mean accuracy: logistic %.4f, kNN %.4f, LinearSVC %.4f, LDA %.4f, GaussianNB %.4f", v.cv5_logistic_mean, v.cv5_knn_mean, v.cv5_linear_svc_mean, v.cv5_lda_mean, v.cv5_gnb_mean));
+println("diabetes Lasso() cv=3 R^2:", json_stringify(v.diabetes_lasso_cv3));
+println("scikit-learn cross-validation answers reproduced.");
