@@ -1,0 +1,105 @@
+// access: write (a temporary .dslb, removed)
+// Python original: sklearn-nb-lda-knn.py, the scikit-learn user guide GaussianNB example (iris, test_size=0.5,
+//   random_state=0: 4 of 75 points mislabeled) and the gallery "Importance of Feature Scaling" on wine
+//   (test_size=0.30, random_state=42): KNeighborsClassifier(n_neighbors=20) on (proline, hue) unscaled and scaled,
+//   PCA(2) + GaussianNB unscaled and scaled (accuracy, log-loss), plus LDA, GaussianNB and kNN on all thirteen features.
+//   The lmpy version uses ml_fit gaussian_nb / lda / knn_classifier / pca / standard_scaler (scale=true is the
+//   StandardScaler step), on the exported train_test_split row orders, so fits see the rows in sklearn's order (kNN ties
+//   are broken by training order on both sides). Data: data/iris.csv, data/wine.csv and the split files (see
+//   data/export-sklearn.py). The three-class log-loss is summed by hand from predict_proba (clipped to [eps, 1 - eps] as
+//   sklearn.metrics.log_loss does): ml_metrics' log_loss takes only a binary y_score vector. The pinned answers are what the .py prints with scikit-learn 1.7.2.
+// Check: examples/python/check-parity.sh sklearn-nb-lda-knn
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn features(f: Frame) -> Mat {
+  return f.to_mat(f.drop(strs("target")).names());
+}
+fn part_rows(s: Frame, part: float) -> Vec {
+  return s.col("row").where(s.col("part").eq(part));
+}
+fn head_rows(m: Mat, n: int) -> Mat {
+  return m.block(0, 0, n, m.cols());
+}
+
+# user guide: GaussianNB on iris
+let iris = read_csv("data/iris.csv");
+let si = read_csv("data/iris-split-rs0-t50.csv");
+let xi = features(iris);
+let yi = iris.col("target");
+let itr = part_rows(si, 0.0);
+let ite = part_rows(si, 1.0);
+let gnb = ml_fit("gaussian_nb", xi.take_rows(itr), yi.take(itr));
+let ipred = gnb.predict(xi.take_rows(ite));
+let mislabeled = yi.take(ite).ne(ipred).count();
+out.put("iris_gnb_test_size", ite.len());
+out.put("iris_gnb_mislabeled", mislabeled);
+out.put("iris_gnb_theta", gnb.params().mat("theta"));
+out.put("iris_gnb_var", gnb.params().mat("var"));
+out.put("iris_gnb_proba_test3", gnb.predict_proba(head_rows(xi.take_rows(ite), 3)));
+out.check("Number of mislabeled points out of a total 75 points : 4", ite.len() == 75 && mislabeled == 4);
+
+# gallery: Importance of Feature Scaling (wine)
+let wine = read_csv("data/wine.csv");
+let sw = read_csv("data/wine-split-rs42-t30.csv");
+let xw = features(wine);
+let yw = wine.col("target");
+let wtr = part_rows(sw, 0.0);
+let wte = part_rows(sw, 1.0);
+let xtr = xw.take_rows(wtr);
+let xte = xw.take_rows(wte);
+let ytr = yw.take(wtr);
+let yte = yw.take(wte);
+
+let xplot = wine.to_mat(strs("proline, hue"));
+let k20u = ml_fit("knn_classifier", xplot, yw, opts().set("n_neighbors", 20));
+let k20s = ml_fit("knn_classifier", xplot, yw, opts().set("n_neighbors", 20).set("scale", true));
+out.put("knn20_unscaled_train_accuracy", k20u.score(xplot, yw));
+out.put("knn20_scaled_train_accuracy", k20s.score(xplot, yw));
+
+fn pca_gnb(name: string, xtr: Mat, ytr: Vec, xte: Mat, yte: Vec) -> float {
+  let pca = ml_fit("pca", xtr, opts().set("n_components", 2));
+  let nb = ml_fit("gaussian_nb", pca.transform(xtr), ytr);
+  let zte = pca.transform(xte);
+  let m = ml_metrics(yte, opts().set("y_pred", nb.predict(zte)).set("metrics", strs("accuracy")));
+  out.put(name + "_accuracy", m.num("accuracy"));
+  let p = nb.predict_proba(zte);
+  let ll = 0.0;
+  for (i in range(0, yte.len())) {
+    ll = ll - log(clamp(p.at(i, int(yte.at(i))), 0.0000000000000002220446049250313, 1.0 - 0.0000000000000002220446049250313));
+  }
+  out.put(name + "_log_loss", ll / float(yte.len()));
+  out.put(name + "_explained_variance_ratio", pca.params().vec("explained_variance_ratio"));
+  return m.num("accuracy");
+}
+let acc_u = pca_gnb("unscaled_pca_gnb", xtr, ytr, xte, yte);
+let sc = ml_fit("standard_scaler", xtr);
+let acc_s = pca_gnb("scaled_pca_gnb", sc.transform(xtr), ytr, sc.transform(xte), yte);
+
+# extension: all thirteen features
+fn report(name: string, m: Estimator, xte: Mat, yte: Vec) -> void {
+  out.put("wine_" + name + "_accuracy", m.score(xte, yte));
+  out.put("wine_" + name + "_predict", m.predict(xte));
+  out.put("wine_" + name + "_proba_test3", m.predict_proba(head_rows(xte, 3)));
+}
+let lda = ml_fit("lda", xtr, ytr);
+report("lda", lda, xte, yte);
+report("gnb", ml_fit("gaussian_nb", xtr, ytr), xte, yte);
+report("knn", ml_fit("knn_classifier", xtr, ytr), xte, yte);
+report("scaled_knn", ml_fit("knn_classifier", xtr, ytr, opts().set("scale", true)), xte, yte);
+
+# pinned answers (scikit-learn 1.7.2)
+out.close("iris GaussianNB theta_", gnb.params().mat("theta").flatten(), vec("4.975862068965517 3.3586206896551722 1.4482758620689655 0.2344827586206897 5.935 2.71 4.185 1.3000000000000003 6.776923076923078 3.092307692307692 5.734615384615385 2.1076923076923073"), 0.000000000001);
+out.close("kNN(20) (proline, hue) unscaled training accuracy", k20u.score(xplot, yw), 0.7359550561797753, 0.000000000001);
+out.close("kNN(20) (proline, hue) scaled training accuracy", k20s.score(xplot, yw), 0.8932584269662921, 0.000000000001);
+out.close("unscaled PCA + GaussianNB accuracy 81.48%", acc_u, 0.8148148148148148, 0.000000000001);
+out.close("scaled PCA + GaussianNB accuracy 98.15%", acc_s, 0.9814814814814815, 0.000000000001);
+out.close("wine LDA accuracy 1.0", lda.score(xte, yte), 1.0, 0.000000000001);
+out.close("wine LDA predict_proba first three test rows", lda.predict_proba(head_rows(xte, 3)).flatten(), vec("0.9999992669402173 7.330587228595557e-07 1.0598425077006582e-12 0.9999996397538863 3.6013937531748235e-07 1.0673846407281598e-10 8.510238251142026e-08 0.00027030030952514397 0.9997296145880924"), 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "sklearn-nb-lda-knn");
+println(sprintf("iris GaussianNB: Number of mislabeled points out of a total %d points : %d", v.iris_gnb_test_size, v.iris_gnb_mislabeled));
+println(sprintf("wine PCA(2)+GaussianNB test accuracy: unscaled %.2f%%, scaled %.2f%%; log-loss %.3f vs %.3f", 100 * v.unscaled_pca_gnb_accuracy, 100 * v.scaled_pca_gnb_accuracy, v.unscaled_pca_gnb_log_loss, v.scaled_pca_gnb_log_loss));
+println(sprintf("wine all features: LDA %.4f, GaussianNB %.4f, kNN %.4f, scaled kNN %.4f", v.wine_lda_accuracy, v.wine_gnb_accuracy, v.wine_knn_accuracy, v.wine_scaled_knn_accuracy));
+println("scikit-learn naive Bayes / LDA / kNN answers reproduced.");
