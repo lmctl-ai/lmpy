@@ -6,7 +6,8 @@
 # al. 2004 "Least Angle Regression" for diabetes, here in sklearn's default scaled form). Column names are sklearn's
 # feature names with non-alphanumerics replaced by "_"; `target` is the class code / regression target.
 # blobs-1500-rs170.csv is make_blobs(n_samples=1500, random_state=170) as in the gallery's "Demonstration of k-means
-# assumptions" (make_blobs draws from numpy's legacy RandomState, so it is exported rather than regenerated).
+# assumptions", and blobs-varied-1500-rs170.csv its make_blobs(..., cluster_std=[1.0, 2.5, 0.5], random_state=170)
+# (make_blobs draws from numpy's legacy RandomState, so it is exported rather than regenerated).
 # The *-split-*.csv files record train_test_split's row order for the recipes' own calls (part 0 = the X_train rows in
 # order, part 1 = the X_test rows in order), so both sides fit and score the same rows in the same order.
 import os
@@ -50,3 +51,5 @@ split("breast_cancer-split-rs0-t25", n, random_state=0)
 dataset(load_diabetes, "diabetes")
 Xb, yb = make_blobs(n_samples=1500, random_state=170)
 pd.DataFrame({"x0": Xb[:, 0], "x1": Xb[:, 1], "y": yb}).to_csv(os.path.join(HERE, "blobs-1500-rs170.csv"), index=False)
+Xv, yv = make_blobs(n_samples=1500, cluster_std=[1.0, 2.5, 0.5], random_state=170)
+pd.DataFrame({"x0": Xv[:, 0], "x1": Xv[:, 1], "y": yv}).to_csv(os.path.join(HERE, "blobs-varied-1500-rs170.csv"), index=False)

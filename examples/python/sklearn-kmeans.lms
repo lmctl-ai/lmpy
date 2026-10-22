@@ -1,0 +1,67 @@
+// access: write (a temporary .dslb, removed)
+// Python original: sklearn-kmeans.py, the scikit-learn KMeans reference example (six points, k = 2, random_state=0) and
+//   the gallery "Demonstration of k-means assumptions" (make_blobs(1500, random_state=170): wrong k, anisotropic,
+//   unequal variances, uneven sizes, uneven sizes with n_init=10), plus iris with k = 3 (k-means++ n_init=10, and
+//   init="random" n_init=1). The lmpy version calls kmeans(x, k, opts) with sklearn's settings: seed = random_state
+//   (lmpy draws k-means++ / random init from numpy's RandomState(seed) like sklearn), n_init = 1 for n_init="auto" with
+//   k-means++, tol 1e-4 (lmpy's own default is 1e-8). Labels, n_iter, inertia and centres are compared directly (no
+//   label permutation): the same random stream gives the same clustering. Data: data/blobs-1500-rs170.csv,
+//   data/blobs-varied-1500-rs170.csv and data/iris.csv (see data/export-sklearn.py).
+//   The pinned answers are what the .py prints with scikit-learn 1.7.2.
+// Check: examples/python/check-parity.sh sklearn-kmeans
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn fit(name: string, x: Mat, k: int, seed: int, n_init: int, init: string) -> Estimator {
+  let m = kmeans(x, k, opts().set("seed", seed).set("n_init", n_init).set("tol", 0.0001).set("init", init));
+  out.check(name + " converged", m.ok());
+  out.put(name + "_labels", m.labels());
+  out.put(name + "_inertia", m.inertia());
+  out.put(name + "_centers", m.centers());
+  out.put(name + "_n_iter", m.n_iter());
+  return m;
+}
+let doc = fit("doc", mat("1 2; 1 4; 1 0; 10 2; 10 4; 10 0"), 2, 0, 1, "k-means++");
+out.put("doc_predict", doc.predict(mat("0 0; 12 3")));
+out.close("reference example labels_ [1 1 1 0 0 0]", doc.labels(), vec("1 1 1 0 0 0"), 0.0);
+out.close("reference example predict [1 0]", doc.predict(mat("0 0; 12 3")), vec("1 0"), 0.0);
+out.close("reference example cluster_centers_ [[10 2] [1 2]]", doc.centers().flatten(), vec("10 2 1 2"), 0.0);
+
+let b = read_csv("data/blobs-1500-rs170.csv");
+let x = b.to_mat(strs("x0, x1"));
+let y = b.col("y");
+let xaniso = x * mat("0.60834549 -0.63667341; -0.40887718 0.85253229");
+let bv = read_csv("data/blobs-varied-1500-rs170.csv");
+let xvaried = bv.to_mat(strs("x0, x1"));
+let keep = concat(concat(y.eq(0.0).find().slice(0, 500), y.eq(1.0).find().slice(0, 100)), y.eq(2.0).find().slice(0, 10));
+let xfiltered = x.take_rows(keep);
+let wrong = fit("wrong_k", x, 2, 170, 1, "k-means++");
+let aniso = fit("aniso", xaniso, 3, 170, 1, "k-means++");
+let varied = fit("varied", xvaried, 3, 170, 1, "k-means++");
+let filtered = fit("filtered", xfiltered, 3, 170, 1, "k-means++");
+let filtered10 = fit("filtered_ninit10", xfiltered, 3, 170, 10, "k-means++");
+
+let iris = read_csv("data/iris.csv");
+let xi = iris.to_mat(iris.drop(strs("target")).names());
+let ki = fit("iris", xi, 3, 0, 10, "k-means++");
+let kr = fit("iris_random_init", xi, 3, 0, 1, "random");
+
+# pinned answers (scikit-learn 1.7.2)
+out.close_rel("wrong k inertia", wrong.inertia(), 15064.94155965484, 0.000000001);
+out.close_rel("anisotropic inertia", aniso.inertia(), 1899.3066824911516, 0.000000001);
+out.close_rel("unequal variance inertia", varied.inertia(), 5748.3284352832625, 0.000000001);
+out.close_rel("uneven sizes inertia (n_init auto)", filtered.inertia(), 1293.4259252489903, 0.000000001);
+out.close_rel("uneven sizes inertia (n_init 10)", filtered10.inertia(), 1203.6015370173045, 0.000000001);
+out.close("anisotropic centres", aniso.centers().flatten(), vec("1.0289199640764402 -0.9231339488726584 -3.3091779251658378 3.099100917785461 -2.6141356789252432 0.827548395005433"), 0.000000001);
+out.check("anisotropic n_iter 7", aniso.n_iter() == 7);
+out.close_rel("iris inertia", ki.inertia(), 78.85144142614601, 0.000000001);
+out.close("iris centres", ki.centers().flatten(), vec("5.901612903225806 2.7483870967741937 4.393548387096774 1.4338709677419355 5.006 3.428 1.4620000000000002 0.24600000000000055 6.85 3.0736842105263156 5.742105263157894 2.0710526315789473"), 0.000000001);
+out.check("iris n_iter 4", ki.n_iter() == 4);
+out.close("iris random-init centres (same partition, other label order)", kr.centers().flatten(), vec("5.006 3.428 1.4620000000000002 0.24600000000000055 6.85 3.0736842105263156 5.742105263157894 2.0710526315789473 5.901612903225806 2.7483870967741937 4.393548387096774 1.4338709677419355"), 0.000000001);
+out.check("iris random-init n_iter 5", kr.n_iter() == 5);
+end _dsl_
+
+v = lmpy.run(prog, "sklearn-kmeans");
+println(sprintf("blobs: inertia wrong k %.4f, anisotropic %.4f, unequal variance %.4f, uneven sizes %.4f (n_init=10: %.4f)", v.wrong_k_inertia, v.aniso_inertia, v.varied_inertia, v.filtered_inertia, v.filtered_ninit10_inertia));
+println(sprintf("iris k=3: inertia %.6f (k-means++, n_init=10), %.6f (random init)", v.iris_inertia, v.iris_random_init_inertia));
+println("scikit-learn k-means answers reproduced.");
