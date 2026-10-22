@@ -1,0 +1,75 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-solve-ivp.py, the SciPy reference examples for scipy.integrate.solve_ivp: exponential decay
+//   y' = -0.5 y from [2, 4, 8] (automatic steps, then t_eval = [0, 1, 2, 4, 10]), the upward cannon with a terminal
+//   hit_ground event (direction -1) and a non-terminal apex event read through dense output, and Lotka-Volterra with
+//   (a, b, c, d) = (1.5, 1, 3, 1) and dense output on linspace(0, 15, 300). lmpy's ode/ode_sol are ports of scipy's RK45
+//   (same step control and dense output); solve_ivp's defaults rtol 1e-3, atol 1e-6 are passed explicitly because lmpy's
+//   own defaults are tighter. The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-solve-ivp (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+# exponential decay, automatic steps
+let tol = opts().set("rtol", 0.001).set("atol", 0.000001);
+let decay = ode(strs("-0.5*a, -0.5*b, -0.5*c"), strs("a, b, c"), vec(2.0, 4.0, 8.0), 0.0, 10.0, tol);
+out.check("decay status OK", decay.ok());
+out.put("decay_steps", decay.int("steps"));
+out.put("decay_final", decay.vec("final_state"));
+out.put("decay_nfev", decay.int("nfev"));
+out.check("7 steps (scipy docs: sol.t has 8 points)", decay.int("steps") == 7);
+out.close("y(10) (scipy docs)", decay.vec("final_state"), vec(0.01350780656996435, 0.0270156131399287, 0.0540312262798574), 0.000000000001);
+
+# t_eval = [0, 1, 2, 4, 10]
+let te = opts().set("rtol", 0.001).set("atol", 0.000001).set("t_eval", vec(0.0, 1.0, 2.0, 4.0, 10.0));
+let decay2 = ode(strs("-0.5*a, -0.5*b, -0.5*c"), strs("a, b, c"), vec(2.0, 4.0, 8.0), 0.0, 10.0, te);
+out.put("decay_t_eval", decay2.mat("y"));
+out.close("y at t = 1, 2, 4 (scipy docs)", decay2.mat("y").col(0).slice(1, 4), vec(1.21305369418361, 0.7353402132367964, 0.2706912343896029), 0.000000000001);
+
+# cannon: terminal hit_ground event
+let hit = opts().set("rtol", 0.001).set("atol", 0.000001).set("events", strs("p")).set("direction", vec(-1.0)).set("terminal", vec(1.0));
+let cannon = ode(strs("v, -0.5"), strs("p, v"), vec(0.0, 10.0), 0.0, 100.0, hit);
+out.put("cannon_t_events", cannon.vec("event_t"));
+out.put("cannon_steps", cannon.int("steps"));
+out.check("stopped by the event", cannon.text("termination") == "event");
+out.close("impact at t = 40 (scipy docs)", cannon.vec("event_t").at(0), 40.0, 0.000000000001);
+
+# cannon: hit_ground (terminal) and apex (not terminal), dense output
+let both = opts().set("rtol", 0.001).set("atol", 0.000001).set("events", strs("p, v")).set("direction", vec(-1.0, 0.0)).set("terminal", vec(1.0, 0.0));
+let sol = ode_sol(strs("v, -0.5"), strs("p, v"), vec(0.0, 10.0), 0.0, 100.0, both);
+let r = sol.res();
+let idx = r.vec("event_index");
+let et = r.vec("event_t");
+let ey = r.mat("event_y");
+let hit_t = vec();
+let apex_t = vec();
+let apex_y = vec();
+for (k in range(0, et.len())) {
+  if (idx.at(k) == 0.0) { hit_t.push(et.at(k)); }
+  if (idx.at(k) == 1.0) { apex_t.push(et.at(k)); apex_y = ey.row(k); }
+}
+out.put("cannon_hit_t", hit_t);
+out.put("cannon_apex_t", apex_t);
+out.put("cannon_apex_state", sol.eval(apex_t.at(0)));
+out.put("cannon_apex_y_events", apex_y);
+out.close("apex at t = 20 (scipy docs)", apex_t.at(0), 20.0, 0.000000000001);
+out.close("apex height 100, speed 0 (scipy docs)", sol.eval(apex_t.at(0)), vec(100.0, 0.0), 0.000000000001);
+
+# Lotka-Volterra with dense output
+let lvo = opts().set("rtol", 0.001).set("atol", 0.000001).set("$a", 1.5).set("$b", 1.0).set("$c", 3.0).set("$d", 1.0);
+let lv = ode_sol(strs("a*prey - b*prey*pred, -c*pred + d*prey*pred"), strs("prey, pred"), vec(10.0, 5.0), 0.0, 15.0, lvo);
+let lr = lv.res();
+let z = lv.eval(linspace(0.0, 15.0, 300));
+out.put("lv_steps", lr.int("steps"));
+out.put("lv_nfev", lr.int("nfev"));
+out.put("lv_final", lr.vec("final_state"));
+out.put("lv_dense", z);
+out.check("56 steps, 470 evaluations (scipy 1.16.2)", lr.int("steps") == 56 && lr.int("nfev") == 470);
+out.close("dense z(t[150]) (scipy 1.16.2)", z.row(150), vec(3.4672514092169044, 0.01788292021326167), 0.000000001);
+out.close("z(15) (scipy 1.16.2)", lr.vec("final_state"), vec(0.5820213744837648, 0.09165411804645789), 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-solve-ivp");
+println(sprintf("decay: %d steps, y(10) = %s", v.decay_steps, json_stringify(v.decay_final)));
+println(sprintf("cannon: impact t = %.6f, apex t = %.6f at height %.6f", v.cannon_t_events[0], v.cannon_apex_t[0], v.cannon_apex_state[0]));
+println(sprintf("Lotka-Volterra: %d steps, %d evaluations, z(15) = %s", v.lv_steps, v.lv_nfev, json_stringify(v.lv_final)));
+println("scipy solve_ivp answers reproduced.");

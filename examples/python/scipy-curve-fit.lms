@@ -1,0 +1,50 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-curve-fit.py, the SciPy reference example for scipy.optimize.curve_fit: a * exp(-b x) + c with
+//   a = 2.5, b = 1.3, c = 0.5 on 50 points of [0, 4] plus 0.2 * standard normal noise (numpy default_rng(2024); lmpy rng(2024)
+//   draws the same stream), fitted unconstrained (Levenberg-Marquardt, as curve_fit without bounds) and with the bounds
+//   0 <= a <= 3, 0 <= b <= 1, 0 <= c <= 0.5 (trf, as curve_fit with bounds); then the condition number of pcov.
+//   The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-curve-fit (runs both and compares every recorded value).
+// Tolerances: MINPACK stops at ftol = xtol = 1.49e-8, so the two LM runs agree to about 1e-9 in popt (and trf to 1e-8).
+//   curve_fit's pcov comes from MINPACK's fjac, the forward-difference Jacobian of the last outer iteration (not at popt);
+//   lmpy's pcov is J^T J at popt (scipy with the analytic jac= gives 0.0139671650780 for pcov[0][0], lmpy 0.0139671650826,
+//   scipy default 0.0139673336), so the covariance-derived values differ by 1.5e-5 to 3.5e-5 relative.
+// parity-rtol: 1e-8
+// parity-rtol pcov: 5e-5
+// parity-rtol perr: 3e-5
+// parity-rtol cond_pcov: 3e-5
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let xdata = linspace(0.0, 4.0, 50);
+let y = xdata.mul(-1.3).exp().mul(2.5).add(0.5);
+let g = rng(2024);
+let ydata = y + g.standard_normal(50).mul(0.2);
+out.put("ydata_head", ydata.slice(0, 5));
+out.close("noise stream = numpy default_rng(2024)", ydata.slice(0, 5),
+  vec(3.2057713747903804, 3.076670311104599, 2.7512604259689906, 2.1237029840159596, 1.8566985463445296), 0.000000000000001);
+# curve_fit without bounds: MINPACK lmdif with ftol = xtol = 1.49012e-8 (scipy leastsq defaults)
+let o = opts().set("$x", xdata).set("$y", ydata).set("method", "lm").set("tol", 0.0000000149012);
+let fit = least_squares("a*exp(-b*x) + c", "y", strs("a, b, c"), vec(1.0, 1.0, 1.0), o);
+out.check("fit OK", fit.ok());
+let popt = fit.vec("x");
+let pcov = fit.mat("cov");
+out.put("popt", popt);
+out.put("pcov", pcov);
+out.put("perr", vec(sqrt(pcov.at(0, 0)), sqrt(pcov.at(1, 1)), sqrt(pcov.at(2, 2))));
+out.put("cond_pcov", pcov.cond());
+out.close("popt (scipy 1.16.2)", popt, vec(2.7122777108330425, 1.3803678416858784, 0.4891980786584259), 0.000001);
+out.close("perr a", sqrt(pcov.at(0, 0)), 0.11818347419900489, 0.00001);
+out.close("cond(pcov)", pcov.cond(), 32.73318574936427, 0.001);
+# curve_fit with bounds=(0, [3, 1, 0.5]): trf
+let ob = opts().set("$x", xdata).set("$y", ydata).set("method", "trf").set("tol", 0.00000001)
+  .set("lower", vec(0.0, 0.0, 0.0)).set("upper", vec(3.0, 1.0, 0.5));
+let bounded = least_squares("a*exp(-b*x) + c", "y", strs("a, b, c"), vec(1.0, 1.0, 0.25), ob);
+out.check("bounded fit OK", bounded.ok());
+out.put("popt_bounded", bounded.vec("x"));
+out.close("popt bounded (scipy 1.16.2)", bounded.vec("x"), vec(2.5767322386930145, 1.0, 0.35009011953124297), 0.000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-curve-fit");
+println(sprintf("curve_fit: popt = %s, cond(pcov) = %.4f; bounded: %s", json_stringify(v.popt), v.cond_pcov, json_stringify(v.popt_bounded)));
+println("scipy curve_fit answers reproduced.");

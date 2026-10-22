@@ -1,0 +1,80 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-special.py, the SciPy reference examples for scipy.special: gamma, erf, jv, jn_zeros, ellipk,
+//   expit/logit and logsumexp (plain, with weights b, and the masked-array example through zero weights). lmpy evaluates
+//   them with special(name, ...) and logsumexp. It has no jn_zeros, so the first four positive zeros of J_3 are bracketed
+//   on a grid and bisected to machine precision; logsumexp has no b argument, so the weighted forms use
+//   logsumexp(a + log b) (a zero weight gives log 0 = -inf, which drops the term). The pinned answers are what the .py
+//   prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-special (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+# gamma([0, 0.5, 1, 5]): inf at the pole 0
+out.put("gamma", special("gamma", vec(0.5, 1.0, 5.0)));
+out.put("gamma_0_is_inf", special("gamma", 0.0) == inf());
+out.put("gamma_half_squared", pow(special("gamma", 0.5), 2.0));
+out.close("gamma(0.5), gamma(1), gamma(5) (scipy docs)", special("gamma", vec(0.5, 1.0, 5.0)), vec(sqrt(pi()), 1.0, 24.0), 0.000000000000001);
+out.check("gamma(0) = inf (scipy docs)", special("gamma", 0.0) == inf());
+
+out.put("erf", special("erf", linspace(-3.0, 3.0, 50)));
+
+# jv: orders 0, 1, 1.5 at 1.0; orders 0 and 1 at [-2, 0, 3]
+let jv1 = vec(special("jv", 0.0, 1.0), special("jv", 1.0, 1.0), special("jv", 1.5, 1.0));
+let pts = vec(-2.0, 0.0, 3.0);
+out.put("jv_at_1", jv1);
+out.put("jv0_points", special("jv", 0.0, pts));
+out.put("jv1_points", special("jv", 1.0, pts));
+out.close("jv(0, 1), jv(1, 1), jv(1.5, 1) (scipy docs)", jv1, vec(0.7651976865579666, 0.44005058574493355, 0.24029783912342725), 0.000000000000001);
+
+# jn_zeros(3, 4): sign changes of J_3 on a 0.05 grid over (0, 20], each bisected until the bracket stops shrinking
+let zs = vec();
+let step = 0.05;
+let k = 1;
+while (zs.len() < 4) {
+  let a = float(k) * step;
+  let b = a + step;
+  let fa = special("jv", 3.0, a);
+  let fb = special("jv", 3.0, b);
+  if (fa != 0.0 && fa * fb < 0.0) {
+    for (it in range(0, 200)) {
+      let m = 0.5 * (a + b);
+      if (m <= a || m >= b) { break; }
+      let fm = special("jv", 3.0, m);
+      if (fm == 0.0) { a = m; b = m; break; }
+      if (fa * fm < 0.0) { b = m; } else { a = m; fa = fm; }
+    }
+    zs.push(0.5 * (a + b));
+  }
+  k = k + 1;
+}
+out.put("jn_zeros_3_4", zs);
+out.close("jn_zeros(3, 4) (scipy docs, 8 digits)", zs, vec(6.3801619, 9.76102313, 13.01520072, 16.22346616), 0.000000005);
+
+out.put("ellipk", special("ellipk", linspace(0.0, 0.99, 12)));
+out.close("ellipk(0) = pi/2", special("ellipk", 0.0), pi() / 2.0, 0.000000000000001);
+
+# expit / logit
+let ex = special("expit", vec(-inf(), -1.5, 0.0, 1.5, inf()));
+out.put("expit", ex);
+out.close("expit (scipy docs, 8 digits)", ex, vec(0.0, 0.18242552, 0.5, 0.81757448, 1.0), 0.000000005);
+out.put("logit_of_expit", special("logit", special("expit", vec(-2.5, 0.0, 3.1, 5.0))));
+out.put("logit_inner", special("logit", vec(0.25, 0.5, 0.75)));
+out.put("logit_0_is_minus_inf", special("logit", 0.0) == -inf());
+out.put("logit_1_is_plus_inf", special("logit", 1.0) == inf());
+out.close("logit(expit(x)) = x", special("logit", special("expit", vec(-2.5, 0.0, 3.1, 5.0))), vec(-2.5, 0.0, 3.1, 5.0), 0.0000000000001);
+
+# logsumexp
+let a = arange(10);
+let b = arange(10.0, 0.0, -1.0);
+out.put("logsumexp", logsumexp(a));
+out.put("logsumexp_weighted", logsumexp(a.add(b.log())));
+out.put("logsumexp_masked", logsumexp(vec(log(2.0), 2.0, log(3.0)).add(vec(1.0, 0.0, 1.0).log())));
+out.close("logsumexp(arange(10)) (scipy docs)", logsumexp(a), 9.4586297444267107, 0.000000000000002);
+out.close("weighted (scipy docs)", logsumexp(a.add(b.log())), 9.9170178533034665, 0.000000000000002);
+out.close("masked = log 5 (scipy docs)", logsumexp(vec(log(2.0), 2.0, log(3.0)).add(vec(1.0, 0.0, 1.0).log())), log(5.0), 0.000000000000002);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-special");
+println(sprintf("gamma(0.5)^2 = %.15f; jn_zeros(3, 4) = %s", v.gamma_half_squared, json_stringify(v.jn_zeros_3_4)));
+println(sprintf("logsumexp: %.15f, weighted %.15f, masked %.15f", v.logsumexp, v.logsumexp_weighted, v.logsumexp_masked));
+println("scipy special answers reproduced.");

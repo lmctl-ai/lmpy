@@ -1,0 +1,77 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-quad.py, the SciPy integration tutorial and the quad/dblquad reference examples. lmpy's quad is
+//   QUADPACK (QAGS, QAGI for infinite limits) with scipy's defaults (epsabs 1.49e-8, epsrel 1.49e-8, limit 50).
+//   - J_2.5 has no expression-grammar function, so the integrand is its closed form (a spherical Bessel function):
+//     J_2.5(x) = sqrt(2 / (pi x)) ((3 / x^2 - 1) sin x - 3 cos x / x). The tutorial's exact value needs the Fresnel
+//     integral S(3 / sqrt(pi)), which lmpy's special() lacks; it is computed as int_0^z sin(pi t^2 / 2) dt at epsrel 1e-13.
+//   - special.expn(3, x) is not in lmpy's special(); expn3 is recorded from the same integral at epsrel 1e-13.
+//   - dblquad has no lmpy counterpart (quad takes an expression, not a function, so quadratures cannot nest). The two
+//     polynomial examples are computed with lmpy's quad for the inner integral at the nodes of a 3-point Gauss-Legendre
+//     rule for the outer one, which is exact because the inner integrals are polynomials of degree <= 3 in the outer
+//     variable. The tutorial's dblquad/nquad over infinite ranges and quad(expint) over [0, inf) are not reproduced.
+//   The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-quad (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let p = pi();
+let jv = quad("sqrt(2/(pi*x)) * ((3/x^2 - 1)*sin(x) - 3*cos(x)/x)", "x", 0.0, 4.5, opts().set("$pi", p));
+out.check("jv quad OK", jv.ok());
+out.put("jv25", jv.num("value"));
+out.close("jv25 (tutorial)", jv.num("value"), 1.1178179380783249, 0.000000000001);
+let z = 3.0 / sqrt(p);
+let fres = quad("sin(pi*t^2/2)", "t", 0.0, z, opts().set("$pi", p).set("epsabs", 0.0).set("epsrel", 0.0000000000001)).num("value");
+let exact = sqrt(2.0 / p) * (18.0 / 27.0 * sqrt(2.0) * cos(4.5) - 4.0 / 27.0 * sqrt(2.0) * sin(4.5) + sqrt(2.0 * p) * fres);
+out.put("jv25_exact", exact);
+out.close("jv25 exact (tutorial)", exact, 1.117817938088701, 0.000000000001);
+
+out.put("ax2_plus_b", quad("a*x^2 + b", "x", 0.0, 1.0, opts().set("$a", 2.0).set("$b", 1.0)).num("value"));
+out.put("x_squared", quad("x^2", "x", 0.0, 4.0).num("value"));
+out.put("invexp", quad("exp(-x)", "x", 0.0, inf()).num("value"));
+out.put("ax_1", quad("a*x", "x", 0.0, 1.0, opts().set("$a", 1.0)).num("value"));
+out.put("ax_3", quad("a*x", "x", 0.0, 1.0, opts().set("$a", 3.0)).num("value"));
+out.close("x^2 on [0, 4] = 64/3", quad("x^2", "x", 0.0, 4.0).num("value"), 64.0 / 3.0, 0.000000000001);
+out.close("exp(-x) on [0, inf) = 1", quad("exp(-x)", "x", 0.0, inf()).num("value"), 1.0, 0.000000000001);
+
+# the tutorial's vec_expint(3, arange(1, 4, 0.5)): one QAGI integral per x
+let xs = arange(1.0, 4.0, 0.5);
+let e3 = vec();
+let en = vec();
+for (i in range(0, xs.len())) {
+  let o = opts().set("$x", xs.at(i));
+  e3.push(quad("exp(-x*t)/t^3", "t", 1.0, inf(), o).num("value"));
+  en.push(quad("exp(-x*t)/t^3", "t", 1.0, inf(), o.set("epsabs", 0.0).set("epsrel", 0.0000000000001)).num("value"));
+}
+out.put("expint3", e3);
+out.put("expn3", en);
+out.close("expint3 (scipy 1.16.2)", e3, vec(0.10969196719780967, 0.056739490167307574, 0.03013337979781598, 0.016295369376644612, 0.008930646543835897, 0.004945377349584634), 0.000000000000001);
+let gauss = quad("exp(-x^2)", "x", -inf(), inf()).num("value");
+out.put("gaussian", gauss);
+out.close("gaussian = sqrt(pi)", gauss, sqrt(p), 0.000000000001);
+
+# dblquad stand-in: inner quad at the 3-point Gauss-Legendre nodes of the outer interval
+fn gl3(inner: string, inner_var: string, lo: string, hi: string, a: float, b: float) -> float {
+  let half = (b - a) / 2.0;
+  let mid = (a + b) / 2.0;
+  let nodes = vec(mid - half * sqrt(0.6), mid, mid + half * sqrt(0.6));
+  let weights = vec(5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0);
+  let total = 0.0;
+  for (k in range(0, 3)) {
+    let xo = nodes.at(k);
+    let o = opts().set("$x", xo);
+    let r = quad(inner, inner_var, eval(lo, "x", xo), eval(hi, "x", xo), o);
+    total = total + weights.at(k) * r.num("value");
+  }
+  return half * total;
+}
+let box = gl3("x*y^2", "y", "0", "1", 0.0, 2.0);
+let tri = gl3("x*y", "y", "0", "1 - 2*x", 0.0, 0.5);
+out.put("dblquad_box", box);
+out.put("dblquad_triangle", tri);
+out.close("box = 2/3", box, 2.0 / 3.0, 0.000000000000001);
+out.close("triangle = 1/96", tri, 1.0 / 96.0, 0.000000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-quad");
+println(sprintf("J_2.5 integral %.15f (exact %.15f); E_3(1) = %.12f; triangle %.15f", v.jv25, v.jv25_exact, v.expint3[0], v.dblquad_triangle));
+println("scipy quad tutorial answers reproduced.");
