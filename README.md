@@ -47,6 +47,7 @@ Use the published [trio script](https://lmctl.com/tools/lmpy/lmpy_trio.lms) for 
 
 - [Get started](https://lmctl.com/tools/lmpy/get_started.html) · [tool guide](https://lmctl.com/tools/lmpy/guide.html) · [examples book](https://lmctl.com/tools/lmpy/)
 - [API summary](native/API.md) · [release downloads](https://github.com/lmctl-ai/lmpy/releases)
+- [Python parity recipes](examples/python/): 29 published numpy, scipy, pandas, statsmodels, scikit-learn and networkx examples next to their lmpy versions, every value checked against Python
 - [LMScript language and DSL docs](https://lmctl.com/tools/lmscript/skill.html)
 
 ## Artwork and examples
