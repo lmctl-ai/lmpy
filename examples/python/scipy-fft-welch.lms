@@ -1,0 +1,68 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-fft-welch.py, the SciPy Fourier transforms tutorial (50 Hz + 0.5 x 80 Hz sines, N = 600 at 800 Hz,
+//   single-sided amplitude 2/N |fft| with and without a Blackman window) and the SciPy reference examples for
+//   scipy.signal.periodogram and scipy.signal.welch (2 Vrms at 1234 Hz in 0.001 V**2/Hz white noise at 10 kHz, noise from
+//   default_rng(1234); density, flattop spectrum, and mean versus median averaging after a 10-sample burst). lmpy uses fft,
+//   fftfreq, window, periodogram and welch; the pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-fft-welch (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+# scipy.fft tutorial
+let n = 600;
+let dt = 1.0 / 800.0;
+let x = linspace(0.0, float(n) * dt, n + 1).slice(0, n);
+let y = x.mul(50.0 * 2.0 * pi()).sin().add(x.mul(80.0 * 2.0 * pi()).sin().mul(0.5));
+let yf = fft(y, zeros(n));
+let xf = fftfreq(n, dt).slice(0, n / 2);
+let amp = yf.vec("re").slice(0, n / 2).square().add(yf.vec("im").slice(0, n / 2).square()).sqrt().mul(2.0 / float(n));
+let bw = window("blackman", n, opts().set("sym", true));
+let ywf = fft(y.mul(bw), zeros(n));
+let amp_w = ywf.vec("re").slice(0, n / 2).square().add(ywf.vec("im").slice(0, n / 2).square()).sqrt().mul(2.0 / float(n));
+let top2 = find_peaks(amp, opts().set("height", 0.2)).vec("indices");
+out.put("fft_freqs", xf);
+out.put("fft_amplitude", amp);
+out.put("fft_peak_freqs", xf.take(top2));
+out.put("fft_peak_amplitudes", amp.take(top2));
+out.put("fft_blackman_amplitude", amp_w);
+out.close("tone lines at 49.33 Hz (50 Hz falls between bins) and 80 Hz", xf.take(top2), vec(148.0 / 3.0, 80.0), 0.000000000001);
+out.close("their amplitudes (scipy 1.16.2)", amp.take(top2), vec(0.6406719914111308, 0.5001233179910926), 0.000000000001);
+
+# scipy.signal.periodogram / welch examples
+let fs = 10000.0;
+let nn = 100000;
+let a = 2.0 * sqrt(2.0);
+let noise_power = 0.001 * fs / 2.0;
+let time = arange(nn).div(fs);
+let s = time.mul(2.0 * pi() * 1234.0).sin().mul(a).add(rng(1234).normal(nn, 0.0, sqrt(noise_power)));
+let p = periodogram(s, fs);
+let ps = periodogram(s, fs, opts().set("window", "flattop").set("scaling", "spectrum"));
+let wd = welch(s, fs, opts().set("nperseg", 1024));
+let ws = welch(s, fs, opts().set("window", "flattop").set("nperseg", 1024).set("scaling", "spectrum"));
+out.put("periodogram_noise_floor", p.vec("pxx").slice(25000, 50001).mean());
+out.put("periodogram_peak_freq", p.vec("f").at(p.vec("pxx").argmax()));
+out.put("periodogram_flattop_rms", sqrt(ps.vec("pxx").max()));
+out.put("welch_freqs", wd.vec("f"));
+out.put("welch_density", wd.vec("pxx"));
+out.put("welch_noise_floor", wd.vec("pxx").slice(256, 513).mean());
+out.put("welch_flattop_rms", sqrt(ws.vec("pxx").max()));
+out.close("periodogram noise floor (scipy 1.16.2)", p.vec("pxx").slice(25000, 50001).mean(), 0.0010028324719877212, 0.000000000001);
+out.close("welch noise floor (scipy 1.16.2)", wd.vec("pxx").slice(256, 513).mean(), 0.0009997881856675973, 0.000000000001);
+out.close("welch flattop rms near 2 V (scipy 1.16.2)", sqrt(ws.vec("pxx").max()), 2.0094911838361615, 0.000000001);
+
+# a 10-sample burst x50: mean versus median averaging
+for (i in range(50000, 50010)) { s.set(i, s.at(i) * 50.0); }
+let wm = welch(s, fs, opts().set("nperseg", 1024));
+let wmed = welch(s, fs, opts().set("nperseg", 1024).set("average", "median"));
+out.put("welch_burst_mean_floor", wm.vec("pxx").slice(256, 513).mean());
+out.put("welch_burst_median_floor", wmed.vec("pxx").slice(256, 513).mean());
+out.put("welch_burst_median", wmed.vec("pxx"));
+out.close("burst: mean-average floor (scipy 1.16.2)", wm.vec("pxx").slice(256, 513).mean(), 0.0011550816421544924, 0.000000000001);
+out.close("burst: median-average floor (scipy 1.16.2)", wmed.vec("pxx").slice(256, 513).mean(), 0.0010128461118537248, 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-fft-welch");
+println(sprintf("fft: tones at %.1f and %.1f Hz, amplitudes %.6f and %.6f", v.fft_peak_freqs[0], v.fft_peak_freqs[1], v.fft_peak_amplitudes[0], v.fft_peak_amplitudes[1]));
+println(sprintf("noise floor: periodogram %.6f, welch %.6f V**2/Hz (0.001 injected); flattop rms %.6f V", v.periodogram_noise_floor, v.welch_noise_floor, v.welch_flattop_rms));
+println(sprintf("after the burst: mean floor %.6f, median floor %.6f", v.welch_burst_mean_floor, v.welch_burst_median_floor));
+println("scipy fft/periodogram/welch answers reproduced.");

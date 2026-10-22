@@ -1,0 +1,50 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-butter-sosfilt.py, the SciPy reference examples for scipy.signal.butter (10 Hz + 20 Hz tones at
+//   1 kHz through a 10th-order 15 Hz high-pass, sosfilt), scipy.signal.sosfiltfilt (noisy step, 4th-order low-pass at 0.125,
+//   zero-phase; noise from default_rng(2024)) and scipy.signal.freqz_sos (15th-order elliptic band-pass 0.2..0.4, 1500 points).
+//   lmpy designs the same second-order sections with iir, filters with Filter.filter / Filter.filtfilt and evaluates the
+//   response with Filter.response; the pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-butter-sosfilt (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+# butter(10, 15, hp, fs=1000, output=sos) and sosfilt on the two-tone signal
+let t = arange(1000).mul(1.0 / 1000.0);
+let sig = t.mul(2.0 * pi() * 10.0).sin().add(t.mul(2.0 * pi() * 20.0).sin());
+let hp = iir("butter", 10, 15.0, opts().set("btype", "highpass").set("fs", 1000.0));
+let filtered = hp.filter(sig);
+let tail = filtered.slice(500, 1000);
+out.put("hp_sos", hp.sos());
+out.put("hp_filtered", filtered);
+out.put("hp_tail_rms", sqrt(tail.square().mean()));
+out.check("five sections", hp.n_sections() == 5);
+out.close("hp sos row 0 (scipy 1.16.2)", hp.sos().row(0), vec(0.73979400584056, -1.47958801168112, 0.73979400584056, 1.0, -1.8217891991614716, 0.8299104063179028), 0.000000000001);
+out.close("hp tail rms (scipy 1.16.2)", sqrt(tail.square().mean()), 0.7061087772514193, 0.000000001);
+
+# sosfiltfilt example: x = 1 + (t < 0.5) - 0.25 t^2 + 0.05 noise
+let n = 201;
+let t2 = linspace(0.0, 1.0, n);
+let noise = rng(2024).standard_normal(n);
+let x = t2.lt(0.5).add(1.0).sub(t2.square().mul(0.25)).add(noise.mul(0.05));
+let lp = iir("butter", 4, 0.125);
+let y = lp.filtfilt(x);
+out.put("lp_sos", lp.sos());
+out.put("lp_zero_phase", y);
+out.close("zero-phase output at 0, 100, 200 (scipy 1.16.2)", vec(y.at(0), y.at(100), y.at(200)), vec(2.049956140130296, 1.3683882057149228, 0.6985567844023961), 0.000000001);
+
+# freqz_sos example: ellip(15, 0.5, 60, (0.2, 0.4), bandpass) at w = linspace(0, pi, 1500, endpoint=False)
+let bp = iir("ellip", 15, vec(0.2, 0.4), opts().set("btype", "bandpass").set("rp", 0.5).set("rs", 60.0));
+let w = arange(1500).mul(pi() / 1500.0);
+let mag = bp.response(arange(1500).div(1500.0)).vec("magnitude");
+out.put("bp_n_sections", bp.n_sections());
+out.put("bp_w", w);
+out.put("bp_magnitude", mag);
+out.put("bp_peak_gain_db", 20.0 * log10(mag.max()));
+out.check("15 sections", bp.n_sections() == 15);
+out.close("passband peak gain in dB (scipy 1.16.2)", 20.0 * log10(mag.max()), -0.0000000685064753794716, 0.000000000001);
+out.close("|H| at w = 0.3 pi, 0.1 pi (scipy 1.16.2)", vec(mag.at(450), mag.at(150)), vec(0.9763448122846924, 0.0009600994792823884), 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-butter-sosfilt");
+println(sprintf("high-pass: tail rms %.6f (the 20 Hz tone alone has rms 0.707107); band-pass peak gain %.4f dB", v.hp_tail_rms, v.bp_peak_gain_db));
+println("scipy butter/sosfiltfilt/freqz_sos answers reproduced.");
