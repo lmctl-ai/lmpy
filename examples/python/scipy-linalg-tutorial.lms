@@ -1,0 +1,109 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-linalg-tutorial.py, the SciPy linear algebra tutorial (inverse, solve, det, norms, eig, svd) and
+//   the reference examples of scipy.linalg.solve, det, eigh, lu and expm. Workarounds, because lmpy is real-only:
+//   - Mat.eig() returns eigenvalues only; each eigenvector is the null vector of A - lambda I (the last right singular
+//     vector of its SVD).
+//   - expm(1j a) is computed as expm of the real 4 x 4 block form [[0, -a], [a, 0]] of i a, whose blocks are
+//     [[Re, -Im], [Im, Re]] of the complex result.
+//   Eigen- and singular vectors are reported with their largest-magnitude component positive (both sides).
+//   The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-linalg-tutorial (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+fn fix_sign(v: Vec) -> Vec {
+  let sg = 1.0;
+  if (v.at(v.abs().argmax()) < 0.0) { sg = -1.0; }
+  return v.mul(sg);
+}
+# inverse, solve, det, norms
+let a = mat("1 3 5; 2 5 1; 2 3 8");
+out.put("inv", a.inv());
+out.close("inv (tutorial)", a.inv().flatten(), vec("-1.48 0.36 0.88 0.56 0.08 -0.36 0.16 -0.12 0.04"), 0.000000000001);
+let a2 = mat("1 2; 3 4");
+out.put("solve_2x2", a2.solve(vec(5.0, 6.0)));
+out.close("solve 2x2 (tutorial)", a2.solve(vec(5.0, 6.0)), vec(-4.0, 4.5), 0.000000000001);
+out.put("solve_3x3", mat("3 2 0; 1 -1 0; 0 5 1").solve(vec(2.0, 4.0, -1.0)));
+out.put("det", a2.det());
+out.put("det_b", mat("0 2 3; 4 5 6; 7 8 9").det());
+out.close("det -2", a2.det(), -2.0, 0.000000000001);
+let norms = vec(a2.norm(), a2.norm("fro"), a2.norm("1"), a2.norm("-1"), a2.norm("inf"));
+out.put("norms", norms);
+out.close("norms (tutorial)", norms, vec(5.4772255750516612, 5.4772255750516612, 6.0, 4.0, 7.0), 0.000000000001);
+
+# eigenvalues and eigenvectors of [[1, 2], [3, 4]]
+let ev = a2.eig();
+out.check("real spectrum", ev.flag("real"));
+let la = ev.vec("values_re");
+out.put("eigenvalues", la);
+out.put("eigenvalues_imag", ev.vec("values_im"));
+out.close("eigenvalues (tutorial)", la, vec(-0.3722813232690143, 5.372281323269014), 0.000000000001);
+let vecs = mat(0, 2);
+let worst = 0.0;
+for (k in range(0, 2)) {
+  let shifted = a2 - eye(2) * la.at(k);
+  let nv = fix_sign(shifted.svd().mat("vt").row(1));
+  vecs = vecs.vstack(mat(nv, 1, 2));
+  worst = max(worst, (a2 * nv - nv * la.at(k)).norm());
+}
+out.put("eigenvectors", vecs);
+out.put("eig_residual_small", worst < 0.000000000001);
+
+# SVD of [[1, 2, 3], [4, 5, 6]]
+let sv = mat("1 2 3; 4 5 6").svd();
+out.put("singular_values", sv.vec("s"));
+out.close("singular values (tutorial)", sv.vec("s"), vec(9.508032, 0.77286964), 0.000001);
+let u = sv.mat("u");
+let vt = sv.mat("vt");
+let uf = mat(0, 2);
+let vf = mat(0, 3);
+for (i in range(0, 2)) {
+  let col = u.col(i);
+  let sg = 1.0;
+  if (col.at(col.abs().argmax()) < 0.0) { sg = -1.0; }
+  uf = uf.vstack(mat(col.mul(sg), 1, 2));
+  vf = vf.vstack(mat(vt.row(i).mul(sg), 1, 3));
+}
+out.put("U", uf.t());
+out.put("Vh", vf);
+
+# eigh reference example
+let ah = mat("6 3 1 5; 3 0 5 1; 1 5 6 2; 5 1 2 2");
+let eh = ah.eigh();
+out.put("eigh_w", eh.vec("values"));
+let vv = eh.mat("vectors");
+let ehv = mat(0, 4);
+for (k in range(0, 4)) { ehv = ehv.vstack(mat(fix_sign(vv.col(k)), 1, 4)); }
+out.put("eigh_v", ehv);
+out.close("A v = v diag(w)", (ah * vv - vv * diag(eh.vec("values"))).norm(), 0.0, 0.000000000001);
+let wb = mat("34 -4 -10 -7 2; -4 7 2 12 0; -10 2 44 2 -19; -7 12 2 79 -34; 2 0 -19 -34 29").eigh().vec("values");
+let below = wb.where(wb.lt(10.0));
+out.put("eigh_below_10", below);
+out.close("eigenvalues below 10 (scipy docs)", below, vec(0.000000669199443, 9.11938152), 0.00000001);
+
+# LU with partial pivoting
+let al = mat("2 5 8 7; 5 2 2 8; 7 5 6 6; 5 4 4 8");
+let f = al.lu();
+let pm = f.mat("p");
+out.put("lu_p", pm);
+out.put("lu_l", f.mat("l"));
+out.put("lu_u", f.mat("u"));
+let pidx = vec();
+for (i in range(0, 4)) { pidx.push(float(pm.row(i).argmax())); }
+out.put("lu_p_indices", pidx);
+out.close("p_indices (scipy docs)", pidx, vec(1.0, 3.0, 0.0, 2.0), 0.0);
+out.close("A = P L U", (pm * f.mat("l") * f.mat("u")).max_abs_diff(al), 0.0, 0.000000000001);
+
+# expm(1j a) through the real block form of i a
+let ar = mat("1 2; -1 3");
+let blk = mat(2, 2).hstack(ar.neg()).vstack(ar.hstack(mat(2, 2)));
+let e = blk.expm();
+out.put("expm_ia_real", e.block(0, 0, 2, 2));
+out.put("expm_ia_imag", e.block(2, 0, 2, 2));
+out.close("expm(1j a) (scipy docs)", e.block(0, 0, 2, 2).flatten(), vec(0.42645930, -2.13721484, 1.06860742, -1.71075555), 0.00000001);
+out.close("block form is consistent", e.block(0, 0, 2, 2).max_abs_diff(e.block(2, 2, 2, 2)), 0.0, 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-linalg-tutorial");
+println(sprintf("det %.1f; eigenvalues %s; singular values %s; eigh %s", v.det, json_stringify(v.eigenvalues), json_stringify(v.singular_values), json_stringify(v.eigh_w)));
+println("scipy linalg tutorial answers reproduced.");
