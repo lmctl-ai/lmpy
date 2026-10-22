@@ -1,0 +1,90 @@
+// access: write (a temporary .dslb, removed)
+// Python original: sklearn-metrics.py, the scikit-learn metrics reference examples with their published inputs:
+//   accuracy_score, confusion_matrix, classification_report, precision_recall_fscore_support, balanced_accuracy_score,
+//   roc_auc_score, log_loss, r2_score, mean_squared_error, mean_absolute_error. The lmpy version calls ml_metrics (text
+//   labels go through label_encode, which sorts the classes as sklearn does); classification_report's per-class rows are
+//   ml_metrics with average binary and pos_label = that class, and its support is the confusion-matrix row sum.
+//   The pinned answers are what the .py prints with scikit-learn 1.7.2 (and the values in the sklearn docs).
+// Check: examples/python/check-parity.sh sklearn-metrics
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let cls = opts().set("kind", "classification");
+# accuracy_score
+let acc = ml_metrics(vec("0 1 2 3"), vec("0 2 1 3"), cls).num("accuracy");
+out.put("accuracy", acc);
+out.put("accuracy_count", acc * 4.0);
+out.close("accuracy_score 0.5", acc, 0.5, 0.0);
+
+# confusion_matrix
+let cm = ml_metrics(vec("2 0 2 2 0 1"), vec("0 0 2 2 0 2"), cls).mat("confusion_matrix");
+out.put("confusion", cm);
+out.close("confusion_matrix [[2 0 0] [0 0 1] [1 0 2]]", cm.flatten(), vec("2 0 0 0 0 1 1 0 2"), 0.0);
+# text labels: encode y_true and y_pred together so both use one sorted class list (ant, bird, cat)
+fn codes_of(t: string, p: string) -> Res {
+  let all = split(t + "," + p, ",");
+  return label_encode(all);
+}
+let enc = codes_of("cat,ant,cat,cat,ant,bird", "ant,ant,cat,cat,ant,cat");
+let cm2 = ml_metrics(enc.vec("codes").slice(0, 6), enc.vec("codes").slice(6, 12), cls).mat("confusion_matrix");
+out.put("confusion_animals", cm2);
+out.check("classes ant, bird, cat", enc.strs("classes").join(",") == "ant,bird,cat");
+let b = ml_metrics(vec("0 1 0 1"), vec("1 1 1 0"), cls).mat("confusion_matrix");
+out.put("binary_tn_fp_fn_tp", b.flatten());
+out.close("tn, fp, fn, tp = 0 2 1 1", b.flatten(), vec("0 2 1 1"), 0.0);
+
+# classification_report
+let yt = vec("0 1 2 2 2");
+let yp = vec("0 0 2 2 1");
+let support = ml_metrics(yt, yp, cls).mat("confusion_matrix").row_sums();
+for (k in range(0, 3)) {
+  let m = ml_metrics(yt, yp, opts().set("average", "binary").set("pos_label", float(k)));
+  out.put("report_class" + str(k), vec(m.num("precision"), m.num("recall"), m.num("f1"), support.at(k)));
+}
+let macro = ml_metrics(yt, yp, opts().set("average", "macro"));
+let weighted = ml_metrics(yt, yp, opts().set("average", "weighted"));
+out.put("report_accuracy", macro.num("accuracy"));
+out.put("report_macro", vec(macro.num("precision"), macro.num("recall"), macro.num("f1")));
+out.put("report_weighted", vec(weighted.num("precision"), weighted.num("recall"), weighted.num("f1")));
+out.close("report macro avg 0.50 0.56 0.49", vec(macro.num("precision"), macro.num("recall"), macro.num("f1")), vec("0.5 0.5555555555555555 0.48888888888888893"), 0.000000000001);
+out.close("report weighted avg 0.70 0.60 0.61", vec(weighted.num("precision"), weighted.num("recall"), weighted.num("f1")), vec("0.7 0.6 0.6133333333333334"), 0.000000000001);
+
+# precision_recall_fscore_support
+let enc3 = codes_of("cat,dog,pig,cat,dog,pig", "cat,pig,dog,cat,cat,dog");
+let t3 = enc3.vec("codes").slice(0, 6);
+let p3 = enc3.vec("codes").slice(6, 12);
+let avgs = strs("macro, micro, weighted");
+for (a in avgs) {
+  let m = ml_metrics(t3, p3, opts().set("average", a));
+  out.put("prf_" + a, vec(m.num("precision"), m.num("recall"), m.num("f1")));
+}
+let pm = ml_metrics(t3, p3, opts().set("average", "macro"));
+out.close("precision_recall_fscore_support macro (0.22, 0.33, 0.27)", vec(pm.num("precision"), pm.num("recall"), pm.num("f1")), vec("0.2222222222222222 0.3333333333333333 0.26666666666666666"), 0.000000000001);
+
+# balanced_accuracy_score, roc_auc_score, log_loss
+let bal = ml_metrics(vec("0 1 0 0 1 0"), vec("0 1 0 0 0 1"), cls).num("balanced_accuracy");
+out.put("balanced_accuracy", bal);
+out.close("balanced_accuracy_score 0.625", bal, 0.625, 0.000000000001);
+let auc = ml_metrics(vec("0 0 1 1"), opts().set("y_score", vec("0.1 0.4 0.35 0.8")).set("metrics", strs("roc_auc"))).num("roc_auc");
+out.put("roc_auc", auc);
+out.close("roc_auc_score 0.75", auc, 0.75, 0.000000000001);
+let enc4 = label_encode(strs("spam, ham, ham, spam"));
+let ll = ml_metrics(enc4.vec("codes"), opts().set("y_score", vec("0.9 0.1 0.2 0.65")).set("metrics", strs("log_loss"))).num("log_loss");
+out.put("log_loss", ll);
+out.close("log_loss 0.21616", ll, 0.21616187468057912, 0.000000000001);
+
+# regression metrics
+let reg = ml_metrics(vec("3 -0.5 2 7"), vec("2.5 0.0 2 8"), opts().set("kind", "regression"));
+out.put("r2", reg.num("r2"));
+out.put("mse", reg.num("mse"));
+out.put("mae", reg.num("mae"));
+out.close("r2_score 0.948", reg.num("r2"), 0.9486081370449679, 0.000000000001);
+out.close("mean_squared_error 0.375", reg.num("mse"), 0.375, 0.000000000001);
+out.close("mean_absolute_error 0.5", reg.num("mae"), 0.5, 0.000000000001);
+end _dsl_
+
+v = lmpy.run(prog, "sklearn-metrics");
+println("confusion_matrix:", json_stringify(v.confusion));
+println(sprintf("classification_report macro avg: precision %.2f recall %.2f f1 %.2f", v.report_macro[0], v.report_macro[1], v.report_macro[2]));
+println(sprintf("r2 %.4f, mse %.3f, mae %.3f, roc_auc %.2f, log_loss %.5f", v.r2, v.mse, v.mae, v.roc_auc, v.log_loss));
+println("scikit-learn metrics answers reproduced.");
