@@ -1,0 +1,84 @@
+// access: write (a temporary .dslb, removed)
+// Python original: scipy-sparse-laplacian.py: the 2-D Dirichlet Laplacian of scipy.sparse.linalg.LaplacianNd on a 12 x 10
+//   grid (assembled here from COO triplets in the same row-major numbering), -L x = 1 by spsolve and by cg (rtol 1e-10),
+//   its four smallest and four largest eigenvalues by eigsh (SA / LA) against the exact spectrum
+//   4 sin^2(pi k / 26) + 4 sin^2(pi l / 22); the cg reference example (4 x 4, atol 1e-5); and the ARPACK tutorial's
+//   X X^T with X = default_rng(7).random((100, 100)) - 0.5 (lmpy's rng draws the same stream): three largest-magnitude
+//   (LM) and three smallest-magnitude (SM, maxiter 5000) eigenvalues by eigsh, and the dense eigh spectrum.
+//   The pinned answers are what the .py prints with scipy 1.16.2.
+// Check: examples/python/check-parity.sh scipy-sparse-laplacian (runs both and compares every recorded value).
+import "../dsl/lmpy.lms";
+
+prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+let nx = 12;
+let ny = 10;
+let n = nx * ny;
+let a = sparse(n, n);
+for (i in range(0, nx)) {
+  for (j in range(0, ny)) {
+    let k = i * ny + j;
+    a.add(k, k, 4.0);
+    if (i + 1 < nx) { a.add(k, k + ny, -1.0); a.add(k + ny, k, -1.0); }
+    if (j + 1 < ny) { a.add(k, k + 1, -1.0); a.add(k + 1, k, -1.0); }
+  }
+}
+out.put("nnz", a.nnz());
+let b = ones(n);
+let xd = a.solve(b);
+out.put("x_direct_sum", xd.sum());
+out.put("x_direct_max", xd.max());
+out.put("x_direct_head", xd.slice(0, 5));
+out.close("x_direct_sum (scipy 1.16.2)", xd.sum(), 693.4914436471435, 0.000000001);
+let cg = a.cg(b, opts().set("rtol", 0.0000000001));
+out.put("cg_converged", cg.ok());
+out.put("cg_x_head", cg.vec("x").slice(0, 5));
+out.close("cg agrees with spsolve", (cg.vec("x") - xd).abs().max(), 0.0, 0.00000001);
+
+let exact = vec();
+for (k in range(1, nx + 1)) {
+  for (l in range(1, ny + 1)) {
+    let s1 = sin(pi() * float(k) / (2.0 * float(nx + 1)));
+    let s2 = sin(pi() * float(l) / (2.0 * float(ny + 1)));
+    exact.push(4.0 * s1 * s1 + 4.0 * s2 * s2);
+  }
+}
+let ex = exact.sort();
+out.put("exact_smallest", ex.slice(0, 4));
+out.put("exact_largest", ex.slice(n - 4, n));
+let small = a.eigsh(4, opts().set("which", "SA"));
+let large = a.eigsh(4, opts().set("which", "LA"));
+out.check("eigsh OK", small.ok() && large.ok());
+out.put("eigsh_smallest", small.vec("w"));
+out.put("eigsh_largest", large.vec("w"));
+out.close("eigsh SA = exact", small.vec("w"), ex.slice(0, 4), 0.000000001);
+out.close("eigsh LA = exact", large.vec("w"), ex.slice(n - 4, n), 0.000000001);
+
+# cg reference example
+let pm = mat("4 0 1 0; 0 5 0 0; 1 0 3 2; 0 0 2 4");
+let pb = vec(-1.0, -0.5, -1.0, 2.0);
+let pc = sparse(pm).cg(pb, opts().set("atol", 0.00001));
+out.put("cg_doc_converged", pc.ok());
+let r = (pm * pc.vec("x") - pb).abs();
+out.put("cg_doc_allclose", r.le(pb.abs().mul(0.00001).add(0.00000001)).count() == 4);
+
+# ARPACK tutorial
+let g = rng(7);
+let x = mat(g.random(10000), 100, 100) - mat(full(10000, 0.5), 100, 100);
+let xx = x * x.t();
+let all = xx.eigh().vec("values");
+out.put("evals_all_top3", all.slice(97, 100));
+out.put("evals_all_bottom3", all.slice(0, 3));
+out.close("dense spectrum top (scipy 1.16.2)", all.slice(97, 100), vec(28.650909598113973, 29.730654758275424, 32.58971843071065), 0.000000001);
+let sx = sparse(xx);
+let lm = sx.eigsh(3, opts().set("which", "LM"));
+let sm = sx.eigsh(3, opts().set("which", "SM").set("maxiter", 5000));
+out.check("eigsh LM / SM OK", lm.ok() && sm.ok());
+out.put("evals_large", lm.vec("w"));
+out.put("evals_small", sm.vec("w"));
+out.close("LM = dense top 3", lm.vec("w"), all.slice(97, 100), 0.000000001);
+out.close("SM = dense bottom 3", sm.vec("w"), all.slice(0, 3), 0.000000001);
+end _dsl_
+
+v = lmpy.run(prog, "scipy-sparse-laplacian");
+println(sprintf("Laplacian nnz %d; smallest %s; ARPACK LM %s; SM %s", v.nnz, json_stringify(v.eigsh_smallest), json_stringify(v.evals_large), json_stringify(v.evals_small)));
+println("scipy sparse linalg answers reproduced.");
