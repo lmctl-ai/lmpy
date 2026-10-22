@@ -1,0 +1,41 @@
+# The plots below are driven by values computed and checked by the released lmpy host.
+if (!file_exists("build")) { mkdir("build"); }
+if (!file_exists("build/rendered")) { mkdir("build/rendered"); }
+stats = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
+let q = dist("norm").ppf(0.975);
+out.close("normal quantile", q, 1.959963984540054, 0.00000000000001);
+let fit = cols(ones(5), arange(5)).lstsq(arange(5).mul(2.0).add(3.0));
+out.close("fit coefficients", fit.vec("x"), vec(3.0, 2.0), 0.000000000001);
+out.put("quantile", q);
+out.put("intercept", fit.vec("x").at(0));
+out.put("slope", fit.vec("x").at(1));
+end _dsl_
+savedsl(stats, "build/readme-hero-stats.dslb");
+r = system ${dsl_cli(stats)} --dsl build/readme-hero-stats.dslb;
+if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
+v = json_parse(r.stdout).result.values;
+
+draw = _dsl_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
+scene.canvas(1400, 600, "#f5f2eb");
+scene.circle(100.0, 90.0, 18.0, "#c77b2a");
+scene.circle(143.0, 90.0, 18.0, "#32877f");
+scene.circle(186.0, 90.0, 18.0, "#557b9b");
+scene.text(230.0, 97.0, 20.0, "LMPY  /  NATIVE NUMERICAL HOST", "#536678");
+scene.text(78.0, 235.0, 64.0, "Numbers with", "#182838").set_attr("font-weight", "700");
+scene.text(78.0, 310.0, 64.0, "no Python runtime.", "#a85819").set_attr("font-weight", "700");
+scene.text(82.0, 366.0, 22.0, "Linear algebra, statistics, tables and more in one native executable.", "#40576b");
+scene.text(82.0, 420.0, 16.0, "CHECKED OUTPUTS  /  " + ${str(v.intercept)} + " + " + ${str(v.slope)} + "x  /  z(0.975) = " + ${str(v.quantile)}, "#32877f");
+scene.rect(810.0, 50.0, 520.0, 492.0, "#fffdf8");
+scene.rect(838.0, 78.0, 464.0, 436.0, "#eef1ed");
+scene.line(880.0, 448.0, 1264.0, 448.0, "#cad3d2", 1.0);
+scene.line(880.0, 150.0, 880.0, 448.0, "#cad3d2", 1.0);
+scene.path("M 900.0 430.0 C 974.0 430.0 994.0 180.0 1090.0 180.0 C 1186.0 180.0 1206.0 430.0 1280.0 430.0", "none", "#32877f", 5.0);
+scene.line(1170.0, 237.0, 1170.0, 430.0, "#c77b2a", 3.0);
+scene.circle(1170.0, 237.0, 8.0, "#c77b2a");
+scene.text(884.0, 120.0, 16.0, "NORMAL QUANTILE  /  FIT CHECKS", "#536678");
+scene.text(886.0, 482.0, 13.0, "native results, checked before drawing", "#637a88");
+scene.render_png("build/rendered/readme-hero-light.png", 1400, 600, 1);
+end _dsl_
+savedsl(draw, "build/readme-hero-light.dslb");
+r = system ${dsl_cli(draw)} --dsl build/readme-hero-light.dslb;
+if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

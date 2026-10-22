@@ -1,0 +1,24 @@
+if (!file_exists("build")) { mkdir("build"); }
+if (!file_exists("build/rendered")) { mkdir("build/rendered"); }
+p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
+let q = dist("norm").ppf(0.975);
+out.close("normal 97.5% quantile", q, 1.959963984540054, 0.00000000000001);
+out.put("quantile", q);
+end _dsl_
+savedsl(p, "build/readme-gallery-normal.dslb");
+r = system ${dsl_cli(p)} --dsl build/readme-gallery-normal.dslb;
+if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
+v = json_parse(r.stdout).result.values;
+d = _dsl_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
+scene.canvas(760, 390, "#101820");
+scene.text(48.0, 54.0, 24.0, "Normal distribution", "#dbe7f3").set_attr("font-weight", "700");
+scene.path("M 90.0 318.0 C 170.0 318.0 205.0 110.0 370.0 100.0 C 535.0 110.0 570.0 318.0 650.0 318.0", "none", "#74c9bd", 5.0);
+scene.line(520.0, 130.0, 520.0, 320.0, "#f5c16c", 3.0);
+scene.text(528.0, 152.0, 16.0, "q = " + ${str(v.quantile)}, "#f5c16c");
+scene.line(80.0, 320.0, 670.0, 320.0, "#40576b", 1.0);
+scene.text(84.0, 354.0, 13.0, "97.5th percentile, computed by lmpy", "#9db4c8");
+scene.render_png("build/rendered/readme-normal-quantile.png", 760, 390, 1);
+end _dsl_
+savedsl(d, "build/readme-gallery-normal-draw.dslb");
+r = system ${dsl_cli(d)} --dsl build/readme-gallery-normal-draw.dslb;
+if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

@@ -1,0 +1,27 @@
+if (!file_exists("build")) { mkdir("build"); }
+if (!file_exists("build/rendered")) { mkdir("build/rendered"); }
+p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
+let x = mat("1 2 3; 0 1 4; 5 6 0").solve(vec(14.0, 14.0, 17.0));
+out.close("known solution", x, vec(1.0, 2.0, 3.0), 0.000000000001);
+out.put("solution", x);
+end _dsl_
+savedsl(p, "build/readme-gallery-solve.dslb");
+r = system ${dsl_cli(p)} --dsl build/readme-gallery-solve.dslb;
+if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
+v = json_parse(r.stdout).result.values;
+d = _dsl_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
+scene.canvas(760, 390, "#101820");
+scene.text(48.0, 54.0, 24.0, "Solve a 3 x 3 system", "#dbe7f3").set_attr("font-weight", "700");
+scene.rect(108.0, 110.0, 180.0, 180.0, "#203b3b");
+scene.rect(340.0, 110.0, 300.0, 180.0, "#263747");
+scene.text(198.0, 160.0, 24.0, "A x = b", "#74c9bd").set_attr("text-anchor", "middle");
+scene.text(198.0, 208.0, 15.0, "3 by 3", "#9db4c8").set_attr("text-anchor", "middle");
+scene.text(490.0, 160.0, 21.0, "x = [" + ${str(v.solution.get(0, 0.0))} + ", " + ${str(v.solution.get(1, 0.0))} + ", " + ${str(v.solution.get(2, 0.0))} + "]", "#f5c16c").set_attr("text-anchor", "middle");
+scene.text(490.0, 210.0, 15.0, "known solution recovered", "#9db4c8").set_attr("text-anchor", "middle");
+let a = scene.line(300.0, 200.0, 328.0, 200.0, "#f5c16c", 2.5); a.set_attr("marker-end", "arrow");
+scene.text(108.0, 344.0, 14.0, "lmpy verifies the solution within tolerance", "#9db4c8");
+scene.render_png("build/rendered/readme-matrix-solve.png", 760, 390, 1);
+end _dsl_
+savedsl(d, "build/readme-gallery-solve-draw.dslb");
+r = system ${dsl_cli(d)} --dsl build/readme-gallery-solve-draw.dslb;
+if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

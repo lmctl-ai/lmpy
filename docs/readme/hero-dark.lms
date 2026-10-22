@@ -1,0 +1,39 @@
+if (!file_exists("build")) { mkdir("build"); }
+if (!file_exists("build/rendered")) { mkdir("build/rendered"); }
+stats = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
+let q = dist("norm").ppf(0.975);
+out.close("normal quantile", q, 1.959963984540054, 0.00000000000001);
+let fit = cols(ones(5), arange(5)).lstsq(arange(5).mul(2.0).add(3.0));
+out.close("fit coefficients", fit.vec("x"), vec(3.0, 2.0), 0.000000000001);
+out.put("quantile", q);
+out.put("intercept", fit.vec("x").at(0));
+out.put("slope", fit.vec("x").at(1));
+end _dsl_
+savedsl(stats, "build/readme-hero-stats-dark.dslb");
+r = system ${dsl_cli(stats)} --dsl build/readme-hero-stats-dark.dslb;
+if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
+v = json_parse(r.stdout).result.values;
+draw = _dsl_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
+scene.canvas(1400, 600, "#101820");
+scene.circle(100.0, 90.0, 18.0, "#f5c16c");
+scene.circle(143.0, 90.0, 18.0, "#74c9bd");
+scene.circle(186.0, 90.0, 18.0, "#8fb4d9");
+scene.text(230.0, 97.0, 20.0, "LMPY  /  NATIVE NUMERICAL HOST", "#9db4c8");
+scene.text(78.0, 235.0, 64.0, "Numbers with", "#dbe7f3").set_attr("font-weight", "700");
+scene.text(78.0, 310.0, 64.0, "no Python runtime.", "#f5c16c").set_attr("font-weight", "700");
+scene.text(82.0, 366.0, 22.0, "Linear algebra, statistics, tables and more in one native executable.", "#9db4c8");
+scene.text(82.0, 420.0, 16.0, "CHECKED OUTPUTS  /  " + ${str(v.intercept)} + " + " + ${str(v.slope)} + "x  /  z(0.975) = " + ${str(v.quantile)}, "#74c9bd");
+scene.rect(810.0, 50.0, 520.0, 492.0, "#182432");
+scene.rect(838.0, 78.0, 464.0, 436.0, "#202f3e");
+scene.line(880.0, 448.0, 1264.0, 448.0, "#40576b", 1.0);
+scene.line(880.0, 150.0, 880.0, 448.0, "#40576b", 1.0);
+scene.path("M 900.0 430.0 C 974.0 430.0 994.0 180.0 1090.0 180.0 C 1186.0 180.0 1206.0 430.0 1280.0 430.0", "none", "#74c9bd", 5.0);
+scene.line(1170.0, 237.0, 1170.0, 430.0, "#f5c16c", 3.0);
+scene.circle(1170.0, 237.0, 8.0, "#f5c16c");
+scene.text(884.0, 120.0, 16.0, "NORMAL QUANTILE  /  FIT CHECKS", "#9db4c8");
+scene.text(886.0, 482.0, 13.0, "native results, checked before drawing", "#9db4c8");
+scene.render_png("build/rendered/readme-hero-dark.png", 1400, 600, 1);
+end _dsl_
+savedsl(draw, "build/readme-hero-dark.dslb");
+r = system ${dsl_cli(draw)} --dsl build/readme-hero-dark.dslb;
+if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

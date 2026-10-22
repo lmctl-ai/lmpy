@@ -1,43 +1,65 @@
-# lmpy
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/readme/hero-light.png">
+    <img src="docs/readme/hero-light.png" alt="lmpy computes a normal quantile and least-squares fit in a native numerical host" width="100%">
+  </picture>
+</p>
 
-**lmpy** is a self-contained numerical toolbox in the spirit of numpy, scipy, pandas, statsmodels and scikit-learn, as
-**one native executable**. Python, R and Docker are not needed. You write programs as lmscript `_dsl_` blocks: lmscript
-type-checks them against [`native/schema/lmpy.dsl.json`](native/schema/lmpy.dsl.json) and compiles them to bytecode,
-and `lmpy --dsl FILE` runs the bytecode and prints one JSON result line.
+**lmpy brings linear algebra, statistics, tables, optimization and machine learning to LMScript in one native executable.** Python, R and Docker are not needed at runtime.
 
-```lmscript
-import "lmpy.lms";                                   // examples/dsl/lmpy.lms: savedsl + run lmpy + json_parse
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
-let f = read_csv("../data/tut-ols.csv");
-let fit = ols(f, "y", strs("x1, x2"));
-out.put("r2", fit.num("r2"));
-out.close("x1 slope", fit.res("coefficients").vec("estimate").at(1), 0.82797, 0.0001);
-end _dsl_
-v = lmpy.run(prog, "ols");
+[![Latest release](https://img.shields.io/github/v/release/lmctl-ai/lmpy?label=release)](https://github.com/lmctl-ai/lmpy/releases) [![CI](https://github.com/lmctl-ai/lmpy/actions/workflows/ci.yml/badge.svg)](https://github.com/lmctl-ai/lmpy/actions/workflows/ci.yml)
+
+## Made with lmpy
+
+| Probability | Least squares |
+| --- | --- |
+| ![Standard normal distribution and the 97.5th percentile](examples/renders/normal-quantile.png) | ![Least-squares line fitted to five points](examples/renders/least-squares-line.png) |
+| The standard normal 97.5th percentile. [Source](examples/book/normal-quantile.lms) · [example book](https://lmctl.com/tools/lmpy/examples/normal-quantile.html) | Fit and check an intercept and slope. [Source](examples/book/least-squares-line.lms) · [example book](https://lmctl.com/tools/lmpy/examples/least-squares-line.html) |
+
+| Linear algebra |  |
+| --- | --- |
+| ![A solved three by three linear system](examples/renders/matrix-solve.png) | |
+| Recover and check a known solution. [Source](examples/book/matrix-solve.lms) · [example book](https://lmctl.com/tools/lmpy/examples/matrix-solve.html) | |
+
+## How it works
+
+The diagram is rendered with [lmdraw](https://github.com/lmctl-ai/lmdraw) from [docs/readme/architecture-light.lms](docs/readme/architecture-light.lms). lmpy checks the example result used in the final node; its host emits one JSON result line for the calling LMScript program.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme/architecture-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/readme/architecture-light.png">
+  <img src="docs/readme/architecture-light.png" alt="LMScript source is compiled against the lmpy schema, run by the native engine, and returned as a checked JSON result" width="100%">
+</picture>
+
+## Quick start
+
+```sh
+npm install -g @lmctl-ai/lmctl
+lmctl init
+lmctl autorun https://lmctl.com/tools/lmpy/lmpy_solo.lms
 ```
 
-- **No-setup use from lmscript.** Write `p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";` and run it with
-  `system ${dsl_cli(p)} --dsl FILE;`. lmscript (≥ 0.2.359) compiles against the schema the binary prints
-  (`lmpy --dsl-schema --json`). When `lmpy` is not on PATH, lmscript downloads that release's `lmpy-OS-ARCH` once,
-  verified against GitHub's SHA-256 digest. See [examples/dsl/install-and-run.lms](examples/dsl/install-and-run.lms).
-- **Download.** Every [release](../../releases) has the bare executables `lmpy-OS-ARCH[.exe]` and archives for Linux x64/arm64 (glibc >= 2.28), macOS arm64/x64 and
-  Windows x64. Each archive holds the executable, the schema, the API reference and the licence notices. Only the
-  operating system's own libraries are shared dependencies.
-- **What it covers.** Arrays, matrices and tables (CSV, groupby, merge, rolling, resample); dense and sparse linear algebra;
-  31 distributions, special functions and a numpy-identical PCG64 random generator; optimisation, roots, quadrature and LP
-  (HiGHS); ODEs (solve_ivp methods with events); interpolation; signal processing; spatial and graph algorithms;
-  OLS/GLM/ARIMA and time-series tests; machine learning (linear models, logistic, SVC, naive Bayes, LDA, kNN, PCA,
-  k-means, cross-validation, metrics). See [native/API.md](native/API.md).
-- **Examples.** [examples/dsl/](examples/dsl/) has a `_dsl_` version of every pycli recipe and multi-step `task-*`
-  workflows.
-- **Build.** See [native/README.md](native/README.md). In short: `native/scripts/fetch-deps.sh`, then CMake + Ninja.
-  `native/test.sh` is the gate.
-- **Design.** [durable-memory/native-dsl.md](durable-memory/native-dsl.md).
+Use the published [trio script](https://lmctl.com/tools/lmpy/lmpy_trio.lms) for the Lead/Coder/Reviewer flow. For local programs, use `cli="lmpy" install="github:lmctl-ai/lmpy@latest"` in an LMScript `_dsl_` block.
 
-The rest of this README documents **pycli**, the earlier Python/Docker implementation of the same operations. It is kept
-for reference (and as the numerical oracle lmpy was checked against). Its workflow `pycli-docker.yml` runs only on demand.
+## Learn and download
 
----
+- [Get started](https://lmctl.com/tools/lmpy/get_started.html) · [tool guide](https://lmctl.com/tools/lmpy/guide.html) · [examples book](https://lmctl.com/tools/lmpy/)
+- [API summary](native/API.md) · [release downloads](https://github.com/lmctl-ai/lmpy/releases)
+- [LMScript language and DSL docs](https://lmctl.com/tools/lmscript/skill.html)
+
+## Artwork and examples
+
+Regenerate the README artwork and gallery with `docs/readme/render.sh`. The lmscript sources live in `docs/readme/`; gallery images are drawn from the checked and released lmpy example outputs.
+
+## License and company
+
+MIT License; Copyright (c) 2026 Lattice Systems LLC. See [LICENSE](LICENSE).
+
+Made by **Lattice Systems LLC**.
+
+<details>
+<summary>Historical pycli implementation and detailed reference</summary>
 
 # pycli (legacy)
 
@@ -97,7 +119,7 @@ verified here; it brings `lmctl` as well). The build needs a checkout of `lmctl-
 (default path `/home/ubuntu/repos/lmctl-ai/lmcpp`, override with `LMCPP_DIR=/path/to/lmcpp`).
 
 ```sh
-git clone git@github.com:lmctlhq/pycli.git && cd pycli
+git clone https://github.com/lmctlhq/pycli.git && cd pycli
 ./scripts/build.sh runtime            # network only during the build: hash-locked wheels, pinned Debian snapshot; ~10 min cold
 export PATH="$PWD/bin:$PATH"          # bin/pycli is the host shim; nothing is installed anywhere else
 mkdir -p ~/work && cd ~/work          # calls must run from a directory below HOME (not HOME itself)
@@ -1012,3 +1034,6 @@ and listed in `moments_undefined`) and rvs (PCG64 seed rules as before; a shorte
 NA inputs stay `NA` inline and become NaN in `stats_dist_to` artifacts (`n_missing` and `n_nan` are counted apart). The worker warms scipy with canonical parameters for the requested function only; the caller's parameters run under `time_limit`. scipy's parameterisation differs
 from R's in several places (genextreme `c` = -xi, truncnorm bounds are standardised, vonmises `loc` wraps into [-pi, pi], nbinom counts failures, geom starts at 1, levy_stable uses S1):
 see docs/s8b2.md. scipy sums the mass function for the cdf of zipf and betabinom, so zipf cdf/sf need x - loc <= 1e5, a zipf quantile beyond loc + 1e5 is `NA` for that point under the status `OUT_OF_RANGE` (`n_out_of_range`), and betabinom `n` is at most 5000. lognorm `mu` is within [-700, 700]; parameter magnitudes are otherwise capped at 1e12 except Student-t `df`. Hand formulas and mpmath are the oracles for the tests; `examples/oracle-dist.lms` cross-checks the shared families against R through rcli.
+
+
+</details>
