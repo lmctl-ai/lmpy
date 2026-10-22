@@ -17,10 +17,11 @@
 | ![Standard normal distribution and the 97.5th percentile](examples/renders/normal-quantile.png) | ![Least-squares line fitted to five points](examples/renders/least-squares-line.png) |
 | The standard normal 97.5th percentile. [Source](examples/book/normal-quantile.lms) · [example book](https://lmctl.com/tools/lmpy/examples/normal-quantile.html) | Fit and check an intercept and slope. [Source](examples/book/least-squares-line.lms) · [example book](https://lmctl.com/tools/lmpy/examples/least-squares-line.html) |
 
-| Linear algebra |  |
-| --- | --- |
-| ![A solved three by three linear system](examples/renders/matrix-solve.png) | |
-| Recover and check a known solution. [Source](examples/book/matrix-solve.lms) · [example book](https://lmctl.com/tools/lmpy/examples/matrix-solve.html) | |
+### Linear algebra
+
+![A solved three by three linear system](examples/renders/matrix-solve.png)
+
+Recover and check a known solution. [Source](examples/book/matrix-solve.lms) · [example book](https://lmctl.com/tools/lmpy/examples/matrix-solve.html)
 
 ## How it works
 
@@ -37,7 +38,7 @@ The diagram is rendered with [lmdraw](https://github.com/lmctl-ai/lmdraw) from [
 ```sh
 npm install -g @lmctl-ai/lmctl
 lmctl init
-lmctl autorun https://lmctl.com/tools/lmpy/lmpy_solo.lms
+lmctl autorun lmpy_solo
 ```
 
 Use the published [trio script](https://lmctl.com/tools/lmpy/lmpy_trio.lms) for the Lead/Coder/Reviewer flow. For local programs, use `cli="lmpy" install="github:lmctl-ai/lmpy@latest"` in an LMScript `_dsl_` block.
