@@ -5,4 +5,7 @@ THIRD_PARTY_NOTICES.md -whitespace
 native/schema/*.json -text
 native/API.md -text
 native/cpp/dslvm.hpp -text
+native/cpp/stdlib/** -text
+native/cpp/std/** -text
+native/sdk.lock -text
 *.sh text eol=lf

@@ -11,6 +11,7 @@ if [ "${1:-}" = "--verify" ]; then
   [ -f "$LOCK" ] || { echo "sdk.lock missing" >&2; exit 1; }
   count=0
   while IFS='=' read -r key want; do
+    want="${want%$'\r'}"
     case "$key" in
       sha256.*)
         file="${key#sha256.}"
