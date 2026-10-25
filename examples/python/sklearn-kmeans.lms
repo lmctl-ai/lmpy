@@ -11,7 +11,7 @@
 // Check: examples/python/check-parity.sh sklearn-kmeans
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn fit(name: string, x: Mat, k: int, seed: int, n_init: int, init: string) -> Estimator {
   let m = kmeans(x, k, opts().set("seed", seed).set("n_init", n_init).set("tol", 0.0001).set("init", init));
   out.check(name + " converged", m.ok());
@@ -59,7 +59,7 @@ out.close("iris centres", ki.centers().flatten(), vec("5.901612903225806 2.74838
 out.check("iris n_iter 4", ki.n_iter() == 4);
 out.close("iris random-init centres (same partition, other label order)", kr.centers().flatten(), vec("5.006 3.428 1.4620000000000002 0.24600000000000055 6.85 3.0736842105263156 5.742105263157894 2.0710526315789473 5.901612903225806 2.7483870967741937 4.393548387096774 1.4338709677419355"), 0.000000001);
 out.check("iris random-init n_iter 5", kr.n_iter() == 5);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sklearn-kmeans");
 println(sprintf("blobs: inertia wrong k %.4f, anisotropic %.4f, unequal variance %.4f, uneven sizes %.4f (n_init=10: %.4f)", v.wrong_k_inertia, v.aniso_inertia, v.varied_inertia, v.filtered_inertia, v.filtered_ninit10_inertia));

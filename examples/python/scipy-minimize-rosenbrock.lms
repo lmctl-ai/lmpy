@@ -7,7 +7,7 @@
 // Check: examples/python/check-parity.sh scipy-minimize-rosenbrock (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let rosen = "100*(b-a^2)^2 + (1-a)^2 + 100*(c-b^2)^2 + (1-b)^2 + 100*(d-c^2)^2 + (1-c)^2 + 100*(e-d^2)^2 + (1-d)^2";
 let names = strs("a, b, c, d, e");
 let x0 = vec(1.3, 0.7, 0.8, 1.9, 1.2);
@@ -36,7 +36,7 @@ out.put("slsqp_x", sl.vec("x"));
 out.put("slsqp_fun", sl.num("fun"));
 out.close("SLSQP x (scipy 1.16.2)", sl.vec("x"), vec(0.4149447491702523, 0.17011050165949543), 0.000000001);
 out.close("SLSQP fun (scipy 1.16.2)", sl.num("fun"), 0.3427175749941983, 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-minimize-rosenbrock");
 println(sprintf("Nelder-Mead f = %s; BFGS f = %s; SLSQP x = %s, f = %.12f", str(v.nelder_mead_fun), str(v.bfgs_fun), json_stringify(v.slsqp_x), v.slsqp_fun));

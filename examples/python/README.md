@@ -6,7 +6,7 @@ Each recipe is a pair:
   statsmodels, scikit-learn or networkx. Its header cites the source and lists any deviation, such as a fixed seed where
   the docs use an unseeded generator, or a bundled dataset where the docs download one. It prints its answers as one
   JSON object.
-- `NAME.lms` computes the same answers with lmpy in one `_dsl_` program. It records them with `out.put` under the same
+- `NAME.lms` computes the same answers with lmpy in one `_lmcode_` program. It records them with `out.put` under the same
   key names and pins the Python answers with `out.close` / `out.check`. It therefore passes on its own, with no Python
   installed, and `native/test.sh` runs it on all five CI platforms.
 

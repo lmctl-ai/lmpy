@@ -1,7 +1,7 @@
 // access: write (a temporary tut-ode-predator-prey.dslb, removed)
 // Topic: the Lotka-Volterra predator-prey system (after: the scipy-lectures ODE section and the classic scipy.integrate
 //   odeint tutorial example)
-// What it does: the _dsl_ version of ../tut-ode-predator-prey.lms. Integrates prey' = a prey - b prey pred, pred' = c prey pred - d pred
+// What it does: the _lmcode_ version of ../tut-ode-predator-prey.lms. Integrates prey' = a prey - b prey pred, pred' = c prey pred - d pred
 //   with ode (DOP853 at rtol 1e-10, atol 1e-12, 241 output points on [0, 30], event a - b pred = 0 falling: the prey maxima), measures
 //   the period from the sampled prey peaks with find_peaks, and checks: every event is a real maximum of the sampled prey curve (not
 //   just the root of the event expression), predators are a/b there, the conserved quantity c prey - d ln prey + b pred - a ln pred
@@ -15,7 +15,7 @@
 // How to run: lmscript examples/dsl/tut-ode-predator-prey.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let a = 1.1;
 let b = 0.4;
 let c = 0.1;
@@ -88,7 +88,7 @@ out.put("dt", dt);
 out.put("period_events", period_events);
 out.put("period_peaks", period_peaks);
 out.put("linearised", 2.0 * pi() / sqrt(a * d));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-ode-predator-prey");
 println(sprintf("%d output points on [0, 30]; prey in [%.3f, %.3f], predators in [%.3f, %.3f]; %d prey maxima detected", v.n_t, v.prey_min, v.prey_max, v.pred_min, v.pred_max, len(v.event_t)));

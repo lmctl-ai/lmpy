@@ -41,7 +41,7 @@ lmctl init
 lmctl autorun lmpy_solo
 ```
 
-Use the published [trio script](https://lmctl.com/tools/lmpy/lmpy_trio.lms) for the Lead/Coder/Reviewer flow. For local programs, use `cli="lmpy" install="github:lmctl-ai/lmpy@latest"` in an LMScript `_dsl_` block.
+Use the published [trio script](https://lmctl.com/tools/lmpy/lmpy_trio.lms) for the Lead/Coder/Reviewer flow. For local programs, use `cli="lmpy" install="github:lmctl-ai/lmpy@latest"` in an LMScript `_lmcode_` block.
 
 ## Learn and download
 

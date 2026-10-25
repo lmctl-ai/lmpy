@@ -12,7 +12,7 @@
 // How to run: lmscript examples/dsl/ode-stiff-robertson.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn relerr(got: Vec, want: Vec) -> float {
   return got.sub(want).abs().div(want.abs().add(0.000000000000000000001)).max();
 }
@@ -67,7 +67,7 @@ out.put("b_end", ry.at(7, 1));
 out.put("c_end", ry.at(7, 2));
 out.put("rk45_t", rk45.num("final_time"));
 out.put("rk45_nfev", rk45.int("nfev"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "ode-stiff-robertson");
 println(sprintf("at t = 4e5: a = %s  b = %s  c = %s (Radau)", v.a_end, v.b_end, v.c_end));

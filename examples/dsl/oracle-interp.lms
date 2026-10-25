@@ -1,5 +1,5 @@
 // access: write (a temporary oracle-interp.dslb, removed)
-// What it does: the _dsl_ version of ../oracle-interp.lms. Interpolates the same nodes with lmpy `interp` and compares the methods
+// What it does: the _lmcode_ version of ../oracle-interp.lms. Interpolates the same nodes with lmpy `interp` and compares the methods
 //   that are the same mathematical object as R's: linear <-> approx(linear), cubic natural <-> splinefun(natural), cubic periodic
 //   <-> splinefun(periodic). The original called rcli at run time; here R's answers are pinned (R 4.3.3, approx / splinefun at the
 //   same 14 points, printed with %.17g). The R methods that are NOT the same object (fmm vs not-a-knot, monoH.FC vs pchip) are
@@ -9,7 +9,7 @@
 // How to run: lmscript examples/dsl/oracle-interp.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let x = vec("0.0 0.5 1.5 2.0 3.5 4.0 6.0 6.5 8.0");
 let y = vec("1.2 0.7 2.9 3.1 1.4 0.2 2.2 3.3 1.9");
 let yp = vec("1.2 0.7 2.9 3.1 1.4 0.2 2.2 3.3 1.2");
@@ -40,7 +40,7 @@ out.put("worst", max(leg1, max(leg2, leg3)));
 # information only: different interpolants
 out.put("info_fmm", interp("cubic", x, y).eval(xout).sub(r_fmm).abs().max());
 out.put("info_mono", interp("pchip", x, y).eval(xout).sub(r_mono).abs().max());
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "oracle-interp");
 println("leg 0: not-a-knot cubic vs the cubic polynomial it samples");

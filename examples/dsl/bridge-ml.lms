@@ -1,5 +1,5 @@
 // access: write (bridge CSV and two safetensors files, removed; a temporary .dslb)
-// What it does: the _dsl_ version of ../bridge-ml.lms, the table/array bridge end to end: read_csv -> mutate (intercept column) ->
+// What it does: the _lmcode_ version of ../bridge-ml.lms, the table/array bridge end to end: read_csv -> mutate (intercept column) ->
 //   to_mat (design matrix and target) -> write_safetensors / read_safetensors (pycli's artifact format round trip) -> lstsq ->
 //   predictions joined back onto the table as `fitted` and `residual` columns. The fit recovers the generating coefficients
 //   (2, 3, -0.5) within the injected noise.
@@ -16,7 +16,7 @@ for (i = 0; i < 40; i = i + 1) {
 }
 write_file("bridge-dsl.csv", text);
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let table = read_csv("bridge-dsl.csv").mutate("one", "1");
 write_safetensors("design-dsl.safetensors", "a", table.to_mat(strs("one, x1, x2")));
 write_safetensors("target-dsl.safetensors", "b", table.col("y"));
@@ -40,7 +40,7 @@ out.check("safetensors round trip is exact", a.max_abs_diff(table.to_mat(strs("o
 out.put("head", enriched.head(3));
 remove_file("design-dsl.safetensors");
 remove_file("target-dsl.safetensors");
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "bridge-ml");
 c = v.coefficients;

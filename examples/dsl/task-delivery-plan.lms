@@ -10,7 +10,7 @@
 // How to run: lmscript examples/dsl/task-delivery-plan.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # step 1
 let g = graph(false);
 g.edge("D1", "J1", 4.0); g.edge("D1", "C1", 7.0); g.edge("J1", "C1", 2.0); g.edge("J1", "J2", 5.0);
@@ -64,7 +64,7 @@ for (i in range(0, nd)) {
   }
 }
 out.put("routes", routes);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "task-delivery-plan");
 println(sprintf("depot x customer km: %s", json_stringify(v.distance_table)));

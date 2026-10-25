@@ -1,5 +1,5 @@
 // access: write (temporary .dslb)
-// What it does: the _dsl_ version of ../sparse-poisson.lms. Assembles the 1-D Poisson matrix tridiagonal(-1, 2) from COO triplets in
+// What it does: the _lmcode_ version of ../sparse-poisson.lms. Assembles the 1-D Poisson matrix tridiagonal(-1, 2) from COO triplets in
 //   the DSL, solves -u'' = 2 on (0, 1) (the exact solution u(x) = x (1 - x) is reproduced exactly by the 3-point scheme) with a direct
 //   sparse LU, conjugate gradient and GMRES, and finds the smallest and largest three eigenvalues with seeded Lanczos (eigsh) against the
 //   analytic spectrum lambda_j = 4 sin^2(j pi / (2 (n + 1))). The DSL has sin, so the analytic values are computed in place.
@@ -7,7 +7,7 @@
 // How to run: lmscript examples/dsl/sparse-poisson.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let n = 120;
 let h = 1.0 / float(n + 1);
 let a = sparse(n, n);
@@ -55,7 +55,7 @@ out.put("analytic_low", analytic_low);
 out.put("analytic_high", analytic_high);
 out.put("max_relative_eig_error", rel);
 out.put("max_residual", low.num("max_residual"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sparse-poisson");
 tasks = ["spsolve", "cg", "gmres"];

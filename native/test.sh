@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lmpy gate: build, system-libraries-only check, schema drift, signature parity with the lmscript compiler, every _dsl_ example.
+# lmpy gate: build, system-libraries-only check, schema drift, signature parity with the lmscript compiler, every _lmcode_ example.
 # Usage: native/test.sh [BUILD_DIR]   (env: LMPY_DEPS, LMSCRIPT_BIN, JOBS, LMPY_EXAMPLES="a b" to run a subset)
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,7 +10,7 @@ pass=0; failn=0
 ok() { echo "PASS $1"; pass=$((pass+1)); }
 bad() { echo "FAIL $1"; failn=$((failn+1)); }
 
-"$HERE/scripts/sync-sdk.sh" --verify >/dev/null && ok "vendored dslvm.hpp matches sdk.lock" || bad "dslvm.hpp hash"
+"$HERE/scripts/sync-sdk.sh" --verify >/dev/null && ok "vendored lmcode-cpp files match sdk.lock" || bad "lmcode-cpp files differ from sdk.lock"
 cmake -S "$HERE" -B "$BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release ${LMPY_DEPS:+-DLMPY_DEPS="$LMPY_DEPS"} >/dev/null
 cmake --build "$BUILD" -j"${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}" >/dev/null
 case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) os=windows; BIN="$BUILD/lmpy.exe" ;; Darwin) os=macos; BIN="$BUILD/lmpy" ;; *) os=linux; BIN="$BUILD/lmpy" ;; esac
@@ -26,6 +26,12 @@ if [ -z "$deps" ]; then ok "lmpy needs only system libraries ($os, $size bytes)"
 if "$BIN" --dsl-schema --json | cmp -s - "$HERE/schema/lmpy.dsl.json"; then ok "schema/lmpy.dsl.json equals lmpy --dsl-schema --json"; else bad "schema drift: run $BIN --dsl-schema --json > native/schema/lmpy.dsl.json"; fi
 if "$BIN" --api-md | cmp -s - "$HERE/API.md"; then ok "API.md equals lmpy --api-md"; else bad "API.md drift: run $BIN --api-md > native/API.md"; fi
 if diff <("$BIN" --dsl-signatures) <("$LMSCRIPT" --dsl-signatures "$HERE/schema/lmpy.dsl.json") >/dev/null; then ok "registry signatures equal lmscript --dsl-signatures"; else bad "signature parity"; fi
+# the schema is host-only (lmscript injects the lmcode std catalog): the registry minus the canonical std signatures must be
+# exactly what the schema declares without std
+csort() { LC_ALL=C sort; }
+if diff <(LC_ALL=C comm -23 <("$BIN" --dsl-signatures | csort) <("$LMSCRIPT" --dsl-signatures "$HERE/cpp/std/lmcode-std.schema.json" | csort)) \
+        <("$LMSCRIPT" --dsl-signatures "$HERE/schema/lmpy.dsl.json" --without-std | csort) >/dev/null; then
+  ok "schema is host-only; the registry adds exactly the lmcode std catalog"; else bad "host/std signature split"; fi
 
 # cli="lmpy" examples must bind to this build, not to an installed or downloaded lmpy
 export PATH="$(cd "$(dirname "$BIN")" && pwd):$PATH"

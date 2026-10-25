@@ -9,7 +9,7 @@
 // Check: examples/python/check-parity.sh scipy-sparse-laplacian (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let nx = 12;
 let ny = 10;
 let n = nx * ny;
@@ -77,7 +77,7 @@ out.put("evals_large", lm.vec("w"));
 out.put("evals_small", sm.vec("w"));
 out.close("LM = dense top 3", lm.vec("w"), all.slice(97, 100), 0.000000001);
 out.close("SM = dense bottom 3", sm.vec("w"), all.slice(0, 3), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-sparse-laplacian");
 println(sprintf("Laplacian nnz %d; smallest %s; ARPACK LM %s; SM %s", v.nnz, json_stringify(v.eigsh_smallest), json_stringify(v.evals_large), json_stringify(v.evals_small)));

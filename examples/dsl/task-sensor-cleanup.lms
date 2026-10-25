@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/task-sensor-cleanup.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let fs = 200.0;
 # step 1
 let t = arange(2000).div(fs);
@@ -66,7 +66,7 @@ out.close_rel("amplitude within 5% of 1.0", pk.vec("peak_heights").mean(), 1.0, 
 out.put("rms_error_vs_clean", (z - clean).pow(2.0).mean());
 # step 6
 frame().with("t", t).with("value", z).write_csv("sensor-clean-dsl.csv");
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "task-sensor-cleanup");
 println(sprintf("spikes removed at samples %s; hum attenuated %.1f dB; 3 Hz power kept %.3f", json_stringify(v.spikes), v.hum_attenuation_db, v.power_kept_3hz));

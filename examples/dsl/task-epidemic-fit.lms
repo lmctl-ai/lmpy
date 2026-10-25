@@ -12,7 +12,7 @@
 // How to run: lmscript examples/dsl/task-epidemic-fit.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn sir(beta: float, gamma: float, days: int) -> Res {
   let o = opts().set("method", "DOP853").set("rtol", 0.00000001).set("atol", 0.000001).set("t_eval", arange(days));
   o.set("$b", beta).set("$g", gamma).set("$n", 10000.0);
@@ -81,7 +81,7 @@ out.close_rel("gamma within 5%", gamma, 0.10, 0.05);
 out.close_rel("R0 within 5%", beta / gamma, 3.0, 0.05);
 out.close("peak day within 2 days", peak, true_peak, 2.0);
 out.check("chi2 per observation near 1", fit_chi2 / float(obs.len()) > 0.5 && fit_chi2 / float(obs.len()) < 1.5);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "task-epidemic-fit");
 println(sprintf("fitted beta %.4f, gamma %.4f, R0 %.3f (truth 0.30, 0.10, 3.0) after %d ODE solves", v.beta, v.gamma, v.r0, v.ode_solves));

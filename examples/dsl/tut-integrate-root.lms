@@ -1,7 +1,7 @@
 // access: write (a temporary tut-integrate-root.dslb, removed)
 // Topic: numerical integration and root finding (after: the scipy-lectures "numerical integration" and "root finding" sections
 //   and the scipy.integrate / scipy.optimize tutorials)
-// What it does: the _dsl_ version of ../tut-integrate-root.lms. Integrates three textbook integrands with `quad` (QUADPACK; QAGI
+// What it does: the _lmcode_ version of ../tut-integrate-root.lms. Integrates three textbook integrands with `quad` (QUADPACK; QAGI
 //   for the infinite limits) and compares them with closed forms, solves Kepler's equation E - 0.3 sin E = 1 with `root_scalar`
 //   (brentq) and the system x^2 + y^2 = 4, y = x^2 - 2 with `root` (hybr), and ties integration to the distribution functions:
 //   the integral of the normal density over [-1.96, 1.96] equals 1 - 2 Phi(-1.96) from `dist("norm")`.
@@ -14,7 +14,7 @@
 // How to run: lmscript examples/dsl/tut-integrate-root.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn integral(label: string, f: string, a: float, b: float, exact: float) -> float {
   let r = quad(f, "x", a, b, opts().set("epsabs", 0.0).set("epsrel", 0.000000000001));
   out.check(label + ": status OK", r.ok());
@@ -60,7 +60,7 @@ let area = integral("normal", "dnorm(x)", -z, z, two_sided);
 out.close("quadrature agrees with the normal cdf", area, two_sided, 0.000000001);
 out.put("two_sided", two_sided);
 out.put("area", area);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-integrate-root");
 function show(label, key) {

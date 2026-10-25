@@ -11,7 +11,7 @@
 // Check: examples/python/check-parity.sh sklearn-nb-lda-knn
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn features(f: Frame) -> Mat {
   return f.to_mat(f.drop(strs("target")).names());
 }
@@ -96,7 +96,7 @@ out.close("unscaled PCA + GaussianNB accuracy 81.48%", acc_u, 0.8148148148148148
 out.close("scaled PCA + GaussianNB accuracy 98.15%", acc_s, 0.9814814814814815, 0.000000000001);
 out.close("wine LDA accuracy 1.0", lda.score(xte, yte), 1.0, 0.000000000001);
 out.close("wine LDA predict_proba first three test rows", lda.predict_proba(head_rows(xte, 3)).flatten(), vec("0.9999992669402173 7.330587228595557e-07 1.0598425077006582e-12 0.9999996397538863 3.6013937531748235e-07 1.0673846407281598e-10 8.510238251142026e-08 0.00027030030952514397 0.9997296145880924"), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sklearn-nb-lda-knn");
 println(sprintf("iris GaussianNB: Number of mislabeled points out of a total %d points : %d", v.iris_gnb_test_size, v.iris_gnb_mislabeled));

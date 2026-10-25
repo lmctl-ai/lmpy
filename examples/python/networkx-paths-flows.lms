@@ -9,7 +9,7 @@
 // parity-rtol: 1e-12
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn edge_names(r: Res) -> StrVec {
   let names = strs();
   let a = r.strs("flow_from");
@@ -66,7 +66,7 @@ out.check("min cost flow OK", mcf.ok());
 out.close("cost 24 (networkx docs)", mcf.num("cost"), 24.0, 0.0);
 out.check("min cost flow edges", edge_names(mcf).join(" ") == "a->b a->c b->d c->d");
 out.close("min cost flow amounts", mcf.vec("flow"), vec(4.0, 1.0, 4.0, 1.0), 0.0);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "networkx-paths-flows");
 println(sprintf("a -> f: %s (%.2f); b -> d: %s (%.2f); b -> f: %d edges", json_stringify(v.path_a_f), v.length_a_f, json_stringify(v.path_b_d), v.length_b_d, v.hops_b_f));

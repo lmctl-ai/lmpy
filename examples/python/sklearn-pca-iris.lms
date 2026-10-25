@@ -9,7 +9,7 @@
 // Check: examples/python/check-parity.sh sklearn-pca-iris
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let doc = ml_fit("pca", mat("-1 -1; -2 -1; -3 -2; 1 1; 2 1; 3 2"), opts().set("n_components", 2));
 out.put("doc_explained_variance_ratio", doc.params().vec("explained_variance_ratio"));
 out.put("doc_singular_values", doc.params().vec("singular_values"));
@@ -54,7 +54,7 @@ out.close("PCA rows 0, 50, 100", xr.take_rows(rows).flatten(), vec("-2.684125625
 out.close("LDA explained variance ratio", lda.params().vec("explained_variance_ratio"), vec("0.9912126049653672 0.00878739503463276"), 0.000000000001);
 out.close("LDA rows 0, 50, 100 (signed axes)", xr2.take_rows(rows).flatten(), vec("-8.061799783002678 0.30042062137877795 1.459275450967492 0.02854376432982057 7.839473985741417 2.1397334488246083"), 0.0000000001);
 out.close("LDA training accuracy 0.98", lda.score(x, y), 0.98, 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sklearn-pca-iris");
 println("explained variance ratio (first two components):", json_stringify(v.pca_explained_variance_ratio));

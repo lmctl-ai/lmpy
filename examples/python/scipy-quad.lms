@@ -13,7 +13,7 @@
 // Check: examples/python/check-parity.sh scipy-quad (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let p = pi();
 let jv = quad("sqrt(2/(pi*x)) * ((3/x^2 - 1)*sin(x) - 3*cos(x)/x)", "x", 0.0, 4.5, opts().set("$pi", p));
 out.check("jv quad OK", jv.ok());
@@ -70,7 +70,7 @@ out.put("dblquad_box", box);
 out.put("dblquad_triangle", tri);
 out.close("box = 2/3", box, 2.0 / 3.0, 0.000000000000001);
 out.close("triangle = 1/96", tri, 1.0 / 96.0, 0.000000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-quad");
 println(sprintf("J_2.5 integral %.15f (exact %.15f); E_3(1) = %.12f; triangle %.15f", v.jv25, v.jv25_exact, v.expint3[0], v.dblquad_triangle));

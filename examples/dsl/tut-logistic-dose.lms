@@ -1,6 +1,6 @@
 // access: write (a temporary tut-logistic-dose.dslb, removed)
 // Topic: logistic dose-response and the median lethal dose (after: the R ?glm budworm example in MASS)
-// What it does: the _dsl_ version of ../tut-logistic-dose.lms. Fits dead ~ ldose with a binomial GLM (logit link, `glm`) on one row
+// What it does: the _lmcode_ version of ../tut-logistic-dose.lms. Fits dead ~ ldose with a binomial GLM (logit link, `glm`) on one row
 //   per insect, evaluates the fitted curve at the tested doses through `special("expit", ...)`, locates the dose with 50% mortality
 //   (LD50) two ways (closed form -b0/b1 and `root_scalar` on the fitted logit) and checks the fit against the generating curve.
 // Data: ../data/tut-dose.csv, 240 rows: 40 insects at each dose 1,2,4,...,32; P(dead) = expit(-3 + 1.2 log2(dose)), seed 103.
@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/tut-logistic-dose.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let true_b0 = -3.0;
 let true_b1 = 1.2;
 let fit = glm(read_csv("../data/tut-dose.csv"), "dead", strs("ldose"), "binomial", opts().set("link", "logit"));
@@ -50,7 +50,7 @@ out.put("mortality", pr);
 out.put("ld50_closed", ld50_closed);
 out.put("ld50_root", ld.num("root"));
 out.put("ld50_true", -true_b0 / true_b1);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-logistic-dose");
 println(sprintf("logit P(dead) = %.3f + %.3f * log2(dose)   (SE %.3f, %.3f; deviance %.2f on %d df)", v.b0, v.b1, v.se0, v.se1, v.deviance, v.df_resid));

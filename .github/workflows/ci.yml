@@ -2,7 +2,7 @@ name: lmpy
 
 # Builds the lmpy executable on five platforms, runs native/test.sh (system-libraries-only check, schema/API drift, signature
 # parity with the lmscript compiler, every examples/dsl and examples/book program), and on a v* tag attaches to the GitHub release: the bare
-# executables lmpy-OS-ARCH[.exe] (lmscript's `_dsl_ install=` downloads these, verified by the asset digest), one archive per
+# executables lmpy-OS-ARCH[.exe] (lmscript's `_lmcode_ install=` downloads these, verified by the asset digest), one archive per
 # platform (executable, schema, API reference, licences), the schema itself and SHA256SUMS.
 # Linux builds run in manylinux_2_28 containers so the binary needs only glibc >= 2.28 (RHEL 8, Debian 10, Ubuntu 18.10 and
 # later); everything else (libstdc++, Eigen, Boost, HiGHS, ...) is linked in. No Python is installed or used.
@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 env:
-  LMCTL_VERSION: 0.2.369   # lmscript cli=install support, including @latest
+  LMCTL_VERSION: 0.2.420   # lmscript with _lmcode_ and the implicit lmcode std catalog (and cli=/install=, including @latest)
 
 jobs:
   build:
@@ -123,7 +123,7 @@ jobs:
           cd dist
           if [ "$RUNNER_OS" = "Windows" ]; then 7z a -tzip "$pkg.zip" "$pkg" >/dev/null; else tar -czf "$pkg.tar.gz" "$pkg"; fi
           rm -rf "$pkg"
-          # the bare executable, named PROGRAM-OS-ARCH[.exe]: what lmscript `_dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@TAG"`
+          # the bare executable, named PROGRAM-OS-ARCH[.exe]: what lmscript `_lmcode_ cli="lmpy" install="github:lmctl-ai/lmpy@TAG"`
           # downloads. Copied after the staging directory of the same name (on Linux/macOS) is gone.
           cp "../native/build/lmpy$ext" "lmpy-${{ matrix.name }}$ext"
           test -f "lmpy-${{ matrix.name }}$ext" && test ! -d "lmpy-${{ matrix.name }}$ext"

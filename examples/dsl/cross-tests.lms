@@ -1,6 +1,6 @@
 // access: write (a temporary cross-tests.dslb, removed)
 // Cross-language agreement: a pooled two-sample t-test and a chi-square test of independence in lmpy and R.
-// What it does: the _dsl_ version of ../cross-tests.lms. On examples/data/tut-groups.csv, (1) the pooled t-test ctrl vs trt2 is the
+// What it does: the _lmcode_ version of ../cross-tests.lms. On examples/data/tut-groups.csv, (1) the pooled t-test ctrl vs trt2 is the
 //   t statistic of the group dummy in a two-group regression (`ols`; `ttest_ind` is checked to give the same answer), (2) the
 //   chi-square test of the 3 x 2 group x flowered table uses the statistic computed in the DSL from a `groupby` count table and the
 //   chi-square survival function from `dist`. Both are compared with R 4.3.3 values pinned here, computed with Rscript:
@@ -13,7 +13,7 @@
 // How to run: lmscript examples/dsl/cross-tests.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-groups.csv");
 let ctrl = f.where("group", "ctrl");
 let trt2 = f.where("group", "trt2");
@@ -65,7 +65,7 @@ out.put("diff", vec(diff, r_diff));
 out.put("ti", vec(ti.num("statistic"), ti.num("pvalue")));
 out.put("x2", vec(x2, r_x2));
 out.put("pchi", vec(pchi, r_pchi));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "cross-tests");
 println(sprintf("%-28s %20s %20s  %s", "quantity", "lmpy", "r", "abs diff"));

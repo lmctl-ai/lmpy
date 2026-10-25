@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/task-portfolio.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # step 1: true covariance (daily %) and means
 let truth = mat("1.00 0.30 0.20 0.10; 0.30 0.64 0.12 0.08; 0.20 0.12 0.36 0.05; 0.10 0.08 0.05 0.25");
 let mu_true = vec(0.30, 0.25, 0.20, 0.15);
@@ -80,7 +80,7 @@ let z = dist("norm").ppf(0.01);
 let var99 = -(ret + z * sigma);
 out.put("var_99", var99);
 out.close("VaR = -(mu + z sigma)", var99, -ret + 2.3263478740408408 * sigma, 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "task-portfolio");
 w = v.min_var_weights;

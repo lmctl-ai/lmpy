@@ -1,7 +1,7 @@
 // access: write (a temporary tut-fft-peaks.dslb, removed)
 // Topic: the spectrum of a noisy two-tone signal and peak finding (after: the scipy-lectures signal processing chapter and the
 //   scipy.signal periodogram / find_peaks tutorials)
-// What it does: the _dsl_ version of ../tut-fft-peaks.lms. Reads the sampled signal (read_csv; no npz/safetensors round trip), estimates
+// What it does: the _lmcode_ version of ../tut-fft-peaks.lms. Reads the sampled signal (read_csv; no npz/safetensors round trip), estimates
 //   its periodogram (spectrum scaling), finds the spectral peaks with find_peaks (prominence >= 0.02), repeats the estimate with Welch
 //   averaging, and checks that the two strongest peaks sit on the 5 Hz and 12 Hz bins with the expected 4:1 power ratio (amplitudes 1
 //   and 0.5) and that Welch agrees on the dominant frequency.
@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/tut-fft-peaks.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let fs = 100.0;
 let x = read_csv("../data/tut-signal.csv").col("signal");
 let s = periodogram(x, fs, opts().set("scaling", "spectrum"));
@@ -48,7 +48,7 @@ out.check("power ratio in [3, 5.5]", ratio >= 3.0 && ratio <= 5.5);
 out.close("5 Hz power near A^2/2 = 0.5", h.take(order).at(0), 0.5, 0.1);
 out.close("Welch peak at 5 Hz", w.num("peak_freq"), 5.0, 0.001);
 out.close("peak powers match scipy", h.take(order).slice(0, 2), vec(0.4949340703519228, 0.1360777784207671), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-fft-peaks");
 println(sprintf("periodogram: %d bins, df=%.3f Hz, peak at %.2f Hz, total power %.4f", v.n_bins, v.df, v.peak_freq, v.total_power));

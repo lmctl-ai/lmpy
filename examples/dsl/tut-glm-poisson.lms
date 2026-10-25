@@ -1,6 +1,6 @@
 // access: write (a temporary tut-glm-poisson.dslb, removed)
 // Topic: Poisson regression for counts with an exposure offset (after: the R ?glm help page and the statsmodels GLM notebook)
-// What it does: the _dsl_ version of ../tut-glm-poisson.lms. Fits count ~ C(group, A) with hours as the exposure by `glm` (poisson,
+// What it does: the _lmcode_ version of ../tut-glm-poisson.lms. Fits count ~ C(group, A) with hours as the exposure by `glm` (poisson,
 //   log link), reports rate ratios with intervals, refers the deviance drop to chi-square(df_model) with `dist`, and checks the group
 //   rate ratios against the values the data were generated with, all in one DSL program.
 // Data: examples/data/tut-poisson.csv, 90 rows (30 per group A/B/C): count ~ Poisson(2 * exp(0.5 [B] - 0.4 [C]) * hours), seed 102.
@@ -9,7 +9,7 @@
 // How to run: lmscript examples/dsl/tut-glm-poisson.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let fit = glm(read_csv("../data/tut-poisson.csv"), "count", "C(group, A)", "poisson", opts().set("link", "log").set("exposure", "hours"));
 out.check("status OK", fit.ok());
 out.check("converged", fit.flag("converged"));
@@ -47,7 +47,7 @@ out.put("rr_lo", c.vec("ci_lower").exp());
 out.put("rr_hi", c.vec("ci_upper").exp());
 out.put("drop", drop);
 out.put("p", p);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-glm-poisson");
 println(sprintf("poisson/log, n=%d, converged in %d IRLS steps; deviance=%.3f on %d df (null %.3f), AIC=%.2f", v.n, v.n_iter, v.deviance, v.df_resid, v.null_deviance, v.aic));

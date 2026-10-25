@@ -1,5 +1,5 @@
 // access: write (a temporary curve-fit.dslb, removed)
-// What it does: the _dsl_ version of ../curve-fit.lms. Generates exponential-decay data y = c + a*exp(-b*t) plus
+// What it does: the _lmcode_ version of ../curve-fit.lms. Generates exponential-decay data y = c + a*exp(-b*t) plus
 //   closed-form deterministic pseudo-noise, fits it with `least_squares` (model + response, data bound with `$t`, `$y`),
 //   and checks the recovered parameters, the residual level, the reported standard errors and an independent
 //   recomputation of the residual sum of squares.
@@ -10,7 +10,7 @@
 // How to run: lmscript examples/dsl/curve-fit.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let t = arange(30).mul(0.2);
 # deterministic zig-zag noise in [-0.02, 0.02]: ((i*37 + 11) mod 17 - 8) / 400
 let noise = arange(30).apply("((x * 37 + 11) - 17 * floor((x * 37 + 11) / 17) - 8) / 400");
@@ -33,7 +33,7 @@ out.close("curve_fit se(a)", se.num("a"), 0.00870549212362281, 0.000001);
 out.close("curve_fit se(b)", se.num("b"), 0.00621391816949541, 0.000001);
 out.close("curve_fit se(c)", se.num("c"), 0.00550160763524679, 0.000001);
 out.put("fit", fit);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "curve-fit");
 p = v.fit.par;

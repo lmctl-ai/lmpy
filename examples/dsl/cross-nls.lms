@@ -1,5 +1,5 @@
 // access: write (a temporary cross-nls.dslb, removed)
-// What it does: the _dsl_ version of ../cross-nls.lms. Fits the Gaussian peak b + a exp(-(x - m)^2 / (2 s^2)) to
+// What it does: the _lmcode_ version of ../cross-nls.lms. Fits the Gaussian peak b + a exp(-(x - m)^2 / (2 s^2)) to
 //   examples/data/tut-peak.csv with `least_squares` from the data-derived start (b = min y, a = max y - min y, m = x at
 //   the maximum, s = 1) and tight tolerances (tol 1e-12), then compares the four parameters, their standard errors and
 //   the residual standard deviation with R's nls on the same data and start. The original ran R through rcli at run
@@ -14,7 +14,7 @@
 // How to run: lmscript examples/dsl/cross-nls.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-peak.csv");
 let x = f.col("x");
 let y = f.col("y");
@@ -44,7 +44,7 @@ out.put("r_se", r_se);
 out.put("sigma", sigma);
 out.put("r_sigma", r_sigma);
 out.put("nfev", fit.int("nfev"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "cross-nls");
 println("start from the data:", json_stringify(v.start));

@@ -1,5 +1,5 @@
 // access: write (a temporary oracle-root.dslb, removed)
-// What it does: the _dsl_ version of ../oracle-root.lms. Solves the same equations with `root` (the bracketed brentq form,
+// What it does: the _lmcode_ version of ../oracle-root.lms. Solves the same equations with `root` (the bracketed brentq form,
 //   then hybr and lm on a system) and `root_scalar`, and checks the known answers: the classic root of x^3 - 2x - 5
 //   (2.0945514815423265) and the circle/line system x^2 + y^2 = 4, x = y (x = y = sqrt 2). A system with no real root
 //   must be reported as NO_CONVERGENCE with its residual, never as success. The original also ran R's uniroot through
@@ -9,7 +9,7 @@
 // How to run: lmscript examples/dsl/oracle-root.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let known = 2.0945514815423265;
 let b = root(strs("x^3 - 2*x - 5"), strs("x"), vec(2.0), opts().set("bracket", vec(2.0, 3.0)).set("xtol", 0.00000000000001));
 let n = root_scalar("x^3 - 2*x - 5", "x", 2.0, 3.0, opts().set("xtol", 0.00000000000001));
@@ -33,7 +33,7 @@ let none = root(strs("x^2 + 1"), strs("x"), vec(1.0));
 out.check("x^2 + 1 is NO_CONVERGENCE", none.status() == "NO_CONVERGENCE");
 out.check("x^2 + 1 best residual >= 0.99", none.num("residual_max") >= 0.99);
 out.put("none", none);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "oracle-root");
 println(sprintf("root of x^3 - 2x - 5: known %.16f | root (brentq bracket) %.16f | root_scalar %.16f", 2.0945514815423265, v.bracket_root, v.scalar_root));

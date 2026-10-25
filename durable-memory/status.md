@@ -8,7 +8,7 @@
 
 ## Not done (deliberately)
 - Parquet support (needs the large pyarrow wheel).
-- The re-engineering requested by the owner: one binary with no Python runtime. **Done on branch `native-dsl` as lmpy (C++, `_dsl_` model): see `durable-memory/native-dsl.md`.** The earlier Rust plan in `durable-memory/native-plan.md` (multicall Rust binary `lmpy`, invoked as `pycli` it serves this tool's byte-identical schema; self re-exec worker with rlimits + seccomp; docker image frozen as test oracle with tolerance tiers; ~38-45 engineer-weeks). Blockers before linking upstream code publicly: lmda Tukey GPL-derived code, lmstats Numerical Recipes routines, WMA/Erlang-A provenance.
+- The re-engineering requested by the owner: one binary with no Python runtime. **Done on branch `native-dsl` as lmpy (C++, `_lmcode_` model): see `durable-memory/native-dsl.md`.** The earlier Rust plan in `durable-memory/native-plan.md` (multicall Rust binary `lmpy`, invoked as `pycli` it serves this tool's byte-identical schema; self re-exec worker with rlimits + seccomp; docker image frozen as test oracle with tolerance tiers; ~38-45 engineer-weeks). Blockers before linking upstream code publicly: lmda Tukey GPL-derived code, lmstats Numerical Recipes routines, WMA/Erlang-A provenance.
 - RNG decision: R-identical streams are NOT required; PCG64-style with a statistical guarantee is fine. Do not copy GPL R/Rmath source (clean-room; scipy/statsmodels/sklearn are BSD and may be consulted with notices kept).
 
 ## Rules that apply

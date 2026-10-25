@@ -1,7 +1,7 @@
 // access: write (a temporary tut-lp-diet.dslb, removed)
 // Topic: the diet problem as a linear programme, its integer version, and a small constrained minimisation (after: the
 //   classic Stigler diet problem as presented in LP tutorials, and the scipy.optimize tutorial's SLSQP example)
-// What it does: the _dsl_ version of ../tut-lp-diet.lms. Reads the food table, solves the cheapest diet meeting calorie,
+// What it does: the _lmcode_ version of ../tut-lp-diet.lms. Reads the food table, solves the cheapest diet meeting calorie,
 //   protein and calcium minimums (`linprog`), re-solves with whole servings (integrality), reads the calorie shadow price
 //   from the duals and verifies it by re-solving with one more calorie; then minimises (x-1)^2 + (y-2.5)^2 under three
 //   linear inequalities with `minimize` (SLSQP) and checks the known optimum.
@@ -15,7 +15,7 @@
 // How to run: lmscript examples/dsl/tut-lp-diet.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-diet.csv");
 let foods = f.text("food");
 let cost = f.col("cost");
@@ -88,7 +88,7 @@ out.put("delta", delta);
 out.put("milp_x", xi);
 out.put("milp_objective", ip.num("objective"));
 out.put("slsqp", mn);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-lp-diet");
 println(sprintf("cheapest diet: %.4f per day", v.objective));

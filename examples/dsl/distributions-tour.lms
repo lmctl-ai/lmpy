@@ -1,5 +1,5 @@
 // access: write (a temporary distributions-tour.dslb, removed)
-// What it does: the _dsl_ version of ../distributions-tour.lms. Tours distribution families that R does not offer through rcli: a generalised
+// What it does: the _lmcode_ version of ../distributions-tour.lms. Tours distribution families that R does not offer through rcli: a generalised
 //   extreme value (genextreme), a heavy-tailed skewed family (skewnorm), johnsonsu and a discrete one (zipf). It checks the Gumbel special case of
 //   genextreme (c = 0: cdf = exp(-exp(-x))), the round trips cdf(ppf(p)) = p (discrete: cdf(ppf(p)) >= p), the closed-form moments of the
 //   skew-normal, that t(1) has no mean, and that seeded variates are reproducible. Scipy's parameterisation: genextreme c = -xi of the usual GEV
@@ -8,7 +8,7 @@
 // How to run: lmscript examples/dsl/distributions-tour.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn round_trip(label: string, d: Dist, levels: Vec, discrete: bool) -> void {
   let q = d.ppf(levels);
   let back = d.cdf(q);
@@ -53,7 +53,7 @@ let b = ge.rvs(5, 42);
 out.put("rvs", a);
 out.close("seed 42 reproduces the stream", a, b, 0.0);
 out.check("a shorter n is a prefix", ge.rvs(3, 42).at(2) == a.at(2));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "distributions-tour");
 println("genextreme with c = 0 equals exp(-exp(-x)):", json_stringify(v.gumbel));

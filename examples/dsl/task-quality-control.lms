@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/task-quality-control.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # step 1
 let gen = rng(2026);
 let lines = strs("A, B, C");
@@ -81,7 +81,7 @@ let bad = data.filter("diameter < 9.94 | diameter > 10.06");
 bad.write_csv("out-of-spec-dsl.csv");
 out.put("out_of_spec", bad.nrows());
 out.check("spec count consistent", bad.nrows() == diam.lt(lsl).count() + diam.gt(usl).count());
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "task-quality-control");
 s = v.summary.data;

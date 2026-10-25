@@ -10,7 +10,7 @@
 // How to run: lmscript examples/dsl/task-heat-equation.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let n = 199;
 let h = 1.0 / float(n + 1);
 let alpha = 1.0;
@@ -48,7 +48,7 @@ out.check("energy decreases every step", monotone);
 out.check("maximum principle 0 <= u <= 1", bounded);
 # step 5: export
 frame().with("x", x).with("u", u).with("exact", exact).write_csv("heat-profile-dsl.csv");
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "task-heat-equation");
 println(sprintf("t = %.3f: peak %.6f, max |u - exact| = %.8f, decay rate %.5f (alpha pi^2 = %.5f)", v.time, v.peak, v.max_error, v.decay_rate, 9.869604401089358));

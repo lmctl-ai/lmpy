@@ -1,5 +1,5 @@
 // access: write (a temporary sensor-pipeline.dslb, removed)
-// What it does: the _dsl_ version of ../sensor-pipeline.lms. A sensor record sampled every 5 s (three smooth bursts plus deterministic
+// What it does: the _lmcode_ version of ../sensor-pipeline.lms. A sensor record sampled every 5 s (three smooth bursts plus deterministic
 //   pseudo-random noise from the same integer LCG) is written as CSV text with 6-decimal values, parsed (csv), averaged to one-minute
 //   bins (Frame.resample "1min", value:mean), low-pass filtered with a zero-phase Butterworth (iir + Filter.filtfilt = sosfiltfilt)
 //   and searched for peaks (find_peaks height 2.5, distance 15). The three bursts must come back within one minute of the truth.
@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/sensor-pipeline.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let centres = vec(20.0, 50.0, 80.0);
 let heights = vec(4.0, 6.0, 5.0);
 let t0 = parse_time("2026-02-01T00:00:00Z");
@@ -52,7 +52,7 @@ out.put("n_sections", flt.n_sections());
 out.put("stable", flt.stable());
 out.put("indices", idx);
 out.put("heights", p.vec("peak_heights"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sensor-pipeline");
 println(sprintf("resampled to %d one-minute means (first bin %s)", v.bins, v.first_bin));

@@ -1,5 +1,5 @@
 // access: write (a temporary minimize-rosenbrock.dslb, removed)
-// What it does: the _dsl_ version of ../minimize-rosenbrock.lms. Minimises Rosenbrock's function twice with `minimize`
+// What it does: the _lmcode_ version of ../minimize-rosenbrock.lms. Minimises Rosenbrock's function twice with `minimize`
 //   (BFGS with finite differences, then with analytic gradient expressions) and checks the known minimum (1, 1), an
 //   independent recomputation of the objective at the reported point, and that the analytic gradient needs fewer
 //   objective evaluations.
@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/minimize-rosenbrock.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let objective = "100*(y-x^2)^2 + (1-x)^2";
 let names = strs("x, y");
 let x0 = vec(-1.2, 1.0);
@@ -34,7 +34,7 @@ out.check("analytic gradient needs fewer evaluations", exact.int("nfev") < fd.in
 out.check("gradient expressions agree with finite differences at x0", exact.strs("warnings").len() == 0);
 out.put("fd", fd);
 out.put("exact", exact);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "minimize-rosenbrock");
 println(sprintf("finite differences: x=%.6f y=%.6f value=%.10f nfev=%d", v.fd.par.x, v.fd.par.y, v.fd.fun, v.fd.nfev));

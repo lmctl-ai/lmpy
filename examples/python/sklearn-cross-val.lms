@@ -9,7 +9,7 @@
 // Check: examples/python/check-parity.sh sklearn-cross-val
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let iris = read_csv("data/iris.csv");
 let x = iris.to_mat(iris.drop(strs("target")).names());
 let y = iris.col("target");
@@ -43,7 +43,7 @@ out.close("LinearSVC cv=5", ml_cv("linear_svc", x, y, 5).vec("scores"), vec("1.0
 out.close("kNN cv=5 mean", ml_cv("knn_classifier", x, y, 5).num("mean"), 0.9733333333333334, 0.000000000001);
 out.close("StratifiedKFold(shuffle, 0) test folds of rows 0-9", ml_cv("logistic", x, y, 5, opts().set("cv", "stratified").set("shuffle", true).set("seed", 0)).vec("test_fold").slice(0, 10), vec("2 1 1 4 0 2 3 3 2 0"), 0.0);
 out.close("KFold(shuffle, 42) kNN", kf.vec("scores"), vec("1.0 1.0 0.9666666666666667 0.9333333333333333 0.9666666666666667"), 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sklearn-cross-val");
 println(sprintf("iris cv=5 mean accuracy: logistic %.4f, kNN %.4f, LinearSVC %.4f, LDA %.4f, GaussianNB %.4f", v.cv5_logistic_mean, v.cv5_knn_mean, v.cv5_linear_svc_mean, v.cv5_lda_mean, v.cv5_gnb_mean));

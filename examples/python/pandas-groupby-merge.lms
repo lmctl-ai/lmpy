@@ -9,7 +9,7 @@
 // Check: examples/python/check-parity.sh pandas-groupby-merge (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn joined(a: StrVec, b: StrVec) -> StrVec {
   let r = strs();
   for (i in range(0, a.len())) { r.push(a.at(i) + "|" + b.at(i)); }
@@ -82,7 +82,7 @@ let desc = ddf.describe();
 out.put("describe_stats", desc.text("stat"));
 out.put("describe", concat(concat(desc.col("A"), desc.col("B")), concat(desc.col("C"), desc.col("D"))));
 out.close("describe A mean, std (pandas)", desc.col("A").slice(1, 3), vec(-0.6897452778989281, 0.45737401791128846), 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "pandas-groupby-merge");
 println("groupby A sum C: " + json_stringify(v.group_a_C_sum));

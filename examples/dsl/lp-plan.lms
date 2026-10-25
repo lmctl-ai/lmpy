@@ -1,5 +1,5 @@
 // access: write (a temporary lp-plan.dslb, removed)
-// What it does: the _dsl_ version of ../lp-plan.lms. Reads a one-row demand table (the original wrote it to
+// What it does: the _lmcode_ version of ../lp-plan.lms. Reads a one-row demand table (the original wrote it to
 //   demand-s4.csv and imported it; here it is parsed from text with `csv`), builds the production LP
 //   min cost_r x + cost_p y  s.t.  x + y >= total_units, x + 3y >= quality_min, 0 <= x <= regular_capacity,
 //   0 <= y <= premium_capacity  and solves it with `linprog` (HiGHS).
@@ -8,7 +8,7 @@
 // How to run: lmscript examples/dsl/lp-plan.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let d = csv("total_units,quality_min,regular_capacity,premium_capacity,regular_cost,premium_cost\n3,5,4,3,1,2\n");
 let c = vec(d.num("regular_cost", 0), d.num("premium_cost", 0));
 # >= rows written as <= rows with negated coefficients
@@ -22,7 +22,7 @@ out.close("total cost", plan.num("objective"), 4.0, 0.00000001);
 out.check("optimality verified by the certificate", plan.flag("optimality_verified"));
 out.put("x", x);
 out.put("objective", plan.num("objective"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "lp-plan");
 println(sprintf("regular=%.6f premium=%.6f total_cost=%.6f", v.x[0], v.x[1], v.objective));

@@ -1,5 +1,5 @@
 // access: write (a temporary cross-kmeans.dslb, removed)
-// What it does: the _dsl_ version of ../cross-kmeans.lms. Clusters the two petal measurements of the flowers table into three
+// What it does: the _lmcode_ version of ../cross-kmeans.lms. Clusters the two petal measurements of the flowers table into three
 //   groups with ml_fit("kmeans", ...) (k-means++, n_init 10, seed 7) and checks agreement with R's stats::kmeans (Hartigan-Wong,
 //   nstart 10, set.seed(7)), whose result is pinned here: the R partition is rebuilt by assigning every row to the nearest pinned R
 //   centre, then compared with lmpy's labels by the adjusted Rand index; the within-cluster sum of squares is recomputed from
@@ -14,7 +14,7 @@
 // How to run: lmscript examples/dsl/cross-kmeans.lms
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-flowers.csv");
 let x = f.to_mat(strs("petal_length, petal_width"));
 let n = x.rows();
@@ -69,7 +69,7 @@ for (k in range(0, 3)) {
 }
 out.close("centres vs R (matched)", worst, 0.0, 0.000000001);
 out.check("status OK", km.ok());
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "cross-kmeans");
 println(sprintf("%-28s %20s %20s", "quantity", "lmpy", "r"));

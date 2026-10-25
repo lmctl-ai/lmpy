@@ -1,11 +1,11 @@
-// cpp-dsl-sdk: the C++ runtime for lmscript `_dsl_` bytecode. Header-only, C++17, standard library only.
-// Single source of truth: github.com/lmctl-ai/cpp-dsl-sdk/include/dslvm.hpp (hosts vendor it by pinned sha256, see README).
+// lmcode-cpp: the C++ runtime for lmscript `_dsl_` bytecode. Header-only, C++17, standard library only.
+// Single source of truth: github.com/lmctl-ai/lmcode-cpp/include/dslvm.hpp (hosts vendor it by pinned sha256, see README).
 //
 // Public API (everything else in this header is an implementation detail):
 //   dslvm::Error                         exception for load, verify and run-time failures: what() names the problem; code is one of
 //                                        LOAD_BAD_BYTECODE, LOAD_SCHEMA_MISMATCH, LOAD_UNBOUND, RUN_ERROR (VM), RUN_HOST (thrown by a host
 //                                        closure), APP_FAIL (the host's own application failure, see report_app_failure)
-//   dslvm::Value                         tagged value: VOID, INT (int64, two's complement), FLOAT (binary64), STR (UTF-8), BOOL, OBJ (host pointer + schema type name)
+//   dslvm::Value                         tagged value: VOID, INT (int64, two's complement), FLOAT (binary64), STR (arbitrary bytes), BOOL, OBJ (host pointer + schema type name)
 //   dslvm::Args                          std::vector<Value> of call arguments, in order
 //   dslvm::Registry                      the implementation of the schema, declared with its types: function(name, {param types}, return
 //                                        type, fn), method(type, name, {param types}, return type, fn), context(name, type); entries are
@@ -26,7 +26,7 @@
 //   dslvm::sha256 / hex / read_file      helpers the hosts use for the schema binding and files
 //
 // Bytecode v5 (big-endian, fixed widths, IEEE-754 binary64): magic "DSLB", u16 version 5, sha256(schema bytes);
-// constants: u32 count, each u8 tag (1 = string) + u32 length + UTF-8; imports: u16 count, each u32 constant index of a canonical
+// constants: u32 count, each u8 tag (1 = string) + u32 length + raw bytes; imports: u16 count, each u32 constant index of a canonical
 // signature (`fn NAME(T1, T2) -> R`, `method Type.name(T1) -> R`) resolved against the registry at load; context: u16 count,
 // each (u32 name constant, u32 type constant) checked against the registry's declarations; locals: u16 count, each (u32 type-name
 // constant, u8 hidden flag); u16 max_stack (the compiler's measured operand-stack depth: the VM reserves it, nothing is checked
@@ -53,6 +53,7 @@
 #include <fstream>
 #include <iostream>
 #include <functional>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -144,10 +145,41 @@ struct FunctionEntry { Signature sig; Function fn; };
 struct MethodEntry { Signature sig; Method fn; };
 inline std::string signature_text(const Signature& s) { std::string out = "("; for (size_t i = 0; i < s.params.size(); ++i) out += (i ? ", " : "") + s.params[i]; return out + ") -> " + s.returns; }
 
+namespace stdlib { struct Collections; struct StdRuntime; }
+enum class StdMode { Enabled, Disabled };
+class Registry;
+inline Registry& register_std(Registry&);
+
 class Registry {
   struct NamedFunction { std::string name; FunctionEntry entry; };
   struct NamedMethod { std::string type, name; MethodEntry entry; };
  public:
+  explicit Registry(StdMode mode = StdMode::Enabled);
+  bool has_std() const { return std_initialized_; }
+  stdlib::Collections& std_collections() const;
+  void set_std_output(std::ostream* sink);
+  std::vector<std::string> std_signatures() const { return std_signatures_; }
+  std::vector<std::string> host_signatures() const {
+    auto all = signatures(); std::vector<std::string> out;
+    std::set_difference(all.begin(), all.end(), std_signatures_.begin(), std_signatures_.end(), std::back_inserter(out));
+    return out;
+  }
+  bool matches_schema_signatures(std::vector<std::string> expected) const {
+    expected.insert(expected.end(), std_signatures_.begin(), std_signatures_.end());
+    std::sort(expected.begin(), expected.end()); expected.erase(std::unique(expected.begin(), expected.end()), expected.end());
+    return signatures() == expected;
+  }
+  // One active run per shared std runtime; separate registries own independent runtimes.
+  class StdRunScope {
+   public:
+    explicit StdRunScope(const Registry& r) : registry_(r.has_std() ? &r : nullptr) { if (registry_) registry_->begin_std_run(); }
+    ~StdRunScope() { if (registry_) registry_->end_std_run(); }
+    StdRunScope(const StdRunScope&) = delete;
+    StdRunScope& operator=(const StdRunScope&) = delete;
+   private:
+    const Registry* registry_;
+  };
+  StdRunScope std_run_scope() const { return StdRunScope(*this); }
   // Type names are the schema's: int, float, string, bool, void (returns only) or an object type name. The arity the loader
   // checks is params.size(). Registering a name with the same parameter tuple twice is an error; distinct tuples are overloads.
   Registry& function(const std::string& name, std::vector<std::string> params, std::string returns, Function fn) {
@@ -193,6 +225,12 @@ class Registry {
     std::vector<std::string> have; for (auto& m : methods_) if (m.second.type + "." + m.second.name == name) have.push_back(m.first); std::sort(have.begin(), have.end()); std::string out; for (const auto& s : have) out += (out.empty() ? "" : ", ") + s; return out;
   }
  private:
+  friend Registry& register_std(Registry&);
+  void begin_std_run() const;
+  void end_std_run() const noexcept;
+  bool std_initialized_ = false;
+  std::vector<std::string> std_signatures_;
+  std::shared_ptr<stdlib::StdRuntime> std_runtime_;
   std::map<std::string, NamedFunction> functions_;
   std::map<std::string, NamedMethod> methods_;
   std::map<std::string, std::string> context_;
@@ -286,6 +324,7 @@ class Program {
   // Parses, binds and verifies. Nothing executes here. Throws dslvm::Error with a message naming the problem.
   static Program load(const std::string& bytecode, const std::string& schemaBytes, const Registry& reg) {
     Program p;
+    p.bound_registry_ = &reg;
     Reader r(bytecode);
     if (bytecode.size() < 4 || std::memcmp(bytecode.data(), MAGIC, 4) != 0) throw Error("LOAD_BAD_BYTECODE", "not a DSL bytecode file: bad magic (expected 'DSLB')");
     r.bytes(4);
@@ -338,6 +377,7 @@ class Program {
 
   // Executes the chunk once. The host's objects come from ctx (declared names only).
   void run(const Context& ctx, const Registry& reg, RunStats* stats = nullptr) const {
+    auto std_scope = (bound_registry_ ? *bound_registry_ : reg).std_run_scope();
     std::vector<Value> stack, locals(locals_.size());
     stack.reserve(max_stack_);
     Reader r(code_);
@@ -407,13 +447,13 @@ class Program {
         }
         case EQ: case NE: {
           Value b = pop(), a = pop();
-          if (a.kind != b.kind) throw Error(std::string("cannot compare ") + a.kind_name() + " with " + b.kind_name());
+          if (a.kind != b.kind) throw Error("RUN_ERROR", std::string("cannot compare ") + a.kind_name() + " with " + b.kind_name());
           bool eq = a.kind == Value::INT ? a.i == b.i : a.kind == Value::FLOAT ? a.f == b.f : a.kind == Value::STR ? a.s == b.s : a.kind == Value::BOOL ? a.b == b.b : a.obj == b.obj;
           push(Value::boolean(op == EQ ? eq : !eq)); break;
         }
         case ADD_I: case SUB_I: case MUL_I: case DIV_I: case MOD_I: case LT_I: case LE_I: case GT_I: case GE_I: {
           Value b = pop(), a = pop();
-          if (a.kind != Value::INT || b.kind != Value::INT) throw Error(std::string("int operator applied to ") + a.kind_name() + " and " + b.kind_name());
+          if (a.kind != Value::INT || b.kind != Value::INT) throw Error("RUN_ERROR", std::string("int operator applied to ") + a.kind_name() + " and " + b.kind_name());
           int64_t x = a.i, y = b.i; uint64_t ux = uint64_t(x), uy = uint64_t(y);
           switch (op) {
             case ADD_I: push(Value::integer(wrap(ux + uy))); break;
@@ -428,7 +468,7 @@ class Program {
         }
         case ADD_F: case SUB_F: case MUL_F: case DIV_F: case LT_F: case LE_F: case GT_F: case GE_F: {
           Value b = pop(), a = pop();
-          if (a.kind != Value::FLOAT || b.kind != Value::FLOAT) throw Error(std::string("float operator applied to ") + a.kind_name() + " and " + b.kind_name());
+          if (a.kind != Value::FLOAT || b.kind != Value::FLOAT) throw Error("RUN_ERROR", std::string("float operator applied to ") + a.kind_name() + " and " + b.kind_name());
           switch (op) {
             case ADD_F: push(Value::real(a.f + b.f)); break; case SUB_F: push(Value::real(a.f - b.f)); break;
             case MUL_F: push(Value::real(a.f * b.f)); break; case DIV_F: push(Value::real(a.f / b.f)); break;  // IEEE: inf/nan allowed
@@ -437,20 +477,20 @@ class Program {
           }
           break;
         }
-        case NEG_I: { Value a = pop(); if (a.kind != Value::INT) throw Error(std::string("int negation applied to ") + a.kind_name()); push(Value::integer(wrap(0 - uint64_t(a.i)))); break; }  // INT64_MIN wraps to itself
-        case NEG_F: { Value a = pop(); if (a.kind != Value::FLOAT) throw Error(std::string("float negation applied to ") + a.kind_name()); push(Value::real(-a.f)); break; }
-        case I2F: { Value a = pop(); if (a.kind != Value::INT) throw Error(std::string("float() applied to ") + a.kind_name()); push(Value::real(double(a.i))); break; }
+        case NEG_I: { Value a = pop(); if (a.kind != Value::INT) throw Error("RUN_ERROR", std::string("int negation applied to ") + a.kind_name()); push(Value::integer(wrap(0 - uint64_t(a.i)))); break; }  // INT64_MIN wraps to itself
+        case NEG_F: { Value a = pop(); if (a.kind != Value::FLOAT) throw Error("RUN_ERROR", std::string("float negation applied to ") + a.kind_name()); push(Value::real(-a.f)); break; }
+        case I2F: { Value a = pop(); if (a.kind != Value::INT) throw Error("RUN_ERROR", std::string("float() applied to ") + a.kind_name()); push(Value::real(double(a.i))); break; }
         case CONCAT: {
           Value b = pop(), a = pop();
-          if (a.kind != Value::STR || b.kind != Value::STR) throw Error(std::string("string + applied to ") + a.kind_name() + " and " + b.kind_name());
+          if (a.kind != Value::STR || b.kind != Value::STR) throw Error("RUN_ERROR", std::string("string + applied to ") + a.kind_name() + " and " + b.kind_name());
           push(Value::string(a.s + b.s)); break;
         }
-        case I2S: { Value a = pop(); if (a.kind != Value::INT) throw Error(std::string("str(int) applied to ") + a.kind_name()); push(Value::string(std::to_string(a.i))); break; }
+        case I2S: { Value a = pop(); if (a.kind != Value::INT) throw Error("RUN_ERROR", std::string("str(int) applied to ") + a.kind_name()); push(Value::string(std::to_string(a.i))); break; }
         case F2S: {  // %.15g: deterministic across hosts
-          Value a = pop(); if (a.kind != Value::FLOAT) throw Error(std::string("str(float) applied to ") + a.kind_name());
+          Value a = pop(); if (a.kind != Value::FLOAT) throw Error("RUN_ERROR", std::string("str(float) applied to ") + a.kind_name());
           char buf[64]; std::snprintf(buf, sizeof buf, "%.15g", a.f); push(Value::string(buf)); break;
         }
-        case B2S: { Value a = pop(); if (a.kind != Value::BOOL) throw Error(std::string("str(bool) applied to ") + a.kind_name()); push(Value::string(a.b ? "true" : "false")); break; }
+        case B2S: { Value a = pop(); if (a.kind != Value::BOOL) throw Error("RUN_ERROR", std::string("str(bool) applied to ") + a.kind_name()); push(Value::string(a.b ? "true" : "false")); break; }
         case MATH: {
           const uint8_t fn = r.u8();
           switch (fn) {
@@ -480,13 +520,13 @@ class Program {
         }
         case NOT: {
           Value a = pop();
-          if (a.kind != Value::BOOL) throw Error(std::string("! applied to a ") + a.kind_name());
+          if (a.kind != Value::BOOL) throw Error("RUN_ERROR", std::string("! applied to a ") + a.kind_name());
           push(Value::boolean(!a.b)); break;
         }
         case JUMP: jump(r.i32()); break;
         case JUMP_IF_FALSE: case JUMP_IF_TRUE: {
           int32_t rel = r.i32(); Value c = pop();
-          if (c.kind != Value::BOOL) throw Error(std::string("condition is a ") + c.kind_name() + ", not a bool");
+          if (c.kind != Value::BOOL) throw Error("RUN_ERROR", std::string("condition is a ") + c.kind_name() + ", not a bool");
           if (c.b == (op == JUMP_IF_TRUE)) jump(rel);
           break;
         }
@@ -763,6 +803,7 @@ class Program {
         throw Error("LOAD_BAD_BYTECODE", "WHILE_TEST must leave the loop-head stack depth at offset " + std::to_string(in.pc));
     }
   }
+  const Registry* bound_registry_ = nullptr; // Same lifetime as the bound import entries.
   std::vector<std::string> consts_; std::vector<Import> imports_; std::vector<std::string> context_; std::vector<Local> locals_; uint16_t max_stack_ = 0; std::string code_; std::vector<Line> lines_; std::map<size_t, Loop> loops_;
 };
 
@@ -773,3 +814,12 @@ inline std::string read_file(const std::string& path) {
 }
 
 }  // namespace dslvm
+
+// Support the repository include/ layout and the hosts' pinned cpp/stdlib layout.
+#ifndef DSLVM_STD_DEFER
+#if __has_include("stdlib/std.hpp")
+#include "stdlib/std.hpp"
+#else
+#include "../stdlib/std.hpp"
+#endif
+#endif

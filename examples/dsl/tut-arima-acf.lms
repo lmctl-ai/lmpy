@@ -1,6 +1,6 @@
 // access: write (a temporary tut-arima-acf.dslb, removed)
 // Topic: autocorrelation and an AR(1) forecast (after: the R ?arima / ?acf help-page examples and the statsmodels ARMA notebook)
-// What it does: the _dsl_ version of ../tut-arima-acf.lms. One DSL program computes the sample ACF and PACF (ywm) of a simulated AR(1)
+// What it does: the _lmcode_ version of ../tut-arima-acf.lms. One DSL program computes the sample ACF and PACF (ywm) of a simulated AR(1)
 //   series, fits ARIMA(1,0,0) with a constant by exact maximum likelihood (`arima`), forecasts ten steps with intervals, runs a
 //   Ljung-Box test on the raw series, and checks the estimates against the generating process: phi = 0.7 within 2 SE (0.6 would fail),
 //   mean 2 / (1 - 0.7) within 3 sigma / ((1 - phi) sqrt n), ACF decaying like phi^k, PACF inside the plain 1.96 / sqrt(n) band at lags
@@ -12,7 +12,7 @@
 // How to run: lmscript examples/dsl/tut-arima-acf.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let x = read_csv("../data/tut-ar1.csv").col("x");
 let phi = 0.7;
 let mu = 2.0 / (1.0 - phi);
@@ -86,7 +86,7 @@ out.put("lb_q5", lb.vec("statistic").at(4));
 out.put("lb_p5", lb.vec("p_value").at(4));
 out.put("outside", outside);
 out.put("mean_tol", mean_tol);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-arima-acf");
 println("lag  acf     phi^k   pacf    pacf 95% band");

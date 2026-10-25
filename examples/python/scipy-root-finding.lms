@@ -7,7 +7,7 @@
 // Check: examples/python/check-parity.sh scipy-root-finding (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let cubic = root_scalar("x^3 - 1", "x", 0.0, 3.0, opts().set("method", "brentq"));
 out.check("brentq OK", cubic.ok());
 out.put("cubic_root", cubic.num("root"));
@@ -32,7 +32,7 @@ let lm = root(eqs, xy, vec(1.0, 1.0), opts().set("method", "lm").set("xtol", 0.0
 out.check("lm OK", lm.ok());
 out.put("lm_x", lm.vec("x"));
 out.close("lm x (tutorial)", lm.vec("x"), vec(6.504097106693332, 0.9084142054688102), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-root-finding");
 println(sprintf("cubic root %.12f in %d iterations; fsolve %s; root %s; lm %s", v.cubic_root, v.cubic_iterations, json_stringify(v.fsolve_x), json_stringify(v.root_x), json_stringify(v.lm_x)));

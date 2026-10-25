@@ -6,7 +6,7 @@
 // parity-rtol: 1e-12
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # numpy.linalg.lstsq: A = [x 1]
 let x = vec(0.0, 1.0, 2.0, 3.0);
 let y = vec(-1.0, 0.2, 0.9, 2.1);
@@ -33,7 +33,7 @@ out.put("p_at_10", poly(z, 10.0));
 out.close("p(0.5)", poly(z, 0.5), 0.6143849206349219, 0.000000000001);
 out.close("p(3.5)", poly(z, 3.5), -0.34732142857142406, 0.000000000001);
 out.close("p(10)", poly(z, 10.0), 22.57936507936498, 0.00000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "numpy-lstsq-polyfit");
 println(sprintf("line: m = %.6f, c = %.6f; cubic: %s; p(0.5) = %.6f", v.slope, v.intercept, json_stringify(v.cubic), v.p_at_0_5));

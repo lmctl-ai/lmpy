@@ -1,7 +1,7 @@
 // access: write (a temporary tut-interp-knn.dslb, removed)
 // Topic: interpolation of sampled data and nearest-neighbour search (after: the scipy-lectures interpolation section, the
 //   scipy.interpolate tutorial and the scipy.spatial cKDTree tutorial)
-// What it does: the _dsl_ version of ../tut-interp-knn.lms. Interpolates 13 samples of f(x) = exp(-x/3) sin(2x) with linear, PCHIP
+// What it does: the _lmcode_ version of ../tut-interp-knn.lms. Interpolates 13 samples of f(x) = exp(-x/3) sin(2x) with linear, PCHIP
 //   and cubic-spline interpolants (`interp`) on a fine grid where the true values are known, integrates the spline and compares it
 //   with `quad` on the true function; then runs an exact 5-nearest-neighbour query on the four flower measurements (`knn`),
 //   verifies the returned distances by brute force (Vec arithmetic over the columns, then sort) and classifies the queries by
@@ -18,7 +18,7 @@
 // How to run: lmscript examples/dsl/tut-interp-knn.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let nodes = read_csv("../data/tut-interp-nodes.csv");
 let grid = read_csv("../data/tut-interp-grid.csv");
 let x = nodes.col("x");
@@ -92,7 +92,7 @@ for (q in range(0, 3)) {
   out.close("scipy cKDTree distances for query " + str(q), dist5.row(q), scipy_d.row(q), 0.000000000001);
 }
 out.put("winners", winners);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-interp-knn");
 println(sprintf("%-7s max |interpolant - f| on %d grid points = %.5f", "linear", v.n_grid, v.linear));

@@ -1,5 +1,5 @@
 // access: write (a temporary oracle-rvs.dslb, removed)
-// What it does: the _dsl_ version of ../oracle-rvs.lms. Draws 1000 seeded variates from five families (Dist.rvs, numpy PCG64 streams) and compares
+// What it does: the _lmcode_ version of ../oracle-rvs.lms. Draws 1000 seeded variates from five families (Dist.rvs, numpy PCG64 streams) and compares
 //   the empirical distribution with R's quantile function: the fraction of the sample below R's p-quantile must be within 4.5 binomial standard
 //   errors of p, at p = 0.1, 0.25, 0.5, 0.75, 0.9. The original asked R through rcli at run time; here R's quantiles are pinned known answers
 //   (R 4.3.3: qnorm, qgamma(shape 3, rate 0.5), qbeta(2, 5), qchisq(4), qt(8), printed with %.17g). Reproducibility (same seed, same stream; another
@@ -10,7 +10,7 @@
 // How to run: lmscript examples/dsl/oracle-rvs.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn sample_vs_r(label: string, d: Dist, seed: int, r_quantiles: Vec, numpy_first: float) -> void {
   let levels = vec("0.1 0.25 0.5 0.75 0.9");
   let x = d.rvs(1000, seed);
@@ -40,7 +40,7 @@ sample_vs_r("beta(2, 5)", dist("beta", opts().set("a", 2.0).set("b", 5.0)), 103,
 sample_vs_r("chi2(4)", dist("chi2", opts().set("df", 4.0)), 104,
   vec("1.0636232167792241 1.9225575262295544 3.356693980033322 5.3852690577793911 7.7794403397348599"), 5.005553487386739);
 sample_vs_r("t(8)", dist("t", opts().set("df", 8.0)), 105, vec("-1.3968153097438649 -0.7063866126448386 0 0.7063866126448386 1.3968153097438649"), -0.04933698500379076);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "oracle-rvs");
 println("leg 0: seed 11 reproduces the identical 1000 values (numpy's PCG64 stream); seed 12 gives a different stream");

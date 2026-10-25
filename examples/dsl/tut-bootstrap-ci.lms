@@ -1,7 +1,7 @@
 // access: write (a temporary tut-bootstrap-ci.dslb, removed)
 // Topic: a seeded bootstrap confidence interval for the mean of a skewed sample (after: the scipy-lectures statistics chapter and
 //   the classic "bootstrap the mean" exercise)
-// What it does: the _dsl_ version of ../tut-bootstrap-ci.lms. Loads the sample, draws 1000 bootstrap resamples with explicit PCG64
+// What it does: the _lmcode_ version of ../tut-bootstrap-ci.lms. Loads the sample, draws 1000 bootstrap resamples with explicit PCG64
 //   seeds (dist("uniform").rvs: each uniform supplies two indices, floor(n u) and floor(n frac(n u)), so 20 calls of 1000 draws,
 //   seeds 1..20, cover the 40000 indices, exactly as the original), reports the percentile interval and the bootstrap standard
 //   error, and compares them with the normal-theory t interval (Dist.ppf) and the generating distribution's moments
@@ -15,7 +15,7 @@
 // How to run: lmscript examples/dsl/tut-bootstrap-ci.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let B = 1000;
 let x = read_csv("../data/tut-bootstrap.csv").col("value");
 let n = x.len();
@@ -87,7 +87,7 @@ out.put("hi", hi);
 out.put("tq", tq);
 out.put("moments", m);
 out.put("ratio", ratio);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-bootstrap-ci");
 println(sprintf("sample: n=%d mean=%.4f sd=%.4f se=%.4f", v.n, v.mean, v.sd, v.se));

@@ -8,14 +8,14 @@
 //   - dsl_cli(p) is the argv prefix of that exact binary, so `system ${dsl_cli(p)} --dsl FILE` runs it.
 // The program itself: a normal-distribution quantile, a 3x3 solve and a least-squares line, with known answers.
 // How to run: lmscript examples/dsl/install-and-run.lms   (works on a machine with only Node.js and lmscript installed)
-p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@v0.1.0";
+p = _lmcode_ cli="lmpy" install="github:lmctl-ai/lmpy@v0.1.0";
 out.close("normal 97.5% quantile", dist("norm").ppf(0.975), 1.959963984540054, 0.00000000000001);
 out.close("3x3 solve", mat("1 2 3; 0 1 4; 5 6 0").solve(vec(14.0, 14.0, 17.0)), vec(1.0, 2.0, 3.0), 0.000000000001);
 let x = arange(10);
 let fit = cols(ones(10), x).lstsq(x.mul(2.0).add(1.0));
 out.close("line y = 1 + 2x", fit.vec("x"), vec(1.0, 2.0), 0.000000000001);
 out.put("binary_version_check", "ok");
-end _dsl_
+end _lmcode_
 
 file = "install-and-run.dslb";
 savedsl(p, file);

@@ -9,7 +9,7 @@
 // Check: examples/python/check-parity.sh statsmodels-glm (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn record(name: string, r: Res) -> void {
   let c = r.res("coefficients");
   out.put(name + "_params", c.vec("estimate"));
@@ -43,7 +43,7 @@ let gam = glm(engel, "foodexp", "income", "gamma", opts().set("link", "log").set
 record("engel", gam);
 out.close_rel("engel income (statsmodels)", gam.res("coefficients").vec("estimate").at(1), 0.0007178985670804408, 0.000000001);
 out.close_rel("engel scale (statsmodels)", gam.num("scale"), 0.03178736574741798, 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "statsmodels-glm");
 println(sprintf("RAND HIE Poisson: deviance %.6f, llf %.6f, lncoins %.8f", v.randhie_deviance, v.randhie_llf, v.randhie_params[0]));

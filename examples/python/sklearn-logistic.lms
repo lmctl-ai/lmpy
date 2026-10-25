@@ -34,7 +34,7 @@
 // parity-rtol cancer_conv_proba_test5: 5e-5
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn features(f: Frame) -> Mat {
   return f.to_mat(f.drop(strs("target")).names());
 }
@@ -101,7 +101,7 @@ out.close("breast_cancer pipeline coef (converged lbfgs)", cp.coef().flatten(), 
 out.close("breast_cancer pipeline intercept (converged lbfgs)", cp.intercept().at(0), 0.02716201996000702, 0.000001);
 let cte = part_rows(cs, 1.0);
 out.close("breast_cancer held-out accuracy 0.9580", cp.score(features(cancer).take_rows(cte), cancer.col("target").take(cte)), 0.958041958041958, 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sklearn-logistic");
 println(sprintf("iris: training accuracy %.4f; P(setosa | row 0) = %.6f", v.iris_score, v.iris_proba[0][0]));

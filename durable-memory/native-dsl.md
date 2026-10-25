@@ -1,4 +1,4 @@
-# lmpy: pycli as one native executable driven by `_dsl_` bytecode
+# lmpy: pycli as one native executable driven by `_lmcode_` bytecode
 
 Status (2026-10-20): all op families implemented on branch `native-dsl`; all 52 pycli recipes ported to `examples/dsl/`
 plus 9 new examples (8 multi-step `task-*`); `native/test.sh` 66/66. See §6 for what differs from pycli and what is open.
@@ -8,14 +8,14 @@ op mapping, clean-room rules (§4) and tolerance tiers (§3) still apply.
 ## 1. What changes
 
 Today's pycli is an lmapi CLI: lmscript calls `pycli.op({...})`, a C++ front end validates the call, and a Python child
-runs it inside Docker. lmpy replaces the whole chain with the `_dsl_` model used by lmcad and lmhtml:
+runs it inside Docker. lmpy replaces the whole chain with the `_lmcode_` model used by lmcad and lmhtml:
 
     examples/dsl/x.lms                          native/build/lmpy (glibc only, no Python/R/Docker)
-    prog = _dsl_ schema="lmpy.dsl.json";   ──▶  lmpy --dsl x.dslb
+    prog = _lmcode_ schema="lmpy.dsl.json";   ──▶  lmpy --dsl x.dslb
       let f = read_csv("data.csv");              loads the bytecode, binds it to the embedded schema (SHA-256),
       let fit = ols(f, "y", strs("x1,x2"));      runs it, then prints one JSON line:
       out.put("r2", fit.num("r2"));              {"ok": true, "result": {"values": {...}, "checks": {...}}}
-    end _dsl_
+    end _lmcode_
     v = lmpy.run(prog, "x");   # savedsl + system([lmpy, "--dsl", file]) + json_parse
 
 - **One program, many steps.** A DSL chunk chains operations in native memory: read → transform → fit → check → report.
@@ -40,6 +40,14 @@ runs it inside Docker. lmpy replaces the whole chain with the `_dsl_` model used
   `native/schema/lmpy.dsl.json` is a committed copy, and `test.sh` fails when it drifts.
 - `lmpy --api-md` prints the API reference. `native/API.md` is a committed copy and is drift-checked too.
 - `lmpy --dsl-signatures` must equal `lmscript --dsl-signatures native/schema/lmpy.dsl.json`.
+- Runtime: lmcode-cpp (formerly cpp-dsl-sdk), vendored by `native/scripts/sync-sdk.sh` (`LMCODE_CPP=checkout`): `cpp/dslvm.hpp`,
+  `cpp/stdlib/*.hpp` and `cpp/std/lmcode-std.schema.json`, each hash-pinned in `native/sdk.lock`. The default `dslvm::Registry`
+  installs the lmcode std v1 catalog itself (`str_*`, `math_*`, `int_list`/`float_list`/`str_list`/`str_map`, `file_*`; 72
+  signatures) and lmscript >= 0.2.420 injects the same declarations at compile time, so lmpy registers none of it and the
+  published schema stays host-only (551 signatures; 623 with std). `test.sh` checks registry = host schema + canonical std.
+  Never vendor-edit the SDK files (a repo-wide sed once changed comments in dslvm.hpp and broke the lock).
+- Block keyword: `_lmcode_ ... end _lmcode_` (lmscript >= 0.2.419; 0.2.388 rejects it; `_dsl_` stays valid; CI pins 0.2.420). Names such as `.dsl.json`,
+  `.dslb`, `savedsl`, `dsl_cli`, `--dsl`, `--dsl-schema` are unchanged.
 - Development-only oracle: `native/.deps/oracle-venv` has pycli's exact pins (numpy 2.3.3, scipy 1.16.2, pandas 2.3.3,
   statsmodels 0.14.6, scikit-learn 1.7.2) for pinning expected values. `Rscript` is on the host too. Neither is used at
   run time or by the gate.
@@ -103,7 +111,7 @@ Rules for a family file:
 
 ## 5. Examples
 
-- `examples/dsl/<name>.lms` is the `_dsl_` version of `examples/<name>.lms`.
+- `examples/dsl/<name>.lms` is the `_lmcode_` version of `examples/<name>.lms`.
   - Same base name, same data files (`../data/...`), same known answers and tolerances.
   - The checks move into the DSL as `out.check` / `out.close`. A failed check exits 4 and lmscript prints the host's
     message.
@@ -132,14 +140,14 @@ Rules for a family file:
   - Bad input is a located run-time error instead of a status code. Numerical outcomes keep pycli's `status` strings.
   - LSODA is RK45 switching to BDF, not ODEPACK. L-BFGS-B is LBFGSpp (same optimum, different counts).
 - **Open:**
-  1. `lmpy` serves only the `_dsl_` interface. The old lmapi call form (`pycli.op({...})` through `cli.schema.dev.json`)
+  1. `lmpy` serves only the `_lmcode_` interface. The old lmapi call form (`pycli.op({...})` through `cli.schema.dev.json`)
      is not served; a thin adapter could map ops onto the same C++ functions if still needed.
   2. Platforms (2026-10-21): `.github/workflows/ci.yml` builds and runs the full gate on linux-x64 and linux-arm64
      (manylinux_2_28 containers, glibc symbols <= 2.25), macos-arm64, macos-x64 and windows-x64 (MinGW, static .exe); all
      green on run 39525639743. A `v*` tag attaches one archive per platform plus SHA256SUMS to the GitHub release.
   3. lmscript limitations met while porting:
      - `sprintf` has no `%g`/`%e`;
-     - an apostrophe in a `//` comment inside `_dsl_` is a compile error (use `#` lines);
+     - an apostrophe in a `//` comment inside `_lmcode_` is a compile error (use `#` lines);
      - a DSL local cannot reuse a schema function name (`dist`, `full`, `root`, ...).
   4. Run-time objects live in an arena for the whole run. Very long loops that create objects grow memory.
   5. The repository moved to the public `lmctl-ai/lmpy` (2026-10-21); the binary is `lmpy` (was lmnum).

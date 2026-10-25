@@ -1,7 +1,7 @@
 // access: write (a temporary tut-kmeans-cv.dslb, removed)
 // Topic: clustering and classification with cross-validation on an iris-style table (after: the scikit-learn user guide's
 //   k-means and cross-validation sections and the classic iris tutorial)
-// What it does: the _dsl_ version of ../tut-kmeans-cv.lms, in one native program: clusters the petal measurements with k-means
+// What it does: the _lmcode_ version of ../tut-kmeans-cv.lms, in one native program: clusters the petal measurements with k-means
 //   (fixed seed), measures cluster purity against the species, runs a stratified, shuffled 5-fold cross-validation of a
 //   standardised 5-nearest-neighbours classifier on all four measurements, fits a standardised logistic classifier and scores
 //   its training predictions with ml_metrics (confusion matrix, accuracy, macro F1).
@@ -15,7 +15,7 @@
 // How to run: lmscript examples/dsl/tut-kmeans-cv.lms
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-flowers.csv");
 let enc = label_encode(f.text("species"));
 let species = enc.strs("classes");
@@ -71,7 +71,7 @@ out.check("training accuracy >= 0.95", mt.num("accuracy") >= 0.95 && mt.int("n")
 out.close("confusion diagonal reproduces the accuracy", dsum / float(n), mt.num("accuracy"), 0.000000001);
 out.close("training accuracy (sklearn)", mt.num("accuracy"), 1.0, 0.0);
 out.put("species", species);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-kmeans-cv");
 println("k-means centres (petal_length, petal_width):", json_stringify(v.centers));

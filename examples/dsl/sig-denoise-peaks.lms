@@ -1,5 +1,5 @@
 // access: write (a temporary sig-denoise-peaks.dslb, removed)
-// What it does: the _dsl_ version of ../sig-denoise-peaks.lms. A synthetic noisy record (four smooth pulses at known positions plus
+// What it does: the _lmcode_ version of ../sig-denoise-peaks.lms. A synthetic noisy record (four smooth pulses at known positions plus
 //   deterministic pseudo-random noise, 100 Hz sampling) is low-pass filtered with a zero-phase 4th-order Butterworth (iir +
 //   Filter.filtfilt, second-order sections) and its peaks are located with find_peaks. The filtered peaks must sit within 2 samples of
 //   the true pulse centres with heights within 15 %; the unfiltered record is shown for contrast (many noise peaks above the same threshold).
@@ -10,7 +10,7 @@
 // How to run: lmscript examples/dsl/sig-denoise-peaks.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let centres = vec("60 150 240 330");
 let heights = vec("3.0 2.0 4.0 2.5");
 let x = vec();
@@ -49,7 +49,7 @@ out.put("widths", peak_widths(y, idx).vec("widths"));
 out.close("positions within 2 samples", idx, centres, 2.0);
 out.check("heights within 15 %", h.sub(heights).abs().div(heights).max() <= 0.15);
 out.close("heights match scipy", h, vec(2.6604456542241035, 2.0102210931764453, 4.134897792022717, 2.432603377653339), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sig-denoise-peaks");
 println(sprintf("raw record: %d local maxima above 0.5 (mostly noise)", v.raw_peaks));

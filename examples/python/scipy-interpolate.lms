@@ -14,7 +14,7 @@
 // parity-rtol smoothing_gcv_norm: 1e-4
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # CubicSpline(x, sin x), not-a-knot, extrapolated beyond [0, 9] as the example plots it
 let x = arange(10);
 let cs = interp("cubic", x, x.sin(), opts().set("extrapolate", "extend"));
@@ -85,7 +85,7 @@ let yflat = rbf.eval(cols(gx, gy));
 out.put("rbf_grid", yflat);
 out.check("rbf status OK", rbf.status() == "OK");
 out.close("rbf at grid corner and centre-ish (scipy 1.16.2)", vec(yflat.at(0), yflat.at(210)), vec(0.001930061686183926, 0.08113447813499265), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-interpolate");
 println(sprintf("CubicSpline sin: S(-0.5) = %.6f; circle slope at 0 = %s", v.cs_s[0], json_stringify(v.circle_slope_at_0)));

@@ -8,7 +8,7 @@
 // Check: examples/python/check-parity.sh scipy-special (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # gamma([0, 0.5, 1, 5]): inf at the pole 0
 out.put("gamma", special("gamma", vec(0.5, 1.0, 5.0)));
 out.put("gamma_0_is_inf", special("gamma", 0.0) == inf());
@@ -72,7 +72,7 @@ out.put("logsumexp_masked", logsumexp(vec(log(2.0), 2.0, log(3.0)).add(vec(1.0, 
 out.close("logsumexp(arange(10)) (scipy docs)", logsumexp(a), 9.4586297444267107, 0.000000000000002);
 out.close("weighted (scipy docs)", logsumexp(a.add(b.log())), 9.9170178533034665, 0.000000000000002);
 out.close("masked = log 5 (scipy docs)", logsumexp(vec(log(2.0), 2.0, log(3.0)).add(vec(1.0, 0.0, 1.0).log())), log(5.0), 0.000000000000002);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-special");
 println(sprintf("gamma(0.5)^2 = %.15f; jn_zeros(3, 4) = %s", v.gamma_half_squared, json_stringify(v.jn_zeros_3_4)));

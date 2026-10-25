@@ -1,5 +1,5 @@
 // access: write (a temporary cross-numerics.dslb, removed)
-// What it does: the _dsl_ version of ../cross-numerics.lms (cross-language agreement of unconstrained minimisation, quadrature,
+// What it does: the _lmcode_ version of ../cross-numerics.lms (cross-language agreement of unconstrained minimisation, quadrature,
 //   root finding and distribution functions). Minimises Rosenbrock's function by BFGS from (-1.2, 1) (`minimize`), integrates
 //   exp(-x^2) over [-40, 40] (`quad`, QUADPACK), solves Kepler's equation E - 0.3 sin E = 1 by bracketing (`root_scalar`, brentq)
 //   and evaluates twelve quantiles, densities and probabilities of seven distribution families (`dist`).
@@ -15,7 +15,7 @@
 // How to run: lmscript examples/dsl/cross-numerics.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn agree(label: string, got: float, want: float, rtol: float) -> bool {
   out.put(label, vec(got, want));
   return out.close_rel(label, got, want, rtol);
@@ -70,7 +70,7 @@ agree("binom(10, 0.3) pmf 4", bi.pmf(4.0), 0.20012094900000008, d);
 agree("binom(10, 0.3) ppf 0.6", bi.ppf(0.6), 3.0, 0.0);
 agree("pois(2.5) pmf 3", po.pmf(3.0), 0.21376301724973648, d);
 agree("pois(2.5) cdf 4", po.cdf(4.0), 0.89117801891415127, d);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "cross-numerics");
 println(sprintf("%-32s %20s %20s  %s", "quantity", "lmpy", "r (pinned)", "abs diff"));

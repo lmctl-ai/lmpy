@@ -1,6 +1,6 @@
 // access: write (a temporary cross-glm.dslb, removed)
 // Cross-language agreement: logistic and Poisson generalized linear models in lmpy (`glm`, IRLS after statsmodels) and R (glm).
-// What it does: the _dsl_ version of ../cross-glm.lms. Fits dead ~ ldose (binomial, logit) on examples/data/tut-dose.csv and
+// What it does: the _lmcode_ version of ../cross-glm.lms. Fits dead ~ ldose (binomial, logit) on examples/data/tut-dose.csv and
 //   count ~ C(group, A) with hours as the exposure (Poisson, log) on examples/data/tut-poisson.csv in one DSL program and compares
 //   estimates, standard errors, deviance and null deviance with R 4.3.3 values pinned here, computed with Rscript:
 //     summary(glm(dead ~ ldose, family = binomial, data = dose))
@@ -13,7 +13,7 @@
 // How to run: lmscript examples/dsl/cross-glm.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let tol = 0.000001;
 let setol = 0.00001;
 let rtol = 0.00000001;
@@ -52,7 +52,7 @@ out.put("r2_est", r2_est);
 out.put("r2_se", r2_se);
 out.put("dev2", vec(pois.num("deviance"), pois.num("null_deviance")));
 out.put("it2", pois.int("n_iter"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "cross-glm");
 function row(label, a, b) { println(sprintf("%-28s %20.12f %20.12f  %s", label, a, b, str(abs(a - b)))); }

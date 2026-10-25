@@ -1,5 +1,5 @@
 // access: write (a temporary oracle-kmeans.dslb, removed)
-// What it does: the _dsl_ version of ../oracle-kmeans.lms. Clusters two separated blobs of three points (x = -11..-9 and
+// What it does: the _lmcode_ version of ../oracle-kmeans.lms. Clusters two separated blobs of three points (x = -11..-9 and
 //   9..11) with ml_fit("kmeans", ...), seed 42, and proves the partition equals the truth despite label permutation: the
 //   pairwise co-membership of every pair of rows must agree (ARI = 1). The original's rcli leg (R kmeans, Lloyd, nstart 10,
 //   seed 42) gave the partition 1 1 1 2 2 2 with tot.withinss 16/3; both are pinned here.
@@ -9,7 +9,7 @@
 // How to run: lmscript examples/dsl/oracle-kmeans.lms
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let x = vec("-11 -10 -9 9 10 11");
 let z = vec("0 1 0 0 1 0");
 let truth = vec("0 0 0 1 1 1");
@@ -36,7 +36,7 @@ out.close("right centre x", c.at(1 - lo, 0), 10.0, 0.000000000001);
 out.close("centre z", c.at(lo, 1), 1.0 / 3.0, 0.000000000001);
 out.check("predict reproduces the training labels", m.predict(cols(x, z)).sub(a).abs().max() == 0.0);
 out.check("status OK", m.ok());
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "oracle-kmeans");
 println("lmpy vs hand blobs: ARI=1, labels", json_stringify(v.labels), sprintf("inertia %.12f", v.inertia));

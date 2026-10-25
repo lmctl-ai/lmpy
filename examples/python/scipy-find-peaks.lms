@@ -7,7 +7,7 @@
 // Check: examples/python/check-parity.sh scipy-find-peaks (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let t = linspace(0.0, 6.0 * pi(), 1000);
 let x = t.sin().add(t.mul(2.6).sin().mul(0.6));
 let peaks = find_peaks(x).vec("indices");
@@ -60,7 +60,7 @@ out.check("303 peaks with prominence <= 0.6 (scipy 1.16.2)", p_low.int("n_peaks"
 out.close("largest low prominence (scipy 1.16.2)", p_low.vec("prominences").max(), 0.4363565000315597, 0.000000000001);
 out.close("prominence >= 1 and width >= 20 peaks (scipy 1.16.2)", p_big.vec("indices"), vec(44.0, 416.0, 791.0), 0.0);
 out.close("their widths (scipy 1.16.2)", p_big.vec("widths"), vec(61.68995178923274, 98.37966495720849, 180.5557775268768), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-find-peaks");
 println(sprintf("two-harmonic signal: peaks %s, largest prominence %.6f", json_stringify(v.peaks), v.prominences[3]));

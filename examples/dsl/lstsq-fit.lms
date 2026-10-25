@@ -1,12 +1,12 @@
 // access: write (a temporary lstsq-fit.dslb, removed)
-// What it does: the _dsl_ version of ../lstsq-fit.lms. Fits y = c0 + c1 x + c2 x^2 to generated data by least squares, then
+// What it does: the _lmcode_ version of ../lstsq-fit.lms. Fits y = c0 + c1 x + c2 x^2 to generated data by least squares, then
 //   verifies the fit with two checks that do not trust the solver: the residual is close to the injected noise level, and the
 //   normal equations A^T r = 0 hold. The whole computation runs inside the native host; lmscript only compiles and reports.
 // Tolerance: coefficients within 0.05 of the generating values; |A^T r| <= 1e-9.
 // How to run: lmscript examples/dsl/lstsq-fit.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let truth = vec(2.0, 3.0, -0.5);
 let x = arange(21).mul(0.25);
 # deterministic zig-zag noise in [-0.02, 0.02]
@@ -26,7 +26,7 @@ let g = a.t() * (a * c - b);
 out.check("normal equations", g.abs().max() <= 0.000000001);
 out.check("full rank", a.rank() == 3);
 out.put("cond", a.cond());
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "lstsq-fit");
 c = v.coefficients;

@@ -1,16 +1,16 @@
 if (!file_exists("build")) { mkdir("build"); }
 if (!file_exists("build/rendered")) { mkdir("build/rendered"); }
-p = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
+p = _lmcode_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
 let x = arange(5);
 let fit = cols(ones(5), x).lstsq(x.mul(2.0).add(3.0));
 out.close("intercept and slope", fit.vec("x"), vec(3.0, 2.0), 0.000000000001);
 out.put("coefficients", fit.vec("x"));
-end _dsl_
+end _lmcode_
 savedsl(p, "build/readme-gallery-fit.dslb");
 r = system ${dsl_cli(p)} --dsl build/readme-gallery-fit.dslb;
 if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
 v = json_parse(r.stdout).result.values;
-d = _dsl_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
+d = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
 scene.canvas(760, 390, "#101820");
 scene.text(48.0, 54.0, 24.0, "Least-squares fit", "#dbe7f3").set_attr("font-weight", "700");
 scene.line(88.0, 320.0, 680.0, 320.0, "#40576b", 1.0);
@@ -23,7 +23,7 @@ scene.circle(470.0, 162.0, 7.0, "#f5c16c");
 scene.circle(590.0, 118.0, 7.0, "#f5c16c");
 scene.text(100.0, 356.0, 14.0, "y = " + ${str(v.coefficients.get(0, 0.0))} + " + " + ${str(v.coefficients.get(1, 0.0))} + "x", "#9db4c8");
 scene.render_png("build/rendered/readme-least-squares-line.png", 760, 390, 1);
-end _dsl_
+end _lmcode_
 savedsl(d, "build/readme-gallery-fit-draw.dslb");
 r = system ${dsl_cli(d)} --dsl build/readme-gallery-fit-draw.dslb;
 if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

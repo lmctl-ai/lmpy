@@ -1,8 +1,8 @@
-// Shared runner for the _dsl_ examples: save the compiled block as bytecode, run the native host on it, return the
+// Shared runner for the _lmcode_ examples: save the compiled block as bytecode, run the native host on it, return the
 // values the block recorded with out.put(...). The host is `lmpy` (one static executable, no Python/R/Docker):
 // $LMPY when set, else `lmpy` on PATH. Without it the example prints SKIPPED and exits 0.
 //   import "lmpy.lms";
-//   values = lmpy.run(prog, "my-example");   // prog = _dsl_ schema="../../native/schema/lmpy.dsl.json"; ... end _dsl_
+//   values = lmpy.run(prog, "my-example");   // prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json"; ... end _lmcode_
 package lmpy;
 
 fn exe() {

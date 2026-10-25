@@ -9,7 +9,7 @@
 // Check: examples/python/check-parity.sh pandas-timeseries (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn stamps(start: string, n: int, step: float) -> StrVec {
   let t0 = parse_time(start);
   let r = strs();
@@ -61,7 +61,7 @@ out.put("daily_min", daily.col("x__min"));
 out.put("daily_max", daily.col("x__max"));
 out.put("daily_count", daily.col("x__count"));
 out.check("10 days of 4 readings", daily.nrows() == 10 && daily.col("x__count").min() == 4.0);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "pandas-timeseries");
 println("1-minute ohlc: open " + json_stringify(v.sec_1min_open) + " close " + json_stringify(v.sec_1min_close));

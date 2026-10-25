@@ -1,6 +1,6 @@
 if (!file_exists("build")) { mkdir("build"); }
 if (!file_exists("build/rendered")) { mkdir("build/rendered"); }
-stats = _dsl_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
+stats = _lmcode_ cli="lmpy" install="github:lmctl-ai/lmpy@latest";
 let q = dist("norm").ppf(0.975);
 out.close("normal quantile", q, 1.959963984540054, 0.00000000000001);
 let fit = cols(ones(5), arange(5)).lstsq(arange(5).mul(2.0).add(3.0));
@@ -8,12 +8,12 @@ out.close("fit coefficients", fit.vec("x"), vec(3.0, 2.0), 0.000000000001);
 out.put("quantile", q);
 out.put("intercept", fit.vec("x").at(0));
 out.put("slope", fit.vec("x").at(1));
-end _dsl_
+end _lmcode_
 savedsl(stats, "build/readme-hero-stats-dark.dslb");
 r = system ${dsl_cli(stats)} --dsl build/readme-hero-stats-dark.dslb;
 if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
 v = json_parse(r.stdout).result.values;
-draw = _dsl_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
+draw = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
 scene.canvas(1400, 600, "#101820");
 scene.circle(100.0, 90.0, 18.0, "#f5c16c");
 scene.circle(143.0, 90.0, 18.0, "#74c9bd");
@@ -33,7 +33,7 @@ scene.circle(1170.0, 237.0, 8.0, "#f5c16c");
 scene.text(884.0, 120.0, 16.0, "NORMAL QUANTILE  /  FIT CHECKS", "#9db4c8");
 scene.text(886.0, 482.0, 13.0, "native results, checked before drawing", "#9db4c8");
 scene.render_png("build/rendered/readme-hero-dark.png", 1400, 600, 1);
-end _dsl_
+end _lmcode_
 savedsl(draw, "build/readme-hero-dark.dslb");
 r = system ${dsl_cli(draw)} --dsl build/readme-hero-dark.dslb;
 if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

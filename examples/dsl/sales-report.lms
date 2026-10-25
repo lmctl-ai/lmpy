@@ -1,5 +1,5 @@
 // access: write (the generated sales CSV and the weekly report, removed; a temporary .dslb)
-// What it does: the _dsl_ version of ../sales-report.lms. Generates 14 days of UTC sales, keeps the rows with sales >= 50 sorted by time,
+// What it does: the _lmcode_ version of ../sales-report.lms. Generates 14 days of UTC sales, keeps the rows with sales >= 50 sorted by time,
 //   aggregates per region (sum, mean, count) and per week (pandas "1W": weeks ending on Sunday, labelled by that Sunday), exports the
 //   weekly table as CSV and checks the region sums against hand-computed totals.
 // Tolerance: exact.
@@ -14,7 +14,7 @@ for (i = 1; i < 15; i = i + 1) {
 }
 write_file("sales-dsl.csv", text);
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let sales = read_csv("sales-dsl.csv");
 let selected = sales.filter("sales >= 50").sort("ts", true);
 let regions = selected.groupby(strs("region"), "sales:sum|mean|count");
@@ -30,7 +30,7 @@ out.close("West sum", regions.num("sales__sum", 1), 500.0, 0.0);
 out.check("week labels", weekly.cell("ts", 0) == "2026-03-08 00:00:00+00:00" && weekly.cell("ts", 1) == "2026-03-15 00:00:00+00:00");
 out.close("week 1 sum", weekly.num("sales__sum", 0), 260.0, 0.0);
 out.close("week 2 sum", weekly.num("sales__sum", 1), 690.0, 0.0);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sales-report");
 println("Region totals:", json_stringify(v.regions.data));

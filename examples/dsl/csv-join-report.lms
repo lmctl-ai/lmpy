@@ -1,5 +1,5 @@
 // access: write (orders/customers CSVs and the exported report, all removed; a temporary .dslb)
-// What it does: the _dsl_ version of ../csv-join-report.lms. Two CSV files (orders and customers) -> read_csv -> merge (left join on the
+// What it does: the _lmcode_ version of ../csv-join-report.lms. Two CSV files (orders and customers) -> read_csv -> merge (left join on the
 //   customer, validated many_to_one) -> mutate (revenue and a volume discount with the expression grammar) -> groupby per region ->
 //   write_csv, then checks every total against sums computed by hand from the literal data. Customer 9 has no master record and stays in
 //   the report as a missing region. One DSL program does all of it in memory; pycli needed one process and one .npz artifact per step.
@@ -10,7 +10,7 @@ import "lmpy.lms";
 write_file("orders-dsl.csv", "order_id,cust,qty,unit_price\n1,1,4,2.5\n2,2,12,1.0\n3,1,10,3.0\n4,3,1,40.0\n5,9,6,5.0\n6,2,2,10.0\n7,3,20,0.5\n");
 write_file("customers-dsl.csv", "cust,region,tier\n1,North,gold\n2,South,silver\n3,North,silver\n4,East,gold\n");
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let orders = read_csv("orders-dsl.csv");
 let customers = read_csv("customers-dsl.csv");
 let joined = orders.merge(customers, strs("cust"), "left", opts().set("validate", "many_to_one"));
@@ -39,7 +39,7 @@ for (i in range(0, regions.nrows())) {
 }
 out.check("three region groups", regions.nrows() == 3);
 out.check("join counts 6 / 1 / 1", both.where("_merge", "both").nrows() == 6 && both.where("_merge", "left_only").nrows() == 1 && both.where("_merge", "right_only").nrows() == 1);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "csv-join-report");
 println(sprintf("joined: %d rows, %d matched pairs, %d orders without a customer record, %d customers without orders", v.n_rows, v.n_pairs, v.n_left_only, v.n_right_only));

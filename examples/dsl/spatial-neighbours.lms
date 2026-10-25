@@ -1,5 +1,5 @@
 // access: write (a temporary spatial-neighbours.dslb, removed)
-// What it does: the _dsl_ version of ../spatial-neighbours.lms. 40 deterministic pseudo-random "depots" in the unit square and
+// What it does: the _lmcode_ version of ../spatial-neighbours.lms. 40 deterministic pseudo-random "depots" in the unit square and
 //   5 "customers": the 3 nearest depots of every customer (knn), the area and perimeter of the region the depots span (hull)
 //   and the depot-to-depot distance matrix (cdist). Every answer is cross-checked inside the DSL without trusting the library:
 //   brute-force sorted distances, the shoelace area and polygon perimeter of the returned hull vertices, and the hand formula
@@ -10,7 +10,7 @@
 // How to run: lmscript examples/dsl/spatial-neighbours.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let depots = mat(40, 2);
 let seed = 2024;
 for (i in range(0, 40)) {
@@ -77,7 +77,7 @@ for (a in range(0, 6)) {
   }
 }
 out.check("distance matrix matches the hand formula (1e-12)", dworst <= 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "spatial-neighbours");
 for (q = 0; q < 5; q = q + 1) {

@@ -1,5 +1,5 @@
 // access: write (temporary .dslb)
-// What it does: the _dsl_ version of ../oracle-frame.lms. An outer join with duplicate keys on both sides and keys present on one side
+// What it does: the _lmcode_ version of ../oracle-frame.lms. An outer join with duplicate keys on both sides and keys present on one side
 //   only, and 3-row trailing rolling windows (mean, sum, std, min, max, median). The original compared pycli with lmda row by row; here
 //   the join is checked against the hand join (which both tools reproduced) and the rolling windows against hand values and pandas
 //   (pandas 2.3.3 rolling(3) on the same series, pinned below).
@@ -7,7 +7,7 @@
 // How to run: lmscript examples/dsl/oracle-frame.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let left = csv("id,a\n1,x\n2,y\n2,z\n3,w\n");
 let right = csv("id,b\n2,B\n3,C\n3,D\n4,E\n");
 let j = left.merge(right, strs("id"), "outer");
@@ -40,7 +40,7 @@ out.close("pandas mean", mean.slice(2, 9), vec("2.6666666666666665 2.16666666666
 out.close("pandas std", sd.slice(2, 9), vec("1.5275252316519468 1.607275126832159 3.8188130791298667 4.1932485418030412 3.5118845842842461 2.0816659994661326 1.2583057392117916"), 0.000000000001);
 out.close("pandas median", med.slice(2, 9), vec("3.0 1.5 4.0 2.0 6.0 5.0 5.0"), 0.0);
 out.put("rolling_mean", mean);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "oracle-frame");
 println(sprintf("outer join: %d rows, %d matched pairs, %d left-only, %d right-only", len(v.join.data.id), v.n_pairs, v.n_left_only, v.n_right_only));

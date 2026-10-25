@@ -1,6 +1,6 @@
 // access: write (a temporary cross-arima-acf.dslb, removed)
 // Cross-language agreement: autocorrelation and an AR(1) maximum-likelihood fit in lmpy and R (stats::acf, pacf, arima).
-// What it does: the _dsl_ version of ../cross-arima-acf.lms. On examples/data/tut-ar1.csv compares the ACF (lags 0-10) and the PACF
+// What it does: the _lmcode_ version of ../cross-arima-acf.lms. On examples/data/tut-ar1.csv compares the ACF (lags 0-10) and the PACF
 //   (lags 1-10, method ywm = R's) with R 4.3.3, then fits ARIMA(1,0,0) with a constant by exact maximum likelihood (`arima` trend c,
 //   cov_type approx = the numerical Hessian R reports) and compares phi, the process mean, the innovation variance, the log-likelihood
 //   and the standard error of phi with R's arima(method = "ML", include.mean = TRUE). R values pinned here with Rscript.
@@ -12,7 +12,7 @@
 // How to run: lmscript examples/dsl/cross-arima-acf.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let x = read_csv("../data/tut-ar1.csv").col("x");
 let a = acf(x, 10);
 let p = pacf(x, 10, opts().set("method", "ywm"));
@@ -42,7 +42,7 @@ out.put("mean", mean);
 out.put("sigma2", fit.num("sigma2"));
 out.put("llf", fit.num("llf"));
 out.put("se_phi", se_phi);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "cross-arima-acf");
 println("acf lags 0-10:  " + json_stringify(v.acf));

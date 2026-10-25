@@ -8,7 +8,7 @@
 // Check: examples/python/check-parity.sh sklearn-linear-diabetes
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn pin(name: string, got: Vec, want: Vec, tol: float) -> void {
   out.put(name, got);
   out.close(name + " (scikit-learn 1.7.2)", got, want, tol);
@@ -68,7 +68,7 @@ out.close_rel("ridge r2", ridge.score(xte, yte), 0.5066156749609367, 0.000000001
 out.close("lasso coef (scikit-learn 1.7.2)", lasso.coef().row(0), vec("0.0 -153.88359545413965 508.680134374895 281.35032467290085 -51.009898703078726 0.0 -219.74010214170093 0.0 469.11252115749943 46.039081452664625"), 0.0000001);
 out.close_rel("lasso r2", lasso.score(xte, yte), 0.582851927323225, 0.000000001);
 out.close_rel("lasso intercept", lasso.intercept().at(0), 152.81670291213908, 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "sklearn-linear-diabetes");
 println(sprintf("bmi only: coef %.4f, mse %.2f, R^2 %.4f", v.ols_bmi_coef[0], v.ols_bmi_mse, v.ols_bmi_r2));

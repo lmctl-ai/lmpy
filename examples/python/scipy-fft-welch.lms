@@ -7,7 +7,7 @@
 // Check: examples/python/check-parity.sh scipy-fft-welch (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # scipy.fft tutorial
 let n = 600;
 let dt = 1.0 / 800.0;
@@ -59,7 +59,7 @@ out.put("welch_burst_median_floor", wmed.vec("pxx").slice(256, 513).mean());
 out.put("welch_burst_median", wmed.vec("pxx"));
 out.close("burst: mean-average floor (scipy 1.16.2)", wm.vec("pxx").slice(256, 513).mean(), 0.0011550816421544924, 0.000000000001);
 out.close("burst: median-average floor (scipy 1.16.2)", wmed.vec("pxx").slice(256, 513).mean(), 0.0010128461118537248, 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-fft-welch");
 println(sprintf("fft: tones at %.1f and %.1f Hz, amplitudes %.6f and %.6f", v.fft_peak_freqs[0], v.fft_peak_freqs[1], v.fft_peak_amplitudes[0], v.fft_peak_amplitudes[1]));

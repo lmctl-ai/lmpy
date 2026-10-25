@@ -1,7 +1,7 @@
 // access: write (a temporary tut-group-tests.dslb, removed)
 // Topic: comparing groups: two-sample t-test, one-way ANOVA and a chi-square test of independence (after: the R PlantGrowth /
 //   ToothGrowth teaching examples and the scipy-lectures statistics chapter)
-// What it does: the _dsl_ version of ../tut-group-tests.lms. One DSL program reads the three-group table, runs the pooled t-test
+// What it does: the _lmcode_ version of ../tut-group-tests.lms. One DSL program reads the three-group table, runs the pooled t-test
 //   (ctrl vs trt2) as the slope of a dummy regression (`ols` on the two groups), the one-way ANOVA as the F-test of `ols` with a
 //   categorical term, builds the group x flowered contingency table with `groupby` and computes the chi-square statistic and its
 //   p-value with `dist`; every p-value is cross-checked against the reference distribution, and the ANOVA coefficients are checked
@@ -17,7 +17,7 @@
 // How to run: lmscript examples/dsl/tut-group-tests.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-groups.csv");
 # 1. Two-sample t-test (pooled variance) = t statistic of the group dummy in weight ~ group on the two groups (group != trt1).
 let pair = f.where("group", "ctrl").concat(f.where("group", "trt2"));
@@ -86,7 +86,7 @@ out.put("anova_r2", an.num("r2"));
 out.put("means", means);
 out.put("table", table);
 out.put("chi2", vec(chi2, pchi, min_expected));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-group-tests");
 println(sprintf("t-test ctrl vs trt2: difference %.3f (SE %.3f), t = %.3f on %d df, p = %.4f", v.t[0], v.t[1], v.t[2], v.t_df, v.t[3]));

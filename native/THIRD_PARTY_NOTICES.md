@@ -6,7 +6,7 @@ hashes are pinned in `deps.lock`.
 
 | Component | Version | Licence | Text | Use |
 |---|---|---|---|---|
-| cpp-dsl-sdk (`cpp/dslvm.hpp`) | commit in `sdk.lock` | MIT | `licenses/cpp-dsl-sdk-LICENSE` | bytecode loader, verifier and VM |
+| lmcode-cpp (`cpp/dslvm.hpp`, `cpp/stdlib/`, `cpp/std/`) | commit in `sdk.lock` | MIT | `licenses/lmcode-cpp-LICENSE` | bytecode loader, verifier, VM and the built-in std catalog |
 | Eigen | 3.4.0 | MPL-2.0 (built with `EIGEN_MPL2_ONLY`; files unmodified, source at the pinned URL) | `licenses/eigen-COPYING.MPL2` | dense and sparse linear algebra |
 | Boost (header-only libraries) | 1.86.0 | BSL-1.0 | `licenses/boost-LICENSE_1_0.txt` | special functions, distributions, quadrature, odeint, graph |
 | pocketfft (C++ header) | commit 4d865cba | BSD-3-Clause | `licenses/pocketfft-LICENSE.md` | FFT |

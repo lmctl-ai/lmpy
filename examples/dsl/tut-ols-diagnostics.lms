@@ -1,6 +1,6 @@
 // access: write (a temporary tut-ols-diagnostics.dslb, removed)
 // Topic: ordinary least squares with diagnostics (after: the statsmodels "OLS" example notebook)
-// What it does: the _dsl_ version of ../tut-ols-diagnostics.lms. Fits y ~ x1 + x2 with `ols` straight from the CSV (residuals
+// What it does: the _lmcode_ version of ../tut-ols-diagnostics.lms. Fits y ~ x1 + x2 with `ols` straight from the CSV (residuals
 //   included), reports the coefficient table and the diagnostics (sigma, Durbin-Watson, condition number), recomputes the F-test
 //   p-value with the F survival function and the confidence intervals with the t quantile (`dist`), and checks that the residuals sum
 //   to zero, that ssr matches the residuals, that the generating parameters lie inside the intervals, that sigma is near the noise
@@ -12,7 +12,7 @@
 // How to run: lmscript examples/dsl/tut-ols-diagnostics.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let fit = ols(read_csv("../data/tut-ols.csv"), "y", "x1 + x2", opts().set("include", strs("residuals")));
 out.check("status OK", fit.ok());
 let c = fit.res("coefficients");
@@ -60,7 +60,7 @@ out.put("cond", cond);
 out.put("coefficients", c);
 out.put("sum_e", sum_e);
 out.put("tq", tq);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-ols-diagnostics");
 println(sprintf("n=%d  r2=%.4f  r2_adj=%.4f  sigma=%.4f  F=%.2f (p=%.5f)  DW=%.3f  cond=%.1f", v.n, v.r2, v.r2_adj, v.sigma, v.f, v.f_p, v.dw, v.cond));

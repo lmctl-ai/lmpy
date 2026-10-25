@@ -1,6 +1,6 @@
 // access: write (a temporary cross-ols.dslb, removed)
 // Cross-language agreement: ordinary least squares in lmpy (`ols`) and R (lm).
-// What it does: the _dsl_ version of ../cross-ols.lms. Reads examples/data/tut-ols.csv, fits y ~ x1 + x2 and compares the three
+// What it does: the _lmcode_ version of ../cross-ols.lms. Reads examples/data/tut-ols.csv, fits y ~ x1 + x2 and compares the three
 //   coefficients, their standard errors, R^2 and sigma with R 4.3.3 lm() values pinned here (Rscript: summary(lm(y ~ x1 + x2))).
 //   Both are closed-form least squares (lmpy: SVD pseudo-inverse as statsmodels; R: Householder QR), so the only legitimate difference
 //   is rounding: the coefficient tolerance is 64 eps cond(X) max(1, |b|) and the standard-error tolerance 64 eps cond(X)^2 max(1, se),
@@ -9,7 +9,7 @@
 // How to run: lmscript examples/dsl/cross-ols.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-ols.csv");
 let fit = ols(f, "y", "x1 + x2");
 let c = fit.res("coefficients");
@@ -37,7 +37,7 @@ out.put("r_est", r_est);
 out.put("r_se", r_se);
 out.put("r2", fit.num("r2"));
 out.put("sigma", fit.num("sigma"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "cross-ols");
 println(sprintf("n = %d, cond(X) = %.3f", v.n, v.cond));

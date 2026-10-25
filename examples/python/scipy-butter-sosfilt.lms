@@ -7,7 +7,7 @@
 // Check: examples/python/check-parity.sh scipy-butter-sosfilt (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # butter(10, 15, hp, fs=1000, output=sos) and sosfilt on the two-tone signal
 let t = arange(1000).mul(1.0 / 1000.0);
 let sig = t.mul(2.0 * pi() * 10.0).sin().add(t.mul(2.0 * pi() * 20.0).sin());
@@ -43,7 +43,7 @@ out.put("bp_peak_gain_db", 20.0 * log10(mag.max()));
 out.check("15 sections", bp.n_sections() == 15);
 out.close("passband peak gain in dB (scipy 1.16.2)", 20.0 * log10(mag.max()), -0.0000000685064753794716, 0.000000000001);
 out.close("|H| at w = 0.3 pi, 0.1 pi (scipy 1.16.2)", vec(mag.at(450), mag.at(150)), vec(0.9763448122846924, 0.0009600994792823884), 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-butter-sosfilt");
 println(sprintf("high-pass: tail rms %.6f (the 20 Hz tone alone has rms 0.707107); band-pass peak gain %.4f dB", v.hp_tail_rms, v.bp_peak_gain_db));

@@ -10,7 +10,7 @@
 // Check: examples/python/check-parity.sh statsmodels-ols-categorical (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn ftest(ss: float, df: float, ssr: float, df_resid: float) -> float {
   return (ss / df) / (ssr / df_resid);
 }
@@ -72,7 +72,7 @@ out.close_rel("capital coefficient", c.vec("estimate").at(12), 0.310033441875013
 out.close_rel("ssr", ssr, 523718.6621769457, 0.000000001);
 out.close_rel("anova F for the firm effects", f_firm, 49.20708094854456, 0.000000001);
 out.close_rel("t value = capital", rc.vec("statistic").at(iv), -8.586975501285943, 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "statsmodels-ols-categorical");
 for (i = 0; i < len(v.param_names); i = i + 1) { println(sprintf("  %-30s %12.6f  (se %.6f)", v.param_names[i], v.params[i], v.bse[i])); }

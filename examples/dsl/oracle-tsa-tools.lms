@@ -1,5 +1,5 @@
 // access: write (a temporary oracle-tsa-tools.dslb, removed)
-// What it does: the _dsl_ version of ../oracle-tsa-tools.lms. Generates the same deterministic AR(1) series (coefficient 0.6, 120 points,
+// What it does: the _lmcode_ version of ../oracle-tsa-tools.lms. Generates the same deterministic AR(1) series (coefficient 0.6, 120 points,
 //   noise from a 65537-modulus LCG), runs `acf`, `ljung_box`, `adfuller`, `kpss` and `pacf` and checks them (1) against closed forms
 //   worked out in the DSL (lag-k autocorrelation by dot products, the Ljung-Box statistic by its formula and its chi-square(2), chi-square(4)
 //   p-values in closed form) and (2) against statsmodels 0.14.6 values pinned from the oracle venv (adfuller, kpss, ywadjusted pacf; the
@@ -8,7 +8,7 @@
 // How to run: lmscript examples/dsl/oracle-tsa-tools.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let x = vec();
 let seed = 99;
 let prev = 0.0;
@@ -70,7 +70,7 @@ out.put("kpss", kp.num("statistic"));
 out.put("kpss_p", kp.num("p_value"));
 out.put("kpss_lags", kp.int("lags"));
 out.put("worst", worst);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "oracle-tsa-tools");
 println("acf lags 0-4: " + json_stringify(v.acf));

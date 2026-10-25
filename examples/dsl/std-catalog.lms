@@ -1,0 +1,70 @@
+// access: write (a temporary std-catalog.dslb, removed)
+// The lmcode std v1 catalog next to lmpy's own API: the lmcode-cpp runtime installs the std functions and lmscript (>= 0.2.420)
+// declares them, so lmpy registers none of them and its schema stays host-only; a block can still mix both.
+// What it does: reads examples/data/tut-groups.csv as text with file_lines, splits each row with str_split, trims it with
+//   str_trim, collects the weights of each group into lmpy vectors and counts the flowered rows per group in an IntList, keyed
+//   through a StrMap of group -> position. It then checks the hand-parsed data against lmpy's own read_csv: the same t-test
+//   (ttest_ind, ctrl vs trt2) to the last bit and the same flowered total as a groupby. String and math helpers from std
+//   (str_upper, StrList.join, math_round, math_max) format the summary.
+// Tolerance: exact (both paths parse the same decimal text with the same strtod).
+// Data: examples/data/tut-groups.csv (seed 104).
+// How to run: lmscript examples/dsl/std-catalog.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
+import "lmpy.lms";
+
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
+# std: text file, split, trim, collections
+let lines = file_lines("../data/tut-groups.csv");
+let header = str_split(str_trim(lines.at(0)), ",");
+out.check("header is group,weight,flowered", header.join("|") == "group|weight|flowered");
+let position = str_map();
+let names = str_list();
+let yes = int_list();
+let w0 = vec();
+let w1 = vec();
+let w2 = vec();
+for (i in range(1, lines.len())) {
+  let row = str_trim(lines.at(i));
+  if (str_len(row) > 0) {
+    let fields = str_split(row, ",");
+    let g = fields.at(0);
+    if (!position.has(g)) {
+      position.set(g, str(names.len()));
+      names.add(g);
+      yes.add(0);
+    }
+    let k = str_to_int(position.get(g));
+    let w = str_to_float(fields.at(1));
+    if (k == 0) { w0.push(w); }
+    if (k == 1) { w1.push(w); }
+    if (k == 2) { w2.push(w); }
+    if (fields.at(2) == "yes") { yes.set(k, yes.at(k) + 1); }
+  }
+}
+out.check("three groups in file order", names.join(",") == "ctrl,trt1,trt2");
+
+# lmpy: the same data through read_csv
+let f = read_csv("../data/tut-groups.csv");
+let ctrl = f.where("group", "ctrl").col("weight");
+let trt2 = f.where("group", "trt2").col("weight");
+out.check("hand-parsed ctrl weights equal read_csv", w0.sub(ctrl).abs().max() == 0.0 && w0.len() == ctrl.len());
+out.check("hand-parsed trt2 weights equal read_csv", w2.sub(trt2).abs().max() == 0.0 && w2.len() == trt2.len());
+let t_std = ttest_ind(w0, w2);
+let t_csv = ttest_ind(ctrl, trt2);
+out.check("ttest_ind identical on both paths", t_std.num("statistic") == t_csv.num("statistic") && t_std.num("pvalue") == t_csv.num("pvalue"));
+let counts = f.groupby(strs("group, flowered"), "weight:count");
+let yes_csv = counts.where("flowered", "yes").col("weight__count");
+# the groupby has no row for a group without flowered plants, so compare the total
+out.check("flowered total equals the groupby", float(yes.at(0) + yes.at(1) + yes.at(2)) == yes_csv.sum());
+
+# std: formatting helpers
+let labels = str_list();
+for (k in range(0, names.len())) { labels.add(str_upper(names.at(k))); }
+out.put("groups", labels.join(" "));
+out.put("flowered", vec(float(yes.at(0)), float(yes.at(1)), float(yes.at(2))));
+out.put("largest_group", math_max(math_max(w0.len(), w1.len()), w2.len()));
+out.put("t", math_round(t_std.num("statistic") * 1000.0) / 1000.0);
+out.put("p", t_std.num("pvalue"));
+end _lmcode_
+
+v = lmpy.run(prog, "std-catalog");
+println(sprintf("groups %s, flowered %s, t = %s, p = %.6f", v.groups, json_stringify(v.flowered), str(v.t), v.p));

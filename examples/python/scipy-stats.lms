@@ -8,7 +8,7 @@
 // Check: examples/python/check-parity.sh scipy-stats (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let probs = vec(0.001, 0.5, 0.999);
 fn mvsk(d: Dist) -> Vec {
   let m = d.moments();
@@ -94,7 +94,7 @@ out.put("linregress_ci_halfwidths", vec(ts * slope_se, ts * intercept_se));
 out.close("slope, intercept (scipy 1.16.2)", vec(slope, intercept), vec(1.671154574323312, 0.4343489576045727), 0.000000000001);
 out.close("rvalue, pvalue (scipy 1.16.2)", vec(r, pvalue), vec(0.9180014904279857, 0.0001789839692722917), 0.000000000001);
 out.close("standard errors (scipy 1.16.2)", vec(slope_se, intercept_se), vec(0.25524408801118764, 0.18551722433378148), 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-stats");
 println(sprintf("ttest_ind: t = %.6f, p = %.6f; Welch df = %.4f", v.ttest_ind[0], v.ttest_ind[1], v.ttest_welch[2]));

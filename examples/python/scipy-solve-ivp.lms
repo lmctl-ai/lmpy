@@ -8,7 +8,7 @@
 // Check: examples/python/check-parity.sh scipy-solve-ivp (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # exponential decay, automatic steps
 let tol = opts().set("rtol", 0.001).set("atol", 0.000001);
 let decay = ode(strs("-0.5*a, -0.5*b, -0.5*c"), strs("a, b, c"), vec(2.0, 4.0, 8.0), 0.0, 10.0, tol);
@@ -66,7 +66,7 @@ out.put("lv_dense", z);
 out.check("56 steps, 470 evaluations (scipy 1.16.2)", lr.int("steps") == 56 && lr.int("nfev") == 470);
 out.close("dense z(t[150]) (scipy 1.16.2)", z.row(150), vec(3.4672514092169044, 0.01788292021326167), 0.000000001);
 out.close("z(15) (scipy 1.16.2)", lr.vec("final_state"), vec(0.5820213744837648, 0.09165411804645789), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-solve-ivp");
 println(sprintf("decay: %d steps, y(10) = %s", v.decay_steps, json_stringify(v.decay_final)));

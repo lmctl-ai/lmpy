@@ -1,5 +1,5 @@
 // access: write (a temporary ode-sir.dslb, removed)
-// What it does: the _dsl_ version of ../ode-sir.lms. Integrates the SIR epidemic s' = -b s i / N, i' = b s i / N - g i, r' = g i
+// What it does: the _lmcode_ version of ../ode-sir.lms. Integrates the SIR epidemic s' = -b s i / N, i' = b s i / N - g i, r' = g i
 //   (b = 0.3, g = 0.1, N = 1000, start 999/1/0) on [0, 160] with DOP853 at rtol 1e-10, atol 1e-12 on 161 output points, with the
 //   event i' = 0 (direction -1) marking the infection peak. Checks: the population s + i + r stays 1000 on every row, exactly one
 //   peak, the peak lies in [30, 50], and at the peak S = g N / b = 1000/3 (the closed-form condition for i' = 0).
@@ -9,7 +9,7 @@
 // How to run: lmscript examples/dsl/ode-sir.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let o = opts().set("method", "DOP853").set("rtol", 0.0000000001).set("atol", 0.000000000001).set("max_output_points", 161);
 o.set("$b", 0.3).set("$g", 0.1).set("$population", 1000.0);
 o.set("events", strs("b*s*i/population-g*i")).set("direction", vec(-1.0));
@@ -30,7 +30,7 @@ out.put("peak_day", peak);
 out.put("peak_infected", state.at(1));
 out.put("population", fin.sum());
 out.put("nfev", r.int("nfev"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "ode-sir");
 println(sprintf("peak_day=%.6f peak_infected=%.6f population=%.6f", v.peak_day, v.peak_infected, v.population));

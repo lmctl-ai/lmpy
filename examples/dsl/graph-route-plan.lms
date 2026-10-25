@@ -1,5 +1,5 @@
 // access: write (a temporary graph-route-plan.dslb, removed)
-// What it does: the _dsl_ version of ../graph-route-plan.lms. Two edge lists as CSV text (a road network with travel minutes,
+// What it does: the _lmcode_ version of ../graph-route-plan.lms. Two edge lists as CSV text (a road network with travel minutes,
 //   and a pipe network with capacities and unit costs) -> frames -> graphs -> shortest route, the three best routes, the
 //   Bellman-Ford and BFS cross-checks, then maximum flow, minimum cut and minimum-cost flow -> a short report. Every number is
 //   checked against values worked out by hand from the literal edges: Dijkstra's example from CLRS (figure 24.6) and the CLRS
@@ -8,7 +8,7 @@
 // How to run: lmscript examples/dsl/graph-route-plan.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let roads = csv("from,to,minutes\ns,t,10\ns,y,5\nt,y,2\nt,x,1\ny,t,3\ny,x,9\ny,z,2\nx,z,4\nz,x,6\nz,s,7\n");
 let pipes = csv("from,to,cap,cost\ns,v1,16,1\ns,v2,13,1\nv2,v1,4,1\nv1,v3,12,1\nv3,v2,9,1\nv2,v4,14,1\nv4,v3,7,1\nv3,t,20,1\nv4,t,4,1\n");
 let net = graph(roads, "from", "to", "minutes", true);
@@ -64,7 +64,7 @@ out.check("min cost 30", mcf.num("cost") == 30.0);
 out.put("cost", mcf.num("cost"));
 let over = pipe.min_cost_flow("s", "t", 100.0);
 out.check("100 units are INFEASIBLE (max flow 23)", over.status() == "INFEASIBLE");
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "graph-route-plan");
 println(sprintf("fastest route s -> x: %s in %d minutes (%d legs)", v.route, v.length, v.hops));

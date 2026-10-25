@@ -10,7 +10,7 @@
 // Check: examples/python/check-parity.sh scipy-linalg-tutorial (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn fix_sign(v: Vec) -> Vec {
   let sg = 1.0;
   if (v.at(v.abs().argmax()) < 0.0) { sg = -1.0; }
@@ -102,7 +102,7 @@ out.put("expm_ia_real", e.block(0, 0, 2, 2));
 out.put("expm_ia_imag", e.block(2, 0, 2, 2));
 out.close("expm(1j a) (scipy docs)", e.block(0, 0, 2, 2).flatten(), vec(0.42645930, -2.13721484, 1.06860742, -1.71075555), 0.00000001);
 out.close("block form is consistent", e.block(0, 0, 2, 2).max_abs_diff(e.block(2, 2, 2, 2)), 0.0, 0.000000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-linalg-tutorial");
 println(sprintf("det %.1f; eigenvalues %s; singular values %s; eigh %s", v.det, json_stringify(v.eigenvalues), json_stringify(v.singular_values), json_stringify(v.eigh_w)));

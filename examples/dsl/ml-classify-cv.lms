@@ -1,5 +1,5 @@
 // access: write (ml-classify-cv-model.json and a temporary ml-classify-cv.dslb, both removed)
-// What it does: the _dsl_ version of ../ml-classify-cv.lms. Generates 40 labelled points (x = (i - 20)/5, y = x > 0), runs a
+// What it does: the _lmcode_ version of ../ml-classify-cv.lms. Generates 40 labelled points (x = (i - 20)/5, y = x > 0), runs a
 //   stratified, shuffled 4-fold cross-validation of a standardised logistic classifier (accuracy and log loss), fits the same
 //   model on all rows, saves it, reloads it and reports the class probabilities at x = -2, 0, 2.
 // Known answers (scikit-learn 1.7.2: StratifiedKFold(4, shuffle=True, random_state=42), StandardScaler + LogisticRegression(tol=1e-8)):
@@ -10,7 +10,7 @@
 // How to run: lmscript examples/dsl/ml-classify-cv.lms
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let x = arange(40).sub(20.0).div(5.0);
 let y = x.gt(0.0);
 let cv = ml_cv("logistic", cols(x), y, 4, opts().set("cv", "stratified").set("shuffle", true).set("seed", 42).set("scale", true).set("metrics", strs("accuracy, log_loss")));
@@ -32,7 +32,7 @@ out.close("P(y=1) at -2, 0, 2 (sklearn)", p.col(1), vec(0.08541919955327777, 0.4
 out.check("predicted classes 0, 0, 1", back.predict(q).sub(vec(0.0, 0.0, 1.0)).abs().max() == 0.0);
 out.put("probabilities", p);
 out.put("classes", back.classes());
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "ml-classify-cv");
 remove_file("ml-classify-cv-model.json");

@@ -1,7 +1,7 @@
 // access: write (a temporary tut-curve-fit-peak.dslb, removed)
 // Topic: fitting a Gaussian peak on a baseline by nonlinear least squares (after: the scipy-lectures optimisation chapter
 //   "curve fitting" example and the R ?nls help page)
-// What it does: the _dsl_ version of ../tut-curve-fit-peak.lms. Reads the spectrum, fits b + a exp(-(x - m)^2 / (2 s^2))
+// What it does: the _lmcode_ version of ../tut-curve-fit-peak.lms. Reads the spectrum, fits b + a exp(-(x - m)^2 / (2 s^2))
 //   with `least_squares` (the columns go in as `$x`, `$y` data vectors: no safetensors hand-off is needed in one DSL
 //   program), then minimises the same sum of squares with `minimize` (BFGS on a sum reducer over the data) and checks that
 //   both optimisers agree, that the fitted parameters are within 4 standard errors of the generating values and that the
@@ -11,7 +11,7 @@
 // How to run: lmscript examples/dsl/tut-curve-fit-peak.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("../data/tut-peak.csv");
 let x = f.col("x");
 let y = f.col("y");
@@ -41,7 +41,7 @@ out.close("recomputed rss", rss, fit.num("rss"), 0.000000001);
 out.put("fit", fit);
 out.put("mn", mn);
 out.put("rss", rss);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-curve-fit-peak");
 p = v.fit.par; se = v.fit.std_err; q = v.mn.par;

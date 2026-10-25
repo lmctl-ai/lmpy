@@ -1,5 +1,5 @@
 // access: write (a temporary oracle-spectrum.dslb, removed)
-// What it does: the _dsl_ version of ../oracle-spectrum.lms. Estimates the power spectrum of two exact on-bin tones plus a DC offset
+// What it does: the _lmcode_ version of ../oracle-spectrum.lms. Estimates the power spectrum of two exact on-bin tones plus a DC offset
 //   (periodogram, boxcar window, no detrend, density scaling, fs = 1) and checks it three ways: (1) Parseval / closed forms computed from
 //   the samples (the integral of the one-sided density is the mean square; each on-bin tone of amplitude A has density A^2 N / 2 at fs = 1);
 //   (2) a Welch estimate peaks at the same tone frequency with the tone power A^2/2; (3) the original compared lmda series_spectrum bin by
@@ -9,7 +9,7 @@
 // How to run: lmscript examples/dsl/oracle-spectrum.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let n = 512;
 # tones at bins 64 and 160 of 512: rotate unit vectors by the exact angles pi/4 and 5*pi/8
 let c1 = sqrt(0.5);
@@ -63,7 +63,7 @@ out.put("welch_segments", w.int("n_segments"));
 out.put("welch_peak", w.vec("pxx").at(w.int("peak_index")));
 out.close("Welch peak at 32 Hz", w.num("peak_freq"), 32.0, 0.000001);
 out.close("Welch tone power A^2/2 = 4.5", w.vec("pxx").at(w.int("peak_index")), 4.5, 0.000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "oracle-spectrum");
 println(sprintf("lmpy periodogram: %d bins, df %.9f, peak at bin %d (f = %.9f), total power %.12f", v.n_bins, v.df, v.peak_index, v.peak_freq, v.total_power));

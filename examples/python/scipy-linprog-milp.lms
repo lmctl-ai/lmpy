@@ -8,7 +8,7 @@
 // Check: examples/python/check-parity.sh scipy-linprog-milp (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # linprog reference example
 let c = vec(-1.0, 4.0);
 let a = mat("-3 1; 1 2");
@@ -65,7 +65,7 @@ out.check("knapsack OK", knap.ok());
 out.put("knapsack_x", knap.vec("x"));
 out.put("knapsack_value", -knap.num("fun"));
 out.close("knapsack x (tutorial)", knap.vec("x"), vec("1 1 0 1 1 1 0 0"), 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "scipy-linprog-milp");
 println(sprintf("lp fun %.2f at %s; tutorial fun %.6f; milp %s; knapsack value %.0f", v.lp_fun, json_stringify(v.lp_x), v.tutorial_fun, json_stringify(v.milp_x), v.knapsack_value));

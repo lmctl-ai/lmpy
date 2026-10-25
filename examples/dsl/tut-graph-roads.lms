@@ -1,6 +1,6 @@
 // access: write (a temporary tut-graph-roads.dslb, removed)
 // Topic: shortest paths on a road network (after: the networkx shortest-path tutorial and the CLRS Dijkstra / Bellman-Ford examples)
-// What it does: the _dsl_ version of ../tut-graph-roads.lms. Reads a two-way road table, finds the shortest route A -> J with
+// What it does: the _lmcode_ version of ../tut-graph-roads.lms. Reads a two-way road table, finds the shortest route A -> J with
 //   Dijkstra, confirms it with Bellman-Ford and with the three shortest simple routes (Yen), counts the fewest road segments
 //   with BFS, lists the distance from A to every town, and checks that every reported length equals the sum of the road
 //   lengths along the returned route (recomputed in the DSL from the table itself).
@@ -13,7 +13,7 @@
 // How to run: lmscript examples/dsl/tut-graph-roads.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 fn road_length(from: StrVec, to: StrVec, km: Vec, u: string, v: string) -> float {
   let found = -1.0;
   for (i in range(0, from.len())) {
@@ -82,7 +82,7 @@ out.close("distance to J equals the route length", allv.vec("distance").at(allv.
 out.put("nodes", allv.strs("nodes"));
 out.put("distance", allv.vec("distance"));
 out.put("n_reachable", allv.int("n_reachable"));
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "tut-graph-roads");
 println(sprintf("Dijkstra A -> J: %s, %.0f km", v.route, v.length));

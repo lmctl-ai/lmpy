@@ -1,4 +1,4 @@
-// lmpy: one self-contained executable that runs lmscript `_dsl_` bytecode against a numerical host library
+// lmpy: one self-contained executable that runs lmscript `_lmcode_` bytecode against a numerical host library
 // (linear algebra, statistics, optimisation, signal processing, tables, models) with no Python, R or Docker.
 #include "host.hpp"
 #include "out.hpp"
@@ -14,9 +14,9 @@ using namespace lmpy;
 
 static int usage(int code) {
   (code ? std::cerr : std::cout)
-      << "usage: lmpy --dsl FILE [FILE ...]   run bytecode compiled by lmscript (`_dsl_ schema=\"lmpy.dsl.json\"`)\n"
+      << "usage: lmpy --dsl FILE [FILE ...]   run bytecode compiled by lmscript (`_lmcode_ schema=\"lmpy.dsl.json\"`)\n"
          "       lmpy --dsl-schema [--json]      print the API summary, or the exact schema bytes the bytecode binds to\n"
-         "                                       (lmscript: _dsl_ cli=\"lmpy\" reads it; --schema is an older alias)\n"
+         "                                       (lmscript: _lmcode_ cli=\"lmpy\" reads it; --schema is an older alias)\n"
          "       lmpy --dsl-signatures           canonical signatures (diff with `lmscript --dsl-signatures SCHEMA`)\n"
          "       lmpy --api-md                   the API reference as Markdown\n"
          "       lmpy --version\n";

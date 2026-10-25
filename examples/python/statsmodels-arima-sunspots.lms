@@ -35,7 +35,7 @@
 // parity-rtol lb_pvalue: 1e-4
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 # statsmodels ARIMA order: [mean, ar.L1..ar.Lp, sigma2] from lmpy's [intercept, ar.L1..ar.Lp, sigma2]
 fn with_mean(p: Vec) -> Vec {
   let ar = p.slice(1, p.len() - 1);
@@ -110,7 +110,7 @@ let lb = ljung_box(arma11.vec("residuals"), vec(10.0));
 out.put("lb_stat", lb.vec("statistic").at(0));
 out.put("lb_pvalue", lb.vec("p_value").at(0));
 out.close_rel("Ljung-Box Q(10) of the ARMA(1,1) residuals", lb.vec("statistic").at(0), 214.1086925022273, 0.00001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "statsmodels-arima-sunspots");
 println(sprintf("AR(2) [mean, ar.L1, ar.L2, sigma2] = %s, aic %.4f (lmpy names %s)", json_stringify(v.ar2_params), v.ar2_aic, json_stringify(v.ar2_names)));

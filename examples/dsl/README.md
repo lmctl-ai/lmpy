@@ -1,6 +1,6 @@
-# `_dsl_` examples for lmpy
+# `_lmcode_` examples for lmpy
 
-Every file here is an lmscript program with one `_dsl_` block. Running one compiles the block against
+Every file here is an lmscript program with one `_lmcode_` block. Running one compiles the block against
 [`../../native/schema/lmpy.dsl.json`](../../native/schema/lmpy.dsl.json), saves the bytecode, runs the native host
 `lmpy --dsl`, and reads back the JSON values and checks. No Python, R or Docker is involved: `lmpy` is one executable
 whose only shared dependency is glibc.
@@ -30,10 +30,11 @@ one artifact file.
 | [task-quality-control](task-quality-control.lms) | seeded data → CSV → groupby summary → nested OLS F test → Welch t tests with Bonferroni → Cpk → out-of-spec export |
 | [task-sensor-cleanup](task-sensor-cleanup.lms) | synthetic recording → CSV → Hampel despiking → band-stop + low-pass filtfilt → Welch before/after → peaks → frequency and amplitude → CSV |
 | [task-portfolio](task-portfolio.lms) | Cholesky-simulated returns → covariance algebra → closed-form vs SLSQP minimum variance → long-only frontier loop → VaR |
+| [std-catalog](std-catalog.lms) | lmcode std catalog with lmpy: `file_lines` → `str_split`/`str_trim` → `StrMap`/`IntList` bookkeeping → lmpy vectors → `ttest_ind`, checked bit-for-bit against `read_csv` |
 
 ## Ports of the pycli recipes
 
-`<name>.lms` here is the `_dsl_` version of [`../<name>.lms`](../). Ports keep the original's data, known answers and
+`<name>.lms` here is the `_lmcode_` version of [`../<name>.lms`](../). Ports keep the original's data, known answers and
 tolerances. The `oracle-*` and `cross-*` originals compared pycli with sibling tools (lmda, statsrust, rcli/R) at run time.
 Their ports assert the pinned values those comparisons established, and each header states the source (R 4.3.3, scipy
 1.16.2, statsmodels 0.14.6, scikit-learn 1.7.2, pandas 2.3.3).

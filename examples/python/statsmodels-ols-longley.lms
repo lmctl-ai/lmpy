@@ -8,7 +8,7 @@
 // Check: examples/python/check-parity.sh statsmodels-ols-longley (runs both and compares every recorded value).
 import "../dsl/lmpy.lms";
 
-prog = _dsl_ schema="../../native/schema/lmpy.dsl.json";
+prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json";
 let f = read_csv("data/longley.csv");
 let fit = ols(f, "TOTEMP", "GNPDEFL + GNP + UNEMP + ARMED + POP + YEAR");
 let c = fit.res("coefficients");
@@ -50,7 +50,7 @@ out.close_rel("statsmodels llf", fit.num("llf"), -109.61743480847855, 0.00000000
 out.close_rel("statsmodels aic", fit.num("aic"), 233.2348696169571, 0.000000001);
 out.close_rel("statsmodels condition number", fit.num("condition_number"), 4859257015.4548645, 0.000000001);
 out.close_rel("statsmodels Durbin-Watson", fit.num("durbin_watson"), 2.5594876892810072, 0.000000001);
-end _dsl_
+end _lmcode_
 
 v = lmpy.run(prog, "statsmodels-ols-longley");
 names = ["const", "GNPDEFL", "GNP", "UNEMP", "ARMED", "POP", "YEAR"];
