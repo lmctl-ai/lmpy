@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vendor the lmcode-cpp runtime (formerly cpp-dsl-sdk) from one pinned commit: the VM header, the built-in std headers it
+# Vendor the lmcode-cpp runtime from one pinned commit: the VM header, the built-in std headers it
 # includes and the canonical std schema. sdk.lock pins the commit and every file's content hash.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

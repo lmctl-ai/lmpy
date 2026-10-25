@@ -116,7 +116,7 @@ atomic installation cannot be undone by a later cancellation.
 ## Quick start
 
 Requirements on the host: Docker (daemon running, able to build images; the shim never pulls), git, Python 3 (gates and
-measurement scripts), and `lmscript` from the npm package `@lmctl-ai/lmctl` (`npm install -g @lmctl-ai/lmctl@0.2.207`, the version
+measurement scripts), and `lmscript` from the npm package `@lmctl-ai/lmctl` (`npm install -g @lmctl-ai/lmctl@0.2.420`, the version
 verified here; it brings `lmctl` as well). The build needs a checkout of `lmctl-ai/lmcpp` at `93a1847c081894ab1e9ed02ad5ea6350b5d5bd06`
 (default path `/home/ubuntu/repos/lmctl-ai/lmcpp`, override with `LMCPP_DIR=/path/to/lmcpp`).
 

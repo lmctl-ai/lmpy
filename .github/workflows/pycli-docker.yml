@@ -15,7 +15,7 @@ permissions:
 env:
   LMCPP_REF: 93a1847c081894ab1e9ed02ad5ea6350b5d5bd06
   LMTS_REF: 31012f638613b74114b66bce01c99b8415248263
-  LMCTL_VERSION: 0.2.207   # the lmscript used for the recipe acceptance on the development host
+  LMCTL_VERSION: 0.2.420   # compiler with _lmcode_ and built-in lmcode std support
 
 jobs:
   build-and-test:

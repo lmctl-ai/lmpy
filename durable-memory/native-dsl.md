@@ -40,13 +40,13 @@ runs it inside Docker. lmpy replaces the whole chain with the `_lmcode_` model u
   `native/schema/lmpy.dsl.json` is a committed copy, and `test.sh` fails when it drifts.
 - `lmpy --api-md` prints the API reference. `native/API.md` is a committed copy and is drift-checked too.
 - `lmpy --dsl-signatures` must equal `lmscript --dsl-signatures native/schema/lmpy.dsl.json`.
-- Runtime: lmcode-cpp (formerly cpp-dsl-sdk), vendored by `native/scripts/sync-sdk.sh` (`LMCODE_CPP=checkout`): `cpp/dslvm.hpp`,
+- Runtime: lmcode-cpp, vendored by `native/scripts/sync-sdk.sh` (`LMCODE_CPP=checkout`): `cpp/dslvm.hpp`,
   `cpp/stdlib/*.hpp` and `cpp/std/lmcode-std.schema.json`, each hash-pinned in `native/sdk.lock`. The default `dslvm::Registry`
   installs the lmcode std v1 catalog itself (`str_*`, `math_*`, `int_list`/`float_list`/`str_list`/`str_map`, `file_*`; 72
   signatures) and lmscript >= 0.2.420 injects the same declarations at compile time, so lmpy registers none of it and the
   published schema stays host-only (551 signatures; 623 with std). `test.sh` checks registry = host schema + canonical std.
   Never vendor-edit the SDK files (a repo-wide sed once changed comments in dslvm.hpp and broke the lock).
-- Block keyword: `_lmcode_ ... end _lmcode_` (lmscript >= 0.2.419; 0.2.388 rejects it; `_dsl_` stays valid; CI pins 0.2.420). Names such as `.dsl.json`,
+- Block keyword: `_lmcode_ ... end _lmcode_` (lmscript >= 0.2.420; 0.2.388 rejects it; `_dsl_` stays valid; CI pins 0.2.420). Names such as `.dsl.json`,
   `.dslb`, `savedsl`, `dsl_cli`, `--dsl`, `--dsl-schema` are unchanged.
 - Development-only oracle: `native/.deps/oracle-venv` has pycli's exact pins (numpy 2.3.3, scipy 1.16.2, pandas 2.3.3,
   statsmodels 0.14.6, scikit-learn 1.7.2) for pinning expected values. `Rscript` is on the host too. Neither is used at
