@@ -11,12 +11,12 @@ Today's pycli is an lmapi CLI: lmscript calls `pycli.op({...})`, a C++ front end
 runs it inside Docker. lmpy replaces the whole chain with the `_lmcode_` model used by lmcad and lmhtml:
 
     examples/dsl/x.lms                          native/build/lmpy (glibc only, no Python/R/Docker)
-    prog = _lmcode_ schema="lmpy.dsl.json";   ──▶  lmpy --dsl x.dslb
+    prog = _lmcode_ schema="lmpy.dsl.json";   ──▶  lmpy --lmcode x.dslb
       let f = read_csv("data.csv");              loads the bytecode, binds it to the embedded schema (SHA-256),
       let fit = ols(f, "y", strs("x1,x2"));      runs it, then prints one JSON line:
       out.put("r2", fit.num("r2"));              {"ok": true, "result": {"values": {...}, "checks": {...}}}
     end _lmcode_
-    v = lmpy.run(prog, "x");   # savedsl + system([lmpy, "--dsl", file]) + json_parse
+    v = lmpy.run(prog, "x");   # savedsl + system([lmpy, "--lmcode", file]) + json_parse
 
 - **One program, many steps.** A DSL chunk chains operations in native memory: read → transform → fit → check → report.
   There is no process, JSON or file round trip per step. pycli needed `_to` twins and safetensors artifacts to pass arrays
@@ -36,18 +36,19 @@ runs it inside Docker. lmpy replaces the whole chain with the `_lmcode_` model u
 
 - One executable to download: everything (libstdc++, libgcc, Eigen, Boost, HiGHS, ...) is linked in; glibc is the only
   shared dependency (operator decision 2026-10-20: dynamic glibc avoids the LGPL static-linking duty). `test.sh` enforces it.
-- `lmpy --dsl-schema --json` prints the schema the bytecode binds to. It is generated from the registry.
+- `lmpy --lmcode-schema --json` prints the schema the bytecode binds to. It is generated from the registry.
   `native/schema/lmpy.dsl.json` is a committed copy, and `test.sh` fails when it drifts.
 - `lmpy --api-md` prints the API reference. `native/API.md` is a committed copy and is drift-checked too.
-- `lmpy --dsl-signatures` must equal `lmscript --dsl-signatures native/schema/lmpy.dsl.json`.
+- `lmpy --lmcode-signatures` must equal `lmscript --lmcode-signatures native/schema/lmpy.dsl.json`.
 - Runtime: lmcode-cpp, vendored by `native/scripts/sync-sdk.sh` (`LMCODE_CPP=checkout`): `cpp/dslvm.hpp`,
   `cpp/stdlib/*.hpp` and `cpp/std/lmcode-std.schema.json`, each hash-pinned in `native/sdk.lock`. The default `dslvm::Registry`
-  installs the lmcode std v1 catalog itself (`str_*`, `math_*`, `int_list`/`float_list`/`str_list`/`str_map`, `file_*`; 72
+  installs the lmcode std v1 catalog itself (`str_*`, `math_*`, `int_list`/`float_list`/`str_list`/`str_map`, `file_*` and result helpers; 206
   signatures) and lmscript >= 0.2.420 injects the same declarations at compile time, so lmpy registers none of it and the
-  published schema stays host-only (551 signatures; 623 with std). `test.sh` checks registry = host schema + canonical std.
+  published schema stays host-only (551 signatures; 757 with std). `test.sh` checks registry = host schema + canonical std.
   Never vendor-edit the SDK files (a repo-wide sed once changed comments in dslvm.hpp and broke the lock).
-- Block keyword: `_lmcode_ ... end _lmcode_` (lmscript >= 0.2.420; 0.2.388 rejects it; `_dsl_` stays valid; CI pins 0.2.420). Names such as `.dsl.json`,
-  `.dslb`, `savedsl`, `dsl_cli`, `--dsl`, `--dsl-schema` are unchanged.
+- Block keyword: `_lmcode_ ... end _lmcode_`. Internal `.dsl.json`, `.dslb`, `savedsl` and `dsl_cli` names remain.
+  Host flags are `--lmcode`, `--lmcode-schema` and `--lmcode-signatures`, with no retired-spelling aliases.
+  Use a compiler with the renamed discovery surface and v6 output; local qualification uses a mono main source build.
 - Development-only oracle: `native/.deps/oracle-venv` has pycli's exact pins (numpy 2.3.3, scipy 1.16.2, pandas 2.3.3,
   statsmodels 0.14.6, scikit-learn 1.7.2) for pinning expected values. `Rscript` is on the host too. Neither is used at
   run time or by the gate.
@@ -160,3 +161,7 @@ Rules for a family file:
   7. Python parity (2026-10-22): `examples/python/` holds 29 published recipes (`NAME.py`) with lmpy versions (`NAME.lms`)
      pinning the Python answers; `examples/python/check-parity.sh` compares every recorded value (29/29 match; looser
      tolerances are declared and justified per key). API gaps found there are listed in `examples/python/README.md`.
+
+## Hard host flag cutover qualification
+
+Native/test.sh checks retired-option refusal before file effects in scratch HOME, exact schema/signature bytes and the new loader route. The owner script synchronizes SDK20325f7; raw schema and generated API.md remain exact host outputs. Local qualification runs the complete native numerical/example gate with the mono source compiler. The historical Docker implementation is a separate retired direction.

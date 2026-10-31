@@ -7,7 +7,7 @@ out.close("intercept and slope", fit.vec("x"), vec(3.0, 2.0), 0.000000000001);
 out.put("coefficients", fit.vec("x"));
 end _lmcode_
 savedsl(p, "build/readme-gallery-fit.dslb");
-r = system ${dsl_cli(p)} --dsl build/readme-gallery-fit.dslb;
+r = system ${dsl_cli(p)} --lmcode build/readme-gallery-fit.dslb;
 if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
 v = json_parse(r.stdout).result.values;
 d = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
@@ -25,5 +25,5 @@ scene.text(100.0, 356.0, 14.0, "y = " + ${str(v.coefficients.get(0, 0.0))} + " +
 scene.render_png("build/rendered/readme-least-squares-line.png", 760, 390, 1);
 end _lmcode_
 savedsl(d, "build/readme-gallery-fit-draw.dslb");
-r = system ${dsl_cli(d)} --dsl build/readme-gallery-fit-draw.dslb;
+r = system ${dsl_cli(d)} --lmcode build/readme-gallery-fit-draw.dslb;
 if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

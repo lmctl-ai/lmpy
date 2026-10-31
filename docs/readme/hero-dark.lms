@@ -10,7 +10,7 @@ out.put("intercept", fit.vec("x").at(0));
 out.put("slope", fit.vec("x").at(1));
 end _lmcode_
 savedsl(stats, "build/readme-hero-stats-dark.dslb");
-r = system ${dsl_cli(stats)} --dsl build/readme-hero-stats-dark.dslb;
+r = system ${dsl_cli(stats)} --lmcode build/readme-hero-stats-dark.dslb;
 if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
 v = json_parse(r.stdout).result.values;
 draw = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
@@ -35,5 +35,5 @@ scene.text(886.0, 482.0, 13.0, "native results, checked before drawing", "#9db4c
 scene.render_png("build/rendered/readme-hero-dark.png", 1400, 600, 1);
 end _lmcode_
 savedsl(draw, "build/readme-hero-dark.dslb");
-r = system ${dsl_cli(draw)} --dsl build/readme-hero-dark.dslb;
+r = system ${dsl_cli(draw)} --lmcode build/readme-hero-dark.dslb;
 if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

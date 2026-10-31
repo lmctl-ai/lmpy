@@ -14,10 +14,10 @@ using namespace lmpy;
 
 static int usage(int code) {
   (code ? std::cerr : std::cout)
-      << "usage: lmpy --dsl FILE [FILE ...]   run bytecode compiled by lmscript (`_lmcode_ schema=\"lmpy.dsl.json\"`)\n"
-         "       lmpy --dsl-schema [--json]      print the API summary, or the exact schema bytes the bytecode binds to\n"
+      << "usage: lmpy --lmcode FILE [FILE ...]   run bytecode compiled by lmscript (`_lmcode_ schema=\"lmpy.dsl.json\"`)\n"
+         "       lmpy --lmcode-schema [--json]      print the API summary, or the exact schema bytes the bytecode binds to\n"
          "                                       (lmscript: _lmcode_ cli=\"lmpy\" reads it; --schema is an older alias)\n"
-         "       lmpy --dsl-signatures           canonical signatures (diff with `lmscript --dsl-signatures SCHEMA`)\n"
+         "       lmpy --lmcode-signatures           canonical signatures (diff with `lmscript --lmcode-signatures SCHEMA`)\n"
          "       lmpy --api-md                   the API reference as Markdown\n"
          "       lmpy --version\n";
   return code;
@@ -43,17 +43,17 @@ int main(int argc, char** argv) {
   std::string cmd = argv[1];
   if (cmd == "--help" || cmd == "-h") return usage(0);
   if (cmd == "--version") { std::cout << "lmpy " << LMPY_VERSION << "\n"; return 0; }
-  if (cmd == "--dsl-schema" || cmd == "--schema") {
+  if (cmd == "--lmcode-schema" || cmd == "--schema") {
     if (argc == 2) { std::cout << api.summary(); return 0; }
     if (argc == 3 && std::string(argv[2]) == "--json") { std::cout << api.schema_json(); return 0; }
     return usage(2);
   }
-  if (cmd == "--dsl-signatures" && argc == 2) {
+  if (cmd == "--lmcode-signatures" && argc == 2) {
     for (auto& s : api.reg.signatures()) std::cout << s << "\n";
     return 0;
   }
   if (cmd == "--api-md" && argc == 2) { std::cout << api.markdown(); return 0; }
-  if (cmd != "--dsl" || argc < 3) return usage(2);
+  if (cmd != "--lmcode" || argc < 3) return usage(2);
   for (int i = 2; i < argc; ++i)
     if (!argv[i][0] || std::strncmp(argv[i], "--", 2) == 0) return usage(2);
 

@@ -6,7 +6,7 @@ out.close("example host result", x, vec(1.0, 2.0, 3.0), 0.000000000001);
 out.put("solution", x);
 end _lmcode_
 savedsl(check, "build/readme-architecture-check.dslb");
-r = system ${dsl_cli(check)} --dsl build/readme-architecture-check.dslb;
+r = system ${dsl_cli(check)} --lmcode build/readme-architecture-check.dslb;
 if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
 v = json_parse(r.stdout).result.values;
 draw = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
@@ -31,5 +31,5 @@ scene.text(54.0, 332.0, 14.0, "The host prints one result line; the script check
 scene.render_png("build/rendered/readme-architecture-light.png", 1200, 390, 1);
 end _lmcode_
 savedsl(draw, "build/readme-architecture-light.dslb");
-r = system ${dsl_cli(draw)} --dsl build/readme-architecture-light.dslb;
+r = system ${dsl_cli(draw)} --lmcode build/readme-architecture-light.dslb;
 if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }

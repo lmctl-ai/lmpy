@@ -14,6 +14,7 @@ bad() { echo "FAIL $1"; failn=$((failn+1)); }
 cmake -S "$HERE" -B "$BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release ${LMPY_DEPS:+-DLMPY_DEPS="$LMPY_DEPS"} >/dev/null
 cmake --build "$BUILD" -j"${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}" >/dev/null
 case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) os=windows; BIN="$BUILD/lmpy.exe" ;; Darwin) os=macos; BIN="$BUILD/lmpy" ;; *) os=linux; BIN="$BUILD/lmpy" ;; esac
+python3 "$HERE/tests/check-host-flags.py" "$HERE/schema/lmpy.dsl.json" "$BIN" || bad "hard host flag cutover"
 # Self-contained: only the operating system's own libraries may be shared dependencies (Linux: glibc; macOS: libSystem and
 # libc++; Windows: DLLs that ship with Windows). libstdc++, libgcc and every numerical library are linked in.
 size="$(wc -c < "$BIN" | tr -d ' ')"
@@ -23,14 +24,14 @@ case "$os" in
   windows) deps=""; for dll in $(objdump -p "$BIN" | awk '/DLL Name:/ {print $3}'); do [ -f "/c/Windows/System32/$dll" ] || [ -f "/c/Windows/System32/downlevel/$dll" ] || deps="$deps $dll"; done ;;
 esac
 if [ -z "$deps" ]; then ok "lmpy needs only system libraries ($os, $size bytes)"; else bad "lmpy has non-system shared dependencies: $deps"; fi
-if "$BIN" --dsl-schema --json | cmp -s - "$HERE/schema/lmpy.dsl.json"; then ok "schema/lmpy.dsl.json equals lmpy --dsl-schema --json"; else bad "schema drift: run $BIN --dsl-schema --json > native/schema/lmpy.dsl.json"; fi
+if "$BIN" --lmcode-schema --json | cmp -s - "$HERE/schema/lmpy.dsl.json"; then ok "schema/lmpy.dsl.json equals lmpy --lmcode-schema --json"; else bad "schema drift: run $BIN --lmcode-schema --json > native/schema/lmpy.dsl.json"; fi
 if "$BIN" --api-md | cmp -s - "$HERE/API.md"; then ok "API.md equals lmpy --api-md"; else bad "API.md drift: run $BIN --api-md > native/API.md"; fi
-if diff <("$BIN" --dsl-signatures) <("$LMSCRIPT" --dsl-signatures "$HERE/schema/lmpy.dsl.json") >/dev/null; then ok "registry signatures equal lmscript --dsl-signatures"; else bad "signature parity"; fi
+if diff <("$BIN" --lmcode-signatures) <("$LMSCRIPT" --lmcode-signatures "$HERE/schema/lmpy.dsl.json") >/dev/null; then ok "registry signatures equal lmscript --lmcode-signatures"; else bad "signature parity"; fi
 # the schema is host-only (lmscript injects the lmcode std catalog): the registry minus the canonical std signatures must be
 # exactly what the schema declares without std
 csort() { LC_ALL=C sort; }
-if diff <(LC_ALL=C comm -23 <("$BIN" --dsl-signatures | csort) <("$LMSCRIPT" --dsl-signatures "$HERE/cpp/std/lmcode-std.schema.json" | csort)) \
-        <("$LMSCRIPT" --dsl-signatures "$HERE/schema/lmpy.dsl.json" --without-std | csort) >/dev/null; then
+if diff <(LC_ALL=C comm -23 <("$BIN" --lmcode-signatures | csort) <("$LMSCRIPT" --lmcode-signatures "$HERE/cpp/std/lmcode-std.schema.json" | csort)) \
+        <("$LMSCRIPT" --lmcode-signatures "$HERE/schema/lmpy.dsl.json" --without-std | csort) >/dev/null; then
   ok "schema is host-only; the registry adds exactly the lmcode std catalog"; else bad "host/std signature split"; fi
 
 # cli="lmpy" examples must bind to this build, not to an installed or downloaded lmpy

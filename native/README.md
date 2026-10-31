@@ -2,7 +2,7 @@
 
 `lmpy` is pycli's numerical toolbox as **one C++17 executable**. Every library is linked in except the system C library
 (glibc), so it needs no Python, R, Docker, GUI or other shared library at run time. Programs are written as lmscript `_lmcode_` blocks. lmscript type-checks a block against
-[`schema/lmpy.dsl.json`](schema/lmpy.dsl.json) and compiles it to bytecode; `lmpy --dsl FILE` runs the bytecode and
+[`schema/lmpy.dsl.json`](schema/lmpy.dsl.json) and compiles it to bytecode; `lmpy --lmcode FILE` runs the bytecode and
 prints one JSON result line.
 
 ```lmscript
@@ -31,9 +31,9 @@ needs `lmscript` from `@lmctl-ai/lmctl` ≥ 0.2.420 (the `_lmcode_` block keywor
 
 | Command | Output |
 |---|---|
-| `lmpy --dsl FILE [FILE ...]` | runs the bytecode files in order; one JSON line per file: `{"ok": true, "result": {"values": {...}, "checks": {...}}}` or `{"ok": false, "phase": "load\|run\|app", "code": ..., "message": "dsl line N:C: ...", "line": N}` |
-| `lmpy --dsl-schema [--json]` | API summary, or the exact schema bytes the bytecode binds to |
-| `lmpy --dsl-signatures` | canonical signatures; must equal `lmscript --dsl-signatures schema/lmpy.dsl.json` |
+| `lmpy --lmcode FILE [FILE ...]` | runs the bytecode files in order; one JSON line per file: `{"ok": true, "result": {"values": {...}, "checks": {...}}}` or `{"ok": false, "phase": "load\|run\|app", "code": ..., "message": "dsl line N:C: ...", "line": N}` |
+| `lmpy --lmcode-schema [--json]` | API summary, or the exact schema bytes the bytecode binds to |
+| `lmpy --lmcode-signatures` | canonical signatures; must equal `lmscript --lmcode-signatures schema/lmpy.dsl.json` |
 | `lmpy --api-md` | the generated API reference ([API.md](API.md)) |
 | `lmpy --version` | exact release identity, `lmpy X.Y.Z` |
 

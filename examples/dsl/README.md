@@ -2,7 +2,7 @@
 
 Every file here is an lmscript program with one `_lmcode_` block. Running one compiles the block against
 [`../../native/schema/lmpy.dsl.json`](../../native/schema/lmpy.dsl.json), saves the bytecode, runs the native host
-`lmpy --dsl`, and reads back the JSON values and checks. No Python, R or Docker is involved: `lmpy` is one executable
+`lmpy --lmcode`, and reads back the JSON values and checks. No Python, R or Docker is involved: `lmpy` is one executable
 whose only shared dependency is glibc.
 
 ```sh

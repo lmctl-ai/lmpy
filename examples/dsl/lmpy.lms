@@ -20,7 +20,7 @@ fn run(prog, name) {
   }
   file = f"{name}.dslb";
   savedsl(prog, file);
-  r = system([bin, "--dsl", file], 300000);
+  r = system([bin, "--lmcode", file], 300000);
   remove_file(file);
   if (r.code != 0 || r.timed_out) {
     println(f"{name}: lmpy exit {r.code}: {trim(r.stdout)}");
