@@ -41,7 +41,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Verify release version contract
-        run: python3 scripts/test-release-version.py
+        run: |
+          python3 scripts/test-release-version.py
+          python3 tests/lmcode-example-contract.py
       - id: version
         run: |
           if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main ]]; then
@@ -125,11 +127,6 @@ jobs:
         run: |
           npm i -g "@lmctl-ai/lmctl@${LMCTL_VERSION}"
           lmscript --version
-          # Keep compatibility helpers isolated to the example loop; protocol and signature gates use the current compiler.
-          npm install --prefix "$RUNNER_TEMP/lmpy-example-compat" --ignore-scripts --no-audit --no-fund @lmctl-ai/lmctl@0.2.448
-          example_bin="$RUNNER_TEMP/lmpy-example-compat/node_modules/.bin/lmscript"
-          if [[ "$RUNNER_OS" == Windows ]]; then example_bin="$(cygpath -u "$example_bin")"; fi
-          echo "LMSCRIPT_EXAMPLE_BIN=$example_bin" >> "$GITHUB_ENV"
 
       - name: build and test (native/test.sh)
         if: env.ONLY_OK == 'true'

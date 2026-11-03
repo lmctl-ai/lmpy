@@ -1,33 +1,16 @@
-// Shared runner for the _lmcode_ examples: save the compiled block as bytecode, run the native host on it, return the
-// values the block recorded with out.put(...). The host is `lmpy` (one static executable, no Python/R/Docker):
-// $LMPY when set, else `lmpy` on PATH. Without it the example prints SKIPPED and exits 0.
+// Shared runner for the _lmcode_ examples. The host is selected by each block's cli/install metadata.
 //   import "lmpy.lms";
-//   values = lmpy.run(prog, "my-example");   // prog = _lmcode_ schema="../../native/schema/lmpy.dsl.json"; ... end _lmcode_
+//   values = lmpy.run(prog, "my-example");   // prog = _lmcode_ cli="lmpy" install="github:lmctl-ai/lmpy@latest"; ... end _lmcode_
 package lmpy;
 
-fn exe() {
-  b = env("LMPY", "");
-  if (b != "") { return b; }
-  return which("lmpy");
-}
-
-// Runs the block; on failure prints the host's one-line JSON error (it names the DSL line) and exits 1.
+// Runs the block through the lmcode invocation manifest and returns the values recorded with out.put(...).
 fn run(prog, name) {
-  bin = exe();
-  if (bin == null) {
-    println(f"SKIPPED: lmpy is not on PATH (build it: cmake -S native -B native/build && cmake --build native/build; then set LMPY)");
-    exit(0);
-  }
-  file = f"{name}.dslb";
-  savedsl(prog, file);
-  r = system([bin, "--lmcode", file], 300000);
-  remove_file(file);
-  if (r.code != 0 || r.timed_out) {
-    println(f"{name}: lmpy exit {r.code}: {trim(r.stdout)}");
-    if (trim(r.stderr) != "") { println(trim(r.stderr)); }
+  r = run_lmcode(prog);
+  if (!r.ok) {
+    println(f"{name}: lmpy invocation failed: {json_stringify(r)}");
     exit(1);
   }
-  values = json_parse(r.stdout).result.values;
+  values = r.result.values;
   // examples/python/check-parity.sh sets LMPY_VALUES_OUT to compare these values with the original Python recipe
   dump = env("LMPY_VALUES_OUT", "");
   if (dump != "") { write_file(dump, json_stringify(values)); }
