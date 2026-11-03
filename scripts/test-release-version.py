@@ -14,4 +14,7 @@ with tempfile.TemporaryDirectory() as d:
  assert subprocess.check_output([calc,'--diagnostic'],text=True).strip()==expected
  cmake=(repo/'native/CMakeLists.txt').read_text()
  assert 'file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/../VERSION" LMPY_VERSION' in cmake
+ test_script=(repo/'native/test.sh').read_text()
+ assert 'LMSCRIPT_EXAMPLE="${LMSCRIPT_EXAMPLE_BIN:-$LMSCRIPT}"' in test_script
+ assert '"$LMSCRIPT" --lmcode-signatures' in test_script and '"$LMSCRIPT_EXAMPLE" "$ex.lms"' in test_script
  print('PASS lmpy run-derived version, stamping and CMake source')

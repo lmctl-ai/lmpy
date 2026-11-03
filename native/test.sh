@@ -6,6 +6,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 BUILD="${1:-$HERE/build}"
 LMSCRIPT="${LMSCRIPT_BIN:-lmscript}"
+LMSCRIPT_EXAMPLE="${LMSCRIPT_EXAMPLE_BIN:-$LMSCRIPT}"
 pass=0; failn=0
 ok() { echo "PASS $1"; pass=$((pass+1)); }
 bad() { echo "FAIL $1"; failn=$((failn+1)); }
@@ -44,7 +45,7 @@ for dir in "$ROOT/examples/dsl" "$ROOT/examples/python" "$ROOT/examples/book"; d
   for ex in $(ls *.lms 2>/dev/null | grep -v '^lmpy.lms$' | sed 's/\.lms$//'); do
     if [ -n "${LMPY_EXAMPLES:-}" ] && ! printf ' %s ' $LMPY_EXAMPLES | grep -q " $ex "; then continue; fi
     tag="$(basename "$dir")/$ex"
-    if out="$(LMPY="$BIN" "$LMSCRIPT" "$ex.lms" 2>&1)"; then ok "example $tag"; else bad "example $tag"; echo "$out" | tail -5 | sed 's/^/    /'; fi
+    if out="$(LMPY="$BIN" "$LMSCRIPT_EXAMPLE" "$ex.lms" 2>&1)"; then ok "example $tag"; else bad "example $tag"; echo "$out" | tail -5 | sed 's/^/    /'; fi
   done
 done
 echo "lmpy gate: $pass passed, $failn failed"
