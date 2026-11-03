@@ -10,7 +10,6 @@ name: lmpy
 on:
   push:
     branches: [main]
-    tags: ["v*"]
     paths-ignore: ["durable-memory/**", "**.md"]
   pull_request:
     paths-ignore: ["durable-memory/**", "**.md"]
@@ -27,14 +26,37 @@ permissions:
   contents: read
 
 concurrency:
-  group: lmpy-${{ github.ref }}
+  group: lmpy-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 env:
   LMCTL_VERSION: 0.2.420   # lmscript with _lmcode_ and the implicit lmcode std catalog (and cli=/install=, including @latest)
 
 jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify release version contract
+        run: python3 scripts/test-release-version.py
+      - id: version
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main ]]; then
+            version="$(scripts/derive-release-version.sh "$GITHUB_RUN_NUMBER")"
+            release=true
+          else
+            version="$(scripts/derive-release-version.sh --diagnostic)"
+            release=false
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "lmpy version $version (release=$release)"
+
   build:
+    needs: version
     strategy:
       fail-fast: false
       matrix:
@@ -57,6 +79,10 @@ jobs:
         if: env.ONLY_OK == 'true'
         with:
           persist-credentials: false
+
+      - name: Stamp CI release version
+        if: env.ONLY_OK == 'true'
+        run: scripts/stamp-version.sh "${{ needs.version.outputs.version }}"
 
       - name: toolchain (linux, manylinux_2_28)
         if: runner.os == 'Linux' && env.ONLY_OK == 'true'
@@ -104,12 +130,12 @@ jobs:
         if: env.ONLY_OK == 'true'
         run: native/test.sh
 
-      - name: enforce release tag version
-        if: startsWith(github.ref, 'refs/tags/v') && env.ONLY_OK == 'true'
+      - name: Verify derived release version
+        if: env.ONLY_OK == 'true'
         run: |
-          expected="lmpy ${GITHUB_REF_NAME#v}"
           actual="$(native/build/lmpy --version)"
-          test "$actual" = "$expected" || { echo "tag $GITHUB_REF_NAME requires '$expected', binary reports '$actual'" >&2; exit 1; }
+          expected="lmpy ${{ needs.version.outputs.version }}"
+          test "$actual" = "$expected" || { echo "expected '$expected', binary reports '$actual'" >&2; exit 1; }
 
       - name: package
         if: env.ONLY_OK == 'true'
@@ -137,11 +163,13 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    if: needs.version.outputs.release == 'true'
+    needs: [version, build]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+    env:
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -159,8 +187,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --clobber dist/*
+          if gh release view "v$RELEASE_VERSION" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "v$RELEASE_VERSION" -R "$GITHUB_REPOSITORY" --clobber dist/*
           else
-            gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --title "lmpy $GITHUB_REF_NAME" --generate-notes dist/*
+            gh release create "v$RELEASE_VERSION" -R "$GITHUB_REPOSITORY" --title "lmpy v$RELEASE_VERSION" --generate-notes dist/*
           fi
