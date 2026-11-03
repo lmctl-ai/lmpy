@@ -13,4 +13,6 @@ for relative in examples:
     assert 'run_lmcode(' in source, f'{relative} must invoke through the lmcode manifest helper'
     for retired in ('savedsl(', 'dsl_cli('):
         assert retired not in source, f'{relative} retains unsupported compiler helper {retired}'
+shared=(root/'examples/dsl/lmpy.lms').read_text()
+assert 'run_lmcode(prog, {command:[bin, "--lmcode", "$DSLFILE"]})' in shared
 print('PASS lmpy examples use the lmcode invocation manifest')

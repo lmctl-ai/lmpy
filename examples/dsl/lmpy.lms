@@ -3,9 +3,20 @@
 //   values = lmpy.run(prog, "my-example");   // prog = _lmcode_ cli="lmpy" install="github:lmctl-ai/lmpy@latest"; ... end _lmcode_
 package lmpy;
 
+fn exe() {
+  b = env("LMPY", "");
+  if (b != "") { return b; }
+  return which("lmpy");
+}
+
 // Runs the block through the lmcode invocation manifest and returns the values recorded with out.put(...).
 fn run(prog, name) {
-  r = run_lmcode(prog);
+  bin = exe();
+  if (bin == null) {
+    println("SKIPPED: lmpy is not on PATH (build it and set LMPY)");
+    exit(0);
+  }
+  r = run_lmcode(prog, {command:[bin, "--lmcode", "$DSLFILE"]});
   if (!r.ok) {
     println(f"{name}: lmpy invocation failed: {json_stringify(r)}");
     exit(1);
