@@ -1,11 +1,11 @@
-// access: read/write (installable local executable, writes results to stdout)
+// access: write (a temporary install-and-run.dslb, removed)
 // What it does: the zero-setup way to use lmpy from lmscript. No schema file and no manual install:
 //   - cli="lmpy" makes lmscript ask the lmpy binary for its schema (`lmpy --lmcode-schema --json`) and compile against exactly
 //     those bytes, so the bytecode is bound to the binary that will run it;
 //   - install="github:lmctl-ai/lmpy@v0.1.0" says where lmpy comes from when it is not on PATH: lmscript downloads the
 //     release asset lmpy-OS-ARCH[.exe] (linux/macos/windows, x64/arm64) once into its tool cache, verified against the
 //     SHA-256 digest GitHub reports, and uses it from then on;
-//   - run_lmcode(p) sends the invocation manifest directly to the selected host.
+//   - dsl_cli(p) is the argv prefix of that exact binary, so `system ${dsl_cli(p)} --lmcode FILE` runs it.
 // The program itself: a normal-distribution quantile, a 3x3 solve and a least-squares line, with known answers.
 // How to run: lmscript examples/dsl/install-and-run.lms   (works on a machine with only Node.js and lmscript installed)
 p = _lmcode_ cli="lmpy" install="github:lmctl-ai/lmpy@v0.1.0";
@@ -17,8 +17,11 @@ out.close("line y = 1 + 2x", fit.vec("x"), vec(1.0, 2.0), 0.000000000001);
 out.put("binary_version_check", "ok");
 end _lmcode_
 
-r = run_lmcode(p);
-if (!r.ok) { println(f"lmpy invocation failed: {json_stringify(r)}"); exit(1); }
-res = r.result;
-println(f"lmpy: {res.checks.passed} checks passed");
+file = "install-and-run.dslb";
+savedsl(p, file);
+r = system ${dsl_cli(p)} --lmcode ${file};
+delete_file(file);
+if (r.code != 0) { println(f"lmpy exit {r.code}: {trim(r.stdout)} {trim(r.stderr)}"); exit(1); }
+res = json_parse(r.stdout).result;
+println(f"lmpy at {dsl_cli(p)[0]}: {res.checks.passed} checks passed");
 println("Install-and-run passed.");
