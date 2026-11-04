@@ -21,7 +21,7 @@ assert info['rng'] == 'PCG64' and info['blas'] and all(b['threads']==1 for b in 
 assert info['worker_sha256']==hashlib.sha256((ROOT/'py/frames.py').read_bytes()+b'\n'+(ROOT/'py/numerics.py').read_bytes()+b'\n'+(ROOT/'py/s4.py').read_bytes()+b'\n'+(ROOT/'py/sm.py').read_bytes()+b'\n'+(ROOT/'py/ml.py').read_bytes()+b'\n'+(ROOT/'py/s7.py').read_bytes()+b'\n'+(ROOT/'py/s8.py').read_bytes()+b'\n'+(ROOT/'py/s8b.py').read_bytes()+b'\n'+(ROOT/'py/s8g.py').read_bytes()+b'\n'+(ROOT/'py/worker.py').read_bytes()).hexdigest()
 if info['arch']=='aarch64':
     assert info['coretype_requested']=='ARMV8' and all(b['core']=='armv8' for b in info['blas'])
-worker = (ROOT/'py/frames.py').read_text() + (ROOT/'py/numerics.py').read_text() + (ROOT/'py/s4.py').read_text() + (ROOT/'py/sm.py').read_text() + (ROOT/'py/ml.py').read_text() + (ROOT/'py/s7.py').read_text() + (ROOT/'py/s8.py').read_text() + (ROOT/'py/s8b.py').read_text() + (ROOT/'py/s8g.py').read_text() + (ROOT/'py/worker.py').read_text()
+worker = (ROOT/'py/frames.py').read_text(encoding='utf-8') + (ROOT/'py/numerics.py').read_text(encoding='utf-8') + (ROOT/'py/s4.py').read_text(encoding='utf-8') + (ROOT/'py/sm.py').read_text(encoding='utf-8') + (ROOT/'py/ml.py').read_text(encoding='utf-8') + (ROOT/'py/s7.py').read_text(encoding='utf-8') + (ROOT/'py/s8.py').read_text(encoding='utf-8') + (ROOT/'py/s8b.py').read_text(encoding='utf-8') + (ROOT/'py/s8g.py').read_text(encoding='utf-8') + (ROOT/'py/worker.py').read_text(encoding='utf-8')
 assert not re.search(r'\b(eval|exec|pickle|query)\b',worker)
 env = dict(os.environ, PYCLI_PYTHON='/no/such/python', PATH='/nonexistent')
 p = subprocess.run([BIN,'--schema'],capture_output=True,text=True,env=env)
@@ -36,7 +36,7 @@ with tempfile.TemporaryDirectory(dir='.') as tmp:
     wrapper.chmod(0o755)
     env['PYCLI_PYTHON']=str(wrapper)
     call('py_info',env=env)
-    observed=json.loads(capture.read_text())
+    observed=json.loads(capture.read_text(encoding='utf-8'))
     assert observed['argv'][:5]==['-P','-s','-B','-X','faulthandler']
     assert observed['env']['OPENBLAS_NUM_THREADS']=='1' and 'SECRET_SENTINEL' not in observed['env']
     assert set(observed['env']) <= {'PATH','HOME','TMPDIR','LC_ALL','TZ','PYTHONHASHSEED','PYTHONNOUSERSITE','PYTHONDONTWRITEBYTECODE','OPENBLAS_NUM_THREADS','OMP_NUM_THREADS','MKL_NUM_THREADS','VECLIB_MAXIMUM_THREADS','NUMEXPR_MAX_THREADS','OPENBLAS_CORETYPE','MPLBACKEND','PYCLI_LIMIT_NUMBERS','LC_CTYPE'}

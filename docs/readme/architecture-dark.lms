@@ -5,10 +5,9 @@ let x = mat("1 2 3; 0 1 4; 5 6 0").solve(vec(14.0, 14.0, 17.0));
 out.close("example host result", x, vec(1.0, 2.0, 3.0), 0.000000000001);
 out.put("solution", x);
 end _lmcode_
-savedsl(check, "build/readme-architecture-check-dark.dslb");
-r = system ${dsl_cli(check)} --lmcode build/readme-architecture-check-dark.dslb;
-if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
-v = json_parse(r.stdout).result.values;
+r = run_lmcode(check);
+require(r.ok, json_stringify(r));
+v = r.result.values;
 draw = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
 scene.canvas(1200, 390, "#101820");
 scene.text(54.0, 58.0, 25.0, "From an LMScript block to a checked JSON result", "#dbe7f3").set_attr("font-weight", "700");
@@ -30,6 +29,5 @@ let c = scene.line(868.0, 196.0, 902.0, 196.0, "#f5c16c", 2.5); c.set_attr("mark
 scene.text(54.0, 332.0, 14.0, "The host prints one result line; the script checks the values before continuing.", "#9db4c8");
 scene.render_png("build/rendered/readme-architecture-dark.png", 1200, 390, 1);
 end _lmcode_
-savedsl(draw, "build/readme-architecture-dark.dslb");
-r = system ${dsl_cli(draw)} --lmcode build/readme-architecture-dark.dslb;
-if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }
+r = run_lmcode(draw);
+require(r.ok, json_stringify(r));

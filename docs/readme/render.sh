@@ -3,16 +3,16 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root"
 
-if [[ -z "${GITHUB_TOKEN:-}" ]] && command -v gh >/dev/null 2>&1; then
-  GITHUB_TOKEN="$(gh auth token)"
-  export GITHUB_TOKEN
-fi
-cache="$(mktemp -d "${TMPDIR:-/tmp}/lmpy-readme-cache.XXXXXX")"
-trap 'rm -rf "$cache"' EXIT
-export LMSCRIPT_TOOL_CACHE="$cache"
+# Use compatible local hosts only; never download renderers during gallery checks.
+for host in lmpy lmdraw; do
+  if ! command -v "$host" >/dev/null 2>&1 || ! "$host" --lmcode-schema --json >/dev/null 2>&1; then
+    echo "skip README rendering: compatible local $host unavailable"
+    exit 0
+  fi
+done
 mkdir -p build/rendered docs/readme examples/renders
 
-# Verify the three public example sources against a fresh download of @latest.
+# Verify the three public example sources against the compatible local host.
 for example in \
   examples/book/normal-quantile.lms \
   examples/book/least-squares-line.lms \

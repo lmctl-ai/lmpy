@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: statsmodels-ols-categorical.py, the statsmodels formula docs pattern (smf.ols with a categorical C()
 //   regressor, anova_lm of nested models, anova_lm typ=2, t_test of a linear hypothesis) on statsmodels' bundled Grunfeld
 //   panel: invest ~ value + capital + C(firm), 11 firms (treatment coding, reference = first sorted firm, as patsy).

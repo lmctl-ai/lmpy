@@ -1,4 +1,4 @@
-// access: write (a temporary tut-lp-diet.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: the diet problem as a linear programme, its integer version, and a small constrained minimisation (after: the
 //   classic Stigler diet problem as presented in LP tutorials, and the scipy.optimize tutorial's SLSQP example)
 // What it does: the _lmcode_ version of ../tut-lp-diet.lms. Reads the food table, solves the cheapest diet meeting calorie,

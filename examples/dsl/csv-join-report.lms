@@ -1,4 +1,4 @@
-// access: write (orders/customers CSVs and the exported report, all removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../csv-join-report.lms. Two CSV files (orders and customers) -> read_csv -> merge (left join on the
 //   customer, validated many_to_one) -> mutate (revenue and a volume discount with the expression grammar) -> groupby per region ->
 //   write_csv, then checks every total against sums computed by hand from the literal data. Customer 9 has no master record and stays in

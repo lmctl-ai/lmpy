@@ -13,7 +13,7 @@ cd examples/dsl && lmscript task-delivery-plan.lms
 
 `native/test.sh` runs every example and fails when any one fails. The checks inside an example are `out.check` /
 `out.close`. A failed check exits 4 and lmscript prints the host's message, which names the check. A missing `lmpy`
-prints `SKIPPED` and exits 0. [`lmpy.lms`](lmpy.lms) is the shared runner: `savedsl`, then `system`, then `json_parse`.
+prints `SKIPPED` and exits 0. [`lmpy.lms`](lmpy.lms) is the shared runner: `run_lmcode`, then `r.result.values`.
 
 ## Multi-step tasks
 

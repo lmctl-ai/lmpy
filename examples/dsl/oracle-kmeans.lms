@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-kmeans.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-kmeans.lms. Clusters two separated blobs of three points (x = -11..-9 and
 //   9..11) with ml_fit("kmeans", ...), seed 42, and proves the partition equals the truth despite label permutation: the
 //   pairwise co-membership of every pair of rows must agree (ARI = 1). The original's rcli leg (R kmeans, Lloyd, nstart 10,

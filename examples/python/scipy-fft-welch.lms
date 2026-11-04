@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-fft-welch.py, the SciPy Fourier transforms tutorial (50 Hz + 0.5 x 80 Hz sines, N = 600 at 800 Hz,
 //   single-sided amplitude 2/N |fft| with and without a Blackman window) and the SciPy reference examples for
 //   scipy.signal.periodogram and scipy.signal.welch (2 Vrms at 1234 Hz in 0.001 V**2/Hz white noise at 10 kHz, noise from

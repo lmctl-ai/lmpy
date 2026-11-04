@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: sklearn-logistic.py, the scikit-learn LogisticRegression reference example (iris, multinomial,
 //   predict/predict_proba of two rows, training accuracy) and the Getting Started pipeline make_pipeline(StandardScaler(),
 //   LogisticRegression()) with train_test_split(random_state=0), on iris and on breast_cancer. The lmpy version fits

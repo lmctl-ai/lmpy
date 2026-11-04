@@ -8,7 +8,7 @@ import json, math, pathlib, subprocess, sys, tempfile
 root = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root / 'tests/oracle'))
 import semantics
-spec = json.loads((root / 'expr-spec.json').read_text())
+spec = json.loads((root / 'expr-spec.json').read_text(encoding='utf-8'))
 expressions = semantics.semantic_expressions(spec)
 golden_path = root / 'tests/expr-semantics-golden.json'
 
@@ -52,14 +52,14 @@ def main():
         golden_path.write_text(json.dumps(document, indent=0) + '\n')
         print(f'wrote {golden_path} ({len(table)} expressions)')
     else:
-        golden = json.loads(golden_path.read_text())
+        golden = json.loads(golden_path.read_text(encoding='utf-8'))
         if golden != document:
             print('tests/expr-semantics-golden.json differs from what R computes now'); status = 1
         else:
             print(f'golden file matches R ({len(table)} expressions)')
     if '--rcli' in sys.argv:
         rcli = sys.argv[sys.argv.index('--rcli') + 1]
-        spot = json.loads((root / 'tests/expr-semantics-spot.json').read_text())
+        spot = json.loads((root / 'tests/expr-semantics-spot.json').read_text(encoding='utf-8'))
         for case in spot['cases']:
             proc = subprocess.run([rcli, '--input-json', json.dumps({'op': 'num_integrate', 'params': {'f': case['f'], 'lower': spot['lower'], 'upper': spot['upper']}})], capture_output=True, text=True)
             got = json.loads(proc.stdout)

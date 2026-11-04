@@ -14,7 +14,7 @@ class Containers(unittest.TestCase):
         source=docker('run','--rm','--pull=never','--network=none','--entrypoint','cat','pycli:runtime','/usr/local/lib/python3.12/site-packages/numpy/__init__.py').stdout
         assert 'from __future__' not in source
         self.pause=self.root/'numpy-init.py';self.pause.write_text('import time; time.sleep(8)\n'+source)
-        old=wrapper.read_text()
+        old=wrapper.read_text(encoding='utf-8')
         old=old.replace('a[1:1]=["--label",', 'a[1:1]=["--mount",'+repr('type=bind,src='+str(self.pause)+',dst=/usr/local/lib/python3.12/site-packages/numpy/__init__.py,readonly')+',"--label",')
         wrapper.write_text(old)
     def tearDown(self):

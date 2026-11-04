@@ -1,4 +1,4 @@
-// access: write (a temporary sig-denoise-peaks.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../sig-denoise-peaks.lms. A synthetic noisy record (four smooth pulses at known positions plus
 //   deterministic pseudo-random noise, 100 Hz sampling) is low-pass filtered with a zero-phase 4th-order Butterworth (iir +
 //   Filter.filtfilt, second-order sections) and its peaks are located with find_peaks. The filtered peaks must sit within 2 samples of

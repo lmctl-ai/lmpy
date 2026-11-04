@@ -9,7 +9,7 @@ for image in sys.argv[1:]:
     row={'image_bytes':int(subprocess.check_output(['docker','image','inspect',image,'--format','{{.Size}}']))}
     with tempfile.TemporaryDirectory(dir='.') as directory:
         shim=pathlib.Path(directory)/'pycli'
-        shim.write_text(pathlib.Path('bin/pycli').read_text().replace('pycli:runtime',image));shim.chmod(0o755)
+        shim.write_text(pathlib.Path('bin/pycli').read_text(encoding='utf-8').replace('pycli:runtime',image));shim.chmod(0o755)
         work=pathlib.Path(directory)
         import random, struct
         rng=random.Random(1)

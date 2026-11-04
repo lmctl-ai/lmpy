@@ -1,4 +1,4 @@
-// access: write (the measurement and out-of-spec CSVs, removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: a production quality review, in one native program.
 //   1. simulate 240 shaft diameters (3 lines x 2 shifts x 40 parts) with a seeded generator and write them as CSV;
 //   2. read the CSV back and summarise by line and shift (mean, std, count);

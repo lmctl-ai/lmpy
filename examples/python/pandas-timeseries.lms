@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: pandas-timeseries.py, the pandas time-series user guide's resampling examples (100 one-second integer
 //   readings: resample("5Min").sum(), 1-minute ohlc and max; a 120-day random walk: resample("W").mean(),
 //   resample("MS").sum() / .last(); 6-hourly readings: resample("D") mean/min/max/count) and the windowing guide's

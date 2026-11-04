@@ -1,4 +1,4 @@
-// access: write (a temporary sensor-pipeline.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../sensor-pipeline.lms. A sensor record sampled every 5 s (three smooth bursts plus deterministic
 //   pseudo-random noise from the same integer LCG) is written as CSV text with 6-decimal values, parsed (csv), averaged to one-minute
 //   bins (Frame.resample "1min", value:mean), low-pass filtered with a zero-phase Butterworth (iir + Filter.filtfilt = sosfiltfilt)

@@ -1,4 +1,4 @@
-// access: write (the raw and cleaned sensor CSVs, removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: clean a noisy sensor recording and measure the signal it carries, in one native program.
 //   1. synthesise 10 s at 200 Hz: a 3 Hz vibration, 50 Hz mains hum, white noise (seeded) and three spikes; write it as CSV;
 //   2. read it back and remove the spikes with a rolling-median / MAD rule (Hampel filter);

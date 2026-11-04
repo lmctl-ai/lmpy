@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: sklearn-kmeans.py, the scikit-learn KMeans reference example (six points, k = 2, random_state=0) and
 //   the gallery "Demonstration of k-means assumptions" (make_blobs(1500, random_state=170): wrong k, anisotropic,
 //   unequal variances, uneven sizes, uneven sizes with n_init=10), plus iris with k = 3 (k-means++ n_init=10, and

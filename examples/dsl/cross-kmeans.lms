@@ -1,4 +1,4 @@
-// access: write (a temporary cross-kmeans.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../cross-kmeans.lms. Clusters the two petal measurements of the flowers table into three
 //   groups with ml_fit("kmeans", ...) (k-means++, n_init 10, seed 7) and checks agreement with R's stats::kmeans (Hartigan-Wong,
 //   nstart 10, set.seed(7)), whose result is pinned here: the R partition is rebuilt by assigning every row to the nearest pinned R

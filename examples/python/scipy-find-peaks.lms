@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-find-peaks.py, the SciPy reference examples for scipy.signal.peak_prominences and peak_widths
 //   (x = sin(t) + 0.6 sin(2.6 t) on 1000 points of [0, 6 pi]; the 9-sample edge case with and without wlen=3.1) and the
 //   find_peaks example conditions (height=0, distance=150, prominence=(None, 0.6), prominence=1 with width=20) run on the same

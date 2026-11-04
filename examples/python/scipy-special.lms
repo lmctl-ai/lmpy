@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-special.py, the SciPy reference examples for scipy.special: gamma, erf, jv, jn_zeros, ellipk,
 //   expit/logit and logsumexp (plain, with weights b, and the masked-array example through zero weights). lmpy evaluates
 //   them with special(name, ...) and logsumexp. It has no jn_zeros, so the first four positive zeros of J_3 are bracketed

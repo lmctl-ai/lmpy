@@ -273,7 +273,7 @@ Formatting and numeric helpers that the DSL's built-ins (`str`, `float`, `int`, 
 
 ## Reporting
 
-The `out` context object collects named values and checks. The host prints them as the single JSON result line `{"ok": true, "result": {"values": {...}, "checks": {...}}}`; a failed check makes the run an application failure (exit 4) whose message names every failed check.
+The `out` context object collects named values and checks. The host returns them in one terminal invocation frame with JSON payload `{"ok": true, "result": {"values": {...}, "checks": {...}}}`; a failed check makes the run an application failure (exit 4) whose message names every failed check.
 
 ### Type `Out`
 

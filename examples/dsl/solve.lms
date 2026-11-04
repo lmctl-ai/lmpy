@@ -1,4 +1,4 @@
-// access: write (a temporary solve.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../solve.lms: a dense 3x3 solve with a known answer and the normal 97.5% quantile.
 // How to run: lmscript examples/dsl/solve.lms   (lmpy on PATH, or LMPY=/path/to/lmpy)
 import "lmpy.lms";

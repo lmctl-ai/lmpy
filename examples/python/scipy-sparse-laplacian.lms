@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-sparse-laplacian.py: the 2-D Dirichlet Laplacian of scipy.sparse.linalg.LaplacianNd on a 12 x 10
 //   grid (assembled here from COO triplets in the same row-major numbering), -L x = 1 by spsolve and by cg (rtol 1e-10),
 //   its four smallest and four largest eigenvalues by eigsh (SA / LA) against the exact spectrum

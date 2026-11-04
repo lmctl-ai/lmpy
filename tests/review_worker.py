@@ -12,7 +12,7 @@ if len(sys.argv)>1 and sys.argv[1]=='probe':
             req.write_text(json.dumps({'op':'py_info','params':{}}))
             def fail(p):raise {'ValueError':ValueError,'OverflowError':OverflowError}[kind]('unexpected numerical failure')
             w.OPS['py_info']=fail;sys.argv=[str(ROOT/'py/worker.py'),str(req),str(res)];w.main()
-            assert json.loads(res.read_text())['tool_code']=='PY_ERROR',res.read_text()
+            assert json.loads(res.read_text(encoding='utf-8'))['tool_code']=='PY_ERROR',res.read_text(encoding='utf-8')
     elif kind=='ImportError':
         try:w.BlockedImports().find_spec('subprocess')
         except ImportError:pass

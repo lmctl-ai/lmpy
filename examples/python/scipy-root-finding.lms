@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-root-finding.py, the SciPy reference examples for root_scalar (x^3 - 1 on [0, 3] by brentq, with
 //   its iteration and call counts) and fsolve (x0 cos(x1) = 4, x1 x0 - x1 = 5 from [1, 1], MINPACK hybrd), and the
 //   optimization tutorial's root finding (x + 2 cos(x) = 0 from 0.3 by root/hybr, the same system by root(method='lm')).

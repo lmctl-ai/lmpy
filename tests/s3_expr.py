@@ -7,9 +7,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests/oracle'))
 import s3
 NO_PYTHON = dict(os.environ, PYCLI_PYTHON='/no/such/python')
-SPEC_TEXT = (ROOT / 'expr-spec.json').read_text()
+SPEC_TEXT = (ROOT / 'expr-spec.json').read_text(encoding='utf-8')
 SPEC = json.loads(SPEC_TEXT)
-CORPUS = json.loads((ROOT / 'tests/expr-corpus.json').read_text())
+CORPUS = json.loads((ROOT / 'tests/expr-corpus.json').read_text(encoding='utf-8'))
 # SHA-256 of the rcli copy of the spec and corpus this slice was copied from (rcli commit f0055dd).
 RCLI_SPEC_SHA256 = 'f0b596000cc99b796a9d5bb2e3a39f8fdc39d2794812bc189e9b1800418e01a4'
 RCLI_CORPUS_SHA256 = 'd110faaacbf47285c879f0fe234f69f1727cc3d82fd78aae4f32c621e7d9ba5d'
@@ -275,10 +275,10 @@ class BuilderIsClosed(unittest.TestCase):
             W.check_bindings(spec, W.function_table(numpy))
 
     def test_worker_source_has_no_dynamic_code_paths(self):
-        source = ''.join((ROOT / 'py' / name).read_text() for name in ('frames.py', 'numerics.py', 's4.py', 'sm.py', 'worker.py'))
+        source = ''.join((ROOT / 'py' / name).read_text(encoding='utf-8') for name in ('frames.py', 'numerics.py', 's4.py', 'sm.py', 'worker.py'))
         forbidden = r'(?<!re\.)\b(eval|exec|compile|literal_eval|setattr|delattr|globals|locals|vars|__import__|importlib|attrgetter|methodcaller|numexpr|pickle|query|sympy|marshal|codeop|runpy|shlex)\b'
         self.assertEqual(re.findall(forbidden, source), [])
-        self.assertNotIn('getattr(', ''.join((ROOT / 'py' / 'numerics.py').read_text()))
+        self.assertNotIn('getattr(', ''.join((ROOT / 'py' / 'numerics.py').read_text(encoding='utf-8')))
         self.assertNotRegex(source, r'import\s+ast|from\s+ast')
         self.assertNotIn('pandas.eval', source)
 

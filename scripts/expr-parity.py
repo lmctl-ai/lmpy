@@ -12,7 +12,7 @@ for ours, theirs in (('expr-spec.json', 'expr-spec.json'), ('tests/expr-corpus.j
     print(f"{ours}: sha256 {hashlib.sha256(a).hexdigest()} {'==' if same else '!='} rcli {hashlib.sha256(b).hexdigest()}")
     status |= not same
 normal = lambda text: text.replace('pycli_expr', 'NS').replace('rcli_expr', 'NS').replace('PYCLI_EXPR', 'X_EXPR').replace('RCLI_EXPR', 'X_EXPR').splitlines()
-diff = [line for line in difflib.unified_diff(normal((rcli / 'src/expr_parser.hpp').read_text()), normal((root / 'src/expr_parser.hpp').read_text()), lineterm='', n=0)
+diff = [line for line in difflib.unified_diff(normal((rcli / 'src/expr_parser.hpp').read_text(encoding='utf-8')), normal((root / 'src/expr_parser.hpp').read_text(encoding='utf-8')), lineterm='', n=0)
         if line[:1] in '+-' and line[:3] not in ('+++', '---')]
 removed = [line for line in diff if line[0] == '-']
 added = [line for line in diff if line[0] == '+']

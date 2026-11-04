@@ -1,4 +1,4 @@
-// access: write (a temporary tut-ode-predator-prey.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: the Lotka-Volterra predator-prey system (after: the scipy-lectures ODE section and the classic scipy.integrate
 //   odeint tutorial example)
 // What it does: the _lmcode_ version of ../tut-ode-predator-prey.lms. Integrates prey' = a prey - b prey pred, pred' = c prey pred - d pred

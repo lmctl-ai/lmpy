@@ -128,7 +128,7 @@ class Review(old.Base):
    for _ in range(2000):
     if marker.exists():break
     time.sleep(.01)
-   self.assertTrue(marker.exists());staging=pathlib.Path(marker.read_text()).parent;self.assertTrue((staging/'y.npy').exists());p.send_signal(signal.SIGTERM);p.communicate(timeout=4);self.assertFalse(staging.exists())
+   self.assertTrue(marker.exists());staging=pathlib.Path(marker.read_text(encoding='utf-8')).parent;self.assertTrue((staging/'y.npy').exists());p.send_signal(signal.SIGTERM);p.communicate(timeout=4);self.assertFalse(staging.exists())
   finally:
    if p.poll() is None:p.kill();p.communicate()
 

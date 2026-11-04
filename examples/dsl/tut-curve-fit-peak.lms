@@ -1,4 +1,4 @@
-// access: write (a temporary tut-curve-fit-peak.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: fitting a Gaussian peak on a baseline by nonlinear least squares (after: the scipy-lectures optimisation chapter
 //   "curve fitting" example and the R ?nls help page)
 // What it does: the _lmcode_ version of ../tut-curve-fit-peak.lms. Reads the spectrum, fits b + a exp(-(x - m)^2 / (2 s^2))

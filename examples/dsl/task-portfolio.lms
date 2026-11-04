@@ -1,4 +1,4 @@
-// access: write (temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: build minimum-risk portfolios from simulated returns, in one native program.
 //   1. simulate 2000 days of returns for 4 assets with a known covariance (Cholesky factor times seeded normals);
 //   2. estimate the mean vector and the covariance matrix with matrix algebra;

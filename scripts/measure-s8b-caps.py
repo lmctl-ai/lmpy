@@ -11,7 +11,7 @@ BIN = os.environ.get('PYCLI_BIN', '/usr/local/bin/pycli')
 def peak():
     for f in ('/sys/fs/cgroup/memory.peak', '/sys/fs/cgroup/memory/memory.max_usage_in_bytes'):
         if pathlib.Path(f).exists():
-            return int(pathlib.Path(f).read_text())
+            return int(pathlib.Path(f).read_text(encoding='utf-8'))
 
 
 d = pathlib.Path(tempfile.mkdtemp(prefix='pycli-s8b-caps-', dir='/tmp'))

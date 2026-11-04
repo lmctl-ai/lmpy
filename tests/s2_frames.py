@@ -88,7 +88,7 @@ class Frames(unittest.TestCase):
   metadata=json.loads(arrays['__pycli_table__'].tobytes());metadata['n_rows']=2000001;arrays['__pycli_table__']=np.frombuffer(json.dumps(metadata).encode(),dtype='uint8');np.savez(self.cwd/'too_many.npz',**arrays)
   r=subprocess.run([BIN,'frame_inspect','--input-json','{"frame":"too_many.npz"}'],cwd=self.cwd,env=env,capture_output=True);self.assertEqual(r.returncode,2,r.stdout)
  def test_export_policy_caps(self):
-  self.table({'x':[1,None,3]});self.call('frame_export',frame='t.npz',format='json',out='e.json');self.assertEqual(json.loads((self.cwd/'e.json').read_text())['data']['x'],[1,None,3])
+  self.table({'x':[1,None,3]});self.call('frame_export',frame='t.npz',format='json',out='e.json');self.assertEqual(json.loads((self.cwd/'e.json').read_text(encoding='utf-8'))['data']['x'],[1,None,3])
   self.call('frame_export',rc=5,frame='t.npz',format='json',out='e.json')
   self.assertEqual(self.call('frame_export',frame='t.npz',format='json')['table']['data']['x'],[1,None,3])
   for flag,rc in [('--readonly',6),('--dryrun',0)]:

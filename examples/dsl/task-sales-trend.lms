@@ -1,4 +1,4 @@
-// access: write (the generated store sales and the forecast CSV, removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: from store-level daily sales to a 14-day forecast, in one native program.
 //   1. read the per-store daily CSV (two stores, 120 days);
 //   2. total the stores per day (groupby date);

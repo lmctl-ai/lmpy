@@ -1,4 +1,4 @@
-// access: write (bridge CSV and two safetensors files, removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../bridge-ml.lms, the table/array bridge end to end: read_csv -> mutate (intercept column) ->
 //   to_mat (design matrix and target) -> write_safetensors / read_safetensors (pycli's artifact format round trip) -> lstsq ->
 //   predictions joined back onto the table as `fitted` and `residual` columns. The fit recovers the generating coefficients

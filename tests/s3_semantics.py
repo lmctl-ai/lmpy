@@ -8,9 +8,9 @@ sys.path.insert(0, str(ROOT / 'tests/oracle'))
 import semantics
 import s3
 
-SPEC = json.loads((ROOT / 'expr-spec.json').read_text())
-GOLDEN = json.loads((ROOT / 'tests/expr-semantics-golden.json').read_text())
-SPOT = json.loads((ROOT / 'tests/expr-semantics-spot.json').read_text())
+SPEC = json.loads((ROOT / 'expr-spec.json').read_text(encoding='utf-8'))
+GOLDEN = json.loads((ROOT / 'tests/expr-semantics-golden.json').read_text(encoding='utf-8'))
+SPOT = json.loads((ROOT / 'tests/expr-semantics-spot.json').read_text(encoding='utf-8'))
 W = s3.load_worker()
 
 

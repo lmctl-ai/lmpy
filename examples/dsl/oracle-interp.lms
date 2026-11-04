@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-interp.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-interp.lms. Interpolates the same nodes with lmpy `interp` and compares the methods
 //   that are the same mathematical object as R's: linear <-> approx(linear), cubic natural <-> splinefun(natural), cubic periodic
 //   <-> splinefun(periodic). The original called rcli at run time; here R's answers are pinned (R 4.3.3, approx / splinefun at the

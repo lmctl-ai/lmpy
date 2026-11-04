@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-spectrum.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-spectrum.lms. Estimates the power spectrum of two exact on-bin tones plus a DC offset
 //   (periodogram, boxcar window, no detrend, density scaling, fs = 1) and checks it three ways: (1) Parseval / closed forms computed from
 //   the samples (the integral of the one-sided density is the mean square; each on-bin tone of amplitude A has density A^2 N / 2 at fs = 1);

@@ -1,4 +1,4 @@
-// access: write (a temporary tut-butterworth.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: Butterworth low-pass filtering of a noisy signal (after: the scipy.signal butter / sosfiltfilt tutorial and the
 //   scipy-lectures signal chapter)
 // What it does: the _lmcode_ version of ../tut-butterworth.lms. Designs a 4th-order Butterworth low-pass at 8 Hz for a 100 Hz signal

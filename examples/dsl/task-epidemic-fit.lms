@@ -1,4 +1,4 @@
-// access: write (temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: estimate epidemic parameters from noisy case counts, in one native program.
 //   1. simulate the "true" SIR epidemic (beta 0.30, gamma 0.10, N 10000, 10 initial cases) and record daily prevalence for 60 days;
 //   2. add Poisson reporting noise with a seeded generator (numpy-identical PCG64 stream, seed 11);

@@ -25,7 +25,7 @@ cases = [('py_info', 'py_info', {}),
          ('stats_dist_norm_rvs', 'stats_dist', {'dist': 'norm', 'fn': 'rvs', 'params': {}, 'n': 100, 'seed': 1})]
 with tempfile.TemporaryDirectory(dir='.') as directory:
     shim = pathlib.Path(directory) / 'pycli'
-    shim.write_text(pathlib.Path('bin/pycli').read_text().replace('pycli:runtime', image))
+    shim.write_text(pathlib.Path('bin/pycli').read_text(encoding='utf-8').replace('pycli:runtime', image))
     shim.chmod(0o755)
     for name, op, params in cases:
         wall, imports, elapsed = [], [], []

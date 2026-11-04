@@ -6,9 +6,7 @@ out.close("known linear-system solution", solution, vec(1.0, 2.0, 3.0), 0.000000
 out.put("solution", solution);
 end _lmcode_
 
-out = ARGV.len() > 0 ? ARGV[0] : "build/matrix-solve.dslb";
-savedsl(p, out);
-r = system ${dsl_cli(p)} --lmcode ${out};
-if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
-result = json_parse(r.stdout).result.values;
+r = run_lmcode(p);
+require(r.ok, json_stringify(r));
+result = r.result.values;
 println("Solution: " + str(result.solution));

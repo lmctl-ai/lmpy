@@ -1,4 +1,4 @@
-// access: write (a temporary lstsq-fit.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../lstsq-fit.lms. Fits y = c0 + c1 x + c2 x^2 to generated data by least squares, then
 //   verifies the fit with two checks that do not trust the solver: the residual is close to the injected noise level, and the
 //   normal equations A^T r = 0 hold. The whole computation runs inside the native host; lmscript only compiles and reports.

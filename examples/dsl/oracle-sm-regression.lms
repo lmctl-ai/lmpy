@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-sm-regression.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-sm-regression.lms. Fits y ~ x1 + x2 + g + x1:x2 (treatment coding, reference level a)
 //   with `ols` and checks coefficients, standard errors, R^2 and sigma against R 4.3.3 lm() (the golden constants of the original,
 //   computed once by scripts/s5-r-golden.py). The original's rcli and statsrust legs compared the same closed-form least squares and

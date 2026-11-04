@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: statsmodels-ols-longley.py, the statsmodels OLS documentation example (sm.OLS(longley.endog,
 //   sm.add_constant(longley.exog)).fit()): TOTEMP on GNPDEFL, GNP, UNEMP, ARMED, POP, YEAR with an intercept. The lmpy
 //   version reads the same 16 rows (data/longley.csv, exported from statsmodels' bundled copy by

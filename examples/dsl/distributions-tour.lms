@@ -1,4 +1,4 @@
-// access: write (a temporary distributions-tour.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../distributions-tour.lms. Tours distribution families that R does not offer through rcli: a generalised
 //   extreme value (genextreme), a heavy-tailed skewed family (skewnorm), johnsonsu and a discrete one (zipf). It checks the Gumbel special case of
 //   genextreme (c = 0: cdf = exp(-exp(-x))), the round trips cdf(ppf(p)) = p (discrete: cdf(ppf(p)) >= p), the closed-form moments of the

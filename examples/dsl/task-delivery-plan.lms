@@ -1,4 +1,4 @@
-// access: write (temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: plan deliveries from two depots to five customers over a road network, in one native program.
 //   1. build the road graph (14 two-way roads, km);
 //   2. all-pairs shortest distances; extract the depot x customer distance table;

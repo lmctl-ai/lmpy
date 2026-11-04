@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: numpy-lstsq-polyfit.py, the NumPy reference examples for numpy.linalg.lstsq (fit y = m x + c through
 //   four points) and numpy.polyfit (cubic fit, evaluated with poly1d). The lmpy version builds the design and Vandermonde
 //   matrices and solves them with Mat.lstsq; the pinned answers are what the .py prints with numpy 2.3.3.

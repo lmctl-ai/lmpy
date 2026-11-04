@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: sklearn-pca-iris.py, the scikit-learn gallery "Comparison of LDA and PCA 2D projection of Iris
 //   dataset" (PCA(n_components=2) and LinearDiscriminantAnalysis(n_components=2) on iris: explained variance ratios and
 //   the projected rows) and the PCA reference example on six 2-D points. The lmpy version fits ml_fit("pca", ...) and

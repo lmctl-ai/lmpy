@@ -33,8 +33,8 @@ std::string Out::failure_text() const {
 
 void register_out(Api& api) {
   const std::string Ot = "Out";
-  api.section("Reporting", "The `out` context object collects named values and checks. The host prints them as the single JSON "
-                           "result line `{\"ok\": true, \"result\": {\"values\": {...}, \"checks\": {...}}}`; a failed check makes the run an "
+  api.section("Reporting", "The `out` context object collects named values and checks. The host returns them in one terminal invocation frame with JSON "
+                           "payload `{\"ok\": true, \"result\": {\"values\": {...}, \"checks\": {...}}}`; a failed check makes the run an "
                            "application failure (exit 4) whose message names every failed check.");
   api.type(Ot, "Result collector (the context variable `out`).");
   api.ctx("out", Ot, "values and checks returned to the caller as JSON");

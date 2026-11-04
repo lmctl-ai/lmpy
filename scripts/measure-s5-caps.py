@@ -7,7 +7,7 @@ import numpy as np
 
 
 def peak():
-    return next((int(p.read_text()) for p in [pathlib.Path('/sys/fs/cgroup/memory.peak'), pathlib.Path('/sys/fs/cgroup/memory/memory.max_usage_in_bytes')] if p.exists()), None)
+    return next((int(p.read_text(encoding='utf-8')) for p in [pathlib.Path('/sys/fs/cgroup/memory.peak'), pathlib.Path('/sys/fs/cgroup/memory/memory.max_usage_in_bytes')] if p.exists()), None)
 
 
 def run(root, op, params):

@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-ml-linear.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-ml-linear.lms. Fits ordinary least squares y = 1 + 2 x to seven exact points with
 //   ml_fit("linear", ...) and checks the hand optimum. The original's rcli (R lm) and lmstats legs established the same answer
 //   (intercept 1, slope 2, exact data), which is asserted here as a pinned known answer. Also checks the fit is exact (R^2 = 1,

@@ -16,5 +16,5 @@ with tempfile.TemporaryDirectory(prefix='pycli-s4-caps-') as directory:
  started=time.monotonic();r=subprocess.run(['/usr/local/bin/pycli','ode_solve_to','--input-json',json.dumps(p)],cwd=root,capture_output=True,text=True);elapsed=time.monotonic()-started
  assert r.returncode==0,(r.returncode,r.stdout,r.stderr);j=json.loads(r.stdout);assert j['status']=='OK',j;assert all(abs(v-np.exp(-1))<1e-8 for v in j['final_state']);assert len(r.stdout.encode())<16384
  cases['ode_states_and_output']={'states':n,'points':points,'trajectory_numbers':points*(n+1),'seconds':elapsed,'response_bytes':len(r.stdout.encode()),'artifact_bytes':pathlib.Path(next(iter(j['artifacts'].values()))['path']).stat().st_size,'evals':j['evals']}
- peak=next((int(p.read_text()) for p in [pathlib.Path('/sys/fs/cgroup/memory/memory.max_usage_in_bytes'),pathlib.Path('/sys/fs/cgroup/memory.peak')] if p.exists()),None)
+ peak=next((int(p.read_text(encoding='utf-8')) for p in [pathlib.Path('/sys/fs/cgroup/memory/memory.max_usage_in_bytes'),pathlib.Path('/sys/fs/cgroup/memory.peak')] if p.exists()),None)
  print(json.dumps({'cases':cases,'cgroup_peak_bytes':peak},indent=2))

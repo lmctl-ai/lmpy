@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: sklearn-cross-val.py, the scikit-learn user guide 3.1 cross_val_score(clf, X, y, cv=5) on iris (integer
 //   cv on a classifier = StratifiedKFold without shuffling), StratifiedKFold(5, shuffle=True, random_state=0),
 //   KFold(5, shuffle=True, random_state=42), and the cross_val_score reference example (Lasso() on the first 150 diabetes

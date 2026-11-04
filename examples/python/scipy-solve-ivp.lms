@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-solve-ivp.py, the SciPy reference examples for scipy.integrate.solve_ivp: exponential decay
 //   y' = -0.5 y from [2, 4, 8] (automatic steps, then t_eval = [0, 1, 2, 4, 10]), the upward cannon with a terminal
 //   hit_ground event (direction -1) and a non-terminal apex event read through dense output, and Lotka-Volterra with

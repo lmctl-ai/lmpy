@@ -30,7 +30,7 @@ fi
             with self.subTest(suffix=suffix):self.assertEqual(self.invoke(directory).returncode,2)
     def test_FA1_policy_and_wall(self):
         self.assertEqual(self.invoke().returncode,0)
-        args=self.log.read_text()
+        args=self.log.read_text(encoding='utf-8')
         for flag in ('PYCLI_READONLY','PYCLI_DRYRUN','--pull=never','--init','--tmpfs /tmp:rw,noexec,nosuid,nodev,size=512m','TMPDIR=/tmp','--cap-drop=ALL','--security-opt=no-new-privileges','--read-only','--pids-limit=128','--memory=4g','--network=none'):
             with self.subTest(flag=flag):self.assertIn(flag,args)
         self.assertNotIn('seccomp=unconfined',args)
@@ -47,7 +47,7 @@ fi
                 p.kill();p.communicate();self.fail('signal only to shim did not cancel promptly')
             self.assertEqual(p.returncode,rc,(out,err))
             self.assertLess(time.monotonic()-start,2)
-            self.assertIn('kill --signal',self.log.read_text())
+            self.assertIn('kill --signal',self.log.read_text(encoding='utf-8'))
     def test_A2_real_cli_no_pull_api(self):
         calls=[]
         class Handler(http.server.BaseHTTPRequestHandler):

@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-stats.py, the SciPy reference examples for scipy.stats distributions (norm; t df=2.74; gamma
 //   a=1.99; binom n=5, p=0.4: moments, ppf/cdf round trip, pdf/pmf), ttest_ind (pooled and Welch, two N(5, 10^2) samples of
 //   500 from default_rng(11)), ttest_1samp (50 uniforms from default_rng(12) against 0.5), pearsonr and linregress

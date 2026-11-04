@@ -1,4 +1,4 @@
-// access: write (a temporary ode-stiff-robertson.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: Robertson's chemical kinetics, the classic stiff test problem (rate constants 0.04, 3e7, 1e4 spanning eleven
 //   orders of magnitude):  a' = -0.04 a + 1e4 b c,  b' = 0.04 a - 1e4 b c - 3e7 b^2,  c' = 3e7 b^2,  a(0) = 1, b(0) = c(0) = 0,
 //   on [0, 4e5] with output at t = 0.4, 4, ..., 4e5. It is solved with the implicit methods Radau (IIA, order 5) and BDF

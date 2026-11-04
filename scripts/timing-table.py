@@ -8,7 +8,7 @@ D = ROOT / 'docs'
 
 
 def load(name):
-    return json.loads((D / name).read_text())
+    return json.loads((D / name).read_text(encoding='utf-8'))
 
 
 def p50(entry):

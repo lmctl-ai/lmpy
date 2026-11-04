@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-linprog-milp.py, the SciPy reference examples for linprog (a free x0, x1 >= -3; its slacks and
 //   marginals; the right-hand side moved by eps = 0.05 and by -39) and milp (the Wikipedia integer programme and its LP
 //   relaxation), and the optimization tutorial's linprog (four variables, infeasible with x1 <= 5, optimal with x1 <= 6)

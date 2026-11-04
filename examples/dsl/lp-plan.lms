@@ -1,4 +1,4 @@
-// access: write (a temporary lp-plan.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../lp-plan.lms. Reads a one-row demand table (the original wrote it to
 //   demand-s4.csv and imported it; here it is parsed from text with `csv`), builds the production LP
 //   min cost_r x + cost_p y  s.t.  x + y >= total_units, x + 3y >= quality_min, 0 <= x <= regular_capacity,

@@ -1,4 +1,4 @@
-// access: write (a temporary ode-fit.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../ode-fit.lms. Simulates an SIR epidemic with `ode` (DOP853, rtol 1e-10, atol 1e-12, t = 0..12),
 //   multiplies the infected curve by seeded lognormal measurement noise (`dist("lognorm", mu 0, sigma 0.05).rvs(13, 2025)`,
 //   numpy Generator(PCG64(2025)): the same noise on every run, checked by drawing it twice) and recovers the early exponential

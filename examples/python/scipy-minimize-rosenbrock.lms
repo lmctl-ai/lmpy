@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-minimize-rosenbrock.py, the SciPy optimization tutorial: Rosenbrock's function of five variables
 //   from x0 = (1.3, 0.7, 0.8, 1.9, 1.2) by Nelder-Mead (xatol 1e-8) and by BFGS with the analytic gradient rosen_der, and
 //   the SLSQP example (two variables, 2 x0 + x1 = 1, three inequalities, bounds [0, 1] x [-0.5, 2], ftol 1e-9, analytic

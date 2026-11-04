@@ -1,4 +1,4 @@
-// access: write (a temporary tut-integrate-root.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: numerical integration and root finding (after: the scipy-lectures "numerical integration" and "root finding" sections
 //   and the scipy.integrate / scipy.optimize tutorials)
 // What it does: the _lmcode_ version of ../tut-integrate-root.lms. Integrates three textbook integrands with `quad` (QUADPACK; QAGI

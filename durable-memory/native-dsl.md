@@ -11,12 +11,12 @@ Today's pycli is an lmapi CLI: lmscript calls `pycli.op({...})`, a C++ front end
 runs it inside Docker. lmpy replaces the whole chain with the `_lmcode_` model used by lmcad and lmhtml:
 
     examples/dsl/x.lms                          native/build/lmpy (glibc only, no Python/R/Docker)
-    prog = _lmcode_ schema="lmpy.dsl.json";   ──▶  lmpy --lmcode x.dslb
+    prog = _lmcode_ schema="lmpy.dsl.json";   ──▶  lmpy --lmcode FILE
       let f = read_csv("data.csv");              loads the bytecode, binds it to the embedded schema (SHA-256),
-      let fit = ols(f, "y", strs("x1,x2"));      runs it, then prints one JSON line:
+      let fit = ols(f, "y", strs("x1,x2"));      runs it, then returns a framed JSON result:
       out.put("r2", fit.num("r2"));              {"ok": true, "result": {"values": {...}, "checks": {...}}}
     end _lmcode_
-    v = lmpy.run(prog, "x");   # savedsl + system([lmpy, "--lmcode", file]) + json_parse
+    v = lmpy.run(prog, "x");   # run_lmcode
 
 - **One program, many steps.** A DSL chunk chains operations in native memory: read → transform → fit → check → report.
   There is no process, JSON or file round trip per step. pycli needed `_to` twins and safetensors artifacts to pass arrays
@@ -46,7 +46,7 @@ runs it inside Docker. lmpy replaces the whole chain with the `_lmcode_` model u
   signatures) and lmscript >= 0.2.420 injects the same declarations at compile time, so lmpy registers none of it and the
   published schema stays host-only (551 signatures; 757 with std). `test.sh` checks registry = host schema + canonical std.
   Never vendor-edit the SDK files (a repo-wide sed once changed comments in dslvm.hpp and broke the lock).
-- Block keyword: `_lmcode_ ... end _lmcode_`. Internal `.dsl.json`, `.dslb`, `savedsl` and `dsl_cli` names remain.
+- Block keyword: `_lmcode_ ... end _lmcode_`. Schema files keep `.dsl.json`; compiler-owned inputs are passed through `run_lmcode` without a public export API.
   Host flags are `--lmcode`, `--lmcode-schema` and `--lmcode-signatures`, with no retired-spelling aliases.
   Use a compiler with the renamed discovery surface and v6 output; local qualification uses a mono main source build.
 - Development-only oracle: `native/.deps/oracle-venv` has pycli's exact pins (numpy 2.3.3, scipy 1.16.2, pandas 2.3.3,

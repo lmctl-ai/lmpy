@@ -33,4 +33,4 @@ for name,url in (
     manifest[name]={'source':url,'sha256':hashlib.sha256(data).hexdigest()}
 (root/'manifest.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
 print('license files:',sum(len(x.get('files',{})) for x in manifest.values()))
-print((root/'scipy/LICENSES_bundled.txt').read_text())
+print((root/'scipy/LICENSES_bundled.txt').read_text(encoding='utf-8'))

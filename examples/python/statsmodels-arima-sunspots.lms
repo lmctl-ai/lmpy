@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: statsmodels-arima-sunspots.py, the statsmodels sunspots examples: the "ARMA: Sunspots data" notebook
 //   (ARIMA(2,0,0) and ARIMA(3,0,0) with a constant: params, aic/bic/hqic, Durbin-Watson and Ljung-Box Q of the AR(3)
 //   residuals, acf/pacf to lag 40, forecasts), the "Stationarity and detrending (ADF/KPSS)" notebook (adfuller with

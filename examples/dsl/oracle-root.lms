@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-root.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-root.lms. Solves the same equations with `root` (the bracketed brentq form,
 //   then hybr and lm on a system) and `root_scalar`, and checks the known answers: the classic root of x^3 - 2x - 5
 //   (2.0945514815423265) and the circle/line system x^2 + y^2 = 4, x = y (x = y = sqrt 2). A system with no real root

@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: sklearn-metrics.py, the scikit-learn metrics reference examples with their published inputs:
 //   accuracy_score, confusion_matrix, classification_report, precision_recall_fscore_support, balanced_accuracy_score,
 //   roc_auc_score, log_loss, r2_score, mean_squared_error, mean_absolute_error. The lmpy version calls ml_metrics (text

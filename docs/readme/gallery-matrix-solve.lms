@@ -5,10 +5,9 @@ let x = mat("1 2 3; 0 1 4; 5 6 0").solve(vec(14.0, 14.0, 17.0));
 out.close("known solution", x, vec(1.0, 2.0, 3.0), 0.000000000001);
 out.put("solution", x);
 end _lmcode_
-savedsl(p, "build/readme-gallery-solve.dslb");
-r = system ${dsl_cli(p)} --lmcode build/readme-gallery-solve.dslb;
-if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
-v = json_parse(r.stdout).result.values;
+r = run_lmcode(p);
+require(r.ok, json_stringify(r));
+v = r.result.values;
 d = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
 scene.canvas(760, 390, "#101820");
 scene.text(48.0, 54.0, 24.0, "Solve a 3 x 3 system", "#dbe7f3").set_attr("font-weight", "700");
@@ -22,6 +21,5 @@ let a = scene.line(300.0, 200.0, 328.0, 200.0, "#f5c16c", 2.5); a.set_attr("mark
 scene.text(108.0, 344.0, 14.0, "lmpy verifies the solution within tolerance", "#9db4c8");
 scene.render_png("build/rendered/readme-matrix-solve.png", 760, 390, 1);
 end _lmcode_
-savedsl(d, "build/readme-gallery-solve-draw.dslb");
-r = system ${dsl_cli(d)} --lmcode build/readme-gallery-solve-draw.dslb;
-if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }
+r = run_lmcode(d);
+require(r.ok, json_stringify(r));

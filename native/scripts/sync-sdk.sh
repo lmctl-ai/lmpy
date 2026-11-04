@@ -6,7 +6,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SDK="${LMCODE_CPP:-$HERE/../../lmcode-cpp}"
 LOCK="$HERE/sdk.lock"
 hash() { if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -c1-64; }
-vendored() { echo "$HERE/cpp/dslvm.hpp"; ls "$HERE"/cpp/stdlib/*.hpp; echo "$HERE/cpp/std/lmcode-std.schema.json"; }
+vendored() { echo "$HERE/cpp/dslvm.hpp"; ls "$HERE"/cpp/stdlib/*.hpp; echo "$HERE/cpp/std/lmcode-std.schema.json"; echo "$HERE/scripts/merge-std.py"; }
 if [ "${1:-}" = "--verify" ]; then
   [ -f "$LOCK" ] || { echo "sdk.lock missing" >&2; exit 1; }
   count=0
@@ -36,9 +36,10 @@ while IFS= read -r source; do
   case "$source" in
     include/dslvm.hpp) target=cpp/dslvm.hpp ;;
     stdlib/*.hpp|std/lmcode-std.schema.json) target="cpp/$source" ;;
+    scripts/merge-std.py) target="$source" ;;
     *) continue ;;
   esac
   git -C "$SDK" show "$commit:$source" > "$HERE/$target"
   printf 'sha256.%s=%s\n' "$target" "$(hash "$HERE/$target")" >> "$LOCK"
-done < <(git -C "$SDK" ls-tree -r --name-only "$commit" -- include/dslvm.hpp stdlib/ std/lmcode-std.schema.json)
+done < <(git -C "$SDK" ls-tree -r --name-only "$commit" -- include/dslvm.hpp stdlib/ std/lmcode-std.schema.json scripts/merge-std.py)
 echo "synced lmcode-cpp $commit"

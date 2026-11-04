@@ -97,7 +97,7 @@ class Review(unittest.TestCase):
   for name in ['ml_fit','ml_predict','ml_cv']:
    for p in ops[name]['params']:self.assertNotIn('parameter for',p['description'])
  def test_objective_contract(self):
-  doc=(base.ROOT/'docs/s6.md').read_text()
+  doc=(base.ROOT/'docs/s6.md').read_text(encoding='utf-8')
   for phrase in ['1/(2n)','glmnet','population variance','kth','sorted label','max-absolute','C sum']:self.assertIn(phrase,doc)
 
 class WorkerMapping(unittest.TestCase):

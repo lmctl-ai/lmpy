@@ -41,7 +41,7 @@ class Review(unittest.TestCase):
  def test_csv_nonfinite_roundtrip(self):
   cols={'x':[1.5,'NaN','Inf','-Inf',None,-0.0],'i':[1,None,3,4,5,6],'ts':['2026-01-01',None,None,None,None,None]};types={'x':'float64','i':'int64','ts':'datetime64[ns]'}
   self.table(cols,dtypes=types);self.call('frame_export',frame='t.npz',format='csv',out='e.csv');self.call('frame_import',csv='e.csv',dtypes=types,out='u.npz');self.assertEqual(self.inspect('u.npz'),self.inspect())
-  self.assertIn('NaN',(self.cwd/'e.csv').read_text());self.assertIn('-Inf',(self.cwd/'e.csv').read_text())
+  self.assertIn('NaN',(self.cwd/'e.csv').read_text(encoding='utf-8'));self.assertIn('-Inf',(self.cwd/'e.csv').read_text(encoding='utf-8'))
  def test_csv_strict_tokens_and_blank_lines(self):
   for text,dtype in [('1_000','int64'),('1_5.5','float64')]:
    (self.cwd/'a.csv').write_text('x\n'+text+'\n');self.call('frame_import',rc=2,csv='a.csv',dtypes={'x':dtype},out='bad.npz')

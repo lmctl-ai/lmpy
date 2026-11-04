@@ -1,4 +1,4 @@
-// Shared runner for the _lmcode_ examples: save the compiled block as bytecode, run the native host on it, return the
+// Shared runner for the _lmcode_ examples: run the compiled block through run_lmcode and return the
 // values the block recorded with out.put(...). The host is `lmpy` (one static executable, no Python/R/Docker):
 // $LMPY when set, else `lmpy` on PATH. Without it the example prints SKIPPED and exits 0.
 //   import "lmpy.lms";
@@ -11,23 +11,19 @@ fn exe() {
   return which("lmpy");
 }
 
-// Runs the block; on failure prints the host's one-line JSON error (it names the DSL line) and exits 1.
+// Runs the block; on failure prints the host's structured error (it names the DSL line) and exits 1.
 fn run(prog, name) {
   bin = exe();
   if (bin == null) {
     println(f"SKIPPED: lmpy is not on PATH (build it: cmake -S native -B native/build && cmake --build native/build; then set LMPY)");
     exit(0);
   }
-  file = f"{name}.dslb";
-  savedsl(prog, file);
-  r = system([bin, "--lmcode", file], 300000);
-  remove_file(file);
-  if (r.code != 0 || r.timed_out) {
-    println(f"{name}: lmpy exit {r.code}: {trim(r.stdout)}");
-    if (trim(r.stderr) != "") { println(trim(r.stderr)); }
+  r = run_lmcode(prog, {command: [bin, "--lmcode", "$DSLFILE"]});
+  if (!r.ok) {
+    println(name + ": " + json_stringify(r));
     exit(1);
   }
-  values = json_parse(r.stdout).result.values;
+  values = r.result.values;
   // examples/python/check-parity.sh sets LMPY_VALUES_OUT to compare these values with the original Python recipe
   dump = env("LMPY_VALUES_OUT", "");
   if (dump != "") { write_file(dump, json_stringify(values)); }

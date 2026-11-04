@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-sm-arima.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-sm-arima.lms. Fits ARMA(1,1) without a mean to a 120-point series with `arima`
 //   (statsmodels SARIMAX exact Gaussian likelihood) and checks the AR/MA parameters, the innovation variance, the log-likelihood and a
 //   5-step forecast against R 4.3.3 arima(method = "ML") (the golden constants of the original; its rcli and statsrust legs fitted the

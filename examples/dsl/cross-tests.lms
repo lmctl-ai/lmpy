@@ -1,4 +1,4 @@
-// access: write (a temporary cross-tests.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Cross-language agreement: a pooled two-sample t-test and a chi-square test of independence in lmpy and R.
 // What it does: the _lmcode_ version of ../cross-tests.lms. On examples/data/tut-groups.csv, (1) the pooled t-test ctrl vs trt2 is the
 //   t statistic of the group dummy in a two-group regression (`ols`; `ttest_ind` is checked to give the same answer), (2) the

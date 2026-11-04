@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: statsmodels-glm.py, three GLMs on public-domain statsmodels datasets: RAND HIE doctor visits
 //   (Poisson, the count example of statsmodels' discrete choice overview, fitted as the identical GLM; constant last),
 //   the ANES 1996 binary vote (binomial/logit on logpopul, selfLR, age, educ, income; constant last) and Engel food

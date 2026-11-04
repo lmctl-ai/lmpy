@@ -1,4 +1,4 @@
-// access: write (a temporary spatial-neighbours.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../spatial-neighbours.lms. 40 deterministic pseudo-random "depots" in the unit square and
 //   5 "customers": the 3 nearest depots of every customer (knn), the area and perimeter of the region the depots span (hull)
 //   and the depot-to-depot distance matrix (cdist). Every answer is cross-checked inside the DSL without trusting the library:

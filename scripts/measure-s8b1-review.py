@@ -15,6 +15,6 @@ with tempfile.TemporaryDirectory(dir='/tmp') as tmp:
         p=dict(base,task=task,out=task+'.safetensors',**extra);start=time.monotonic()
         r=subprocess.run(['/usr/local/bin/pycli','--input-json',json.dumps({'op':'la_sparse_to','params':p})],cwd=d,text=True,capture_output=True)
         out=json.loads(r.stdout);peak=pathlib.Path('/sys/fs/cgroup/memory.peak')
-        results.append(dict(task=task,stored_entries=10000,n_times_entries=20000000,wall_s=time.monotonic()-start,exit_code=r.returncode,result=out,cgroup_peak_bytes=int(peak.read_text()),cumulative_child_peak_rss_kib=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss))
+        results.append(dict(task=task,stored_entries=10000,n_times_entries=20000000,wall_s=time.monotonic()-start,exit_code=r.returncode,result=out,cgroup_peak_bytes=int(peak.read_text(encoding='utf-8')),cumulative_child_peak_rss_kib=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss))
         assert r.returncode==0 and out['status']=='OK',results[-1]
     print(json.dumps(results,indent=2))

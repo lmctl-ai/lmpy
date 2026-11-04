@@ -797,9 +797,9 @@ print('ok')
 
     def test_worker_source_has_no_formula_or_patsy_import(self):
         import re
-        source = ''.join((ROOT / 'py' / name).read_text() for name in ('sm.py', 'worker.py', 'numerics.py'))
+        source = ''.join((ROOT / 'py' / name).read_text(encoding='utf-8') for name in ('sm.py', 'worker.py', 'numerics.py'))
         self.assertEqual(re.findall(r'^\s*(?:import|from)\s+(?:patsy|formulaic)\b', source, flags=re.M), [])
-        self.assertNotIn('statsmodels.formula', ''.join(l for l in (ROOT / 'py/sm.py').read_text().splitlines(True) if not l.lstrip().startswith(('#', '"""'))).replace("'statsmodels.formula.api'", ''))
+        self.assertNotIn('statsmodels.formula', ''.join(l for l in (ROOT / 'py/sm.py').read_text(encoding='utf-8').splitlines(True) if not l.lstrip().startswith(('#', '"""'))).replace("'statsmodels.formula.api'", ''))
         self.assertNotRegex(source, r'from_formula|\bsmf\b|\bdmatrices?\b')
 
 
@@ -902,7 +902,7 @@ class ReviewS5(Base):
             close(self, q['values'], ref['values'], 1e-12, 1e-14, 'pacf scale %g' % scale)
 
     def test_patsy_licence_label(self):  # Astra 3
-        text = (ROOT / 'THIRD_PARTY_NOTICES.md').read_text()
+        text = (ROOT / 'THIRD_PARTY_NOTICES.md').read_text(encoding='utf-8')
         line = next(l for l in text.splitlines() if 'patsy 1.0.3 (' in l)
         self.assertIn('BSD-2-Clause', line)
         self.assertNotIn('BSD-3-Clause', line)

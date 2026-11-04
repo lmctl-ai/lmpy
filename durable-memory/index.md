@@ -5,3 +5,5 @@
   bytecode (no Python, R or Docker); build/test, libraries, conventions for op families and examples.
 - [native-plan.md](native-plan.md): the earlier Rust/lmapi design; its op mapping, tolerance tiers and clean-room rules
   still apply, its language choice is superseded by native-dsl.md.
+
+- [Native invocation envelope](invocation-envelope.md)

@@ -1,4 +1,4 @@
-// access: write (a temporary tut-arima-acf.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: autocorrelation and an AR(1) forecast (after: the R ?arima / ?acf help-page examples and the statsmodels ARMA notebook)
 // What it does: the _lmcode_ version of ../tut-arima-acf.lms. One DSL program computes the sample ACF and PACF (ywm) of a simulated AR(1)
 //   series, fits ARIMA(1,0,0) with a constant by exact maximum likelihood (`arima`), forecasts ten steps with intervals, runs a

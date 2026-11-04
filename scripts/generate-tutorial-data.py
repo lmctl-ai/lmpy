@@ -112,7 +112,7 @@ def main():
     for name, text in tables():
         path = OUT / name
         if args.check:
-            if not path.exists() or path.read_text() != text:
+            if not path.exists() or path.read_text(encoding='utf-8') != text:
                 print('DRIFT', path); bad += 1
         else:
             path.write_text(text); print('wrote', path, len(text.splitlines()) - 1, 'rows')

@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: sklearn-linear-diabetes.py, the scikit-learn user guide 1.1 snippets (LinearRegression on three
 //   collinear points, Ridge(alpha=.5), Lasso(alpha=0.1)) and the gallery "Linear Regression Example" (diabetes bmi, last 20
 //   rows held out), extended to all ten diabetes features with the same estimators. The lmpy version fits ml_fit linear /

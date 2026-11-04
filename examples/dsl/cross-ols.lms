@@ -1,4 +1,4 @@
-// access: write (a temporary cross-ols.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Cross-language agreement: ordinary least squares in lmpy (`ols`) and R (lm).
 // What it does: the _lmcode_ version of ../cross-ols.lms. Reads examples/data/tut-ols.csv, fits y ~ x1 + x2 and compares the three
 //   coefficients, their standard errors, R^2 and sigma with R 4.3.3 lm() values pinned here (Rscript: summary(lm(y ~ x1 + x2))).

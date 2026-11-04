@@ -9,3 +9,5 @@ native/cpp/stdlib/** -text
 native/cpp/std/** -text
 native/sdk.lock -text
 *.sh text eol=lf
+*.lmcode binary
+native/scripts/merge-std.py -text

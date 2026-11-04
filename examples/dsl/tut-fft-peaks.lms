@@ -1,4 +1,4 @@
-// access: write (a temporary tut-fft-peaks.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: the spectrum of a noisy two-tone signal and peak finding (after: the scipy-lectures signal processing chapter and the
 //   scipy.signal periodogram / find_peaks tutorials)
 // What it does: the _lmcode_ version of ../tut-fft-peaks.lms. Reads the sampled signal (read_csv; no npz/safetensors round trip), estimates

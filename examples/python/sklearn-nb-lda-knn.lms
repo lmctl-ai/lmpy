@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: sklearn-nb-lda-knn.py, the scikit-learn user guide GaussianNB example (iris, test_size=0.5,
 //   random_state=0: 4 of 75 points mislabeled) and the gallery "Importance of Feature Scaling" on wine
 //   (test_size=0.30, random_state=42): KNeighborsClassifier(n_neighbors=20) on (proline, hue) unscaled and scaled,

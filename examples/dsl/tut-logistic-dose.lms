@@ -1,4 +1,4 @@
-// access: write (a temporary tut-logistic-dose.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: logistic dose-response and the median lethal dose (after: the R ?glm budworm example in MASS)
 // What it does: the _lmcode_ version of ../tut-logistic-dose.lms. Fits dead ~ ldose with a binomial GLM (logit link, `glm`) on one row
 //   per insect, evaluates the fitted curve at the tested doses through `special("expit", ...)`, locates the dose with 50% mortality

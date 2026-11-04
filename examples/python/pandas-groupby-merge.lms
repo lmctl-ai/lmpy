@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: pandas-groupby-merge.py, the "10 minutes to pandas" Grouping, Merge, pivot_table and describe
 //   examples plus the merging user guide's two-key left join and outer join with indicator. The random columns come from
 //   rng(2024), the same stream as numpy.random.default_rng(2024) in the .py (drawn in the same order).

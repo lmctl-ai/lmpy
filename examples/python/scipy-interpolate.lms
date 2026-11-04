@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-interpolate.py, the SciPy reference examples for scipy.interpolate.CubicSpline (sin on 0..9 with
 //   S, S', S'', S''' on arange(-0.5, 9.6, 0.1), extrapolated; the periodic unit circle), Akima1DInterpolator (akima versus
 //   makima on [-1, -1, -1, 0, 1, 1, 1]) with PchipInterpolator as in the 1-D tutorial, make_smoothing_spline

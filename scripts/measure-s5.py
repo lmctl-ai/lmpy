@@ -2,7 +2,7 @@
 Usage: python3 scripts/measure-s5.py pycli:runtime > docs/measurement-s5-shim.json"""
 import json, pathlib, statistics, subprocess, sys, tempfile, time
 root = pathlib.Path(__file__).resolve().parents[1]
-data = json.loads((root / 'tests/fixtures/s5-r-golden.json').read_text())['data']
+data = json.loads((root / 'tests/fixtures/s5-r-golden.json').read_text(encoding='utf-8'))['data']
 image = sys.argv[1]
 
 
@@ -17,7 +17,7 @@ results = {'image_bytes': int(subprocess.check_output(['docker', 'image', 'inspe
 with tempfile.TemporaryDirectory(dir='.') as directory:
     work = pathlib.Path(directory)
     shim = work / 'pycli'
-    shim.write_text(pathlib.Path('bin/pycli').read_text().replace('pycli:runtime', image))
+    shim.write_text(pathlib.Path('bin/pycli').read_text(encoding='utf-8').replace('pycli:runtime', image))
     shim.chmod(0o755)
     counter = [0]
 

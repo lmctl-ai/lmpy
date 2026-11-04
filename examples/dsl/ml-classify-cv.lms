@@ -1,4 +1,4 @@
-// access: write (ml-classify-cv-model.json and a temporary ml-classify-cv.dslb, both removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../ml-classify-cv.lms. Generates 40 labelled points (x = (i - 20)/5, y = x > 0), runs a
 //   stratified, shuffled 4-fold cross-validation of a standardised logistic classifier (accuracy and log loss), fits the same
 //   model on all rows, saves it, reloads it and reports the class probabilities at x = -2, 0, 2.

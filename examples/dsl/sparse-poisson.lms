@@ -1,4 +1,4 @@
-// access: write (temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../sparse-poisson.lms. Assembles the 1-D Poisson matrix tridiagonal(-1, 2) from COO triplets in
 //   the DSL, solves -u'' = 2 on (0, 1) (the exact solution u(x) = x (1 - x) is reproduced exactly by the 3-point scheme) with a direct
 //   sparse LU, conjugate gradient and GMRES, and finds the smallest and largest three eigenvalues with seeded Lanczos (eigsh) against the

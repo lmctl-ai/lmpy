@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-metrics.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-metrics.lms. Scores one set of binary predictions (8 rows: label, hard
 //   prediction, probability) with ml_metrics and checks every number against values worked out by hand from the confusion
 //   counts. The original's lmda eval_classify / eval_roc leg agreed with the same hand values to 1e-12; they are the pinned

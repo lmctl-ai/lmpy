@@ -14,7 +14,7 @@ results = {'image_bytes': int(subprocess.check_output(['docker', 'image', 'inspe
 with tempfile.TemporaryDirectory(dir='.') as directory:
     work = pathlib.Path(directory)
     shim = work / 'pycli'
-    shim.write_text(pathlib.Path('bin/pycli').read_text().replace('pycli:runtime', image))
+    shim.write_text(pathlib.Path('bin/pycli').read_text(encoding='utf-8').replace('pycli:runtime', image))
     shim.chmod(0o755)
 
     def invoke(op, params):

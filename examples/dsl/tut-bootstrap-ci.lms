@@ -1,4 +1,4 @@
-// access: write (a temporary tut-bootstrap-ci.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: a seeded bootstrap confidence interval for the mean of a skewed sample (after: the scipy-lectures statistics chapter and
 //   the classic "bootstrap the mean" exercise)
 // What it does: the _lmcode_ version of ../tut-bootstrap-ci.lms. Loads the sample, draws 1000 bootstrap resamples with explicit PCG64

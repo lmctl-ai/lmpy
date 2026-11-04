@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-quad.py, the SciPy integration tutorial and the quad/dblquad reference examples. lmpy's quad is
 //   QUADPACK (QAGS, QAGI for infinite limits) with scipy's defaults (epsabs 1.49e-8, epsrel 1.49e-8, limit 50).
 //   - J_2.5 has no expression-grammar function, so the integrand is its closed form (a spherical Bessel function):

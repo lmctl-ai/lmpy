@@ -1,4 +1,4 @@
-// access: write (temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-frame.lms. An outer join with duplicate keys on both sides and keys present on one side
 //   only, and 3-row trailing rolling windows (mean, sum, std, min, max, median). The original compared pycli with lmda row by row; here
 //   the join is checked against the hand join (which both tools reproduced) and the rolling windows against hand values and pandas

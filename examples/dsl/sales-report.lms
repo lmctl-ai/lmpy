@@ -1,4 +1,4 @@
-// access: write (the generated sales CSV and the weekly report, removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../sales-report.lms. Generates 14 days of UTC sales, keeps the rows with sales >= 50 sorted by time,
 //   aggregates per region (sum, mean, count) and per week (pandas "1W": weeks ending on Sunday, labelled by that Sunday), exports the
 //   weekly table as CSV and checks the region sums against hand-computed totals.

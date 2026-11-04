@@ -2,7 +2,7 @@
 import hashlib,importlib.metadata as metadata,json,pathlib,sys
 root=pathlib.Path(__file__).resolve().parents[1]
 licenses=root/'licenses'
-manifest=json.loads((licenses/'manifest.json').read_text())
+manifest=json.loads((licenses/'manifest.json').read_text(encoding='utf-8'))
 # Fail before emitting a misleading complete inventory.
 for package in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six','statsmodels','patsy','packaging','scikit-learn','joblib','threadpoolctl','networkx'):
     for name,digest in manifest[package]['files'].items():
@@ -70,7 +70,7 @@ def emit(title,text):
     print('## '+title+'\n\n```text');print(text.rstrip());print('```\n')
 for name in ('numpy','scipy','pandas','python-dateutil','pytz','tzdata','six','statsmodels','patsy','packaging','scikit-learn','joblib','threadpoolctl','networkx'):
     dist=metadata.distribution(name);assert dist.version==manifest[name]['version']
-    texts=[dist.locate_file(f).read_text() for f in dist.files if dist.locate_file(f).is_file() and pathlib.PurePosixPath(str(f)).name.lower().startswith(('license','copying','notice')) and '.dist-info/' in str(f)]
+    texts=[dist.locate_file(f).read_text(encoding='utf-8') for f in dist.files if dist.locate_file(f).is_file() and pathlib.PurePosixPath(str(f)).name.lower().startswith(('license','copying','notice')) and '.dist-info/' in str(f)]
     assert texts,name
     emit(name+' '+dist.version+' — full wheel notice','\n'.join(texts))
 for path in sorted(licenses.rglob('*')):

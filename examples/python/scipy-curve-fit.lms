@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-curve-fit.py, the SciPy reference example for scipy.optimize.curve_fit: a * exp(-b x) + c with
 //   a = 2.5, b = 1.3, c = 0.5 on 50 points of [0, 4] plus 0.2 * standard normal noise (numpy default_rng(2024); lmpy rng(2024)
 //   draws the same stream), fitted unconstrained (Levenberg-Marquardt, as curve_fit without bounds) and with the bounds

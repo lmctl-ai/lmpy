@@ -5,7 +5,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 BUILD="${1:-$HERE/build}"
-LMSCRIPT="${LMSCRIPT_BIN:-lmscript}"
+LMSCRIPT="$("$HERE/scripts/select-compiler.sh")"
 pass=0; failn=0
 ok() { echo "PASS $1"; pass=$((pass+1)); }
 bad() { echo "FAIL $1"; failn=$((failn+1)); }
@@ -47,5 +47,11 @@ for dir in "$ROOT/examples/dsl" "$ROOT/examples/python" "$ROOT/examples/book"; d
     if out="$(LMPY="$BIN" "$LMSCRIPT" "$ex.lms" 2>&1)"; then ok "example $tag"; else bad "example $tag"; echo "$out" | tail -5 | sed 's/^/    /'; fi
   done
 done
+cd "$ROOT"
+export LMSCRIPT_BIN="$LMSCRIPT" LMPY_HOST="$BIN" LMPY_SHIM="$BUILD/invocation_shim"
+case "$os" in windows)
+  export LMPY_HOST="$(cd "$BUILD" && pwd -W)/lmpy.exe"
+  export LMPY_SHIM="$(cd "$BUILD" && pwd -W)/invocation_shim.exe";; esac
+python3 "$HERE/tests/protocol.py" && ok "invocation framing, payloads, dry mode and failures" || bad "invocation protocol"
 echo "lmpy gate: $pass passed, $failn failed"
 [ "$failn" -eq 0 ]

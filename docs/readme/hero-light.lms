@@ -10,10 +10,9 @@ out.put("quantile", q);
 out.put("intercept", fit.vec("x").at(0));
 out.put("slope", fit.vec("x").at(1));
 end _lmcode_
-savedsl(stats, "build/readme-hero-stats.dslb");
-r = system ${dsl_cli(stats)} --lmcode build/readme-hero-stats.dslb;
-if (r.code != 0) { println("lmpy failed: " + trim(r.stderr)); exit(r.code); }
-v = json_parse(r.stdout).result.values;
+r = run_lmcode(stats);
+require(r.ok, json_stringify(r));
+v = r.result.values;
 
 draw = _lmcode_ cli="lmdraw" install="github:lmctl-ai/lmdraw@latest";
 scene.canvas(1400, 600, "#f5f2eb");
@@ -36,6 +35,5 @@ scene.text(884.0, 120.0, 16.0, "NORMAL QUANTILE  /  FIT CHECKS", "#536678");
 scene.text(886.0, 482.0, 13.0, "native results, checked before drawing", "#637a88");
 scene.render_png("build/rendered/readme-hero-light.png", 1400, 600, 1);
 end _lmcode_
-savedsl(draw, "build/readme-hero-light.dslb");
-r = system ${dsl_cli(draw)} --lmcode build/readme-hero-light.dslb;
-if (r.code != 0) { println("lmdraw failed: " + trim(r.stderr)); exit(r.code); }
+r = run_lmcode(draw);
+require(r.ok, json_stringify(r));

@@ -1,4 +1,4 @@
-// access: write (a temporary tut-group-tests.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: comparing groups: two-sample t-test, one-way ANOVA and a chi-square test of independence (after: the R PlantGrowth /
 //   ToothGrowth teaching examples and the scipy-lectures statistics chapter)
 // What it does: the _lmcode_ version of ../tut-group-tests.lms. One DSL program reads the three-group table, runs the pooled t-test

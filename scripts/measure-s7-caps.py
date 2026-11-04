@@ -5,7 +5,7 @@ Each case prints: operation, exit code, status or error code, wall seconds and t
 import json,subprocess,tempfile,time,pathlib,sys,numpy as np
 def peak():
     for f in ('/sys/fs/cgroup/memory.peak','/sys/fs/cgroup/memory/memory.max_usage_in_bytes'):
-        if pathlib.Path(f).exists(): return int(pathlib.Path(f).read_text())
+        if pathlib.Path(f).exists(): return int(pathlib.Path(f).read_text(encoding='utf-8'))
 d=pathlib.Path(tempfile.mkdtemp(prefix='pycli-s7-caps-',dir='/tmp'))
 BIN='/usr/local/bin/pycli'
 def run(tag,op,params):

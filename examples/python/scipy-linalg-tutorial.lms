@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-linalg-tutorial.py, the SciPy linear algebra tutorial (inverse, solve, det, norms, eig, svd) and
 //   the reference examples of scipy.linalg.solve, det, eigh, lu and expm. Workarounds, because lmpy is real-only:
 //   - Mat.eig() returns eigenvalues only; each eigenvector is the null vector of A - lambda I (the last right singular

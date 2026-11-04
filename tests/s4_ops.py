@@ -54,7 +54,7 @@ class S4(unittest.TestCase):
    self.call(op+'_to',env=dict(os.environ,PYCLI_DRYRUN='1'),out='dry.safetensors',**p);self.assertFalse((self.cwd/'dry.safetensors').exists())
  def test_highs_license_and_primary_fixture(self):
   license=(ROOT/'licenses/scipy/subprojects/highs/LICENSE.txt').read_bytes();self.assertIn(b'MIT License',license);self.assertIn(license,(ROOT/'THIRD_PARTY_NOTICES.md').read_bytes())
-  source=json.loads((ROOT/'tests/fixtures/robertson-source.json').read_text());self.assertEqual(source['sha256'],'da31255ff43e3a13c2c0ccaed51c3cd260b8ac9d9082f34b8587c9007d9a2376');self.assertTrue(any(line==3931 and '7.158403e-01' in text for line,text in source['rows']))
+  source=json.loads((ROOT/'tests/fixtures/robertson-source.json').read_text(encoding='utf-8'));self.assertEqual(source['sha256'],'da31255ff43e3a13c2c0ccaed51c3cd260b8ac9d9082f34b8587c9007d9a2376');self.assertTrue(any(line==3931 and '7.158403e-01' in text for line,text in source['rows']))
  def test_decay_all_methods_and_backward(self):
   for method in ('RK45','RK23','DOP853','Radau','BDF','LSODA'):
    r=self.ode(method=method,rtol=1e-9,atol=1e-12);self.assertEqual(r['status'],'OK');self.assertAlmostEqual(r['final_state'][0],math.exp(-1),delta=2e-8)
@@ -93,9 +93,9 @@ class S4(unittest.TestCase):
   r=self.ode(rhs={'s':'-k*s'},y0={'s':1},params={'k':2});self.assertAlmostEqual(r['final_state'][0],math.exp(-2),delta=1e-5)
  def test_injection_and_caps_before_spawn(self):
   env=dict(os.environ,PYCLI_PYTHON='/missing-python')
-  corpus=json.loads((ROOT/'tests/expr-corpus.json').read_text())
+  corpus=json.loads((ROOT/'tests/expr-corpus.json').read_text(encoding='utf-8'))
   negative=corpus['reject'];negative=[x['expression'] if isinstance(x,dict) else x for x in negative]
-  vector=json.loads((ROOT/'tests/expr-corpus-pycli.json').read_text())
+  vector=json.loads((ROOT/'tests/expr-corpus-pycli.json').read_text(encoding='utf-8'))
   for case in vector['reject']:
    text=re.sub(r'\b[xy]\b',lambda m:{'x':'y','y':'t'}[m[0]],case['expression'])
    for path in ('rhs','events'):

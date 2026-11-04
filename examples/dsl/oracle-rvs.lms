@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-rvs.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-rvs.lms. Draws 1000 seeded variates from five families (Dist.rvs, numpy PCG64 streams) and compares
 //   the empirical distribution with R's quantile function: the fraction of the sample below R's p-quantile must be within 4.5 binomial standard
 //   errors of p, at p = 0.1, 0.25, 0.5, 0.75, 0.9. The original asked R through rcli at run time; here R's quantiles are pinned known answers

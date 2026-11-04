@@ -1,4 +1,4 @@
-// access: write (a temporary minimize-rosenbrock.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../minimize-rosenbrock.lms. Minimises Rosenbrock's function twice with `minimize`
 //   (BFGS with finite differences, then with analytic gradient expressions) and checks the known minimum (1, 1), an
 //   independent recomputation of the objective at the reported point, and that the analytic gradient needs fewer

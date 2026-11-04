@@ -1,4 +1,4 @@
-// access: write (the temperature-profile CSV, removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: simulate heat conduction along a rod and verify the simulation, in one native program.
 //   1. assemble the 1-D Laplacian on 199 interior grid points as a sparse matrix;
 //   2. build the Crank-Nicolson operators A = I + r/2 L and B = I - r/2 L (r = alpha dt / h^2);

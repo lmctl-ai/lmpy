@@ -4,8 +4,8 @@ release sections cannot drift from the code. Pure Python, no container: it reads
 import json, pathlib, re, subprocess, sys, unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 BIN = pathlib.Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 and not sys.argv[1].startswith('-') else None
-SCHEMA = json.loads((ROOT / 'cli.schema.dev.json').read_text())
-README = (ROOT / 'README.md').read_text()
+SCHEMA = json.loads((ROOT / 'cli.schema.dev.json').read_text(encoding='utf-8'))
+README = (ROOT / 'README.md').read_text(encoding='utf-8')
 OPS = [o['name'] for o in SCHEMA['operations']]
 
 
@@ -51,7 +51,7 @@ class Reference(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr + r.stdout)
 
     def test_every_documented_status_or_code_appears_in_the_reference(self):
-        reference = (ROOT / 'docs/reference.md').read_text()
+        reference = (ROOT / 'docs/reference.md').read_text(encoding='utf-8')
         for status in ('OK', 'TIME_LIMIT', 'NUMERICAL_FAILURE', 'OUTPUT_TOO_LARGE', 'INPUT_TOO_LARGE', 'NEGATIVE_CYCLE', 'OUT_OF_RANGE', 'PY_ERROR', 'TOOL_CRASH'):
             self.assertIn('| `%s` |' % status, reference, status)
         for code, exit_code in (('VALIDATION_ERROR', 2), ('PARSE_ERROR', 3), ('NOT_FOUND', 4), ('CONFLICT', 5), ('TIMEOUT', 7), ('SERVICE_UNAVAILABLE', 8), ('COMMAND_FAILED', 1)):
@@ -62,9 +62,9 @@ class Version(unittest.TestCase):
     def test_one_version_string_everywhere(self):
         version = SCHEMA['version']
         self.assertRegex(version, r'^\d+\.\d+\.\d+$')
-        cmake = (ROOT / 'CMakeLists.txt').read_text()
+        cmake = (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8')
         self.assertIn('project(pycli VERSION %s ' % version, cmake)
-        changelog = (ROOT / 'CHANGELOG.md').read_text()
+        changelog = (ROOT / 'CHANGELOG.md').read_text(encoding='utf-8')
         self.assertTrue(re.search(r'^## \[%s\]' % re.escape(version), changelog, re.M), 'CHANGELOG.md must have a release section for the schema version')
         self.assertTrue((ROOT / 'RELEASE.md').exists())
         if BIN is not None:

@@ -1,4 +1,4 @@
-// access: write (the predictions CSV and the saved model, removed; a temporary .dslb)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Task: build, validate and ship a species classifier from a raw CSV, in one native program.
 //   1. read the measurements and encode the species text labels as class codes;
 //   2. standardise the four features and project them on two principal components (how much variance do they keep?);

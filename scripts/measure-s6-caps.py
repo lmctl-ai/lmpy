@@ -5,7 +5,7 @@ import json,pathlib,subprocess,tempfile,time
 import numpy as np
 def peak():
  for p in ['/sys/fs/cgroup/memory.peak','/sys/fs/cgroup/memory/memory.max_usage_in_bytes']:
-  if pathlib.Path(p).exists():return int(pathlib.Path(p).read_text())
+  if pathlib.Path(p).exists():return int(pathlib.Path(p).read_text(encoding='utf-8'))
 def run(root,op,p):
  start=time.monotonic();r=subprocess.run(['/usr/local/bin/pycli',op,'--input-json',json.dumps(p)],cwd=root,capture_output=True,text=True);j=json.loads(r.stdout)
  return {'exit':r.returncode,'seconds':round(time.monotonic()-start,3),'status':j.get('status'),'error':j.get('error'),'response_bytes':len(r.stdout.encode()),'peak_bytes_so_far':peak()}

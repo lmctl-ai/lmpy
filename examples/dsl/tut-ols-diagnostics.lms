@@ -1,4 +1,4 @@
-// access: write (a temporary tut-ols-diagnostics.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: ordinary least squares with diagnostics (after: the statsmodels "OLS" example notebook)
 // What it does: the _lmcode_ version of ../tut-ols-diagnostics.lms. Fits y ~ x1 + x2 with `ols` straight from the CSV (residuals
 //   included), reports the coefficient table and the diagnostics (sigma, Durbin-Watson, condition number), recomputes the F-test

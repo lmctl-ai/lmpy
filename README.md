@@ -25,7 +25,7 @@ Recover and check a known solution. [Source](examples/book/matrix-solve.lms) · 
 
 ## How it works
 
-The diagram is rendered with [lmdraw](https://github.com/lmctl-ai/lmdraw) from [docs/readme/architecture-light.lms](docs/readme/architecture-light.lms). lmpy checks the example result used in the final node; its host emits one JSON result line for the calling LMScript program.
+The diagram is rendered with [lmdraw](https://github.com/lmctl-ai/lmdraw) from [docs/readme/architecture-light.lms](docs/readme/architecture-light.lms). lmpy checks the example result used in the final node; its host emits one framed invocation result for the calling LMScript program.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/readme/architecture-dark.png">

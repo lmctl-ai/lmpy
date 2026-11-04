@@ -1,4 +1,4 @@
-// access: write (a temporary tut-glm-poisson.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: Poisson regression for counts with an exposure offset (after: the R ?glm help page and the statsmodels GLM notebook)
 // What it does: the _lmcode_ version of ../tut-glm-poisson.lms. Fits count ~ C(group, A) with hours as the exposure by `glm` (poisson,
 //   log link), reports rate ratios with intervals, refers the deviance drop to chi-square(df_model) with `dist`, and checks the group

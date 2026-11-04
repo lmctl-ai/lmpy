@@ -1,4 +1,4 @@
-// access: write (a temporary tut-graph-roads.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: shortest paths on a road network (after: the networkx shortest-path tutorial and the CLRS Dijkstra / Bellman-Ford examples)
 // What it does: the _lmcode_ version of ../tut-graph-roads.lms. Reads a two-way road table, finds the shortest route A -> J with
 //   Dijkstra, confirms it with Bellman-Ford and with the three shortest simple routes (Yen), counts the fewest road segments

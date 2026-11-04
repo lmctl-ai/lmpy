@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-dist.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-dist.lms. Evaluates pdf/pmf, log pdf, cdf, survival function and quantiles of the seven families that
 //   pycli stats_dist and R both implement (norm, t, chi2/chisq, gamma, beta, binom, poisson/pois) and compares every value with R's, relative error
 //   <= 1e-12 (absolute when R's value is exactly 0). The original asked R through rcli at run time; here R's values are pinned known answers,

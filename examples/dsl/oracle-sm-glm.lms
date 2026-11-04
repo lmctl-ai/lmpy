@@ -1,4 +1,4 @@
-// access: write (a temporary oracle-sm-glm.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../oracle-sm-glm.lms. Fits a Poisson regression (count ~ x1 + x2, log link) with `glm` and
 //   checks the coefficients, standard errors, deviance and AIC against R 4.3.3 glm() (the golden constants of the original). The
 //   original's rcli and statsrust legs fitted the same model and are covered by these constants.

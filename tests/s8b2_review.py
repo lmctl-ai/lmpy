@@ -680,10 +680,10 @@ class DistReview(unittest.TestCase):
         schema = json.loads(subprocess.run([BIN, '--schema'], capture_output=True, text=True, check=True).stdout)
         dist = [p for p in [o for o in schema['operations'] if o['name'] == 'stats_dist'][0]['params'] if p['name'] == 'dist'][0]
         self.assertEqual(len(dist['enum']), 31)
-        for text in ((ROOT / 'README.md').read_text(), (ROOT / 'docs/s8b2.md').read_text(), (ROOT / 'docs/s8b.md').read_text()):
+        for text in ((ROOT / 'README.md').read_text(encoding='utf-8'), (ROOT / 'docs/s8b2.md').read_text(encoding='utf-8'), (ROOT / 'docs/s8b.md').read_text(encoding='utf-8')):
             self.assertNotIn('34 families', text)
             self.assertNotIn('34 `stats_dist` families', text)
-        self.assertIn('except Student-t `df`', (ROOT / 'docs/s8b2.md').read_text())
+        self.assertIn('except Student-t `df`', (ROOT / 'docs/s8b2.md').read_text(encoding='utf-8'))
         self.assertAlmostEqual(values('t', 'cdf', [0.0], {'df': 1e300})[0], 0.5, places=15)
         rejected('stats_dist', dict(dist='nct', fn='cdf', params={'df': 1e13, 'nc': 1.0}, x=[0.0]), 'BAD_PARAM')
         rejected('stats_dist', dict(dist='norm', fn='cdf', params={'loc': 1e13}, x=[0.0]), 'BAD_PARAM')

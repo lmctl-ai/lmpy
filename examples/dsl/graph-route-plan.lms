@@ -1,4 +1,4 @@
-// access: write (a temporary graph-route-plan.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../graph-route-plan.lms. Two edge lists as CSV text (a road network with travel minutes,
 //   and a pipe network with capacities and unit costs) -> frames -> graphs -> shortest route, the three best routes, the
 //   Bellman-Ford and BFS cross-checks, then maximum flow, minimum cut and minimum-cost flow -> a short report. Every number is

@@ -1,4 +1,4 @@
-// access: write (a temporary curve-fit.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // What it does: the _lmcode_ version of ../curve-fit.lms. Generates exponential-decay data y = c + a*exp(-b*t) plus
 //   closed-form deterministic pseudo-noise, fits it with `least_squares` (model + response, data bound with `$t`, `$y`),
 //   and checks the recovered parameters, the residual level, the reported standard errors and an independent

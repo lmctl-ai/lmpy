@@ -58,3 +58,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND NOT APPLE AND NOT WIN32)
     target_link_options(lmpy PRIVATE -static)
   endif()
 endif()
+
+add_executable(invocation_shim tests/shim.cpp)
+if(WIN32)
+  target_link_options(invocation_shim PRIVATE -static)
+endif()

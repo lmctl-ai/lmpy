@@ -1,4 +1,4 @@
-// access: write (a temporary tut-kmeans-cv.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Topic: clustering and classification with cross-validation on an iris-style table (after: the scikit-learn user guide's
 //   k-means and cross-validation sections and the classic iris tutorial)
 // What it does: the _lmcode_ version of ../tut-kmeans-cv.lms, in one native program: clusters the petal measurements with k-means

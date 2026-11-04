@@ -1,4 +1,4 @@
-// access: write (a temporary cross-glm.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Cross-language agreement: logistic and Poisson generalized linear models in lmpy (`glm`, IRLS after statsmodels) and R (glm).
 // What it does: the _lmcode_ version of ../cross-glm.lms. Fits dead ~ ldose (binomial, logit) on examples/data/tut-dose.csv and
 //   count ~ C(group, A) with hours as the exposure (Poisson, log) on examples/data/tut-poisson.csv in one DSL program and compares

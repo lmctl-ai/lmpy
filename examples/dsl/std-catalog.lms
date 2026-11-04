@@ -1,4 +1,4 @@
-// access: write (a temporary std-catalog.dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // The lmcode std v1 catalog next to lmpy's own API: the lmcode-cpp runtime installs the std functions and lmscript (>= 0.2.420)
 // declares them, so lmpy registers none of them and its schema stays host-only; a block can still mix both.
 // What it does: reads examples/data/tut-groups.csv as text with file_lines, splits each row with str_split, trims it with

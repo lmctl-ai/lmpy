@@ -39,7 +39,7 @@ esac
     colon.mkdir()
     p = subprocess.run([str(shim), "--schema"], cwd=colon, env=env, text=True, capture_output=True)
     assert p.returncode == 0 and json.loads(p.stdout)["success"] is True, (p.returncode, p.stdout, p.stderr)
-    argv = args_file.read_text().splitlines()
+    argv = args_file.read_text(encoding='utf-8').splitlines()
     assert argv[argv.index("--mount") + 1] == f"type=bind,src={colon},dst={colon}", argv
     assert "--network=none" in argv and "--cpus=2" in argv and "--memory=4g" in argv
     assert all(flag in argv for flag in ("--read-only", "--cap-drop=ALL", "--pids-limit=128", "--security-opt=no-new-privileges", "--init", "--pull=never"))
@@ -73,7 +73,7 @@ esac
     while not all((root/('started-'+str(i))).exists() for i in range(2)) and time.monotonic()<deadline: time.sleep(.02)
     dirs=[]
     for i in range(2):
-        args=(root/('args-'+str(i))).read_text().splitlines()
+        args=(root/('args-'+str(i))).read_text(encoding='utf-8').splitlines()
         dirs.append(args[args.index('--name')+1])
     assert dirs[0]!=dirs[1], 'concurrent calls share a container name'
     for peer in peers:

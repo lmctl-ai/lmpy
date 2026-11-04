@@ -1,4 +1,4 @@
-// access: write (a temporary .dslb, removed)
+// access: write (compiler-managed invocation and any documented example artifacts)
 // Python original: scipy-butter-sosfilt.py, the SciPy reference examples for scipy.signal.butter (10 Hz + 20 Hz tones at
 //   1 kHz through a 10th-order 15 Hz high-pass, sosfilt), scipy.signal.sosfiltfilt (noisy step, 4th-order low-pass at 0.125,
 //   zero-phase; noise from default_rng(2024)) and scipy.signal.freqz_sos (15th-order elliptic band-pass 0.2..0.4, 1500 points).
